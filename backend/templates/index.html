@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>QLever UI - SPARQL+Text Engine</title>
+    <meta charset="utf-8"/>
+    <!-- The stylesheets for this page -->
+    <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+    <!-- Own CSS Code for the UI  -->
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/show-hint.css">
+    <!-- Bootstraps CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <!-- The basic jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <!-- Additional jquery UI stuff -->
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <!-- Bootstraps JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- Our own JavaScript code for this demo -->
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+    <script src="/static/js/samples.js"></script>
+    <script src="/static/js/codemirror.js"></script>
+	<script src="/static/js/mode/sparql/sparql.js"></script>
+	<script src="/static/js/show-hint.js"></script>
+	<script src="/static/js/active-line.js"></script>
+	<script src="/static/js/mode/sparql/sparql-hint.js"></script>
+	{% if request.GET.test %}
+	<link rel="shortcut icon" type="image/png" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png">
+	<link rel="stylesheet" type="text/css" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.css">
+
+	<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.js"></script>
+	<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js"></script>
+	<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/boot.js"></script>
+	<script type="text/javascript" src="/static/tests/interface.js"></script>
+	{% endif %}
+</head>
+
+<body>
+<header>
+	<nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/"><i class="glyphicon glyphicon-flash"></i> QLever UI</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+	          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Resources <span class="caret"></span></a>
+	          <ul class="dropdown-menu">
+	            {% if request.user.is_authenticated %}
+	            	<h6 class="dropdown-header">Internal Documents</h6>
+		            <li><a href="http://ad-wiki.informatik.uni-freiburg.de/teaching/BachelorAndMasterProjectsAndTheses/SparqlTextUI" target="_blank"><i class="glyphicon glyphicon-eye-close"></i>  Project Description</a></li>
+		            <li><a href="https://docs.google.com/document/d/1gy3z3UkyicYaF75ZXsxTEzS8c28hPTFa6dQU6Y0dj0o/edit" target="_blank"><i class="glyphicon glyphicon-eye-close"></i>  Google Doc</a></li>
+		        {% endif %}
+		        <h6 class="dropdown-header">QLever UI Components</h6>
+	            <li><a href="/admin" target="_blank"><i class="glyphicon glyphicon-cog"></i>&nbsp; QLever UI Admin</a></li>
+	            <li><a href="?test=jasmine"><i class="glyphicon glyphicon-play"></i>&nbsp; Run UI Tests</a></li>
+	            <h6 class="dropdown-header">Other Resources</h6>
+				<li><a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank"><i class="glyphicon glyphicon-folder-open"></i>&nbsp; QLever Publication</a></li>
+				<li><a href="https://github.com/ad-freiburg/QLever" target="_blank"><i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub</a></li>
+	            <li><a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/" target="_blank"><i class="glyphicon glyphicon glyphicon-tasks"></i>&nbsp; QLever UI Website</a></li>
+	          </ul>
+	        </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+</header>
+
+<div id="main" class="container">
+	<!-- The backends block -->
+	<div class="btn-group" role="group" >
+	  <button onclick="$('#stats').toggle();" class="btn btn-default" id="statsButton"><i class="glyphicon glyphicon-stats"></i> Loading information...</button>
+	  <div class="btn-group" role="group">
+	    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{% if request.session.backend %}{{ request.session.backendName }}{% else %}Choose backend{% endif %}
+		  <span class="caret"></span></button>
+		  <ul class="dropdown-menu">
+	     {% for backend in backends %}
+			<li><a href="?backend={{ backend.pk }}">{% if request.session.backend == backend.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ backend.name }}</a></li>
+		  {% endfor %}
+		  </ul>
+	  </div>
+	</div>
+	<div class="pull-right">
+		<button class="btn btn-default" onclick="changeTheme();"><i class="glyphicon glyphicon-adjust"></i> Switch theme</button>
+	</div>
+
+	<br><br>
+    <div id="stats" class="well">
+	    <div class="row">
+		    <div class="col-md-6">
+			    <h4>Knowledge base index</h4>
+			    <div>
+		            <span id="kbname"></span><br>
+		            <span id="ntriples"></span>
+		        </div>
+		        <div id="permstats"></div>
+		        <div id="kbstats"></div>
+		    </div>
+		    <div class="col-md-6">
+			    <h4>Fulltext index</h4>
+		        <div>
+		            <span id="textname"></span><br>
+		            <span id="nrecords"></span><br>
+		            <span id="nwo"></span><br>
+		            <span id="neo"></span>
+		        </div>
+		    </div>
+	    </div>
+    </div>
+    <div id="reindex" class="alert alert-info alert-dismissable" style="text-align: center;">
+	   <i class="glyphicon glyphicon-wrench pull-left" style="font-size: 3em; margin-top: 8px;"></i>
+	   <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+	   <div id="reindexLoader"><img src="/static/img/loader.gif"><br></div>
+	   <strong id="reindexHead">QLever UI is generating the index ...</strong>
+	   <br><br>
+	   <div id="reindexText">Please wait until this process is finished..</div>
+    </div>
+	<!-- The query block -->
+    <div class="well">
+        <div class="row">
+	        <div class="col-md-8">
+		        <textarea id="query" class="form-control"></textarea>
+		        <br>
+		        <button id="runbtn" class="btn btn-success"><i class="glyphicon glyphicon-refresh"></i> Show query results</button>
+		         <div class="btn-group" role="group">
+				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-download"></i> Download results
+					  <span class="caret"></span></button>
+					  <ul class="dropdown-menu">
+					  	<li><a class="dropdown-item" id="csvbtn" href="#csv"><i class="glyphicon glyphicon-file"></i> Download results as CSV</a></li>
+					  	<li><a class="dropdown-item" id="tsvbtn" href="#tsv"><i class="glyphicon glyphicon-file"></i> Download results as TSV</a></li>
+					  </ul>
+				  </div>
+				  <div class="btn-group pull-right" role="group">
+				    <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host + location.pathname"><i class="glyphicon glyphicon-trash"></i> Reset UI</button>
+				    <button class="btn btn-default" onclick="processQuery('?cmd=clearcache',false,this);"><i class="glyphicon glyphicon-refresh"></i> Clear cache</button>
+				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-align-left"></i> Examples
+					  <span class="caret"></span></button>
+					  <ul class="dropdown-menu">
+					  	{% for example in examples %}
+					  		<li><a onclick="example=1;editor.setValue(example{{ forloop.counter }});">{{ example.name }}{% if request.user.is_authenticated %} &nbsp; <span onclick="window.location = '/admin/backend/example/{{ example.pk }}/change/';"><i class="glyphicon glyphicon-pencil"></i></span>{% endif %}</a></li>
+					  	{% endfor %}
+					  	{% if request.user.is_authenticated %}
+					  		<li class="divider"></li>
+					  		<li><a onclick="window.location = '/admin/backend/example/add/?backend={{ request.session.backend }}&query='+encodeURI(editor.getValue());"><i class="glyphicon glyphicon-check"></i> Add current query as example</a></li>
+					  		<li><a href="/admin/backend/example/add/?backend={{ request.session.backend }}"><i class="glyphicon glyphicon-edit"></i> Add completely new example</a></li>
+					  	{% endif %}
+					  </ul>
+				</div>
+	        </div>
+	        <div class="col-md-4" id="help">
+		        <h4 style="margin-top: 0px;">QLever UI Help:</h4>
+		        <table class="table" style="margin-bottom: 9px;">
+			        <tr>
+				        <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
+				        <td><em>Invoke auto suggestions</em></td>
+			        </tr>
+			        <tr>
+				        <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
+				        <td><em>Send query to backend</em></td>
+			        </tr>
+			        <tr>
+				        <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
+				        <td><em>Search through suggestions</em></td>
+			        </tr>
+			        <tr>
+				        <td><kbd onclick="$()">enter</kbd></td>
+				        <td><em>Chose the selected suggestion</em></td>
+			        </tr>
+			        <tr>
+				        <td><kbd>esc</kbd></td>
+				        <td><em>Close suggestion window</em></td>
+			        </tr>
+			        <tr>
+				        <td><kbd>tab</kbd></td>
+				        <td><em>Jump to the next placeholder</em></td>
+			        </tr>
+		        </table>
+				
+		        <h4 style="margin-top: 5px;">QLever UI mode:</h4>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="clear"> Clear the cache before every request
+					</label>
+				</div>
+				<select class="form-control" id="dynamicSuggestions">
+					<option value="0" {% if request.session.backendSuggestions == 0 %}selected="selected"{% endif %}>1. SPARQL syntax & keywords only</option>
+					<option value="1" {% if request.session.backendSuggestions == 1 %}selected="selected"{% endif %}>2. SPARQL & context insensitive entities</option>
+					<option value="2" {% if request.session.backendSuggestions == 2 %}selected="selected"{% endif %}>3. SPARQL & context sensitive entities</option>
+				</select>
+	        </div>
+        </div>
+        <br>
+    </div>
+
+    <!-- The Info block -->
+    <div class="alert alert-success" id="infoBlock" style="display: none; text-align: center;">
+        <img src="/static/img/loader.gif"><br><br>
+        <h4 id="info"></h4>
+    </div>
+
+    <!-- The anwer block -->
+    <div class="well" id="answerBlock" style="display: none">
+	    <h3 class="pull-left">Query results:</h3>
+	    <div class="btn-group pull-right" role="group">
+			<button class="btn btn-default disabled"><i class="glyphicon glyphicon-list"></i> <span id="resultSize"></span> lines found</button>
+			<button class="btn btn-default disabled"><i class="glyphicon glyphicon-time"></i> <span id="totalTime"></span> in total</button>
+			<button class="btn btn-default disabled"><i class="glyphicon glyphicon-cog"></i> <span id="computationTime"></span> for computation</button>
+			<button class="btn btn-default disabled"><i class="glyphicon glyphicon-transfer"></i> <span id="jsonTime"></span> for resolving and sending</button>
+	    </div>
+	    <br><br><br>
+        <div id="answer"></div>
+        <div style="overflow-x: scroll;">
+	        <table id="resTable" class="table table-striped">
+			    <thead class="thead-dark"></thead>
+			    <tbody></tbody>
+		    </table>
+        </div>
+    </div>
+
+    <!-- The error block -->
+    <div class="alert alert-danger" id="errorBlock" style="display: none">
+        <div id="errorReason"><h3>Error:</h3></div>
+    </div>
+    
+    <div class="well">
+	    <i class="glyphicon glyphicon-minus pull-right" onclick="$('#cheatsheet').slideToggle()" style="font-size: 1.5em;" data-toggle="tooltip" title="Slide in / slide out"></i>
+	    <h3>Cheatsheet:</h3>
+	    <div id="cheatsheet">
+		    <br>
+			<div class="row">
+				<div class="col-md-4">
+					<ul class="nav nav-pills nav-stacked" role="tablist">
+					    <li role="presentation" class="active"><a href="#template" aria-controls="template" role="tab" data-toggle="tab">Basic template</a></li>
+					    <li role="presentation"><a href="#suggestion" aria-controls="suggestion" role="tab" data-toggle="tab">Autosuggestions</a></li>
+					    <li role="presentation"><a href="#placeholder" aria-controls="placeholder" role="tab" data-toggle="tab">Placeholders</a></li>
+					    <li role="presentation"><a href="#fulltext" aria-controls="fulltext" role="tab" data-toggle="tab">Full-Text-Search</a></li>
+					    <li role="presentation"><a href="#limitations" aria-controls="limitations" role="tab" data-toggle="tab">Features & Limitations</a></li>
+					</ul>
+				</div>
+				<div class="col-md-8">
+					<!-- Tab panes -->
+					<div class="tab-content">
+					    <div role="tabpanel" class="tab-pane active" id="template">
+						    The basic template of a SPARQL query as suggested by the UI initially looks like this:
+						    <br><br>
+						    <pre>SELECT [DISTINCT] [variables] WHERE {
+	  [subject] [predicate] [object] .
+	  [subject] [predicate] [object] .
+	}
+	LIMIT [LIMIT]
+	ORDER BY [ASC|DESC]</pre>
+							<strong>Please note the following hints:</strong>
+							<ul>
+								<li>You may need to add a prefix depending on your data set. If prefixes are available in your source they will be suggested by our UI automatically.</li>
+								<li>You should end lines in where clause with dots - otherwise QLever does not know that you want to connect those two lines with an AND operation.</li>
+								<li>DISTINCT, LIMIT and ORDER BY are optional - you don't need to add them to your query if not necessary.</li>
+							</ul>
+					    </div>
+					    <div role="tabpanel" class="tab-pane" id="suggestion">
+						    Autosuggestions are made based on your position inside the query and the input you currently type. QLever UI evaluates the query you wrote in order to make context sensitive suggestions
+							which leads to less but more relevant suggestions. Suggestions are usually ordered by their occurrence frequency. A small badge on the current lines indicates the amount of records that matches.
+							<br><br> 
+							<strong>If you get no suggestions that might have different reasons:</strong>
+							<ul>
+								<li>There are no keywords or data points that match the word your are currently typing</li>
+								<li>The evaluation of your existing query indicates that there will be no matches</li>
+								<li>You have a syntax error in you query (e.g. miss a dot at the end of a line)</li>
+								<li>Your QLever backend or your internet connection has gone away and does not respond anymore. This is usually indicated by a red cross on the line.</li>
+							</ul>
+					    </div>
+					    <div role="tabpanel" class="tab-pane" id="placeholder">
+						    As soon as your query contains at least a standard template (as suggested by the UI) you can easily switch through placeholder positions by using the TAB key.
+						    <br><br>
+						    <pre>SELECT [PLACEHOLDER 1] WHERE {
+	  [PLACEHOLDER 2]
+	}
+	[PLACEHOLDER 3]</pre>
+						This will help you to easily navigate through your code and add lines, variables and limits / ordering without navigating with your mouse or your arrow pane. 
+					    </div>
+					    <div role="tabpanel" class="tab-pane" id="fulltext">
+						    When your backend contains fulltext data (you can check in the statistics pane) you can use the fulltext search features of QLever. You can make use of them by writing a query like this:<br><br>
+						    <pre>SELECT ?person TEXT(?c) SCORE(?c) WHERE {
+	  ?c ql:contains-entity ?person .
+	  ?c ql:contains-word "land* moon"
+	}
+	TEXTLIMIT 2
+	ORDER BY DESC(SCORE(?c))</pre>
+							In this example <em>?person</em> represents the entity (subject) you filter for and <em>?c</em> represents the text pattern.
+							<br><br>
+							<strong>Note the following features:</strong>
+							<ul>
+								<li>A star * can be used to search for a prefix as done in the keyword walk*. Note that there is a min prefix size depending on settings at index build-time.</li>
+								<li>SCORE can be used to obtain the score of a text match. This is important to achieve a good ordering in the result. The typical way would be to ORDER BY DESC(SCORE(?c)).</li>
+								<li>Where ?c just matches a text record Id, TEXT(?c) can be used to extract a snippet.</li>
+								<li>TEXTLIMIT can be used to control the number of result lines per text match. The default is 1.</li>
+							</ul>
+						</div>
+					    <div role="tabpanel" class="tab-pane" id="limitations">
+						    Be aware that there are some limitations when using QLever / QLever UI because we do not support the full SPARQL specification <a href="https://www.w3.org/TR/sparql11-query/">as published by the W3C</a> at the moment. Anyway there are plenty of features available already:
+						    <br><br>
+						    <strong>Features you may use:</strong>
+						    <ul>
+							    <li>PREFIX</li>
+							    <li>SELECT [DISTINCT] ... WHERE</li>
+							    <li>ORDER BY [ASC|DESC]</li>
+							    <li>GROUP BY</li>
+							    <li>LIMIT</li>
+							    <li>FILTER REGEX(?x, "[pattern]", "i")</li>
+							    <li>(COUNT(?x) AS ?count) ... </li>
+							    <li>for SAMPLE, MIN, MAX, AVG, GROUP_CONCAT(separator=", ")</li>
+						    </ul>
+						    <br>
+						    <strong>Full-text search features added by QLever:</strong>
+						    <ul>
+							    <li>ql:contains-[entity|word]</li>
+							    <li>TEXTLIMIT</li>
+							    <li>TEXT()</li>
+							    <li>SCORE()</li>
+						    </ul>
+					    </div>
+					</div>
+				</div>
+			</div>
+    </div>
+</div>
+<br><br><br><br>
+<footer class="footer">
+    <div class="container" style="text-align: center;">
+       <span class="text-muted">&copy; 2018 - <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf">QLever: SPARQL+Text Search</a> - Chair of algorithms and data structures - University of Freiburg - <a href="https://github.com/ad-freiburg/QLever">QLever</a>: H. Bast and B. Buchhold / <a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/">QLever UI</a>: J. Bürklin and D. Kemen</span>
+       <br><br>
+    </div>
+</footer>
+    
+<script>
+	BASEURL = "{{ request.session.backendUrl }}";
+  {% for example in examples %}
+  example{{ forloop.counter }} = `{{ example.query|safe }}`;
+  {% endfor %}
+</script>
+</body>
+</html>

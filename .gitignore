@@ -1,0 +1,4 @@
+*.pyc
+db.sqlite3
+qlever/settings_secret.py
+backend/static/admin/
