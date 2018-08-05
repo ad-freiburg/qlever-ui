@@ -207,7 +207,7 @@
 		      } else {
 
 				  var select = `SELECT  WHERE {
-
+  
 }`;
 				  // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
 				  keywords = ['PREFIX '];
@@ -377,7 +377,8 @@
 				var prefixes = "";
 				var countEmptyLines = true;
  				var lines = editor.getValue().split('\n');
-        var suggestionMode = document.getElementById("dynamicSuggestions").value;
+ 				var suggestionMode = document.getElementById("dynamicSuggestions").value;
+				
 				for(var k = 0; k < lines.length; k++){
 					if(lines[k].trim().startsWith("PREFIX")){
 						skipLines++;
@@ -405,51 +406,51 @@
 
 					if(words.length > 1 && words[1].trim() == word){
 						parameter = 'predicate';
-            if (suggestionMode == 1 || clause.length == 0) {
-              sparqlQuery = prefixes
-                          + " SELECT ?qleverui_predicate WHERE {"
-                          + " ?qleverui_predicate ql:entity-type ql:predicate .";
-              if (search != undefined && search.length > 0) {
-                sparqlQuery += " FILTER regex(?qleverui_predicate, \""+search+"\") .";
-              }
-              sparqlQuery += " ?qleverui_predicate ql:num-triples ?qleverui_occurences ."
-                          + " } ORDER BY DESC(?qleverui_occurences)";
-            } else if (suggestionMode == 2) {
-              parameter = 'has-relation';
-              var variables = false;
-              var subject = parameters[0];
-              clause[cursorLine] = subject+" ql:has-relation ?qleverui_predicate .";
-              sparqlQuery = prefixes
-                          + " SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {"
-                          + clause.join(' ')
-                          + "} GROUP BY ?qleverui_predicate ORDER BY DESC(?count)";
-            }
+			            if (suggestionMode == 1 || clause.length == 0) {
+			              sparqlQuery = prefixes
+			                          + " SELECT ?qleverui_predicate WHERE {"
+			                          + " ?qleverui_predicate ql:entity-type ql:predicate .";
+			              if (search != undefined && search.length > 0) {
+			                sparqlQuery += " FILTER regex(?qleverui_predicate, \""+search+"\") .";
+			              }
+			              sparqlQuery += " ?qleverui_predicate ql:num-triples ?qleverui_occurences ."
+			                          + " } ORDER BY DESC(?qleverui_occurences)";
+			            } else if (suggestionMode == 2) {
+			              parameter = 'has-relation';
+			              var variables = false;
+			              var subject = parameters[0];
+			              clause[cursorLine] = subject+" ql:has-relation ?qleverui_predicate .";
+			              sparqlQuery = prefixes
+			                          + " SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {"
+			                          + clause.join(' ')
+			                          + "} GROUP BY ?qleverui_predicate ORDER BY DESC(?count)";
+			            }
 					}
 
 					if(words.length > 2 && words[2] == word){
 						parameter = 'object';
-            if (suggestionMode == 1) {
-              sparqlQuery = prefixes
-                          + " SELECT ?qleverui_object WHERE {"
-                          + " ?qleverui_object ql:entity-type ql:object .";
-              if (search != undefined && search.length > 0) {
-                sparqlQuery += " FILTER regex(?qleverui_object, \""+search+"\")";
-              }
-              sparqlQuery += " ?qleverui_object ql:num-triples ?qleverui_occurences ."
-                          + " } ORDER BY DESC(?qleverui_occurences)";
-            } else if (suggestionMode == 2) {
-              var subject = parameters[0];
-              var predicate = parameters[1];
-              clause[cursorLine] = subject+" "+predicate+" ?qleverui_object .";
-              sparqlQuery = prefixes
-                          + " SELECT DISTINCT ?qleverui_object WHERE {"
-                          + clause.join(' ');
-              if (search != undefined && search.length > 0) {
-                sparqlQuery += " FILTER regex(?qleverui_object, \""+search+"\") .";
-              }
-              sparqlQuery += " ?qleverui_object ql:num-triples ?qleverui_occurences ."
-                          + " } ORDER BY DESC(?qleverui_occurences)";
-            }
+			            if (suggestionMode == 1) {
+			              sparqlQuery = prefixes
+			                          + " SELECT ?qleverui_object WHERE {"
+			                          + " ?qleverui_object ql:entity-type ql:object .";
+			              if (search != undefined && search.length > 0) {
+			                sparqlQuery += " FILTER regex(?qleverui_object, \""+search+"\")";
+			              }
+			              sparqlQuery += " ?qleverui_object ql:num-triples ?qleverui_occurences ."
+			                          + " } ORDER BY DESC(?qleverui_occurences)";
+			            } else if (suggestionMode == 2) {
+			              var subject = parameters[0];
+			              var predicate = parameters[1];
+			              clause[cursorLine] = subject+" "+predicate+" ?qleverui_object .";
+			              sparqlQuery = prefixes
+			                          + " SELECT DISTINCT ?qleverui_object WHERE {"
+			                          + clause.join(' ');
+			              if (search != undefined && search.length > 0) {
+			                sparqlQuery += " FILTER regex(?qleverui_object, \""+search+"\") .";
+			              }
+			              sparqlQuery += " ?qleverui_object ql:num-triples ?qleverui_occurences ."
+			                          + " } ORDER BY DESC(?qleverui_occurences)";
+			            }
 					}
 
 				} else {
@@ -459,7 +460,7 @@
 			}
 
 			tables = [];
-			if(parameter == 'predicate' || 'has-relation'){
+			if(parameter == 'predicate' || parameter == 'has-relation'){
 				tables = ['ql:contains-entity ','ql:contains-word '];
 			}
 			keywords = [];
