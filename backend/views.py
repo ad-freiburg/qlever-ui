@@ -22,63 +22,34 @@ def index(request):
 
 	"""
 
-	backends = Backend.objects.all()
-
-	try:
-		if int(request.GET.get('backend',0)):
-			request.session['backend'] = int(request.GET['backend'])
-			backend = Backend.objects.filter(pk=request.GET['backend']).first()
-			request.session['backendUrl'] = backend.baseUrl
-			request.session['backendName'] = backend.name
-			request.session['backendSuggestions'] = backend.dynamicSuggestions
-	except:
-		backend = Backend.objects.filter(isDefault=1).first()
-
-		try:
-			request.session['backend'] = backend.pk
-			request.session['backendUrl'] = backend.baseUrl
-			request.session['backendName'] = backend.name
-			request.session['backendSuggestions'] = backend.dynamicSuggestions
-		except:
-			pass
-
-	backendId = request.session.get('backend',False)
+	backend = None
 	examples = []
-	if backendId:
-		examples = Example.objects.filter(backend=backendId)
+	
+	try:		
+		# if a backend is given try to activate it
+		if request.GET.get('backend',False) and int(request.GET['backend']) >= 0:
+			backend = Backend.objects.filter(pk=request.GET['backend']).first()
+		else:
+			backend = Backend.objects.filter(isDefault=1).first()
+	
+	except:
+		pass
+	
+	if backend:
+		request.session['backend'] = backend.pk
+		request.session['backendUrl'] = backend.baseUrl
+		request.session['backendName'] = backend.name
+		request.session['backendSuggestions'] = backend.dynamicSuggestions
+	
+	backend = request.session.get('backend',False)
+	if backend:
+		examples = Example.objects.filter(backend=backend)
+	
 	return render(request, 'index.html', {
-		'backends': backends,
+		'backends': Backend.objects.all(),
 		'examples': examples
 	})
 
-def generateNGrams(request):
-	"""
-
-		Takes a SPARQL query and generates n-grams for suggestions
-
-	"""
-	query = request.GET.get('query')
-
-	# https://regex101.com/r/ZV8Bg3/2/
-	groups = re.findall(r"((PREFIX (.*))(<.+>))|([^?\w][\w'<>:/(]+)",query,re.IGNORECASE)
-
-	try:
-		prefix = groups[0][2].strip()
-		scope = groups[0][3].strip()
-	except:
-		prefix = ""
-		scope = ""
-
-	lastNGram = None
-	for i in range(1,len(groups)):
-		for gram in groups[i]:
-		  if gram not in ('',' ','.',None):
-		 	if lastNGram and (lastNGram+gram in query):
-				# words that belong together
-				increaseCount(scope,lastNGram.strip().replace(prefix,''),gram.replace(prefix,''))
-			increaseCount(scope,gram.strip().replace(prefix,''))
-			lastNGram = gram
-	return HttpResponse("Saved statistics")
 
 def getSuggestions(request):
 	"""
@@ -86,17 +57,26 @@ def getSuggestions(request):
 		Takes a scope and the word currently typing and returns several suggestions in a list
 
 	"""
-	backend = Backend.objects.get(pk=request.session.get('backend'))
-	lastWord = request.GET.get('lastWord', '').lower()
-	scope = request.GET.get('scope')
+	
+	# General information
+	backend = Backend.objects.get(pk=request.session.get('backend')) # backend id
+	
+	# Context information
+	lastWord = request.GET.get('lastWord', '').lower() # current word (prefix)
+	scope = request.GET.get('scope') 
 	mode = request.GET.get('mode')
 	parameter = request.GET.get('parameter')
-	query = request.GET.get('query')
-	queryParams = []
-	offset = int(request.GET.get('offset', 0))
-	size = int(request.GET.get('size', 20))
+	query = request.GET.get('query') 
+	
+	# Pagination
+	offset = int(request.GET.get('offset', 0)) # offset for results
+	size = int(request.GET.get('size', 20)) # amount of expected results	
+
+	# no suggestions in variables
 	if lastWord is None or lastWord.startswith('?'):
 		return HttpResponse(json.dumps({'suggestions': [], 'found': 0}))
+	
+	# Using the literals is not required
 	if lastWord and not lastWord.startswith('<'):
 		startedWord = '<' + lastWord
 	else:
@@ -104,12 +84,16 @@ def getSuggestions(request):
 
 	suggestions = []
 	found = None
+	
+	# Redirect queries to QLever
 	if query:
 		log('Retrieving %s suggestions from QLever.' % parameter)
 		if parameter == 'has-relation':
+			
 			t1 = time.time()
 			response = requests.get(request.session['backendUrl'], params={'query': query})
 			t2 = time.time()
+			
 			skipped = 0
 			for predicate in response.json().get('res',[]):
 				predicate = predicate[0]
@@ -120,26 +104,36 @@ def getSuggestions(request):
 						else:
 							suggestions.append(predicate)
 						break
+			
 			t3 = time.time()
 			found = response.json().get('resultsize', 0)
 			t4 = time.time()
+			
 			log('\nQuerying QLever for predicates: %fms\nFiltering for typed word: %fms\nCounting total number of predicates: %fms\nTotal: %fms'%((t2-t1)*1000, (t3-t2)*1000, (t4-t3)*1000, (t4-t1)*1000))
+			
 		else:
 			t1 = time.time()
 			response = requests.get(request.session['backendUrl'], params={'query': query})
 			response.raise_for_status()
 			t2 = time.time()
+			
 			result = []
 			suggestions = [x[0] for x in response.json().get('res',[])]
 			found = response.json().get('resultsize', 0)
 			t3 = time.time()
+			
 			log('\nQuerying QLever: %fms\nCounting entities: %fms'%((t2-t1)*1000, (t3-t2)*1000))
+	
+	
+	# Use local backend for prefixes
 	elif mode == 'prefix':
 		log('Retrieving prefixes from local backend')
 		t1 = time.time()
 		prefixes = list(Prefix.objects.filter(backend__pk=request.session.get('backend')).order_by('-occurrences').values_list('prefix', flat=True))
 		t2 = time.time()
+		
 		log('%fms'%((t2-t1)*1000))
+		
 		for i, prefix in enumerate(prefixes):
 			suggestions.append('PREFIX p%d: <%s>\n'%(i+1, prefix))
 
@@ -150,14 +144,21 @@ def getSuggestions(request):
 # Helpers
 #
 
-def importElements(request):
+def reindex(request):
+	"""
+		
+		Do the preprocessing work from QLever UI
+		
+	"""
 
 	backend = Backend.objects.filter(pk=request.session.get('backend')).first()
 
 	if not backend or not backend.ntFilePath:
 		return JsonResponse({'status': 'error', 'message': 'There was no nt-source specified for this backend.'})
+	
 	if not os.path.isfile(backend.ntFilePath):
 		return JsonResponse({'status': 'error', 'message': 'Error opening file "%s"' % backend.ntFilePath})
+	
 	if str(os.path.getmtime(backend.ntFilePath)) != str(backend.ntFileLastChange):
 		if backend.isImporting == False:
 			try:
@@ -167,12 +168,12 @@ def importElements(request):
 
 				fileDir = '/'.join(backend.ntFilePath.split('/')[:-1])
 				tempPath = fileDir+'/f1_2_sorted.temp'
-				if not backend.getPatternsFromQLever:
-					log("Counting occurences of subjects in kb")
-					subprocess.call("""export LC_ALL=C ; cut -f1 %s | sort | uniq -c | awk -F' ' '{print $2"\t<occurrences_in_kb>\t\\""$1"\\"^^<http://www.w3.org/2001/XMLSchema#int>\t."}' > %s/qlui_data.nt"""%(backend.ntFilePath, fileDir), shell=True)
-
+				
+				# TODO: @julian Check if sorting is still required or usefull?
 				subprocess.call("""export LC_ALL=C ; cut -f1,2 %s | sort -u > %s""" % (backend.ntFilePath, tempPath), shell=True)
+				
 				Prefix.objects.filter(backend=backend).delete()
+				
 				log("creating prefixes from subjects")
 				output = subprocess.check_output("""export LC_ALL=C ; cut -f1 %s | perl -ne '/(http:(.*)\/)/ and print "$1\n";' | sort | uniq -c | sort -k1,1nr""" % tempPath, shell=True).decode('utf-8').split('\n')[:3]
 				for prefix in output:
@@ -187,6 +188,8 @@ def importElements(request):
 						prefix = prefix.strip().split(' ')
 						Prefix.objects.get_or_create(backend=backend, prefix=prefix[1], occurrences=prefix[0])
 
+				# TODO: @julian Check if this is still used for anything				
+				'''
 				if not backend.getPatternsFromQLever:
 					log("Deleting subjects from database.")
 					Subject.objects.filter(backend=backend).delete()
@@ -262,7 +265,10 @@ def importElements(request):
 									f.write('<qlui_predicate_id_%s>\t<predicate-for-id>\t%s\t.\n' % (currId, predicate))
 						cursor.execute("CREATE INDEX IF NOT EXISTS predicate_index ON backend_predicate (internalId COLLATE NOCASE, backend_id)")
 					del predicates
-
+				'''
+				
+				# TODO: @julian Check if this is still used for anything				
+				'''
 				log("Deleting patterns from database.")
 				Pattern.objects.filter(backend=backend).delete()
 				if backend.getPatternsFromQLever:
@@ -351,7 +357,10 @@ def importElements(request):
 							for subject in patternDict[pattern]:
 								for predicate in predicates:
 									f.write('%s\t<has-predicate>\t<qlui_predicate_id_%s>\t.\n' % (subject, predicate))
-
+				'''
+				
+				# TODO: @julian Check if this is still used for anything				
+				'''
 				with connection.cursor() as cursor:
 					cursor.execute("CREATE INDEX IF NOT EXISTS pattern_index on backend_pattern(internalId, backend_id)")
 				log("Deleting objects from database.")
@@ -379,37 +388,33 @@ def importElements(request):
 
 					if backend.getSubjectNamesFromRelation and backend.subjectNameRelation:
 						pass #grep "<http://www.julian.de/sparql" scientists.nt.orig | cut -f3
-
+				'''
+				
 				backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
 				backend.isImporting = False
 				backend.save()
+				
 				log("Done.")
 				return JsonResponse({'status': 'finished'})
+				
 			except Exception as e:
+			
 				backend.isImporting = False
 				backend.save()
+				# TODO: Check what happens here
 				raise
 				return JsonResponse({'status': 'error', 'message': str(e)})
 		else:
+		
 			return JsonResponse({'status': 'running'})
 
 	return JsonResponse({'status': 'noaction'})
 
 def log(msg):
+	"""
+		Helper to log things that happen during the process
+	"""
 	logMsg = datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S') + ' ' + str(msg)
 	print logMsg
 	with open('django.log', 'a') as logfile:
 		logfile.write(logMsg+'\n')
-
-def increaseCount(scope,firstWord,secondWord=None):
-	"""
-
-		Increases count for suggestions
-
-	"""
-	stats = Suggestion.objects.filter(scope=scope,firstWord=firstWord,secondWord=secondWord).first()
-	if stats:
-		stats.count = stats.count+1
-		stats.save()
-	else:
-		Suggestion.objects.create(scope=scope,firstWord=firstWord,secondWord=secondWord,count=1)

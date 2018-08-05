@@ -5,7 +5,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^ngrams$', views.generateNGrams, name='generateNGrams'),
     url(r'^suggest$', views.getSuggestions, name='getSuggestions'),
-    url(r'^reindex$', views.importElements, name='importElements'),
+    url(r'^reindex$', views.reindex, name='importElements'),
 ]
