@@ -743,69 +743,15 @@
 				activeLineNumber = activeLine.html();
 				activeLine.html('<img src="/static/img/ajax-loader.gif">');
 				$('#aBadge').remove();
-
-        /* Skip step 1 because every suggestion is a qlever query
-				////////////////////////////////////////////
-				// STEP 1: dynamic UI backend suggestions
-				////////////////////////////////////////////
-				if(step2 == true && requestExtension == true){
-					console.log('Skipping step 1 on reloading because there are already step 2 suggestions in list')
-				} else {
-
-					step2 = false;
-
-					console.log('Getting suggestions from QLever UI (step 1)...')
-					lastUrl = "/suggest?lastWord="+search+"&scope="+prefix+"&mode="+mode+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
-					$.ajax({
-					  url: lastUrl,
-					  search: search,
-					  result: result
-					}).done(function(data) {
-					  if(step2 == false){
-
-					 	 console.log('Showing suggestions from step 1');
-						  var data = $.parseJSON(data);
-						  found = data.found;
-						  addMatches(result, search, data.suggestions, function(w) {
-							  if(w.length > 0){
-								  if(parameter == 'object'){
-			 						  return w+" .";
-								  }
-								  return w+" ";
-							  }
-						  });
-						  callback( {list: result, from: Pos(cur.line, start+prefixName.length), to: Pos(cur.line, end)} );
-					  } else {
-						  console.warn('Supressing suggestions from step 1, because step 2 was faster');
-					  }
-					  if(sparqlQuery == undefined || mode == 'params' && parameter == 'subject' || mode == 'params' && parameter == undefined ||
-					  		mode == 'params' && parameter == 'undefined' || document.getElementById("dynamicSuggestions").value <= 1){
-						  // no second step
-						  // reset loading indicator
-						  activeLine.html(activeLineNumber);
-						  $('#aBadge').remove();
-						  if(data.found != undefined && data.found != null){
-						  	activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">'+data.found+'</span>');
-						  }
-					  }
-					}).fail(function(e){
-						// things went terribly wrong...
-						console.error('Failed to load suggestions from QLever UI (step 1)',e);
-						activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
-					});
-				}
-        */
-
 				if(document.getElementById("dynamicSuggestions").value > 0){
 
-					////////////////////////////////////////////
-					// STEP 2: dynamic qlever backend suggestions
-					////////////////////////////////////////////
 					if(sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-relation')){
-            if (parameter != 'has-relation') {
-              // No offset because FILTER does not work with ql:has-relation, so OFFSET could cut off relations that we actually searched for
-              sparqlQuery += " LIMIT " + size + " OFFSET " + lastSize;
-            }
+			            
+			            if (parameter != 'has-relation') {
+			              // No offset because FILTER does not work with ql:has-relation, so OFFSET could cut off relations that we actually searched for
+			              sparqlQuery += " LIMIT " + size + " OFFSET " + lastSize;
+			            }
+			            
 						console.log('Getting suggestions from QLever (step 2)...')
 						lastUrl = "/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
 						$.ajax({
@@ -814,45 +760,49 @@
 						  result2: result2,
 						}).done(function(data) {
 
-					 	 console.log('Showing suggestions from step 2');
-						  step2 = true;
-						  var data = $.parseJSON(data);
-						  found = data.found;
-						  addMatches(result2, search, data.suggestions, function(w) {
-							  if(w.length > 0){
-							      if(parameter == 'object'){
-			 						  return w+" .";
-								  }
-								  return w+" ";
-							  }
-						  });
-						  callback( {list: result2, from: Pos(cur.line, start+prefixName.length), to: Pos(cur.line, end)} );
-
-						  // reset loading indicator
-						  activeLine.html(activeLineNumber);
-						  $('#aBadge').remove();
-						  if(data.found != undefined && data.found != null){
-							  activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">'+data.found+'</span>');
-						  }
+						 	console.log('Showing suggestions from step 2');
+							step2 = true;
+							var data = $.parseJSON(data);
+							found = data.found;
+							
+							addMatches(result2, search, data.suggestions, function(w) {
+								if(w.length > 0){
+								    if(parameter == 'object'){
+				 						return w+" .";
+									}
+									return w+" ";
+								}
+							});
+							
+							callback( {list: result2, from: Pos(cur.line, start+prefixName.length), to: Pos(cur.line, end)} );
+	
+							// reset loading indicator
+							activeLine.html(activeLineNumber);
+							$('#aBadge').remove();
+							if(data.found != undefined && data.found != null){
+								activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">'+data.found+'</span>');
+							}
 
 						}).fail(function(e){
+							
 						  // things went terribly wrong...
 						  console.error('Failed to load suggestions from QLever (step 2)',e);
 						  activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
+						  
 						});
+						
 					} else {
 						console.warn('Skipping step 2 suggestions based on current position...')
 					}
 				}
 
 		    },500,search,prefix,mode,parameter,result);
-
+		    
 	}
 
     ////////////////////////////////////////////
 	// It's over, it's done ...
 	////////////////////////////////////////////
-
 
   });
   CodeMirror.hint.sparql.async = true;

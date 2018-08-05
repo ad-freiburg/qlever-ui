@@ -139,7 +139,6 @@ describe('Examples', function () {
 
 });
 
-
 function insertTextAtCursor(text) {
     var doc = editor.getDoc();
     var cursor = doc.getCursor();

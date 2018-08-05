@@ -22,8 +22,7 @@ $(document).ready(function () {
 	      "Ctrl-Enter": function(cm) {
 		    $("#runbtn").trigger('click');  
 	      },
-	      "Ctrl-Space": "autocomplete",
-	      "Space":function(cm){
+	      "Space": function(cm){
 		  	var doc = editor.getDoc();
             var cursor = doc.getCursor();
             var pos = {
@@ -35,16 +34,17 @@ $(document).ready(function () {
 		  },
 	      "Tab": function(cm) {
 		   	switchStates(cm);
-		  }
+		  },
+	      "Ctrl-Space": "autocomplete",
 	  },
 	});
 	
 	$('.CodeMirror').resizable({
 	  resize: function() {
 		if($(this).width() > 740){
-			$('#help').css({'margin-top':$(this).height()+10});
+			$('#help').css({ 'margin-top': $(this).height()+10 });
 		} else {
-			$('#help').css({'margin-top':0});
+			$('#help').css({ 'margin-top': 0 });
 		}
 	    editor.setSize($(this).width(), $(this).height());
 	  }
@@ -53,6 +53,7 @@ $(document).ready(function () {
 	$('[data-toggle="tooltip"]').tooltip();
 	        
 	console.log('Editor initialized.');
+	
 	// initial completion
 	//window.setTimeout(function(){
 	//	if (editor.getValue() == ""){
@@ -71,6 +72,7 @@ $(document).ready(function () {
 	    var line = instance.getLine(cur.line);
 	    var token = instance.getTokenAt(cur);
 	    var string = '';
+	    
 	    if (token.string.match(/^[.`\w?<@]\w*$/)) {
 	        string = token.string;
 	    }
@@ -91,6 +93,7 @@ $(document).ready(function () {
 			console.warn('Skipped completion due to cursor position');
 		}
 	});
+	
 	editor.on("endCompletion",function(){
 		$('#aBadge').remove();
 	});
@@ -100,6 +103,7 @@ $(document).ready(function () {
 	}
 	
     handleStatsDisplay();
+    
     var ind = window.location.href.indexOf("?query=");
     if (ind > 0) {
         ind += 7;
@@ -123,6 +127,7 @@ $(document).ready(function () {
         editor.setValue(decodeURIComponent(queryEscaped.replace(/\+/g, '%20')));
         processQuery(window.location.href.substr(ind - 7));
     }
+    
     $("#runbtn").click(function () {
 	    console.log('Start processing');
 	    if(editor.getValue().indexOf('…') > -1){
@@ -140,10 +145,10 @@ $(document).ready(function () {
         }
         queryString += "&send=100"
         var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
-        window.history.pushState("html:index.html", "QLever",
-            loc + queryString);
+        window.history.pushState("html:index.html", "QLever", loc + queryString);
         processQuery(queryString,true,this);
     });
+    
     $("#csvbtn").click(function () {
 	    console.log('Download CSV');
         var q = encodeURIComponent(editor.getValue());
@@ -153,6 +158,7 @@ $(document).ready(function () {
         }
         window.location.href = BASEURL + queryString + "&action=csv_export";
     });
+    
     $("#tsvbtn").click(function () {
 	    console.log('Download TSV');
         var q = encodeURIComponent(editor.getValue());
@@ -166,6 +172,7 @@ $(document).ready(function () {
 	if(document.getElementById("dynamicSuggestions").value == 0){
 		$('#reindex').hide();
 	}
+	
     $('#dynamicSuggestions').on('change',function(){
 	    if(document.getElementById("dynamicSuggestions").value == 0){
 			$('#reindex').hide();
@@ -247,7 +254,7 @@ function htmlEscape(str) {
         .replace(/GT/g, ">")
         .replace(/LT/g, "<")
         .replace(/NBSP/g, "&nbsp;");
-        return $("<div/>").text(str).html();
+    // return $("<div/>").text(str).html();
 }
 
 function getShortStr(str, maxLength, column=undefined) {
@@ -301,7 +308,6 @@ function getShortStr(str, maxLength, column=undefined) {
     str = str.replace(/%/g,'%25')
     return decodeURIComponent(JSON.parse('"'+str+'"'));
 }
-
 
 function displayError(result) {
 	console.error('QLever returned an error while processing request',result);
@@ -513,7 +519,6 @@ function handleStatsDisplay() {
         $("#nwo").html("Number of word occurrences: <b>" + tsep(result.nofwordpostings) + "</b> ");
         $("#neo").html("Number of entity occurrences: <b>" + tsep(result.nofentitypostings) + "</b> ");
 		$("#permstats").html("Registered <b>" + result.permutations + "</b> permutations of the index.");
-        
         if (result.permutations == "6") {
             $("#kbstats").html("Number of subjects: <b>"
                 + tsep(result.nofsubjects) + "</b><br>"
@@ -526,6 +531,7 @@ function handleStatsDisplay() {
     }).fail(function() { $('#statsButton').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend'); });
 }
 
+// Cookie helpers
 var createCookie = function(name, value, days) {
     var expires;
     if (days) {
@@ -554,6 +560,7 @@ function getCookie(c_name) {
     return "";
 }
 
+// Ensuring compatibility
 String.prototype.trimLeft = String.prototype.trimLeft || function () {
     var start = -1;
     while( this.charCodeAt(++start) < 33 );

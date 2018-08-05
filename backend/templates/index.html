@@ -4,37 +4,45 @@
 <head>
     <title>QLever UI - SPARQL+Text Engine</title>
     <meta charset="utf-8"/>
+    
     <!-- The stylesheets for this page -->
     <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+   
     <!-- Own CSS Code for the UI  -->
     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
     <link rel="stylesheet" type="text/css" href="/static/css/codemirror.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/show-hint.css">
+   
     <!-- Bootstraps CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <!-- The basic jQuery library -->
+    
+    <!-- The basic jQuery library & jQuery UI library -->
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <!-- Additional jquery UI stuff -->
     <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
     <!-- Bootstraps JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    
     <!-- Our own JavaScript code for this demo -->
     <script src="/static/js/script.js"></script>
-    <script src="/static/js/autocomplete.js"></script>
-    <script src="/static/js/samples.js"></script>
-    <script src="/static/js/codemirror.js"></script>
-	<script src="/static/js/mode/sparql/sparql.js"></script>
-	<script src="/static/js/show-hint.js"></script>
-	<script src="/static/js/active-line.js"></script>
-	<script src="/static/js/mode/sparql/sparql-hint.js"></script>
+    
+    <!-- CodeMirror and it's modules and language mode -->
+    <script src="/static/js/codemirror/codemirror.js"></script>
+    <script src="/static/js/codemirror/modules/autocomplete.js"></script>
+	<script src="/static/js/codemirror/modules/active-line.js"></script>
+	<script src="/static/js/codemirror/modules/show-hint.js"></script>
+	
+	<script src="/static/js/codemirror/modes/sparql/sparql.js"></script>
+	<script src="/static/js/codemirror/modes/sparql/sparql-hint.js"></script>
+	
 	{% if request.GET.test %}
-	<link rel="shortcut icon" type="image/png" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png">
-	<link rel="stylesheet" type="text/css" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.css">
-
-	<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.js"></script>
-	<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js"></script>
-	<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/boot.js"></script>
-	<script type="text/javascript" src="/static/tests/interface.js"></script>
+    	<!-- Jasemine JS Testing Framework -->
+		<link rel="shortcut icon" type="image/png" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png">
+		<link rel="stylesheet" type="text/css" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.css">
+	
+		<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.js"></script>
+		<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js"></script>
+		<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/boot.js"></script>
+		<script type="text/javascript" src="/static/tests/interface.js"></script>
 	{% endif %}
 </head>
 
@@ -57,21 +65,21 @@
 	          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Resources <span class="caret"></span></a>
 	          <ul class="dropdown-menu">
 	            {% if request.user.is_authenticated %}
-	            	<h6 class="dropdown-header">Internal Documents</h6>
-		            <li><a href="http://ad-wiki.informatik.uni-freiburg.de/teaching/BachelorAndMasterProjectsAndTheses/SparqlTextUI" target="_blank"><i class="glyphicon glyphicon-eye-close"></i>  Project Description</a></li>
-		            <li><a href="https://docs.google.com/document/d/1gy3z3UkyicYaF75ZXsxTEzS8c28hPTFa6dQU6Y0dj0o/edit" target="_blank"><i class="glyphicon glyphicon-eye-close"></i>  Google Doc</a></li>
+	            <h6 class="dropdown-header">Internal Documents</h6>
+			        <li><a href="http://ad-wiki.informatik.uni-freiburg.de/teaching/BachelorAndMasterProjectsAndTheses/SparqlTextUI" target="_blank"><i class="glyphicon glyphicon-eye-close"></i>  Project Description</a></li>
+			        <li><a href="https://docs.google.com/document/d/1gy3z3UkyicYaF75ZXsxTEzS8c28hPTFa6dQU6Y0dj0o/edit" target="_blank"><i class="glyphicon glyphicon-eye-close"></i>  Google Doc</a></li>
 		        {% endif %}
 		        <h6 class="dropdown-header">QLever UI Components</h6>
-	            <li><a href="/admin" target="_blank"><i class="glyphicon glyphicon-cog"></i>&nbsp; QLever UI Admin</a></li>
-	            <li><a href="?test=jasmine"><i class="glyphicon glyphicon-play"></i>&nbsp; Run UI Tests</a></li>
+		            <li><a href="/admin" target="_blank"><i class="glyphicon glyphicon-cog"></i>&nbsp; QLever UI Admin</a></li>
+		            <li><a href="?test=jasmine"><i class="glyphicon glyphicon-play"></i>&nbsp; Run UI Tests</a></li>
 	            <h6 class="dropdown-header">Other Resources</h6>
-				<li><a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank"><i class="glyphicon glyphicon-folder-open"></i>&nbsp; QLever Publication</a></li>
-				<li><a href="https://github.com/ad-freiburg/QLever" target="_blank"><i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub</a></li>
-	            <li><a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/" target="_blank"><i class="glyphicon glyphicon glyphicon-tasks"></i>&nbsp; QLever UI Website</a></li>
+					<li><a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank"><i class="glyphicon glyphicon-folder-open"></i>&nbsp; QLever Publication</a></li>
+					<li><a href="https://github.com/ad-freiburg/QLever" target="_blank"><i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub</a></li>
+		            <li><a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/" target="_blank"><i class="glyphicon glyphicon glyphicon-tasks"></i>&nbsp; QLever UI Website</a></li>
 	          </ul>
 	        </li>
           </ul>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
     </nav>
 </header>
@@ -84,17 +92,19 @@
 	    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{% if request.session.backend %}{{ request.session.backendName }}{% else %}Choose backend{% endif %}
 		  <span class="caret"></span></button>
 		  <ul class="dropdown-menu">
-	     {% for backend in backends %}
+	       {% for backend in backends %}
 			<li><a href="?backend={{ backend.pk }}">{% if request.session.backend == backend.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ backend.name }}</a></li>
-		  {% endfor %}
+		   {% endfor %}
 		  </ul>
 	  </div>
 	</div>
+	
 	<div class="pull-right">
 		<button class="btn btn-default" onclick="changeTheme();"><i class="glyphicon glyphicon-adjust"></i> Switch theme</button>
 	</div>
 
 	<br><br>
+	<!-- The statistics block -->
     <div id="stats" class="well">
 	    <div class="row">
 		    <div class="col-md-6">
@@ -117,6 +127,8 @@
 		    </div>
 	    </div>
     </div>
+    
+    <!-- The status block -->
     <div id="reindex" class="alert alert-info alert-dismissable" style="text-align: center;">
 	   <i class="glyphicon glyphicon-wrench pull-left" style="font-size: 3em; margin-top: 8px;"></i>
 	   <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
@@ -125,6 +137,7 @@
 	   <br><br>
 	   <div id="reindexText">Please wait until QLever UI has gathered relevant information about your backend.</div>
     </div>
+	
 	<!-- The query block -->
     <div class="well">
         <div class="row">
@@ -202,13 +215,13 @@
         <br>
     </div>
 
-    <!-- The Info block -->
+    <!-- The info block -->
     <div class="alert alert-success" id="infoBlock" style="display: none; text-align: center;">
         <img src="/static/img/loader.gif"><br><br>
         <h4 id="info"></h4>
     </div>
 
-    <!-- The anwer block -->
+    <!-- The answer block -->
     <div class="well" id="answerBlock" style="display: none">
 	    <h3 class="pull-left">Query results:</h3>
 	    <div class="btn-group pull-right" role="group">
@@ -232,6 +245,7 @@
         <div id="errorReason"><h3>Error:</h3></div>
     </div>
     
+    <!-- The help block -->
     <div class="well">
 	    <i class="glyphicon glyphicon-minus pull-right" onclick="$('#cheatsheet').slideToggle()" style="font-size: 1.5em;" data-toggle="tooltip" title="Slide in / slide out"></i>
 	    <h3>Cheatsheet:</h3>
@@ -342,7 +356,7 @@
 </footer>
     
 <script>
-	BASEURL = "{{ request.session.backendUrl }}";
+  BASEURL = "{{ request.session.backendUrl }}";
   {% for example in examples %}
   example{{ forloop.counter }} = `{{ example.query|safe }}`;
   {% endfor %}

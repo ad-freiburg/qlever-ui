@@ -3,10 +3,14 @@
 Basic HTML Elements
 
 */
+
 a {
 	cursor: pointer;
 }
 
+kbd {
+	background-color: #82B36F !important;
+}
 
 /*
 	
@@ -27,20 +31,8 @@ Custom Elements
 	margin-top: 0px;
 }
 
-.cm-placeholder {
-	background: #34759E; /* Old browsers */
-	background: -moz-linear-gradient(top,  #34759E 0%, #4787AD 100%); /* FF3.6-15 */
-	background: -webkit-linear-gradient(top,  #34759E 0%,#4787AD 100%); /* Chrome10-25,Safari5.1-6 */
-	background: linear-gradient(to bottom,  #34759E 0%,#4787AD 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-	border-radius: 5px; 
-	color: white;
-	padding: 0px 5px 2px 5px;
-}
-
-.cm-s-default .cm-atom {
-	color: #05a !important;
-}
-
+.glyphicon, .well h2, .well h3, .well h4, .well h5 { color: #82B36F; }
+.btn-success .glyphicon { color: white; }
 .glyphicon-spin {
     -webkit-animation: spin 1000ms infinite linear;
     animation: spin 1000ms infinite linear;
@@ -66,6 +58,46 @@ Custom Elements
     }
 }
 
+
+[data-toggle="tooltip"] { cursor: pointer; }
+
+.tooltip .tooltip-inner { background-color: #82B36F; max-width: 600px; word-wrap: break-word; }
+.tooltip .tooltip-arrow { border-top-color: #82B36F !important; }
+
+
+.table > tbody > tr > td:first-child { color: #d3d3d3; }
+th { color: #82B36F; white-space: nowrap; }
+
+
+.nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
+	color: white !important;
+	background-color: #82B36F !important;
+}
+
+.nav-pills>li>a {
+	color: #82B36F !important;
+}
+
+/**
+	
+	CodeMirror Styles
+	
+**/
+
+.cm-placeholder {
+	background: #34759E; /* Old browsers */
+	background: -moz-linear-gradient(top,  #34759E 0%, #4787AD 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(top,  #34759E 0%,#4787AD 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom,  #34759E 0%,#4787AD 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	border-radius: 5px; 
+	color: white;
+	padding: 0px 5px 2px 5px;
+}
+
+.cm-s-default .cm-atom {
+	color: #05a !important;
+}
+
 .cm-s-default .cm-keyword {
 	font-weight: 600;
 }
@@ -83,6 +115,7 @@ Custom Elements
     Original Base16 color scheme by Chris Kempson (https://github.com/chriskempson/base16)
 
 */
+
 .cm-s-railscasts.CodeMirror {background: #2b2b2b; color: #f4f1ed;}
 .cm-s-railscasts div.CodeMirror-selected {background: #5C6573 !important;}
 .cm-s-railscasts .CodeMirror-gutters {background: #2b2b2b; border-right: 0px;}
@@ -108,23 +141,12 @@ Custom Elements
 .cm-s-railscasts .CodeMirror-matchingbracket { text-decoration: underline; color: white !important;}
 .cm-s-railscasts .CodeMirror-activeline-background { background: #303040; }
 
-.glyphicon, .well h2, .well h3, .well h4, .well h5 { color: #82B36F; }
-.btn-success .glyphicon { color: white; }
-kbd { background-color: #82B36F !important; }
-[data-toggle="tooltip"] { cursor: pointer; }
-.tooltip .tooltip-inner { background-color: #82B36F; max-width: 600px; word-wrap: break-word; }
-.tooltip .tooltip-arrow { border-top-color: #82B36F !important; }
-th { color: #82B36F; white-space: nowrap; }
-.table > tbody > tr > td:first-child {
-	color: #d3d3d3;
-}
-.nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
-	color: white !important;
-	background-color: #82B36F !important;
-}
-.nav-pills>li>a {
-	color: #82B36F !important;
-}
+/**
+	
+	CodeMirror Hints
+	
+**/
+
 .CodeMirror-hint {
   margin: 0;
   padding: 0 4px;
@@ -134,6 +156,43 @@ th { color: #82B36F; white-space: nowrap; }
   cursor: pointer;
   position: relative;
   line-height: 1.5;  
+}
+
+.CodeMirror-hints {
+  position: absolute;
+  z-index: 10;
+  overflow: hidden;
+  list-style: none;
+
+  margin: 0;
+  padding: 2px;
+
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  border-radius: 3px;
+  border: 1px solid silver;
+
+  background: white;
+  font-size: 90%;
+  font-family: monospace;
+
+  max-height: 20em;
+  overflow-y: auto;
+}
+
+.CodeMirror-hint {
+  margin: 0;
+  padding: 0 4px;
+  border-radius: 2px;
+  white-space: pre;
+  color: black;
+  cursor: pointer;
+}
+
+li.CodeMirror-hint-active {
+  background: #08f;
+  color: white;
 }
 
 .variable-2.CodeMirror-hint {
@@ -152,7 +211,6 @@ th { color: #82B36F; white-space: nowrap; }
 .prefix.CodeMirror-hint {
   font-weight: 600; 
 }
-
 
 .CodeMirror-hint-active {
 	color: white !important;
