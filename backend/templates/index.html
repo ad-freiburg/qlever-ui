@@ -4,41 +4,41 @@
 <head>
     <title>QLever UI - SPARQL+Text Engine</title>
     <meta charset="utf-8"/>
-    
+
     <!-- The stylesheets for this page -->
     <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
-   
+
     <!-- Own CSS Code for the UI  -->
     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
     <link rel="stylesheet" type="text/css" href="/static/css/codemirror.css">
-   
+
     <!-- Bootstraps CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- The basic jQuery library & jQuery UI library -->
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    
+
     <!-- Bootstraps JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    
+
     <!-- Our own JavaScript code for this demo -->
     <script src="/static/js/script.js"></script>
-    
+
     <!-- CodeMirror and it's modules and language mode -->
     <script src="/static/js/codemirror/codemirror.js"></script>
     <script src="/static/js/codemirror/modules/autocomplete.js"></script>
 	<script src="/static/js/codemirror/modules/active-line.js"></script>
 	<script src="/static/js/codemirror/modules/show-hint.js"></script>
-	
+
 	<script src="/static/js/codemirror/modes/sparql/sparql.js"></script>
 	<script src="/static/js/codemirror/modes/sparql/sparql-hint.js"></script>
-	
+
 	{% if request.GET.test %}
     	<!-- Jasemine JS Testing Framework -->
 		<link rel="shortcut icon" type="image/png" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png">
 		<link rel="stylesheet" type="text/css" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.css">
-	
+
 		<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.js"></script>
 		<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js"></script>
 		<script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/boot.js"></script>
@@ -98,7 +98,7 @@
 		  </ul>
 	  </div>
 	</div>
-	
+
 	<div class="pull-right">
 		<button class="btn btn-default" onclick="changeTheme();"><i class="glyphicon glyphicon-adjust"></i> Switch theme</button>
 	</div>
@@ -127,7 +127,7 @@
 		    </div>
 	    </div>
     </div>
-    
+
     <!-- The status block -->
     <div id="reindex" class="alert alert-info alert-dismissable" style="text-align: center;">
 	   <i class="glyphicon glyphicon-wrench pull-left" style="font-size: 3em; margin-top: 8px;"></i>
@@ -137,7 +137,7 @@
 	   <br><br>
 	   <div id="reindexText">Please wait until QLever UI has gathered relevant information about your backend.</div>
     </div>
-	
+
 	<!-- The query block -->
     <div class="well">
         <div class="row">
@@ -198,7 +198,7 @@
 				        <td><em>Jump to the next placeholder</em></td>
 			        </tr>
 		        </table>
-				
+
 		        <h4 style="margin-top: 5px;">QLever UI mode:</h4>
 				<div class="checkbox">
 					<label>
@@ -244,7 +244,7 @@
     <div class="alert alert-danger" id="errorBlock" style="display: none">
         <div id="errorReason"><h3>Error:</h3></div>
     </div>
-    
+
     <!-- The help block -->
     <div class="well">
 	    <i class="glyphicon glyphicon-minus pull-right" onclick="$('#cheatsheet').slideToggle()" style="font-size: 1.5em;" data-toggle="tooltip" title="Slide in / slide out"></i>
@@ -283,7 +283,7 @@
 					    <div role="tabpanel" class="tab-pane" id="suggestion">
 						    Autosuggestions are made based on your position inside the query and the input you currently type. QLever UI evaluates the query you wrote in order to make context sensitive suggestions
 							which leads to less but more relevant suggestions. Suggestions are usually ordered by their occurrence frequency. A small badge on the current lines indicates the amount of records that matches.
-							<br><br> 
+							<br><br>
 							<strong>If you get no suggestions that might have different reasons:</strong>
 							<ul>
 								<li>There are no keywords or data points that match the word your are currently typing</li>
@@ -299,7 +299,7 @@
 	  [PLACEHOLDER 2]
 	}
 	[PLACEHOLDER 3]</pre>
-						This will help you to easily navigate through your code and add lines, variables and limits / ordering without navigating with your mouse or your arrow pane. 
+						This will help you to easily navigate through your code and add lines, variables and limits / ordering without navigating with your mouse or your arrow pane.
 					    </div>
 					    <div role="tabpanel" class="tab-pane" id="fulltext">
 						    When your backend contains fulltext data (you can check in the statistics pane) you can use the fulltext search features of QLever. You can make use of them by writing a query like this:<br><br>
@@ -354,12 +354,13 @@
        <br><br>
     </div>
 </footer>
-    
+
 <script>
   BASEURL = "{{ request.session.backendUrl }}";
   {% for example in examples %}
   example{{ forloop.counter }} = `{{ example.query|safe }}`;
   {% endfor %}
+  var scorePredicate = "{{ scorePredicate }}";
 </script>
 </body>
 </html>

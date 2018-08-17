@@ -24,6 +24,7 @@ def index(request):
 
 	backend = None
 	examples = []
+	scorePredicate = ""
 
 	try:
 		# if a backend is given try to activate it
@@ -32,6 +33,7 @@ def index(request):
 		else:
 			backend = Backend.objects.filter(isDefault=1).first()
 
+		scorePredicate = backend.scorePredicate
 	except:
 		pass
 
@@ -47,7 +49,8 @@ def index(request):
 
 	return render(request, 'index.html', {
 		'backends': Backend.objects.all(),
-		'examples': examples
+		'examples': examples,
+		'scorePredicate': scorePredicate
 	})
 
 

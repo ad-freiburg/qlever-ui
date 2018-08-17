@@ -207,7 +207,7 @@
 		      } else {
 
 				  var select = `SELECT  WHERE {
-  
+
 }`;
 				  // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
 				  keywords = ['PREFIX '];
@@ -363,7 +363,7 @@
 
 			word = editor.getRange({'line':cur.line,'ch': k+1}, {'line':cur.line,'ch': j});
 			var words = line.trimLeft().split(" ");
-			
+
 			if(words.length < 4){
 			// detect full query parameters
 			re = new RegExp(/WHERE \{([\s\S\n\w]*)}/g, 'g');
@@ -378,7 +378,7 @@
 				var countEmptyLines = true;
  				var lines = editor.getValue().split('\n');
  				var suggestionMode = document.getElementById("dynamicSuggestions").value;
-				
+
 				for(var k = 0; k < lines.length; k++){
 					if(lines[k].trim().startsWith("PREFIX")){
 						skipLines++;
@@ -400,6 +400,12 @@
 					}
 					clause = clause.slice(0,cursorLine);
 
+          if (search.indexOf('<') != 0 && search.indexOf('"') != 0) {
+            search = "<" + search;
+          }
+
+          var searchEnd = search.slice(0, -1) + String.fromCharCode(search.charCodeAt(search.length-1) + 1);
+
 					if(words.length > 0 && words[0] == word){
 						parameter = 'subject';
 					}
@@ -408,22 +414,27 @@
 						parameter = 'predicate';
 			            if (suggestionMode == 1 || clause.length == 0) {
 			              sparqlQuery = prefixes
-			                          + " SELECT ?qleverui_predicate WHERE {"
-			                          + " ?qleverui_predicate ql:entity-type ql:predicate .";
-			              if (search != undefined && search.length > 0) {
-			                sparqlQuery += " FILTER regex(?qleverui_predicate, \""+search+"\") .";
+			                          + "\nSELECT ?qleverui_predicate WHERE {"
+			                          + "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
+			              if (search != undefined && search.length > 1) {
+			                sparqlQuery += "\n  FILTER (?qleverui_predicate >= " + search + ")";
+                      sparqlQuery += "\n  FILTER (?qleverui_predicate < " + searchEnd + ")";
 			              }
-			              sparqlQuery += " ?qleverui_predicate ql:num-triples ?qleverui_occurences ."
-			                          + " } ORDER BY DESC(?qleverui_occurences)";
+                    if (scorePredicate.length > 0){
+                      sparqlQuery += "\n  ?qleverui_predicate "+scorePredicate+" ?qleverui_score ."
+  			                          + "\n}\nORDER BY DESC(?qleverui_score)";
+                    } else {
+                      sparqlQuery += "\n}";
+                    }
 			            } else if (suggestionMode == 2) {
 			              parameter = 'has-predicate';
 			              var variables = false;
 			              var subject = parameters[0];
 			              clause[cursorLine] = subject+" ql:has-predicate ?qleverui_predicate .";
 			              sparqlQuery = prefixes
-			                          + " SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {"
-			                          + clause.join(' ')
-			                          + "} GROUP BY ?qleverui_predicate ORDER BY DESC(?count)";
+			                          + "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {\n  "
+			                          + clause.join('\n  ')
+			                          + "\n}\nGROUP BY ?qleverui_predicate ORDER BY DESC(?count)";
 			            }
 					}
 
@@ -431,26 +442,36 @@
 						parameter = 'object';
 			            if (suggestionMode == 1) {
 			              sparqlQuery = prefixes
-			                          + " SELECT ?qleverui_object WHERE {"
-			                          + " ?qleverui_object ql:entity-type ql:object .";
-			              if (search != undefined && search.length > 0) {
-			                sparqlQuery += " FILTER regex(?qleverui_object, \""+search+"\")";
+			                          + "\nSELECT ?qleverui_object WHERE {\n"
+			                          + "?qleverui_object ql:entity-type ql:object .";
+			              if (search != undefined && search.length > 1) {
+                      sparqlQuery += "\n  FILTER (?qleverui_object >= " + search + ")";
+                      sparqlQuery += "\n  FILTER (?qleverui_object < " + searchEnd + ")";
 			              }
-			              sparqlQuery += " ?qleverui_object ql:num-triples ?qleverui_occurences ."
-			                          + " } ORDER BY DESC(?qleverui_occurences)";
+                    if (scorePredicate.length > 0){
+                      sparqlQuery += "\n  ?qleverui_object "+scorePredicate+" ?qleverui_score ."
+  			                          + "\n}\nORDER BY DESC(?qleverui_score)";
+                    } else {
+                      sparqlQuery += "\n}";
+                    }
 			            } else if (suggestionMode == 2) {
 			              var subject = parameters[0];
 			              var predicate = parameters[1];
 			              clause[cursorLine] = subject+" "+predicate+" ?qleverui_object .";
 			              sparqlQuery = prefixes
-			                          + " SELECT DISTINCT ?qleverui_object WHERE {"
-			                          + clause.join(' ');
-			              if (search != undefined && search.length > 0) {
-			                sparqlQuery += " FILTER regex(?qleverui_object, \""+search+"\") .";
+			                          + "\nSELECT DISTINCT ?qleverui_object WHERE {\n  "
+			                          + clause.join('\n  ');
+			              if (search != undefined && search.length > 1) {
+                      sparqlQuery += "\n  FILTER (?qleverui_object >= " + search + ")";
+                      sparqlQuery += "\n  FILTER (?qleverui_object < " + searchEnd + ")";
 			              }
-			              sparqlQuery += " ?qleverui_object ql:num-triples ?qleverui_occurences ."
-			                          + " } ORDER BY DESC(?qleverui_occurences)";
-			            }
+                    if (scorePredicate.length > 0){
+                      sparqlQuery += "\n  ?qleverui_object "+scorePredicate+" ?qleverui_score ."
+  			                          + "\n}\nORDER BY DESC(?qleverui_score)";
+                    } else {
+                      sparqlQuery += "\n}";
+                    }
+                  }
 					}
 
 				} else {
@@ -464,7 +485,7 @@
 				tables = ['ql:contains-entity ','ql:contains-word '];
 			}
 			keywords = [];
-			
+
 			} else {
 				console.warn('Skipping every suggestions based on current position...')
 				return false;
@@ -678,7 +699,7 @@
 	    }
 	    scan(-1);
 	    scan(1);
-	
+
 		if(mode == 'values') {
 
 		    var variables = list;
@@ -702,7 +723,7 @@
 
 		addMatches(result, search, list, function(w) {return w;});
 	}
-	
+
 	////////////////////////////////////////////
 	// add the static suggestions if available
 	////////////////////////////////////////////
@@ -711,10 +732,10 @@
 
 	if (!requestExtension)
 		addMatches(result, search, defaultTable, function(w) {return w;});
-    
+
     if (!disableKeywords && !requestExtension)
       addMatches(result, search, keywords, function(w) {if (w != undefined) return w.toUpperCase()});
-	
+
 	////////////////////////////////////////////
 	// suggest what we have found so far ...
 	////////////////////////////////////////////
@@ -746,12 +767,12 @@
 				if(document.getElementById("dynamicSuggestions").value > 0){
 
 					if(sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-predicate')){
-			            
+
 			            if (parameter != 'has-predicate') {
 			              // No offset because FILTER does not work with ql:has-predicate, so OFFSET could cut off relations that we actually searched for
 			              sparqlQuery += " LIMIT " + size + " OFFSET " + lastSize;
 			            }
-			            
+
 						console.log('Getting suggestions from QLever (step 2)...')
 						lastUrl = "/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
 						$.ajax({
@@ -764,7 +785,7 @@
 							step2 = true;
 							var data = $.parseJSON(data);
 							found = data.found;
-							
+
 							addMatches(result2, search, data.suggestions, function(w) {
 								if(w.length > 0){
 								    if(parameter == 'object'){
@@ -773,9 +794,9 @@
 									return w+" ";
 								}
 							});
-							
+
 							callback( {list: result2, from: Pos(cur.line, start+prefixName.length), to: Pos(cur.line, end)} );
-	
+
 							// reset loading indicator
 							activeLine.html(activeLineNumber);
 							$('#aBadge').remove();
@@ -784,20 +805,20 @@
 							}
 
 						}).fail(function(e){
-							
+
 						  // things went terribly wrong...
 						  console.error('Failed to load suggestions from QLever (step 2)',e);
 						  activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
-						  
+
 						});
-						
+
 					} else {
 						console.warn('Skipping step 2 suggestions based on current position...')
 					}
 				}
 
 		    },500,search,prefix,mode,parameter,result);
-		    
+
 	}
 
     ////////////////////////////////////////////

@@ -22,6 +22,8 @@ class Backend(models.Model):
 
 	dynamicSuggestions = models.IntegerField(default=True, choices=MODES, help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",verbose_name="Default suggestion mode")
 
+	scorePredicate = models.CharField(max_length=1000, default="ql:num-triples", help_text="The predicate used to rank suggestions. Leave blank if no ordering should take place", verbose_name="Predicate for ranking", blank=True)
+
 	def __unicode__(self):
 		return self.name
 
@@ -35,7 +37,7 @@ class Example(models.Model):
 
 	def __unicode__(self):
 		return self.name
-	
+
 	backend = models.ForeignKey(Backend)
 	name = models.CharField(max_length=100)
 	query = models.TextField()
