@@ -140,7 +140,7 @@ def getSuggestions(request):
 		for i, prefix in enumerate(prefixes):
 			suggestions.append('PREFIX p%d: <%s>\n'%(i+1, prefix))
 
-	return HttpResponse(json.dumps({'suggestions': suggestions, 'found': found}))
+	return HttpResponse(json.dumps({'suggestions': suggestions, 'found': found, 'time': "%.4f"%((t2-t1))}))
 
 
 #

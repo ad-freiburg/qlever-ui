@@ -442,7 +442,7 @@
 						parameter = 'object';
 			            if (suggestionMode == 1) {
 			              sparqlQuery = prefixes
-			                          + "\nSELECT ?qleverui_object WHERE {\n"
+			                          + "\nSELECT ?qleverui_object WHERE {\n  "
 			                          + "?qleverui_object ql:entity-type ql:object .";
 			              if (search != undefined && search.length > 1) {
                       sparqlQuery += "\n  FILTER (?qleverui_object >= " + search + ")";
@@ -770,20 +770,22 @@
 
 			            if (parameter != 'has-predicate') {
 			              // No offset because FILTER does not work with ql:has-predicate, so OFFSET could cut off relations that we actually searched for
-			              sparqlQuery += " LIMIT " + size + " OFFSET " + lastSize;
+			              sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 			            }
 
-						console.log('Getting suggestions from QLever (step 2)...')
+						console.log('Getting suggestions from QLever:');
+            console.log(sparqlQuery);
 						lastUrl = "/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
 						$.ajax({
 						  url: lastUrl,
 						  search: search,
 						  result2: result2,
 						}).done(function(data) {
-
-						 	console.log('Showing suggestions from step 2');
 							step2 = true;
 							var data = $.parseJSON(data);
+              console.log("Query took "+data.time+" seconds.");
+
+              console.log('Showing suggestions from step 2');
 							found = data.found;
 
 							addMatches(result2, search, data.suggestions, function(w) {
