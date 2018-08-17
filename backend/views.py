@@ -88,7 +88,7 @@ def getSuggestions(request):
 	# Redirect queries to QLever
 	if query:
 		log('Retrieving %s suggestions from QLever.' % parameter)
-		if parameter == 'has-relation':
+		if parameter == 'has-predicate':
 
 			t1 = time.time()
 			response = requests.get(request.session['backendUrl'], params={'query': query})

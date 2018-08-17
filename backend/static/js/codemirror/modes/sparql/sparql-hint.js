@@ -416,10 +416,10 @@
 			              sparqlQuery += " ?qleverui_predicate ql:num-triples ?qleverui_occurences ."
 			                          + " } ORDER BY DESC(?qleverui_occurences)";
 			            } else if (suggestionMode == 2) {
-			              parameter = 'has-relation';
+			              parameter = 'has-predicate';
 			              var variables = false;
 			              var subject = parameters[0];
-			              clause[cursorLine] = subject+" ql:has-relation ?qleverui_predicate .";
+			              clause[cursorLine] = subject+" ql:has-predicate ?qleverui_predicate .";
 			              sparqlQuery = prefixes
 			                          + " SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {"
 			                          + clause.join(' ')
@@ -460,7 +460,7 @@
 			}
 
 			tables = [];
-			if(parameter == 'predicate' || parameter == 'has-relation'){
+			if(parameter == 'predicate' || parameter == 'has-predicate'){
 				tables = ['ql:contains-entity ','ql:contains-word '];
 			}
 			keywords = [];
@@ -745,10 +745,10 @@
 				$('#aBadge').remove();
 				if(document.getElementById("dynamicSuggestions").value > 0){
 
-					if(sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-relation')){
+					if(sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-predicate')){
 			            
-			            if (parameter != 'has-relation') {
-			              // No offset because FILTER does not work with ql:has-relation, so OFFSET could cut off relations that we actually searched for
+			            if (parameter != 'has-predicate') {
+			              // No offset because FILTER does not work with ql:has-predicate, so OFFSET could cut off relations that we actually searched for
 			              sparqlQuery += " LIMIT " + size + " OFFSET " + lastSize;
 			            }
 			            
