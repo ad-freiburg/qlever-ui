@@ -412,7 +412,7 @@
 
 					if(words.length > 1 && words[1].trim() == word){
 						parameter = 'predicate';
-			            if (suggestionMode == 1 || clause.length == 0) {
+			            if (suggestionMode == 1) {
 			              sparqlQuery = prefixes
 			                          + "\nSELECT ?qleverui_predicate WHERE {"
 			                          + "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
