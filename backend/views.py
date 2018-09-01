@@ -107,7 +107,9 @@ def getSuggestions(request):
 						else:
 							suggestions.append(predicate)
 						break
-
+				if len(suggestions) >= size:
+					break
+						
 			t3 = time.time()
 			found = response.json().get('resultsize', 0)
 			t4 = time.time()

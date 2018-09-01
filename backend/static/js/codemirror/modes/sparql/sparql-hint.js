@@ -207,7 +207,7 @@
 		      } else {
 
 				  var select = `SELECT  WHERE {
-
+  
 }`;
 				  // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
 				  keywords = ['PREFIX '];
@@ -412,23 +412,24 @@
 
 					if(words.length > 1 && words[1].trim() == word){
 						parameter = 'predicate';
+			            var variables = false;
+			            
 			            if (suggestionMode == 1) {
 			              sparqlQuery = prefixes
 			                          + "\nSELECT ?qleverui_predicate WHERE {"
 			                          + "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
 			              if (search != undefined && search.length > 1) {
 			                sparqlQuery += "\n  FILTER (?qleverui_predicate >= " + search + ")";
-                      sparqlQuery += "\n  FILTER (?qleverui_predicate < " + searchEnd + ")";
+							sparqlQuery += "\n  FILTER (?qleverui_predicate < " + searchEnd + ")";
 			              }
-                    if (scorePredicate.length > 0){
-                      sparqlQuery += "\n  ?qleverui_predicate "+scorePredicate+" ?qleverui_score ."
-  			                          + "\n}\nORDER BY DESC(?qleverui_score)";
-                    } else {
-                      sparqlQuery += "\n}";
-                    }
+		                  if (scorePredicate.length > 0){
+		                    sparqlQuery += "\n  ?qleverui_predicate "+scorePredicate+" ?qleverui_score ."
+		  			                    + "\n}\nORDER BY DESC(?qleverui_score)";
+		                  } else {
+		                    sparqlQuery += "\n}";
+		                  }
 			            } else if (suggestionMode == 2) {
 			              parameter = 'has-predicate';
-			              var variables = false;
 			              var subject = parameters[0];
 			              clause[cursorLine] = subject+" ql:has-predicate ?qleverui_predicate .";
 			              sparqlQuery = prefixes
@@ -774,7 +775,7 @@
 			            }
 
 						console.log('Getting suggestions from QLever:');
-            console.log(sparqlQuery);
+						console.log(sparqlQuery);
 						lastUrl = "/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
 						$.ajax({
 						  url: lastUrl,
@@ -783,9 +784,9 @@
 						}).done(function(data) {
 							step2 = true;
 							var data = $.parseJSON(data);
-              console.log("Query took "+data.time+" seconds.");
+							console.log("Query took "+data.time+" seconds.");
 
-              console.log('Showing suggestions from step 2');
+							console.log('Showing suggestions from step 2');
 							found = data.found;
 
 							addMatches(result2, search, data.suggestions, function(w) {
