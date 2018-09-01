@@ -30,7 +30,7 @@ def index(request):
 		# if a backend is given try to activate it
 		if request.GET.get('backend',False) and int(request.GET['backend']) >= 0:
 			backend = Backend.objects.filter(pk=request.GET['backend']).first()
-		else:
+		if request.session.get('backend',False) == False:
 			backend = Backend.objects.filter(isDefault=1).first()
 
 		scorePredicate = backend.scorePredicate
