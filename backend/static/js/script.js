@@ -77,8 +77,20 @@ $(document).ready(function () {
 	        string = token.string;
 	    }
 	    
-	    if((line.length <= 3 && line.trim() != "}") || line[cur.ch] == " " || line[cur.ch-1] == " " || line[cur.ch-1] == ":" || line[cur.ch] == ')' || event.keyCode == 8){
-		    if(line[cur.ch] != "." || line[cur.ch-1] != " "){
+	    if(
+	    	(line.length <= 3 && line.trim() != "}") || 	// suggest on line beginning
+	    	line[cur.ch] == " " || 							// suggest after whitespace
+	    	line[cur.ch-1] == " " || 						// suggest after (double) whitespace
+	    	line[cur.ch+1] == " " || 						// suggest before whitespace
+	    	line[cur.ch+1] == undefined || 					// suggest before end
+	    	line[cur.ch-1] == ":" || 						// suggest after prefix char
+	    	line[cur.ch] == ')' || 							// suggest inside brackets 
+	    	event.keyCode == 8								// suggest after backspace
+	    ){
+		    if(
+		    	line[cur.ch] != "." ||		// don't suggest after points
+		    	line[cur.ch-1] != " ")		// dont'suggest if last char isn't a white space
+		    {
 	
 			    window.setTimeout(function(){
 				    if(example == 1){
