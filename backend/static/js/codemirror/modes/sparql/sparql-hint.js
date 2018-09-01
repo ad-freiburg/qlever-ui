@@ -490,7 +490,7 @@
 
 			tables = [];
 			if(parameter == 'predicate' || parameter == 'has-predicate'){
-				tables = ['ql:contains-entity ','ql:contains-word ','FILTER ','FILTER ()'];
+				tables = ['ql:contains-entity ','ql:contains-word '];
 			}
 			keywords = [];
 
