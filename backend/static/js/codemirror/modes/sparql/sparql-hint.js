@@ -375,6 +375,7 @@
 				var clause = match[1].trim().split('\n');
 				var skipLines = 0;
 				var prefixes = "";
+				var prefixesRelation = {};
 				var countEmptyLines = true;
  				var lines = editor.getValue().split('\n');
  				var suggestionMode = document.getElementById("dynamicSuggestions").value;
@@ -383,6 +384,12 @@
 					if(lines[k].trim().startsWith("PREFIX")){
 						skipLines++;
 						prefixes += lines[k].trim();
+						
+						var prefixesRegex = /PREFIX (.*): ?<(.*)>/g;
+						var match = prefixesRegex.exec(lines[k].trim());
+						if(match){
+							prefixesRelation[match[1]] = match[2];
+						}
 					}
 					if(lines[k].trim().startsWith("SELECT")){
 						skipLines++;
@@ -790,6 +797,13 @@
 							found = data.found;
 
 							addMatches(result2, search, data.suggestions, function(w) {
+								
+								for(prefix in prefixesRelation){
+									if(w.indexOf(prefixesRelation[prefix]) > 0){
+										w = w.replace("<"+prefixesRelation[prefix],prefix+':').slice(0, -1);
+									}
+								}
+								
 								if(w.length > 0){
 								    if(parameter == 'object'){
 				 						return w+" .";
