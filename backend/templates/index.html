@@ -115,6 +115,10 @@
 		        </div>
 		        <div id="permstats"></div>
 		        <div id="kbstats"></div>
+		        <br>
+		        <div id="subjectName"></div>
+		        <div id="predicateName"></div>
+		        <div id="objectName"></div>
 		    </div>
 		    <div class="col-md-6">
 			    <h4>Fulltext index</h4>
@@ -357,6 +361,9 @@
 
 <script>
   BASEURL = "{{ request.session.backendUrl }}";
+  subjectName = "{{ request.session.subjectName }}";
+  predicateName = "{{ request.session.predicateName }}";
+  objectName = "{{ request.session.objectName }}";
   {% for example in examples %}
   example{{ forloop.counter }} = `{{ example.query|safe }}`;
   {% endfor %}

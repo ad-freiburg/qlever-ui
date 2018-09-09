@@ -42,6 +42,9 @@ def index(request):
 		request.session['backendUrl'] = backend.baseUrl
 		request.session['backendName'] = backend.name
 		request.session['backendSuggestions'] = backend.dynamicSuggestions
+		request.session['subjectName'] = backend.subjectName
+		request.session['predicateName'] = backend.predicateName
+		request.session['objectName'] = backend.objectName
 
 	backend = request.session.get('backend',False)
 	if backend:

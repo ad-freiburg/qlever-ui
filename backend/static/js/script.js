@@ -5,6 +5,9 @@
  
 var example = 0;
 var activeState = 1;
+var subjectNames = {}
+var predicateNames = {}
+var objectNames = {}
 
 $(document).ready(function () {
 	
@@ -65,6 +68,10 @@ $(document).ready(function () {
 	//}, 100);
 	
 	editor.on("keyup", function(instance,event) {
+		if(subjectName || predicateName || objectName){
+		    $('.cm-variable').hover(showRealName);
+		}
+		
 	    if (instance.state.completionActive || event.keyCode == 27) {
 	        return;
 	    }
@@ -115,7 +122,7 @@ $(document).ready(function () {
 	}
 	
     handleStatsDisplay();
-    
+    		
     var ind = window.location.href.indexOf("?query=");
     if (ind > 0) {
         ind += 7;
@@ -139,6 +146,77 @@ $(document).ready(function () {
         editor.setValue(decodeURIComponent(queryEscaped.replace(/\+/g, '%20')));
         processQuery(window.location.href.substr(ind - 7));
     }
+    
+    if(subjectName || predicateName || objectName){
+		$('.cm-variable').hover(showRealName);
+	}
+		
+	function showRealName(element){
+		var prefixesRelation = {};
+ 		
+ 		var lines = editor.getValue().split('\n');
+		for(var k = 0; k < lines.length; k++){
+			if(lines[k].trim().startsWith("PREFIX")){
+				var prefixesRegex = /PREFIX (.*): ?<(.*)>/g;
+				var match = prefixesRegex.exec(lines[k].trim());
+				if(match){
+					prefixesRelation[match[1]] = match[2];
+				}
+			}
+		}
+				
+		line = $(this).parent().text().trim();
+		values = line.split(' ');
+		element = $(this).text().trim();
+		domElement = this;
+		prefixedElement = false;
+		
+		if ($(this).prev().hasClass('cm-prefix')){
+			prefixedElement = prefixesRelation[$(this).prev().text().replace(':','')]+element;
+			element = $(this).prev().text()+element;
+		}
+		
+		index = values.indexOf(element);
+		if (index == 0){
+			if(subjectNames[element] != undefined){
+				$(domElement).tooltip({ title: subjectNames[element] });
+			} else {
+				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> <"+subjectName+"> ?name }";
+				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
+			    	$(domElement).tooltip({ title: result['res'][0] });
+					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+			    	subjectNames[element] = result['res'][0];
+				});
+			}
+		} else if (index == 1){
+			if(predicateNames[element] != undefined){
+				$(domElement).tooltip({ title: predicateNames[element] });
+			} else {
+				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> <"+predicateName+"> ?name }";
+				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
+					$(domElement).tooltip({ title: result['res'][0] });
+					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+			    	predicateNames[element] = result['res'][0];
+				});
+			}
+		} else if (index == 2){
+			if(objectNames[element] != undefined){
+				$(domElement).tooltip({ title: objectNames[element] });
+			} else {
+				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> <"+objectName+"> ?name }";
+				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
+			    	$(domElement).tooltip({ title: result['res'][0] });
+					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+			    	objectNames[element] = result['res'][0];
+				});
+			}
+		} else {
+			return true;
+		}
+	
+		
+	}
+
     
     $("#runbtn").click(function () {
 	    console.log('Start processing');
@@ -530,6 +608,9 @@ function handleStatsDisplay() {
         $("#nrecords").html("Number of text records: <b>" + tsep(result.nofrecords) + "</b> ");
         $("#nwo").html("Number of word occurrences: <b>" + tsep(result.nofwordpostings) + "</b> ");
         $("#neo").html("Number of entity occurrences: <b>" + tsep(result.nofentitypostings) + "</b> ");
+        $("#subjectName").html("Subject name relation: <b>" + tsep(subjectName) + "</b> ");
+        $("#predicateName").html("Predicate name relation: <b>" + tsep(predicateName) + "</b> ");
+        $("#objectName").html("Object name relation: <b>" + tsep(objectName) + "</b> ");
 		$("#permstats").html("Registered <b>" + result.permutations + "</b> permutations of the index.");
         if (result.permutations == "6") {
             $("#kbstats").html("Number of subjects: <b>"
