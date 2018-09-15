@@ -24,9 +24,9 @@ class Backend(models.Model):
 
 	scorePredicate = models.CharField(max_length=1000, default="ql:num-triples", help_text="The predicate used to rank suggestions. Leave blank if no ordering should take place", verbose_name="Predicate for ranking", blank=True)
 	
-	subjectName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a subject (with prefix domain and without </>).",verbose_name="Subject name relation")
-	predicateName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a predicate (with prefix domain and without </>).",verbose_name="Predicate name relation")
-	objectName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a object (with prefix domain and without </>).",verbose_name="Object name relation")
+	subjectName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a subject (without prefixes).",verbose_name="Subject name relation")
+	predicateName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a predicate (without prefixes).",verbose_name="Predicate name relation")
+	objectName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a object (without prefixes).",verbose_name="Object name relation")
 
 	def __unicode__(self):
 		return self.name

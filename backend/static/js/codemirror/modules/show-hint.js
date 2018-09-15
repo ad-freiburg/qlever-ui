@@ -159,7 +159,6 @@
         if (picked && data.list.length == 1) {
           //this.pick(data, 0);
         } else {  
-	      //console.log(data);
           this.widget = new Widget(this, data);
           CodeMirror.signal(data, "shown");
         }

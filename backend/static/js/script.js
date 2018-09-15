@@ -73,7 +73,6 @@ $(document).ready(function () {
 		    $('.cm-variable').hover(showRealName);
 		}
 		
-		console.log(event.keyCode);
 	    if (instance.state.completionActive || event.keyCode == 27) {
 	        return;
 	    }
@@ -183,7 +182,7 @@ $(document).ready(function () {
 			if(subjectNames[element] != undefined){
 				$(domElement).tooltip({ title: subjectNames[element] });
 			} else {
-				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> <"+subjectName+"> ?name }";
+				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+subjectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
 			    	$(domElement).tooltip({ title: result['res'][0] });
 					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
@@ -194,7 +193,7 @@ $(document).ready(function () {
 			if(predicateNames[element] != undefined){
 				$(domElement).tooltip({ title: predicateNames[element] });
 			} else {
-				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> <"+predicateName+"> ?name }";
+				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+predicateName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
 					$(domElement).tooltip({ title: result['res'][0] });
 					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
@@ -205,7 +204,7 @@ $(document).ready(function () {
 			if(objectNames[element] != undefined){
 				$(domElement).tooltip({ title: objectNames[element] });
 			} else {
-				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> <"+objectName+"> ?name }";
+				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+objectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
 			    	$(domElement).tooltip({ title: result['res'][0] });
 					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
@@ -219,7 +218,6 @@ $(document).ready(function () {
 		
 	}
 
-    
     $("#runbtn").click(function () {
 	    try {
 		    console.log('Start processing');
@@ -576,7 +574,6 @@ function processQuery(query,showStatus,element) {
 
 function showAllConcats(element,sep,column){
 	data = $(element).parent().data('original-title');
-	console.log(data);
 	html = "";
 	results = data.split(sep);
 	for(var k = 0; k < results.length; k++){

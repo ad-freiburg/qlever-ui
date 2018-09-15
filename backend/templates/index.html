@@ -354,9 +354,9 @@
 
 <script>
   BASEURL = "{{ request.session.backendUrl }}";
-  subjectName = "{{ request.session.subjectName }}";
-  predicateName = "{{ request.session.predicateName }}";
-  objectName = "{{ request.session.objectName }}";
+  subjectName = "{% autoescape off %}{{ request.session.subjectName }}{% endautoescape %}";
+  predicateName = "{% autoescape off %}{{ request.session.predicateName }}{% endautoescape %}";
+  objectName = "{% autoescape off %}{{ request.session.objectName }}{% endautoescape %}";
   {% for example in examples %}
   example{{ forloop.counter }} = `{{ example.query|safe }}`;
   {% endfor %}
