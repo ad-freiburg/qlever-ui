@@ -170,7 +170,7 @@ $(document).ready(function () {
 		if ($(this).prev().hasClass('cm-prefix')){
 			element = $(this).prev().text()+element;
 		}
-		console.log(element);
+		
 		index = values.indexOf(element);
 		if (index == 0){
 			if(subjectNames[element] != undefined){
