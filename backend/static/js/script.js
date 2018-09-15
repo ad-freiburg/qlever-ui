@@ -259,15 +259,6 @@ $(document).ready(function () {
         window.location.href = BASEURL + queryString + "&action=tsv_export";
     });
 	
-	if(document.getElementById("dynamicSuggestions").value == 0){
-		$('#reindex').hide();
-	}
-	
-    $('#dynamicSuggestions').on('change',function(){
-	    if(document.getElementById("dynamicSuggestions").value == 0){
-			$('#reindex').hide();
-		}
-    });
 });
 
 function switchStates(cm){
@@ -591,25 +582,6 @@ function handleStatsDisplay() {
 	console.log('Loading backend statistics...');
 	$('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Loading information...');
 	$('#statsButton').attr('disabled','disabled');
-    
-    $.ajax('/reindex').done(function(response){
-	    if(response.status == 'finished'){
-		    console.log('QLever UI reindexer is ready...');
-		    $('#reindexLoader').hide();
-		    $('#reindexHead').html('QLever UI index was built successfully.');
-		    $('#reindexText').html('To reveal the full potential of QLever UI you should reindex your QLever index as well.');
-	    } else if (response.status == 'running'){
-		    console.log('QLever UI reindexer is running...');
-		    $('#reindexText').html('Please try again later.');
-	    } else if (response.status == 'error'){
-		    console.error('QLever UI reindexer returned an error',response);
-		    $('#reindexLoader').hide();
-		    $('#reindexHead').html('Error while building the index.');
-		    $('#reindexText').html(response.message);
-	    } else {
-		$('#reindex').hide();
-		}
-    });
     
     $.getJSON(BASEURL+"?cmd=stats", function (result) {
 	    console.log('Evaluating and displaying stats...');
