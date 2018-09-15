@@ -153,67 +153,74 @@ $(document).ready(function () {
 	}
 		
 	function showRealName(element){
-		console.log(element);
-		
-		var prefixesRelation = {};
- 		
+		var prefixes = "";
  		var lines = editor.getValue().split('\n');
+ 		
 		for(var k = 0; k < lines.length; k++){
 			if(lines[k].trim().startsWith("PREFIX")){
-				var prefixesRegex = /PREFIX (.*): ?<(.*)>/g;
-				var match = prefixesRegex.exec(lines[k].trim());
-				if(match){
-					prefixesRelation[match[1]] = match[2];
-				}
+				prefixes += lines[k]+"\n";
 			}
 		}
-				
+		
 		line = $(this).parent().text().trim();
 		values = line.split(' ');
 		element = $(this).text().trim();
 		domElement = this;
-		prefixedElement = false;
 				
 		if ($(this).prev().hasClass('cm-prefix')){
-			prefixedElement = prefixesRelation[$(this).prev().text().replace(':','')]+element;
 			element = $(this).prev().text()+element;
-		} else {
-			prefixedElement = element;
 		}
-		
+		console.log(element);
 		index = values.indexOf(element);
 		if (index == 0){
 			if(subjectNames[element] != undefined){
-				$(domElement).tooltip({ title: subjectNames[element] });
+				if(subjectNames[element] != ""){
+					$(domElement).tooltip({ title: subjectNames[element] });
+				}
 			} else {
-				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+subjectName+" ?name }";
+				query = prefixes+"SELECT ?name WHERE {\n "+element+" "+subjectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-			    	$(domElement).tooltip({ title: result['res'][0] });
-					window.setTimeout(function(){$(domElement).trigger('click');}, 100);
-			    	subjectNames[element] = result['res'][0];
+			    	if(result['res'][0]){
+				    	$(domElement).tooltip({ title: result['res'][0] });
+						window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+				    	subjectNames[element] = result['res'][0];
+				    } else {
+					    subjectNames[element] = "";
+				    }
 				});
 			}
 		} else if (index == 1){
 			if(predicateNames[element] != undefined){
-				$(domElement).tooltip({ title: predicateNames[element] });
+				if(predicateNames[element] != ""){
+					$(domElement).tooltip({ title: predicateNames[element] });
+				}
 			} else {
-				console.log("query");
-				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+predicateName+" ?name }";
+				query = prefixes+"SELECT ?name WHERE {\n "+element+" "+predicateName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-					$(domElement).tooltip({ title: result['res'][0] });
-					window.setTimeout(function(){$(domElement).trigger('click');}, 100);
-			    	predicateNames[element] = result['res'][0];
+					if(result['res'][0]){
+						$(domElement).tooltip({ title: result['res'][0] });
+						window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+				    	predicateNames[element] = result['res'][0];
+				    } else {
+					    predicateNames[element] = "";
+				    }
 				});
 			}
 		} else if (index == 2){
 			if(objectNames[element] != undefined){
-				$(domElement).tooltip({ title: objectNames[element] });
+				if(objectNames[element] != ""){
+					$(domElement).tooltip({ title: objectNames[element] });
+				}
 			} else {
-				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+objectName+" ?name }";
+				query = prefixes+"SELECT ?name WHERE {\n "+element+" "+objectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-			    	$(domElement).tooltip({ title: result['res'][0] });
-					window.setTimeout(function(){$(domElement).trigger('click');}, 100);
-			    	objectNames[element] = result['res'][0];
+			    	if(result['res'][0]){
+				    	$(domElement).tooltip({ title: result['res'][0] });
+						window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+				    	objectNames[element] = result['res'][0];
+				    } else {
+					    objectNames[element] = "";
+				    }
 				});
 			}
 		}
