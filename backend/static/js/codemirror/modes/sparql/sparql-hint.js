@@ -813,13 +813,12 @@
 						  search: search,
 						  result2: result2,
 						}).done(function(data) {
+							console.log("Got suggestions from QLever.");
 							step2 = true;
 							var data = $.parseJSON(data);
 							console.log("Query took "+data.time+" seconds.");
-
-							console.log('Showing suggestions from step 2');
+							
 							found = data.found;
-
 							addMatches(result2, search, data.suggestions, function(w) {
 								
 								for(prefix in prefixesRelation){
@@ -836,9 +835,11 @@
 								}
 							});
 
+							console.log("Showing hints popup.");
 							callback( {list: result2, from: Pos(cur.line, start+prefixName.length), to: Pos(cur.line, end)} );
 
 							// reset loading indicator
+							console.log("Resetting load indicator & showing badge.");
 							activeLine.html(activeLineNumber);
 							$('#aBadge').remove();
 							if(data.found != undefined && data.found != null){

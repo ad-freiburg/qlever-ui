@@ -100,7 +100,7 @@
 	</div>
 
 	<div class="pull-right">
-		<button class="btn btn-default" onclick="changeTheme();"><i class="glyphicon glyphicon-adjust"></i> Switch theme</button>
+		<div class="btn-group"><button class="btn btn-default" onclick="changeTheme();"><i class="glyphicon glyphicon-adjust"></i> Switch theme</button><button class="btn btn-default" onclick="expandEditor();"><i class="glyphicon glyphicon-question-sign"></i> Help</button></div>
 	</div>
 
 	<br><br>
@@ -132,11 +132,44 @@
 	    </div>
     </div>
 	<!-- The query block -->
-    <div class="well">
+    <div class="well" id="queryBlock">
         <div class="row">
 	        <div class="col-md-8">
 		        <textarea id="query" class="form-control"></textarea>
 		        <br>
+	        </div>
+	         <div class="col-md-4" id="help" style="margin-top: 310px;">
+		        <div id="uiHelp" style="display: none;">
+			        <h4 style="margin-top: 0px;">QLever UI Help:</h4>
+			        <table class="table" style="margin-bottom: 9px;">
+				        <tr>
+					        <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
+					        <td><em>Invoke auto suggestions</em></td>
+				        </tr>
+				        <tr>
+					        <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
+					        <td><em>Send query to backend</em></td>
+				        </tr>
+				        <tr>
+					        <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
+					        <td><em>Search through suggestions</em></td>
+				        </tr>
+				        <tr>
+					        <td><kbd onclick="$()">enter</kbd></td>
+					        <td><em>Chose the selected suggestion</em></td>
+				        </tr>
+				        <tr>
+					        <td><kbd>esc</kbd></td>
+					        <td><em>Close suggestion window</em></td>
+				        </tr>
+				        <tr>
+					        <td><kbd>tab</kbd></td>
+					        <td><em>Jump to the next placeholder</em></td>
+				        </tr>
+			        </table>
+		        </div>
+	        </div>
+	        <div class="col-md-8">
 		        <button id="runbtn" class="btn btn-success"><i class="glyphicon glyphicon-refresh"></i> Show query results</button>
 		         <div class="btn-group" role="group">
 				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-download"></i> Download results
@@ -163,37 +196,8 @@
 					  </ul>
 				</div>
 	        </div>
-	        <div class="col-md-4" id="help">
-		        <h4 style="margin-top: 0px;">QLever UI Help:</h4>
-		        <table class="table" style="margin-bottom: 9px;">
-			        <tr>
-				        <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
-				        <td><em>Invoke auto suggestions</em></td>
-			        </tr>
-			        <tr>
-				        <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
-				        <td><em>Send query to backend</em></td>
-			        </tr>
-			        <tr>
-				        <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
-				        <td><em>Search through suggestions</em></td>
-			        </tr>
-			        <tr>
-				        <td><kbd onclick="$()">enter</kbd></td>
-				        <td><em>Chose the selected suggestion</em></td>
-			        </tr>
-			        <tr>
-				        <td><kbd>esc</kbd></td>
-				        <td><em>Close suggestion window</em></td>
-			        </tr>
-			        <tr>
-				        <td><kbd>tab</kbd></td>
-				        <td><em>Jump to the next placeholder</em></td>
-			        </tr>
-		        </table>
-
-		        <h4 style="margin-top: 5px;">QLever UI mode:</h4>
-				<div class="checkbox">
+	        <div class="col-md-4">
+				<div class="checkbox" style="margin-top: 0px;">
 					<label>
 						<input type="checkbox" id="clear"> Clear the cache before every request
 					</label>

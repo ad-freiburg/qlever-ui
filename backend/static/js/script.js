@@ -41,6 +41,7 @@ $(document).ready(function () {
 	      "Ctrl-Space": "autocomplete",
 	  },
 	});
+	editor.setSize($('#queryBlock').width());
 	
 	$('.CodeMirror').resizable({
 	  resize: function() {
@@ -219,24 +220,26 @@ $(document).ready(function () {
 
     
     $("#runbtn").click(function () {
-	    console.log('Start processing');
-	    if(editor.getValue().indexOf('…') > -1){
-		    disp = "<h3>Error: Your query still contains placeholders.</h3><br>Please replace them first and run your query again!";
-		    $('#errorReason').html(disp);
-		    $('#errorBlock').show();
-		    $('#answerBlock').hide();
-		    $('#infoBlock').hide();
-		    return false;
+	    try {
+		    console.log('Start processing');
+	        var q = encodeURIComponent(editor.getValue());
+	        var queryString = "?query=" + q;
+	        if ($("#clear").prop('checked')) {
+	            queryString += "&cmd=clearcache";
+	        }
+	        queryString += "&send=100"
+	        var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
+	        window.history.pushState("html:index.html", "QLever", loc + queryString);
+	        processQuery(queryString,true,this);
+	    } catch(err){
+		    disp = "<h3>Error while parsing the result</h3>";
+			$('#errorReason').html(err);
+			$('#errorBlock').show();
+			$('#answerBlock').hide();
+			$('#infoBlock').hide();
+			console.log(err);
+			return false;
 	    }
-        var q = encodeURIComponent(editor.getValue());
-        var queryString = "?query=" + q;
-        if ($("#clear").prop('checked')) {
-            queryString += "&cmd=clearcache";
-        }
-        queryString += "&send=100"
-        var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
-        window.history.pushState("html:index.html", "QLever", loc + queryString);
-        processQuery(queryString,true,this);
     });
     
     $("#csvbtn").click(function () {
@@ -332,6 +335,18 @@ function changeTheme(theme=undefined){
 		$('.navbar-default .navbar-nav>li>a,.navbar-default .navbar-brand').css('color','#000');
 		$('.navbar').removeClass('navbar-inverse');
 		createCookie("theme", "railscasts", 3);
+	}
+}
+
+function expandEditor(){
+	if($('.CodeMirror').width() < 800){
+		editor.setSize($('#queryBlock').width());
+		$('#help').css({ 'margin-top': $('.CodeMirror').height()+10 });
+		$('#uiHelp').hide();
+	} else {
+		editor.setSize($('.col-md-8').width());
+		$('#help').css({ 'margin-top': 0 });
+		$('#uiHelp').show();
 	}
 }
 
