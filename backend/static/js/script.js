@@ -153,6 +153,8 @@ $(document).ready(function () {
 	}
 		
 	function showRealName(element){
+		console.log(element);
+		
 		var prefixesRelation = {};
  		
  		var lines = editor.getValue().split('\n');
@@ -171,10 +173,12 @@ $(document).ready(function () {
 		element = $(this).text().trim();
 		domElement = this;
 		prefixedElement = false;
-		
+				
 		if ($(this).prev().hasClass('cm-prefix')){
 			prefixedElement = prefixesRelation[$(this).prev().text().replace(':','')]+element;
 			element = $(this).prev().text()+element;
+		} else {
+			prefixedElement = element;
 		}
 		
 		index = values.indexOf(element);
@@ -185,7 +189,7 @@ $(document).ready(function () {
 				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+subjectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
 			    	$(domElement).tooltip({ title: result['res'][0] });
-					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+					window.setTimeout(function(){$(domElement).trigger('click');}, 100);
 			    	subjectNames[element] = result['res'][0];
 				});
 			}
@@ -193,10 +197,11 @@ $(document).ready(function () {
 			if(predicateNames[element] != undefined){
 				$(domElement).tooltip({ title: predicateNames[element] });
 			} else {
+				console.log("query");
 				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+predicateName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
 					$(domElement).tooltip({ title: result['res'][0] });
-					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+					window.setTimeout(function(){$(domElement).trigger('click');}, 100);
 			    	predicateNames[element] = result['res'][0];
 				});
 			}
@@ -207,40 +212,28 @@ $(document).ready(function () {
 				query = "SELECT ?name WHERE {\n <"+prefixedElement+"> "+objectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
 			    	$(domElement).tooltip({ title: result['res'][0] });
-					window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
+					window.setTimeout(function(){$(domElement).trigger('click');}, 100);
 			    	objectNames[element] = result['res'][0];
 				});
 			}
-		} else {
-			return true;
 		}
-	
 		
+		return true;
 	}
 
     $("#runbtn").click(function () {
-	    try {
-		    console.log('Start processing');
-	        var q = encodeURIComponent(editor.getValue());
-	        var queryString = "?query=" + q;
-	        if ($("#clear").prop('checked')) {
-	            queryString += "&cmd=clearcache";
-	        }
-	        queryString += "&send=100"
-	        var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
-	        window.history.pushState("html:index.html", "QLever", loc + queryString);
-	        processQuery(queryString,true,this);
-	        $("#runbtn").focus();
-		    editor.state.completionActive.close();
-	    } catch(err){
-		    disp = "<h3>Error while parsing the result</h3>";
-			$('#errorReason').html(err);
-			$('#errorBlock').show();
-			$('#answerBlock').hide();
-			$('#infoBlock').hide();
-			console.log(err);
-			return false;
-	    }
+	    console.log('Start processing');
+        var q = encodeURIComponent(editor.getValue());
+        var queryString = "?query=" + q;
+        if ($("#clear").prop('checked')) {
+            queryString += "&cmd=clearcache";
+        }
+        queryString += "&send=100"
+        var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
+        window.history.pushState("html:index.html", "QLever", loc + queryString);
+        processQuery(queryString,true,this);
+        $("#runbtn").focus();
+	    editor.state.completionActive.close();
     });
     
     $("#csvbtn").click(function () {
@@ -485,27 +478,13 @@ function processQuery(query,showStatus,element) {
 	        }
 	        var selection = /SELECT(?: DISTINCT)?([^]*)WHERE/.exec(decodeURIComponent(result.query.replace(/\+/g, '%20')))[1];
 	        
-	        selection = decodeURIComponent(selection)
+	        selection = decodeURIComponent(selection.trim())
 			
 			indentation = 0;
 			remainder = ""
-			columns = []
-			for (var i = 0; i < selection.length; i++){
-				if(selection[i] == " " && indentation == 0){
-					columns.push(remainder);
-					remainder = "";
-				} else if(selection[i] == "(" ){
-					remainder += selection[i];
-					indentation++;
-				} else if(selection[i] == ")" ){
-					remainder += selection[i];
-					indentation--;
-				} else {
-					remainder += selection[i];
-				}
-			}
+			columns = result.selected;
 			
-	        var tableHead = $('#resTable thead');
+			var tableHead = $('#resTable thead');
 	        var head = "<tr><th></th>";
 	        for (var i = 0; i < columns.length; i++) {
 		        if(columns[i]){
