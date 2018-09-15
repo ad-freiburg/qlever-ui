@@ -180,7 +180,7 @@ $(document).ready(function () {
 			} else {
 				query = prefixes+"SELECT ?name WHERE {\n "+element+" "+subjectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-			    	if(result['res'][0]){
+			    	if(result['res'] && result['res'][0]){
 				    	$(domElement).tooltip({ title: result['res'][0] });
 						window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
 				    	subjectNames[element] = result['res'][0];
@@ -197,7 +197,7 @@ $(document).ready(function () {
 			} else {
 				query = prefixes+"SELECT ?name WHERE {\n "+element+" "+predicateName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-					if(result['res'][0]){
+					if(result['res'] && result['res'][0]){
 						$(domElement).tooltip({ title: result['res'][0] });
 						window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
 				    	predicateNames[element] = result['res'][0];
@@ -214,7 +214,7 @@ $(document).ready(function () {
 			} else {
 				query = prefixes+"SELECT ?name WHERE {\n "+element+" "+objectName+" ?name }";
 				$.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-			    	if(result['res'][0]){
+			    	if(result['res'] && result['res'][0]){
 				    	$(domElement).tooltip({ title: result['res'][0] });
 						window.setTimeout(function(){$(domElement).trigger('mouseenter');}, 100);
 				    	objectNames[element] = result['res'][0];
