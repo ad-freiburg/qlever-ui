@@ -207,7 +207,7 @@
 		      } else {
 
 				  var select = `SELECT  WHERE {
-  
+
 }`;
 				  // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
 				  keywords = ['PREFIX '];
@@ -385,7 +385,7 @@
 					if(lines[k].trim().startsWith("PREFIX")){
 						skipLines++;
 						prefixes += lines[k].trim();
-						
+
 						var prefixesRegex = /PREFIX (.*): ?<(.*)>/g;
 						var match = prefixesRegex.exec(lines[k].trim());
 						if(match){
@@ -421,8 +421,8 @@
 					if(words.length > 1 && words[1].trim() == word){
 						parameter = 'predicate';
 			            var variables = false;
-			            
-			            
+
+
 			            if (suggestionMode == 1) {
 			              sparqlQuery = prefixes
 			                          + "\nSELECT ?qleverui_predicate WHERE {"
@@ -440,7 +440,7 @@
 			            } else if (suggestionMode == 2) {
 			              parameter = 'has-predicate';
 			              var subject = parameters[0];
-			              
+
 			              /* remove unrelated constraints */
 			              /*var connected = false;
 						  for(var i = 0; i < clause.length; i++){
@@ -449,16 +449,17 @@
 								  break;
 							  }
 						  }
-			              
+
 			              if(connected == false){
 				              clause = [];
 			              }*/
-			              
+
 			              clause[cursorLine] = subject+" ql:has-predicate ?qleverui_predicate .";
 			              sparqlQuery = prefixes
 			                          + "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {\n  "
 			                          + clause.join('\n  ')
-			                          + "\n}\nGROUP BY ?qleverui_predicate ORDER BY DESC(?count)";
+			                          + "\n}\nGROUP BY ?qleverui_predicate"
+                                + "\nORDER BY DESC(?count)";
 			            }
 					}
 
@@ -483,18 +484,15 @@
 			              var predicate = parameters[1];
 			              clause[cursorLine] = subject+" "+predicate+" ?qleverui_object .";
 			              sparqlQuery = prefixes
-			                          + "\nSELECT DISTINCT ?qleverui_object WHERE {\n  "
+			                          + "\nSELECT ?qleverui_object WHERE {\n  "
 			                          + clause.join('\n  ');
 			              if (search != undefined && search.length > 1) {
                       sparqlQuery += "\n  FILTER (?qleverui_object >= " + search + ")";
                       sparqlQuery += "\n  FILTER (?qleverui_object < " + searchEnd + ")";
 			              }
-                    if (scorePredicate.length > 0){
-                      sparqlQuery += "\n  ?qleverui_object "+scorePredicate+" ?qleverui_score ."
-  			                          + "\n}\nORDER BY DESC(?qleverui_score)";
-                    } else {
-                      sparqlQuery += "\n}";
-                    }
+                    sparqlQuery += "\n}";
+                    sparqlQuery += "\nGROUP BY ?qleverui_object";
+                    sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
                   }
 					}
 
@@ -667,14 +665,14 @@
 	    var curWord = start != end && curLine.slice(start, end);
 
 	    var list = [], seen = {}, list2 = [];
-	    
+
 	    if(mode == 'params' && parameter == 'object'){
 		    var variableCandidate = curLine.trim().split(/[\s,.\-\/:]+/).slice(-1)[0].replace('>','').replace('<','');
 			if(variableCandidate != '<'){
 				list.push('?'+variableCandidate.toLowerCase()+' .');
 			}
 		}
-	    
+
 	    var prefix = '';
 	    function scan(dir) {
 	      var line = cur.line, end = Math.min(Math.max(line + dir * range, editor.firstLine()), editor.lastLine()) + dir;
@@ -821,13 +819,13 @@
 							found = data.found;
 
 							addMatches(result2, search, data.suggestions, function(w) {
-								
+
 								for(prefix in prefixesRelation){
 									if(w.indexOf(prefixesRelation[prefix]) > 0){
 										w = w.replace("<"+prefixesRelation[prefix],prefix+':').slice(0, -1);
 									}
 								}
-								
+
 								if(w.length > 0){
 								    if(parameter == 'object'){
 				 						return w+" .";
