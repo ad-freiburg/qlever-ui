@@ -23,7 +23,7 @@ $(document).ready(function () {
       styleActiveLine: true,
       extraKeys: {
 	      "Ctrl-Enter": function(cm) {
-		    $("#runbtn").trigger('click');  
+		    $("#runbtn").trigger('click');
 	      },
 	      "Space": function(cm){
 		  	var doc = editor.getDoc();
@@ -73,6 +73,7 @@ $(document).ready(function () {
 		    $('.cm-variable').hover(showRealName);
 		}
 		
+		console.log(event.keyCode);
 	    if (instance.state.completionActive || event.keyCode == 27) {
 	        return;
 	    }
@@ -231,6 +232,8 @@ $(document).ready(function () {
 	        var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
 	        window.history.pushState("html:index.html", "QLever", loc + queryString);
 	        processQuery(queryString,true,this);
+	        $("#runbtn").focus();
+		    editor.state.completionActive.close();
 	    } catch(err){
 		    disp = "<h3>Error while parsing the result</h3>";
 			$('#errorReason').html(err);
