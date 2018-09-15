@@ -240,7 +240,9 @@ $(document).ready(function () {
         window.history.pushState("html:index.html", "QLever", loc + queryString);
         processQuery(queryString,true,this);
         $("#runbtn").focus();
-	    editor.state.completionActive.close();
+        if(editor.state.completionActive){
+		    editor.state.completionActive.close();
+		}
     });
     
     $("#csvbtn").click(function () {

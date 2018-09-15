@@ -207,7 +207,7 @@
 		      } else {
 
 				  var select = `SELECT  WHERE {
-
+  
 }`;
 				  // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
 				  keywords = ['PREFIX '];
@@ -362,7 +362,7 @@
 			}
 
 			word = editor.getRange({'line':cur.line,'ch': k+1}, {'line':cur.line,'ch': j});
-			var words = line.trimLeft().split(" ");
+			var words = line.trimLeft().replace('  ',' ').split(" ");
 
 			if(words.length < 4){
 			// detect full query parameters
@@ -408,11 +408,11 @@
 					}
 					clause = clause.slice(0,cursorLine);
 
-          if (search.indexOf('<') != 0 && search.indexOf('"') != 0) {
-            search = "<" + search;
-          }
-
-          var searchEnd = search.slice(0, -1) + String.fromCharCode(search.charCodeAt(search.length-1) + 1);
+		            if (search.indexOf('<') != 0 && search.indexOf('"') != 0) {
+		              search = "<" + search;
+		            }
+		
+		            var searchEnd = search.slice(0, -1) + String.fromCharCode(search.charCodeAt(search.length-1) + 1);
 
 					if(words.length > 0 && words[0] == word){
 						parameter = 'subject';
@@ -667,8 +667,9 @@
 	    var list = [], seen = {}, list2 = [];
 
 	    if(mode == 'params' && parameter == 'object'){
-		    var variableCandidate = curLine.trim().split(/[\s,.\-\/:]+/).slice(-1)[0].replace('>','').replace('<','');
-			if(variableCandidate != '<'){
+		    var variableCandidate = curLine.trim().split(/[\s,.\-\/:]+/).slice(-1)[0].replace('>','').replace('<','').replace('?','');
+			if(variableCandidate != '<' && variableCandidate != ''){
+				seen['?'+variableCandidate.toLowerCase()] = true;
 				list.push('?'+variableCandidate.toLowerCase()+' .');
 			}
 		}
