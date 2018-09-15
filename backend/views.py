@@ -24,20 +24,16 @@ def index(request):
 
 	backend = None
 	examples = []
-	scorePredicate = ""
 
-	try:
-		# if a backend is given try to activate it
-		if request.GET.get('backend',False) and int(request.GET['backend']) >= 0:
-			backend = Backend.objects.filter(pk=request.GET['backend']).first()
-		if request.session.get('backend',False) == False:
-			backend = Backend.objects.filter(isDefault=1).first()
+	# if a backend is given try to activate it
+	if request.GET.get('backend',False) and int(request.GET['backend']) >= 0:
+		backend = Backend.objects.filter(pk=request.GET['backend']).first()
+	if request.session.get('backend',False) == False:
+		backend = Backend.objects.order_by('isDefault').first()
 
-		scorePredicate = backend.scorePredicate
-	except:
-		pass
 
 	if backend:
+		request.session['scorePredicate'] = backend.scorePredicate
 		request.session['backend'] = backend.pk
 		request.session['backendUrl'] = backend.baseUrl
 		request.session['backendName'] = backend.name
@@ -50,7 +46,6 @@ def index(request):
 	return render(request, 'index.html', {
 		'backends': Backend.objects.all(),
 		'examples': examples,
-		'scorePredicate': scorePredicate
 	})
 
 
