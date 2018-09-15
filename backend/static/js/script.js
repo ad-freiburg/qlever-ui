@@ -304,6 +304,13 @@ function switchStates(cm){
 	   // move to "values"
 	   last = cm.lastLine();
 	   line = editor.getLine(last);
+	   cursor = cm.getCursor();
+	   curLine = cm.getLine(cursor.line);
+	   if(curLine == "  "){
+	   		lastLine = cm.getLine(cursor.line-1);
+	   		cm.setSelection({'line':cursor.line-1,'ch':lastLine.length},{'line':cursor.line,'ch':curLine.length});
+	  		cm.replaceSelection('')
+	   }
 	   if(line.trim() != ""){
 	  		cm.setSelection({'line':last,'ch':line.length});
 	  		cm.replaceSelection('\n')
@@ -508,7 +515,7 @@ function processQuery(query,showStatus,element) {
 	            for (var j = 0; j < result.res[i].length; ++j) {
 		            // GROUP_CONCAT
 		            if($('#resTable thead tr').children('th')[j+1].innerHTML.startsWith('(GROUP_CONCAT')){
-			            match = (/separator=\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j+1].innerHTML);
+			            match = (/separator[\s]?=[\s]?\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j+1].innerHTML);
 			            if(match && match[1]){
 				            sep = match[1];
 				        } else {
@@ -524,9 +531,13 @@ function processQuery(query,showStatus,element) {
 			            }
 			            row += "</span></td>";
 		            } else {
-		                row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(result.res[i][j]).replace(/\"/g, "&quot;") + "\">"
-		                    + htmlEscape(getShortStr(result.res[i][j], 50, j))
-		                    + "</span></td>";
+						if(result.res[i][j]){
+			                row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(result.res[i][j]).replace(/\"/g, "&quot;") + "\">"
+			                    + htmlEscape(getShortStr(result.res[i][j], 50, j))
+			                    + "</span></td>";
+			            } else {
+				            row += "<td><span>-</span></td>";
+			            }
 		            }
 	            }
 	            row += "</tr>";

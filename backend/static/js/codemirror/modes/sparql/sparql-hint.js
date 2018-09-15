@@ -373,6 +373,7 @@
 			if(match != null && match[1]){
 
 				var clause = match[1].trim().split('\n');
+
 				var skipLines = 0;
 				var prefixes = "";
 				var prefixesRelation = {};
@@ -421,6 +422,7 @@
 						parameter = 'predicate';
 			            var variables = false;
 			            
+			            
 			            if (suggestionMode == 1) {
 			              sparqlQuery = prefixes
 			                          + "\nSELECT ?qleverui_predicate WHERE {"
@@ -438,6 +440,20 @@
 			            } else if (suggestionMode == 2) {
 			              parameter = 'has-predicate';
 			              var subject = parameters[0];
+			              
+			              /* remove unrelated constraints */
+			              /*var connected = false;
+						  for(var i = 0; i < clause.length; i++){
+							  if(clause.indexOf(subject) != -1){
+								  connected = true;
+								  break;
+							  }
+						  }
+			              
+			              if(connected == false){
+				              clause = [];
+			              }*/
+			              
 			              clause[cursorLine] = subject+" ql:has-predicate ?qleverui_predicate .";
 			              sparqlQuery = prefixes
 			                          + "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {\n  "
@@ -651,6 +667,14 @@
 	    var curWord = start != end && curLine.slice(start, end);
 
 	    var list = [], seen = {}, list2 = [];
+	    
+	    if(mode == 'params' && parameter == 'object'){
+		    var variableCandidate = curLine.trim().split(/[\s,.\-\/:]+/).slice(-1)[0].replace('>','').replace('<','');
+			if(variableCandidate != '<'){
+				list.push('?'+variableCandidate.toLowerCase()+' .');
+			}
+		}
+	    
 	    var prefix = '';
 	    function scan(dir) {
 	      var line = cur.line, end = Math.min(Math.max(line + dir * range, editor.firstLine()), editor.lastLine()) + dir;
@@ -756,7 +780,7 @@
 	// reset loading indicator
 	if(activeLine) { activeLine.html(activeLineNumber); }
     if(document.getElementById("dynamicSuggestions").value > 0){
-
+		try {
     		// add a little delay for reducing useless queries
 		    window.clearTimeout(timeoutCompletion);
 			timeoutCompletion = window.setTimeout(function(search,prefix,mode,parameter,result){
@@ -835,6 +859,10 @@
 				}
 
 		    },500,search,prefix,mode,parameter,result);
+		} catch(err) {
+			console.error(err);
+			activeLine.html(activeLineNumber);
+		}
 
 	}
 

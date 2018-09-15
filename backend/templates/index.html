@@ -367,7 +367,7 @@
   {% for example in examples %}
   example{{ forloop.counter }} = `{{ example.query|safe }}`;
   {% endfor %}
-  var scorePredicate = "{{ scorePredicate }}";
+  var scorePredicate = "{{ request.session.scorePredicate }}";
 </script>
 </body>
 </html>
