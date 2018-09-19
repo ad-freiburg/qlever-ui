@@ -132,13 +132,13 @@ def getSuggestions(request):
 	elif mode == 'prefix':
 		log('Retrieving prefixes from local backend')
 		t1 = time.time()
-		prefixes = list(Prefix.objects.filter(backend__pk=request.session.get('backend')).order_by('-occurrences').values_list('prefix', flat=True))
+		prefixes = list(Prefix.objects.filter(backend__pk=request.session.get('backend')).order_by('-occurrences'))
 		t2 = time.time()
 
 		log('%fms'%((t2-t1)*1000))
 
-		for i, prefix in enumerate(prefixes):
-			suggestions.append('PREFIX p%d: <%s>\n'%(i+1, prefix))
+		for prefix in prefixes:
+			suggestions.append('PREFIX %s: <%s>\n'%(prefix.name, prefix.prefix.strip('<>')))
 
 	return HttpResponse(json.dumps({'suggestions': suggestions, 'found': found, 'time': "%.4f"%((t2-t1))}))
 

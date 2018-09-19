@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from django.db import models
 
 class Backend(models.Model):
-
 	MODES = (
 		(2,'3. SPARQL & context sensitive entities'),
 		(1,'2. SPARQL & context insensitive entities'),
@@ -31,14 +30,15 @@ class Backend(models.Model):
 	def __unicode__(self):
 		return self.name
 
-class Prefix(models.Model):
 
+class Prefix(models.Model):
+	name = models.CharField(max_length=30, default="")
 	prefix = models.CharField(max_length=200, default="")
 	backend = models.ForeignKey(Backend)
 	occurrences = models.IntegerField(default=1)
 
-class Example(models.Model):
 
+class Example(models.Model):
 	def __unicode__(self):
 		return self.name
 
