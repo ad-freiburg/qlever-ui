@@ -32,6 +32,8 @@ class Backend(models.Model):
 
 
 class Prefix(models.Model):
+	class Meta:
+		verbose_name_plural = "Prefixes"
 	name = models.CharField(max_length=30, default="")
 	prefix = models.CharField(max_length=200, default="")
 	backend = models.ForeignKey(Backend)

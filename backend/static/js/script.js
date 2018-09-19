@@ -410,6 +410,9 @@ function getShortStr(str, maxLength, column=undefined) {
 	    link = cpy.match(/(https?:\/\/[a-zA-Z0-9-./#?]+)/g)[0]
 	    str = 'LTspan style="white-space: nowrap;"GTLTa href="'+link+'" target="_blank"GTLTi class="glyphicon glyphicon-link"GTLT/iGTLT/aGTNBSP'+str+'LT/spanGT';
     }
+    
+    return str
+    // old code
     str = str.replace(/\"/g, '\\"')
     str = str.replace(/%/g,'%25')
     return decodeURIComponent(JSON.parse('"'+str+'"'));
