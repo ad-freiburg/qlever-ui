@@ -9,9 +9,9 @@ from django.db import models
 from .models import *
 
 class BackendAdmin(admin.ModelAdmin):
-	formfield_overrides = {
-		models.CharField: {'widget': TextInput(attrs={'size':'140'})},
-	}
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'140'})},
+    }
 
 
 class SuggestionAdmin(admin.ModelAdmin):
