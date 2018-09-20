@@ -381,8 +381,8 @@
                  var lines = editor.getValue().split('\n');
                  var suggestionMode = document.getElementById("dynamicSuggestions").value;
 
-                for(var k = 0; k < lines.length; k++){
-                    if(lines[k].trim().startsWith("PREFIX")){
+                for(var k = 0; k < lines.length; k++) {
+                    if(lines[k].trim().startsWith("PREFIX")) {
                         skipLines++;
                         prefixes += lines[k].trim();
 
@@ -424,18 +424,18 @@
 
 
                         if (suggestionMode == 1) {
-                          sparqlQuery = prefixes
+                            sparqlQuery = prefixes
                                       + "\nSELECT ?qleverui_predicate WHERE {"
                                       + "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
-                          if (search != undefined && search.length > 1) {
-                            sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + search + "\")";
-                          }
-                          if (scorePredicate.length > 0){
-                            sparqlQuery += "\n  ?qleverui_predicate "+scorePredicate+" ?qleverui_score ."
-                                          + "\n}\nORDER BY DESC(?qleverui_score)";
-                          } else {
-                            sparqlQuery += "\n}";
-                          }
+                            if (search != undefined && search.length > 1) {
+                                sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + search + "\")";
+                            }
+                            if (scorePredicate.length > 0){
+                                sparqlQuery += "\n  ?qleverui_predicate "+scorePredicate+" ?qleverui_score ."
+                                            + "\n}\nORDER BY DESC(?qleverui_score)";
+                            } else {
+                                sparqlQuery += "\n}";
+                            }
                         } else if (suggestionMode == 2) {
                           parameter = 'has-predicate';
                           var subject = parameters[0];
@@ -465,32 +465,32 @@
                     if(words.length > 2 && words[2] == word){
                         parameter = 'object';
                         if (suggestionMode == 1) {
-                          sparqlQuery = prefixes
-                                      + "\nSELECT ?qleverui_object WHERE {\n  "
-                                      + "?qleverui_object ql:entity-type ql:object .";
-                          if (search != undefined && search.length > 1) {
-                      sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
-                          }
-                    if (scorePredicate.length > 0){
-                      sparqlQuery += "\n  ?qleverui_object "+scorePredicate+" ?qleverui_score ."
-                                        + "\n}\nORDER BY DESC(?qleverui_score)";
-                    } else {
-                      sparqlQuery += "\n}";
-                    }
+                            sparqlQuery = prefixes
+                                        + "\nSELECT ?qleverui_object WHERE {\n  "
+                                        + "?qleverui_object ql:entity-type ql:object .";
+                            if (search != undefined && search.length > 1) {
+                                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
+                            }
+                            if (scorePredicate.length > 0) {
+                                sparqlQuery += "\n  ?qleverui_object "+scorePredicate+" ?qleverui_score ."
+                                             + "\n}\nORDER BY DESC(?qleverui_score)";
+                            } else {
+                                sparqlQuery += "\n}";
+                            }
                         } else if (suggestionMode == 2) {
-                          var subject = parameters[0];
-                          var predicate = parameters[1];
-                          clause[cursorLine] = subject+" "+predicate+" ?qleverui_object .";
-                          sparqlQuery = prefixes
-                                      + "\nSELECT ?qleverui_object WHERE {\n  "
-                                      + clause.join('\n  ');
-                          if (search != undefined && search.length > 1) {
-                      sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
-                          }
-                    sparqlQuery += "\n}";
-                    sparqlQuery += "\nGROUP BY ?qleverui_object";
-                    sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
-                  }
+                            var subject = parameters[0];
+                            var predicate = parameters[1];
+                            clause[cursorLine] = subject+" "+predicate+" ?qleverui_object .";
+                            sparqlQuery = prefixes
+                                        + "\nSELECT ?qleverui_object WHERE {\n  "
+                                        + clause.join('\n  ');
+                            if (search != undefined && search.length > 1) {
+                                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
+                            }
+                            sparqlQuery += "\n}";
+                            sparqlQuery += "\nGROUP BY ?qleverui_object";
+                            sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
+                        }
                     }
 
                 } else {
