@@ -428,8 +428,7 @@
 			                          + "\nSELECT ?qleverui_predicate WHERE {"
 			                          + "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
 			              if (search != undefined && search.length > 1) {
-			                sparqlQuery += "\n  FILTER (?qleverui_predicate >= " + search + ")";
-							sparqlQuery += "\n  FILTER (?qleverui_predicate < " + searchEnd + ")";
+							sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + search + "\")";
 			              }
 		                  if (scorePredicate.length > 0){
 		                    sparqlQuery += "\n  ?qleverui_predicate "+scorePredicate+" ?qleverui_score ."
@@ -470,8 +469,7 @@
 			                          + "\nSELECT ?qleverui_object WHERE {\n  "
 			                          + "?qleverui_object ql:entity-type ql:object .";
 			              if (search != undefined && search.length > 1) {
-                      sparqlQuery += "\n  FILTER (?qleverui_object >= " + search + ")";
-                      sparqlQuery += "\n  FILTER (?qleverui_object < " + searchEnd + ")";
+                      sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
 			              }
                     if (scorePredicate.length > 0){
                       sparqlQuery += "\n  ?qleverui_object "+scorePredicate+" ?qleverui_score ."
@@ -487,8 +485,7 @@
 			                          + "\nSELECT ?qleverui_object WHERE {\n  "
 			                          + clause.join('\n  ');
 			              if (search != undefined && search.length > 1) {
-                      sparqlQuery += "\n  FILTER (?qleverui_object >= " + search + ")";
-                      sparqlQuery += "\n  FILTER (?qleverui_object < " + searchEnd + ")";
+                      sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
 			              }
                     sparqlQuery += "\n}";
                     sparqlQuery += "\nGROUP BY ?qleverui_object";
