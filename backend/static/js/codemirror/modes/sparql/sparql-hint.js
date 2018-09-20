@@ -178,48 +178,49 @@
         match = re.exec(content)
 
         if(content == "" || content == " " || match == null){
-
             $.ajax({
-              url: "/suggest?mode=prefix",
-              result: keywords
+                url: "/suggest?mode=prefix",
+                result: keywords
             }).done(function(data) {
 
 
-            if(document.getElementById("dynamicSuggestions").value > 0){
-              data = $.parseJSON(data).suggestions;
-              prefixes = [];
-              $(data).each(function(key,value){
-                 if(editor.getValue().indexOf(value) == -1){
+            data = $.parseJSON(data).suggestions;
+            prefixes = [];
+            $(data).each(function(key,value){
+                if(editor.getValue().indexOf(value) == -1 && 'prefix'.indexOf(line.toLowerCase()) == 0){
                     prefixes.push(value);
-                 }
-              });
-            } else {
-                prefixes = [];
-            }
+                }
+            });
 
-              // do not suggest nonsens after incomplete PREFIX line
-              if(line.startsWith("PREFIX ")){
+            // do not suggest nonsense after incomplete PREFIX line
+            if(line.startsWith("PREFIX ")){
 
-                  keywords = [];
-                  if (!requestExtension)
+                keywords = [];
+                if (!requestExtension)
                     addMatches(keywords, "", prefixes, function(w) { return w; });
 
-              } else {
-
-                  var select = `SELECT  WHERE {
+            } else {
+	              
+                var select = `SELECT  WHERE {
   
 }`;
-                  // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
-                  keywords = ['PREFIX '];
+                // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
+                if ('prefix'.indexOf(line.toLowerCase()) == 0) {
+	                keywords = ['PREFIX '];
+                } else {
+	                keywords = [];
+                }
 
-                  // add prefixes to select suggestion
-                  if (!requestExtension){
-                      addMatches(keywords, "", prefixes, function(w) { return w; });
-                      keywords.push(select);
-                  }
-              }
-              if (!requestExtension)
-                  callback( {list: keywords, from: Pos(cur.line, 0), to: Pos(cur.line, end)} );
+                // add prefixes to select suggestion
+                if (!requestExtension){
+                    addMatches(keywords, "", prefixes, function(w) { return w; });
+                    if ('select'.indexOf(line.toLowerCase()) == 0) {
+                        keywords.push(select);
+                    }
+                }
+            }
+            if (!requestExtension)
+                callback( {list: keywords, from: Pos(cur.line, 0), to: Pos(cur.line, end)} );
 
             });
 
@@ -267,17 +268,21 @@
         //////////////////////////////////////////////////////////////////////////////////
         if(absolutePosition < match.index){
 
-            // TODO: Caching: we don't need to do this twice, aren't we?
+            // TODO: Caching: we don't need to do this twice, do we?
             $.ajax({
               url: "/suggest?mode=prefix",
               result: keywords
             }).done(function(data) {
-
               // add prefixes to suggestion
-              keywords = ["PREFIX "];
+              keywords = [];
+              if ('prefix'.indexOf(line.toLowerCase()) == 0) {
+	              keywords.push("PREFIX ");
+              }
 
               if (!requestExtension) {
-                  addMatches(keywords, "", $.parseJSON(data).suggestions, function(w) {return w;});
+	              if ('prefix'.indexOf(line.toLowerCase()) == 0) {
+                      addMatches(keywords, "", $.parseJSON(data).suggestions, function(w) {return w;});
+                  }
                   callback( {list: keywords, from: Pos(cur.line, 0), to: Pos(cur.line, end)} );
               }
             });
