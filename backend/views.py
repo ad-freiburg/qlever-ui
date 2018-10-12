@@ -98,7 +98,7 @@ def getSuggestions(request):
 			skipped = 0
 			for predicate in response.json().get('res',[]):
 				predicate = predicate[0]
-				for substr in predicate.lower().split('_') + predicate.lower().split('/'):
+				for substr in [predicate.lower()] + predicate.lower().split('_') + predicate.lower().split('/'):
 					if substr.startswith(lastWord):
 						if skipped < offset:	# skip #offset suggestions
 							skipped += 1
@@ -107,7 +107,7 @@ def getSuggestions(request):
 						break
 				if len(suggestions) >= size:
 					break
-						
+
 			t3 = time.time()
 			found = response.json().get('resultsize', 0)
 			t4 = time.time()
