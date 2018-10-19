@@ -170,20 +170,24 @@ def reindex(request):
 				backendId = str(backend.pk)
 
 				Prefix.objects.filter(backend=backend).delete()
+				prefixes = {}
+				prefixRegex = re.compile("<(http://(?:.*?)[/|#])")
+				with open(backend.ntFilePath, 'r') as ntFile:
+					i = 0
+					for line in ntFile:
+						for prefix in prefixRegex.findall(line):
+							if prefix in prefixes:
+								prefixes[prefix] += 1
+							else:
+								prefixes[prefix] = 1
+						i += 1
+						if i % 1000000 == 0:
+							log("%d lines processed" % i)
 
-				log("creating prefixes from subjects")
-				output = subprocess.check_output("""export LC_ALL=C ; cut -f1 %s | perl -ne '/(http:(.*)\/)/ and print "$1\n";' | sort | uniq -c | sort -k1,1nr""" % backend.ntFilePath, shell=True).decode('utf-8').split('\n')[:3]
-				for prefix in output:
-					if prefix:
-						prefix = prefix.strip().split(' ')
-						Prefix.objects.get_or_create(backend=backend, prefix=prefix[1], occurrences=prefix[0])
-
-				log("creating prefixes from predicates")
-				output = subprocess.check_output("""export LC_ALL=C ; cut -f2 %s | perl -ne '/(http:(.*)\/)/ and print "$1\n";' | sort | uniq -c | sort -k1,1nr""" % backend.ntFilePath, shell=True).decode('utf-8').split('\n')[:3]
-				for prefix in output:
-					if prefix:
-						prefix = prefix.strip().split(' ')
-						Prefix.objects.get_or_create(backend=backend, prefix=prefix[1], occurrences=prefix[0])
+				sortedPrefixList = sorted([(k, prefixes[k]) for k in d], key=lambda x:x[1])[:20]
+				for prefix in sortedPrefixList:
+					name = "".join([s[0] for s in prefix[7:].replace("www.", "").split("/-") if s])
+					Prefix.objects.get_or_create(backend=backend, name=name, prefix=prefix[0], occurrences=prefix[1])
 
 				backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
 				backend.isImporting = False
