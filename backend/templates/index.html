@@ -191,7 +191,7 @@
 					  	{% if request.user.is_authenticated %}
 					  		<li class="divider"></li>
 					  		<li><a onclick="window.location = '/admin/backend/example/add/?backend={{ request.session.backend }}&query='+encodeURI(editor.getValue());"><i class="glyphicon glyphicon-check"></i> Add current query as example</a></li>
-					  		<li><a href="/admin/backend/example/add/?backend={{ request.session.backend }}"><i class="glyphicon glyphicon-edit"></i> Add completely new example</a></li>
+					  		<li><a href="/admin/backend/example/add/?backend={{ request.session.backend }}"><i class="glyphicon glyphicon-edit"></i> Add new example</a></li>
 					  	{% endif %}
 					  </ul>
 				</div>
