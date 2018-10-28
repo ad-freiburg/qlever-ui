@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from __future__ import print_function
 
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseServerError, JsonResponse
@@ -147,69 +148,67 @@ def getSuggestions(request):
 # Helpers
 #
 
-def reindex(request):
+def collectPrefixes(backend, output=print):
     """
 
-        Do the preprocessing work from QLever UI
+        Computes the Indexes from the nt file
 
     """
-
-    backend = Backend.objects.filter(pk=request.session.get('backend')).first()
 
     if not backend or not backend.ntFilePath:
-        return JsonResponse({'status': 'error', 'message': 'There was no nt-source specified for this backend.'})
+        raise StandardError('There was no nt-source specified for this backend.')
 
     if not os.path.isfile(backend.ntFilePath):
-        return JsonResponse({'status': 'error', 'message': 'Error opening file "%s"' % backend.ntFilePath})
+        raise StandardError('Error opening file "%s"' % backend.ntFilePath)
 
-    if str(os.path.getmtime(backend.ntFilePath)) != str(backend.ntFileLastChange):
-        if backend.isImporting == False:
-            try:
-                backend.isImporting = True
-                backend.save()
-                backendId = str(backend.pk)
+    if backend.isImporting == False:
+        try:
+            backend.isImporting = True
+            backend.save()
+            backendId = str(backend.pk)
 
-                Prefix.objects.filter(backend=backend).delete()
-                prefixes = {}
-                prefixRegex = re.compile("<(http://(?:.*?)[/|#])")
-                with open(backend.ntFilePath, 'r') as ntFile:
-                    i = 0
-                    for line in ntFile:
-                        for prefix in prefixRegex.findall(line):
-                            if prefix in prefixes:
-                                prefixes[prefix] += 1
-                            else:
-                                prefixes[prefix] = 1
-                        i += 1
-                        if i % 1000000 == 0:
-                            log("%d lines processed" % i)
+            prefixes = {}
+            prefixRegex = re.compile("<(http://(?:[a-zA-Z0-9_/-]*?)[/|#])")
+            with open(backend.ntFilePath, 'r') as ntFile:
+                i = 0
+                for line in ntFile:
+                    for prefix in prefixRegex.findall(line):
+                        if prefix in prefixes:
+                            prefixes[prefix] += 1
+                        else:
+                            prefixes[prefix] = 1
+                    i += 1
+                    if i % 10000000 == 0:
+                        log("%d lines processed" % i, output=output)
 
-                sortedPrefixList = sorted([(k, prefixes[k]) for k in d], key=lambda x:x[1])[:20]
-                for prefix in sortedPrefixList:
-                    name = "".join([s[0] for s in prefix[7:].replace("www.", "").split("/-") if s])
-                    Prefix.objects.get_or_create(backend=backend, name=name, prefix=prefix[0], occurrences=prefix[1])
+            log("Found %d prefixes." % len(prefixes))
+            if len(prefixes) > 20:
+                log("Storing the 20 most common.")
+            sortedPrefixList = sorted([(k, prefixes[k]) for k in prefixes], key=lambda x:x[1])[:20]
+            for prefix in sortedPrefixList:
+                name = "".join([s[0] for s in prefix[0][7:].replace("www.", "").split("/-") if s])
+                instance, created = Prefix.objects.get_or_create(backend=backend, prefix=prefix[0])
+                if created:
+                    instance.name = name
+                    instance.occurrences = prefix[1]
+                    prefix.save
 
-                backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
-                backend.isImporting = False
-                backend.save()
+            backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
+            backend.isImporting = False
+            backend.save()
 
-                log("Done.")
-                return JsonResponse({'status': 'finished'})
+            log("Done.", output=output)
+        except Exception as e:
+            backend.isImporting = False
+            backend.save()
+            raise
+    else:
+        raise StandardError("Index collection for this backend already running")
 
-            except Exception as e:
-                backend.isImporting = False
-                backend.save()
-                raise
-                return JsonResponse({'status': 'error', 'message': str(e)})
-        else:
 
-            return JsonResponse({'status': 'running'})
-
-    return JsonResponse({'status': 'noaction'})
-
-def log(msg):
+def log(msg, output=print):
     """
         Helper to log things that happen during the process
     """
     logMsg = datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S') + ' ' + str(msg)
-    print logMsg
+    output(logMsg)
