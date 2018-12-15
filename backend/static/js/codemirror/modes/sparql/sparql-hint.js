@@ -179,7 +179,7 @@
 
         if(content == "" || content == " " || match == null){
             $.ajax({
-                url: "/suggest?mode=prefix",
+                url: "/api/suggest?mode=prefix",
                 result: keywords
             }).done(function(data) {
 
@@ -270,7 +270,7 @@
 
             // TODO: Caching: we don't need to do this twice, do we?
             $.ajax({
-              url: "/suggest?mode=prefix",
+              url: "/api/suggest?mode=prefix",
               result: keywords
             }).done(function(data) {
               // add prefixes to suggestion
@@ -808,7 +808,7 @@
 
                         console.log('Getting suggestions from QLever:');
                         console.log(sparqlQuery);
-                        lastUrl = "/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
+                        lastUrl = "api/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
                         $.ajax({
                           url: lastUrl,
                           search: search,
