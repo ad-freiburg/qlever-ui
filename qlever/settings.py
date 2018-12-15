@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 from settings_secret import *
 
-import os, subprocess
+import os, subprocess, re
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -122,13 +122,18 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "backend/static/")
 
+
+
+STATIC_VERSION = "n.a."
+
 try:
-	STATIC_VERSION = (subprocess.check_output("git rev-parse HEAD;", shell=True)).decode("utf-8")[:7]
+	versionInfo = (subprocess.check_output("svn info -r HEAD;", shell=True)).decode("utf-8")
+	STATIC_VERSION = re.search("Revision: (\d+)", versionInfo).group(1)
 except:
 	STATIC_VERSION = "n.a."
-	
+
 if STATIC_VERSION == "" or STATIC_VERSION == "n.a.":
 	try:
-		STATIC_VERSION = (subprocess.check_output("svn info -r HEAD;", shell=True)).decode("utf-8")[:7]
+		STATIC_VERSION = (subprocess.check_output("git rev-parse HEAD;", shell=True)).decode("utf-8")[:7]
 	except:
 		STATIC_VERSION = "n.a."
