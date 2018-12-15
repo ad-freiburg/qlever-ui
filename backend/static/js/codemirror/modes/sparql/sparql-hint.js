@@ -200,9 +200,9 @@
                     addMatches(keywords, "", prefixes, function(w) { return w; });
 
             } else {
-	              
+
                 var select = `SELECT  WHERE {
-  
+
 }`;
                 // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
                 if ('prefix'.indexOf(line.toLowerCase()) == 0) {
@@ -416,7 +416,7 @@
                     if (search.indexOf('<') != 0 && search.indexOf('"') != 0) {
                       search = "<" + search;
                     }
-        
+
                     var searchEnd = search.slice(0, -1) + String.fromCharCode(search.charCodeAt(search.length-1) + 1);
 
                     if(words.length > 0 && words[0] == word){
@@ -464,6 +464,9 @@
                                       + clause.join('\n  ')
                                       + "\n}\nGROUP BY ?qleverui_predicate"
                                 + "\nORDER BY DESC(?count)";
+                          if (search != undefined && search.length > 1) {
+                              sparqlQuery += "\n  HAVING regex(?qleverui_predicate, \"^" + search + "\")";
+                          }
                         }
                     }
 
@@ -801,10 +804,7 @@
 
                     if(sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-predicate')){
 
-                        if (parameter != 'has-predicate') {
-                          // No offset because FILTER does not work with ql:has-predicate, so OFFSET could cut off relations that we actually searched for
-                          sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
-                        }
+                        sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
                         console.log('Getting suggestions from QLever:');
                         console.log(sparqlQuery);
@@ -818,7 +818,7 @@
                             step2 = true;
                             var data = $.parseJSON(data);
                             console.log("Query took "+data.time+" seconds.");
-                            
+
                             found = data.found;
                             addMatches(result2, search, data.suggestions, function(w) {
 

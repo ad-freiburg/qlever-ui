@@ -102,43 +102,17 @@ def getSuggestions(request):
     # Redirect queries to QLever
     if query:
         log('Retrieving %s suggestions from QLever.' % parameter)
-        if parameter == 'has-predicate':
+        t1 = time.time()
+        response = requests.get(request.session['backendUrl'], params={'query': query})
+        response.raise_for_status()
+        t2 = time.time()
 
-            t1 = time.time()
-            response = requests.get(request.session['backendUrl'], params={'query': query})
-            t2 = time.time()
+        result = []
+        suggestions = [x[0] for x in response.json().get('res',[])]
+        found = response.json().get('resultsize', 0)
+        t3 = time.time()
 
-            skipped = 0
-            for predicate in response.json().get('res',[]):
-                predicate = predicate[0]
-                for substr in [predicate.lower()] + predicate.lower().split('_') + predicate.lower().split('/'):
-                    if substr.startswith(lastWord):
-                        if skipped < offset:    # skip #offset suggestions
-                            skipped += 1
-                        else:
-                            suggestions.append(predicate)
-                        break
-                if len(suggestions) >= size:
-                    break
-
-            t3 = time.time()
-            found = response.json().get('resultsize', 0)
-            t4 = time.time()
-
-            log('\nQuerying QLever for predicates: %fms\nFiltering for typed word: %fms\nCounting total number of predicates: %fms\nTotal: %fms'%((t2-t1)*1000, (t3-t2)*1000, (t4-t3)*1000, (t4-t1)*1000))
-
-        else:
-            t1 = time.time()
-            response = requests.get(request.session['backendUrl'], params={'query': query})
-            response.raise_for_status()
-            t2 = time.time()
-
-            result = []
-            suggestions = [x[0] for x in response.json().get('res',[])]
-            found = response.json().get('resultsize', 0)
-            t3 = time.time()
-
-            log('\nQuerying QLever: %fms\nCounting entities: %fms'%((t2-t1)*1000, (t3-t2)*1000))
+        log('\nQuerying QLever: %fms\nCounting entities: %fms'%((t2-t1)*1000, (t3-t2)*1000))
 
 
     # Use local backend for prefixes
@@ -193,17 +167,17 @@ def collectPrefixes(backend, output=print):
                     if i % 10000000 == 0:
                         log("%d lines processed" % i, output=output)
 
-            log("Found %d prefixes." % len(prefixes))
+            log("Found %d prefixes." % len(prefixes), output=output)
             if len(prefixes) > 20:
-                log("Storing the 20 most common.")
+                log("Storing the 20 most common.", output=output)
             sortedPrefixList = sorted([(k, prefixes[k]) for k in prefixes], key=lambda x:x[1])[:20]
             for prefix in sortedPrefixList:
                 name = "".join([s[0] for s in prefix[0][7:].replace("www.", "").split("/-") if s])
                 instance, created = Prefix.objects.get_or_create(backend=backend, prefix=prefix[0])
+                instance.occurrences = prefix[1]
                 if created:
                     instance.name = name
-                    instance.occurrences = prefix[1]
-                    prefix.save
+                    prefix.save()
 
             backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
             backend.isImporting = False
