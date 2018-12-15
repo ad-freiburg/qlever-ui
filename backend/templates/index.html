@@ -87,6 +87,10 @@
 </header>
 
 <div id="main" class="container">
+	
+{% if backends %}
+
+
 	<!-- The backends block -->
 	<div class="btn-group" role="group" >
 	  <button onclick="$('#stats').toggle();" class="btn btn-default" id="statsButton"><i class="glyphicon glyphicon-stats"></i> Loading information...</button>
@@ -95,7 +99,7 @@
 		  <span class="caret"></span></button>
 		  <ul class="dropdown-menu">
 	       {% for backend in backends %}
-			<li><a href="?backend={{ backend.pk }}">{% if request.session.backend == backend.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ backend.name }}</a></li>
+			<li><a href="/{{ backend.slugify }}">{% if request.session.backend == backend.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ backend.name }}</a></li>
 		   {% endfor %}
 		  </ul>
 	  </div>
@@ -174,7 +178,7 @@
 	        <div class="col-md-8">
 		        <button id="runbtn" class="btn btn-success"><i class="glyphicon glyphicon-refresh"></i> Show query results</button>
 		         <div class="btn-group" role="group">
-				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-download"></i> Download results
+				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-download"></i> Download
 					  <span class="caret"></span></button>
 					  <ul class="dropdown-menu">
 					  	<li><a class="dropdown-item" id="csvbtn" href="#csv"><i class="glyphicon glyphicon-file"></i> Download results as CSV</a></li>
@@ -345,7 +349,17 @@
 				</div>
 			</div>
     </div>
+{% else %}
+<br><br><br>
+<div style="text-align: center">
+	<i class="glyphicon glyphicon glyphicon-exclamation-sign" style="font-size: 7em;"></i><br><br><br>
+	<strong>You need to <a href="/admin">configure</a> a QLever backend first.</strong>
 </div>
+<br><br><br>
+{% endif %}
+</div>
+
+
 <br><br><br><br>
 <footer class="footer">
     <div class="container" style="text-align: center;">
