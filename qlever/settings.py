@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 from settings_secret import *
 
-import os
+import os, subprocess
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,6 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'qlever.context_processor.additional_context',
             ],
         },
     },
@@ -120,3 +121,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "backend/static/")
+
+try:
+	STATIC_VERSION = (subprocess.check_output("git rev-parse HEAD;", shell=True)).decode("utf-8")[:7]
+except:
+	STATIC_VERSION = "n.a."
+	
+if STATIC_VERSION == "" or STATIC_VERSION == "n.a.":
+	try:
+		STATIC_VERSION = (subprocess.check_output("svn info -r HEAD;", shell=True)).decode("utf-8")[:7]
+	except:
+		STATIC_VERSION = "n.a."
