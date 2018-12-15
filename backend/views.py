@@ -86,6 +86,9 @@ def shareLink(request):
         if existing.exists():
             return JsonResponse({'link':existing.first().identifier})
         
+        # space for 56.800.235.584 unique queries in history
+        # asuming that one query is about 500 Bytes these are ~ 28 TB of history data
+        # asuming that one query is about 1000 Bytes these are ~ 56 TB of history data
         identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
         while Link.objects.filter(identifier=identifier).exists():
             identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
