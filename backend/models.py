@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import urllib
 
 class Backend(models.Model):
     MODES = (
@@ -10,7 +11,7 @@ class Backend(models.Model):
         (0,'1. SPARQL syntax & keywords only')
     )
 
-    name = models.CharField(max_length=500,help_text="Choose a name for the backend that helps you to distinguish between multiple backends",verbose_name="Name")
+    name = models.CharField(max_length=500,help_text="Choose a name for the backend that helps you to distinguish between multiple backends",verbose_name="Name",unique=True)
     baseUrl = models.CharField(max_length=1000,help_text="The URL where to find / call the QLever backend (including http://)",verbose_name="Base URL")
 
     ntFilePath = models.CharField(max_length=2000, default='', blank=True,help_text="Local (absolute or relative) path to the source .nt file QLever uses",verbose_name="Source Path")
@@ -29,6 +30,10 @@ class Backend(models.Model):
 
     def __unicode__(self):
         return self.name
+        
+    def slugify(self):
+	    return self.name.replace(' ','_')
+    
 
 
 class Prefix(models.Model):

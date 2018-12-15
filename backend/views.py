@@ -10,42 +10,54 @@ from django.db.models import Max
 
 from .models import *
 
-import re, json, os, subprocess, requests, codecs
+import re, json, os, subprocess, requests, codecs, urllib
 from collections import Counter
+from django.shortcuts import redirect
 
 import datetime, time
 
-def index(request):
+def index(request,backend=None):
     """
 
         Index view - shows the UI with all available backends
         If no preferred backend is set this view choses the default from the database
-
+    
     """
 
-    backend = None
+    activeBackend = None
     examples = []
 
     # if a backend is given try to activate it
-    if request.GET.get('backend',False) and int(request.GET['backend']) >= 0:
-        backend = Backend.objects.filter(pk=request.GET['backend']).first()
-    if request.session.get('backend',False) == False:
-        backend = Backend.objects.order_by('isDefault').first()
-
-
     if backend:
-        request.session['scorePredicate'] = backend.scorePredicate
-        request.session['backend'] = backend.pk
-        request.session['backendUrl'] = backend.baseUrl
-        request.session['backendName'] = backend.name
-        request.session['backendSuggestions'] = backend.dynamicSuggestions
-        request.session['subjectName'] = backend.subjectName
-        request.session['predicateName'] = backend.predicateName
-        request.session['objectName'] = backend.objectName
+        for availableBackend in Backend.objects.all():
+            if availableBackend.slugify() == backend:
+                activeBackend = availableBackend
+                break
+    # if no backend is given activate the last one
+    else:
+        # go to the last active backend if set
+        if request.session['backend']:    
+            backend = Backend.objects.filter(pk=request.session['backend']).first()
+            # and if still available
+            if backend:
+                return redirect('/'+backend.slugify())
+        # find a default backend
+        else:
+            backend = Backend.objects.order_by('isDefault').first()
+            return redirect('/'+backend.slugify())
 
-    backend = request.session.get('backend',False)
-    if backend:
-        examples = Example.objects.filter(backend=backend)
+    if activeBackend:
+
+        request.session['scorePredicate'] = activeBackend.scorePredicate
+        request.session['backend'] = activeBackend.pk
+        request.session['backendUrl'] = activeBackend.baseUrl
+        request.session['backendName'] = activeBackend.name
+        request.session['backendSuggestions'] = activeBackend.dynamicSuggestions
+        request.session['subjectName'] = activeBackend.subjectName
+        request.session['predicateName'] = activeBackend.predicateName
+        request.session['objectName'] = activeBackend.objectName
+
+        examples = Example.objects.filter(backend=activeBackend)
 
     return render(request, 'index.html', {
         'backends': Backend.objects.all(),
