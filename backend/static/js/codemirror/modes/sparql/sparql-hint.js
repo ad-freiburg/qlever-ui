@@ -4,7 +4,7 @@
   var lastSize = 0;
   var size = 40;
   var step2 = false;
-  var found = 0;
+  var resultSize = 0;
   var lastWidget = undefined;
 
 (function(mod) {
@@ -808,7 +808,7 @@
 
                         console.log('Getting suggestions from QLever:');
                         console.log(sparqlQuery);
-                        lastUrl = "api/suggest?lastWord="+search+"&query="+encodeURIComponent(sparqlQuery)+"&parameter="+parameter+"&size="+size+"&offset="+lastSize;
+                        lastUrl = BASEURL + "?query="+encodeURIComponent(sparqlQuery);
                         $.ajax({
                           url: lastUrl,
                           search: search,
@@ -816,11 +816,15 @@
                         }).done(function(data) {
                             console.log("Got suggestions from QLever.");
                             step2 = true;
-                            var data = $.parseJSON(data);
-                            console.log("Query took "+data.time+" seconds.");
+                            console.log("Query took "+data.time.total+".");
 
-                            found = data.found;
-                            addMatches(result2, search, data.suggestions, function(w) {
+                            resultSize = data.resultsize;
+
+                            var suggestions = [];
+                            for (var result of data.res) {
+                              suggestions.push(result[0]);
+                            }
+                            addMatches(result2, search, suggestions, function(w) {
 
                                 for(prefix in prefixesRelation){
                                     if(w.indexOf(prefixesRelation[prefix]) > 0){
@@ -843,8 +847,8 @@
                             console.log("Resetting load indicator & showing badge.");
                             activeLine.html(activeLineNumber);
                             $('#aBadge').remove();
-                            if(data.found != undefined && data.found != null){
-                                activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">'+data.found+'</span>');
+                            if(resultSize != undefined && resultSize != null){
+                                activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">'+resultSize+'</span>');
                             }
 
                         }).fail(function(e){
