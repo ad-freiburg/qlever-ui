@@ -181,17 +181,17 @@ def collectPrefixes(backend, output=print):
                     if i % 10000000 == 0:
                         log("%d lines processed" % i, output=output)
 
-            log("Found %d prefixes." % len(prefixes))
+            log("Found %d prefixes." % len(prefixes), output=output)
             if len(prefixes) > 20:
-                log("Storing the 20 most common.")
+                log("Storing the 20 most common.", output=output)
             sortedPrefixList = sorted([(k, prefixes[k]) for k in prefixes], key=lambda x:x[1])[:20]
             for prefix in sortedPrefixList:
                 name = "".join([s[0] for s in prefix[0][7:].replace("www.", "").split("/-") if s])
                 instance, created = Prefix.objects.get_or_create(backend=backend, prefix=prefix[0])
+                instance.occurrences = prefix[1]
                 if created:
                     instance.name = name
-                    instance.occurrences = prefix[1]
-                    prefix.save
+                    prefix.save()
 
             backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
             backend.isImporting = False
