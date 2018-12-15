@@ -179,11 +179,9 @@
 
         if(content == "" || content == " " || match == null){
             $.ajax({
-                url: "/api/suggest?mode=prefix",
+                url: "/api/prefixes",
                 result: keywords
             }).done(function(data) {
-
-
             data = $.parseJSON(data).suggestions;
             prefixes = [];
             $(data).each(function(key,value){
@@ -270,7 +268,7 @@
 
             // TODO: Caching: we don't need to do this twice, do we?
             $.ajax({
-              url: "/api/suggest?mode=prefix",
+              url: "/api/prefixes",
               result: keywords
             }).done(function(data) {
               // add prefixes to suggestion

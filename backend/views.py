@@ -37,7 +37,7 @@ def index(request,backend=None,short=None):
 
         if activeBackend == None:
             return redirect('/')
-    
+
     # if no backend is given activate the last one
     else:
         # go to the last active backend if set
@@ -92,64 +92,38 @@ def shareLink(request):
         identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
         while Link.objects.filter(identifier=identifier).exists():
             identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
-        
+
         Link.objects.create(identifier=identifier,content=request.GET.get('link'))
-        
+
         return JsonResponse({'link':identifier})
-    
+
     else:
-    
+
         Link.objects.all().delete()
-    
+
         return redirect('/')
-    
 
-def getSuggestions(request):
+
+def getPrefixes(request):
     """
 
-        Takes a scope and the word currently typing and returns several suggestions in a list
+        Return all prefixes for the current backend
 
     """
-
-    # General information
     backend = Backend.objects.get(pk=request.session.get('backend')) # backend id
-
-    # Context information
-    mode = request.GET.get('mode')
-    query = request.GET.get('query')
-
     suggestions = []
-    found = None
 
-    # Redirect queries to QLever
-    if query:
-        log('Retrieving suggestions from QLever.')
-        t1 = time.time()
-        response = requests.get(request.session['backendUrl'], params={'query': query})
-        response.raise_for_status()
-        t2 = time.time()
+    log('Retrieving prefixes from local backend')
+    t1 = time.time()
+    prefixes = list(Prefix.objects.filter(backend__pk=request.session.get('backend')).order_by('-occurrences'))
 
-        result = []
-        suggestions = [x[0] for x in response.json().get('res',[])]
-        found = response.json().get('resultsize', 0)
-        t3 = time.time()
+    for prefix in prefixes:
+        suggestions.append('PREFIX %s: <%s>\n'%(prefix.name, prefix.prefix.strip('<>')))
 
-        log('\nQuerying QLever: %fms\nCounting entities: %fms'%((t2-t1)*1000, (t3-t2)*1000))
+    t2 = time.time()
+    log('%fms'%((t2-t1)*1000))
 
-
-    # Use local backend for prefixes
-    elif mode == 'prefix':
-        log('Retrieving prefixes from local backend')
-        t1 = time.time()
-        prefixes = list(Prefix.objects.filter(backend__pk=request.session.get('backend')).order_by('-occurrences'))
-        t2 = time.time()
-
-        log('%fms'%((t2-t1)*1000))
-
-        for prefix in prefixes:
-            suggestions.append('PREFIX %s: <%s>\n'%(prefix.name, prefix.prefix.strip('<>')))
-
-    return HttpResponse(json.dumps({'suggestions': suggestions, 'found': found, 'time': "%.4f"%((t2-t1))}))
+    return HttpResponse(json.dumps({'suggestions': suggestions, 'found': len(suggestions), 'time': "%.4f"%((t2-t1))}))
 
 
 #
