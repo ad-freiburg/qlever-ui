@@ -215,7 +215,7 @@ $(document).ready(function () {
         processQuery(queryString,true,this);
         
         // generate pretty link
-        $.getJSON('api/share?link='+encodeURI(editor.getValue()), function (result) {
+        $.getJSON('/api/share?link='+encodeURI(editor.getValue()), function (result) {
 	        console.log('Got pretty link from backend');
 	        window.history.pushState("html:index.html", "QLever", window.location.origin+window.location.pathname.split('/').slice(0,2).join('/')+'/'+result.link);
 		});
