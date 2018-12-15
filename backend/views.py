@@ -21,7 +21,7 @@ def index(request,backend=None):
 
         Index view - shows the UI with all available backends
         If no preferred backend is set this view choses the default from the database
-    
+
     """
 
     activeBackend = None
@@ -38,7 +38,7 @@ def index(request,backend=None):
     # if no backend is given activate the last one
     else:
         # go to the last active backend if set
-        if request.session['backend']:    
+        if request.session['backend']:
             backend = Backend.objects.filter(pk=request.session['backend']).first()
             # and if still available
             if backend:
@@ -78,32 +78,15 @@ def getSuggestions(request):
     backend = Backend.objects.get(pk=request.session.get('backend')) # backend id
 
     # Context information
-    lastWord = request.GET.get('lastWord', '').lower() # current word (prefix)
-    scope = request.GET.get('scope')
     mode = request.GET.get('mode')
-    parameter = request.GET.get('parameter')
     query = request.GET.get('query')
-
-    # Pagination
-    offset = int(request.GET.get('offset', 0)) # offset for results
-    size = int(request.GET.get('size', 20)) # amount of expected results
-
-    # no suggestions in variables
-    if lastWord is None or lastWord.startswith('?'):
-        return HttpResponse(json.dumps({'suggestions': [], 'found': 0}))
-
-    # Using the literals is not required
-    if lastWord and not lastWord.startswith('<'):
-        startedWord = '<' + lastWord
-    else:
-        startedWord = lastWord
 
     suggestions = []
     found = None
 
     # Redirect queries to QLever
     if query:
-        log('Retrieving %s suggestions from QLever.' % parameter)
+        log('Retrieving suggestions from QLever.')
         t1 = time.time()
         response = requests.get(request.session['backendUrl'], params={'query': query})
         response.raise_for_status()
