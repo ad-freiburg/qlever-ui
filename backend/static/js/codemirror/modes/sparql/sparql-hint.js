@@ -1,11 +1,11 @@
 // Distributed under an MIT license: http://codemirror.net/LICENSE
-var lastUrl;
-var requestExtension = false;
-var lastSize = 0;
-var size = 40;
-var step2 = false;
-var resultSize = 0;
-var lastWidget = undefined;
+
+var lastUrl; // remark url for autocomplete call
+var requestExtension = false; // append autocompletion or create new widget
+var lastSize = 0; // size of last auto completion call (increases over the time)
+var size = 40; // size for next auto completion call
+var resultSize = 0; // result size for counter badge
+var lastWidget = undefined; // last auto completion widget instance
 
 (function(mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -17,42 +17,30 @@ var lastWidget = undefined;
 })(function(CodeMirror) {
     "use strict";
 
-    var timeoutCompletion;
-    var sparqlQuery;
-    var activeLine;
-    var activeLineBadgeLine;
-    var activeLineNumber;
 
-    var tables;
-    var defaultTable;
+    var timeoutCompletion; // holds the window.timeout of the completion - needed to stop requests
+    var sparqlQuery; // holds the sparql query that is executed
+    var activeLine; // the current active line that holds loader / counter badge
+    var activeLineBadgeLine; // the bade holder in the current active line
+    var activeLineNumber; // the line number of the active line (replaced by loader)
 
-    var keywords;
-    var identifierQuote;
-
-    var CONS = {
-        QUERY_DIV: ";",
-        ALIAS_KEYWORD: "AS"
-    };
+    var keywords; // language keywords
 
     var Pos = CodeMirror.Pos,
         cmpPos = CodeMirror.cmpPos;
 
+	// helper to detect arrays
     function isArray(val) {
         return Object.prototype.toString.call(val) == "[object Array]"
     }
 
+	// get language specific keywords
     function getKeywords(editor) {
         var mode = editor.doc.modeOption;
-        if (mode === "sql") mode = "text/x-sql";
         return CodeMirror.resolveMode(mode).keywords;
     }
 
-    function getIdentifierQuote(editor) {
-        var mode = editor.doc.modeOption;
-        if (mode === "sql") mode = "text/x-sql";
-        return CodeMirror.resolveMode(mode).identifierQuote || "`";
-    }
-
+	// extract text from non string types
     function getText(item) {
         if (item == undefined) {
             return ""
@@ -60,61 +48,13 @@ var lastWidget = undefined;
         return typeof item == "string" ? item : item.text;
     }
 
-    function shallowClone(object) {
-        var result = {};
-        for (var key in object)
-            if (object.hasOwnProperty(key))
-                result[key] = object[key];
-        return result;
-    }
-
-    function match(string, word) {
-        var len = string.length;
-        var sub = getText(word).substr(0, len);
-        return string.toUpperCase() === sub.toUpperCase();
-    }
-
+	// add matches to result
     function addMatches(result, search, wordlist, formatter) {
-        if (isArray(wordlist)) {
-            for (var i = 0; i < wordlist.length; i++) {
-                result.push(formatter(wordlist[i]));
-            }
-        } else {
-            for (var word in wordlist)
-                if (wordlist.hasOwnProperty(word)) {
-                    var val = wordlist[word]
-                    if (!val || val === true)
-                        val = word
-                    else
-                        val = val.displayText ? {
-                            text: val.text,
-                            displayText: val.displayText
-                        } : val.text
-                    if (match(search, val)) result.push(formatter(val))
-                }
+        for (var i = 0; i < wordlist.length; i++) {
+            result.push(formatter(wordlist[i]));
         }
     }
-
-    function insertIdentifierQuotes(name) {
-        var nameParts = getText(name).split(".");
-        for (var i = 0; i < nameParts.length; i++)
-            nameParts[i] = identifierQuote +
-            // doublicate identifierQuotes
-            nameParts[i].replace(new RegExp(identifierQuote, "g"), identifierQuote + identifierQuote) +
-            identifierQuote;
-        var escaped = nameParts.join(".");
-        if (typeof name == "string") return escaped;
-        name = shallowClone(name);
-        name.text = escaped;
-        return name;
-    }
-
-    function eachWord(lineText, f) {
-        var words = lineText.split(/\s+/)
-        for (var i = 0; i < words.length; i++)
-            if (words[i]) f(words[i].replace(/[,;]/g, ''))
-    }
-
+	
     CodeMirror.registerHelper("hint", "sparql", function(editor, callback, options) {
 
 
@@ -133,45 +73,40 @@ var lastWidget = undefined;
         //    - 3: limit - after "LIMIT"
         //    - 4: order - after "ORDER BY"
         //    - 5: all   - everywhere else
+		//    - TODO: add the others
+		
+        var mode = 'all'; // where am I in the query
+        var parameter = 'undefined'; // where am I in the where clause
 
-        var mode = 'all';
-        var parameter = 'undefined';
+        var cur = editor.getCursor(); // current cursor position
+        var line = editor.getLine(cur.line); // current line
+        
+        var absolutePosition = 0; // absolute cursor position in text
+        var lastCharEmpty = false; // tells you if the position follows a whitespace
+        var content = editor.getValue().replace('\r\n', '\n'); // editor content
+        var match = null; // regex match
+        var variables = true; // tell if variables should be suggested
 
-        var cur = editor.getCursor();
-        var absolutePosition = 0;
-        var lastCharEmpty = false;
-        var content = editor.getValue().replace('\r\n', '\n');
-        var match = null;
 
         // detect the absolute position inside the query
-        var i = 0;
-        $('.CodeMirror-line').each(function() {
+        $('.CodeMirror-line').each(function(i) {
             if (i < cur.line) {
                 absolutePosition += $(this).text().length;
             } else {
                 absolutePosition += cur.ch;
                 return false;
             }
-            i++;
         });
 
-        // tell if variables should be suggested
-        var variables = true;
-
-        // get given keywords and tables (if applicable)
+        // get given keywords
         keywords = getKeywords(editor);
-
-        var disableKeywords = options && options.disableKeywords;
-        identifierQuote = getIdentifierQuote(editor);
-
-        var line = editor.getLine(cur.line);
-
+        
+        // detect if current char follows a white space or not
         if (line[cur.ch - 1] == " " && line.substr(0, cur.ch).slice(-3) != "AS ") {
             lastCharEmpty = true;
         } else {
             lastCharEmpty = false;
         }
-
 
         //////////////////////////////////////////////////////////////////////////////////
         //
@@ -181,31 +116,31 @@ var lastWidget = undefined;
         //
         //////////////////////////////////////////////////////////////////////////////////
 
-
         var re = new RegExp(/SELECT/, 'g');
         match = re.exec(content)
 
         if (content == "" || content == " " || match == null) {
             $.ajax({
                 url: "/api/prefixes",
-                result: keywords
             }).done(function(data) {
                 data = $.parseJSON(data).suggestions;
                 prefixes = [];
+                
+                // Started to write anything that can be completed to prefix but prefix not used yet
                 $(data).each(function(key, value) {
-                    if (editor.getValue().indexOf(value) == -1 && 'prefix'.indexOf(line.toLowerCase()) == 0) {
+                    if (content.indexOf(value) == -1 && 'prefix'.indexOf(line.toLowerCase()) == 0) {
                         prefixes.push(value);
                     }
                 });
 
-                // do not suggest nonsense after incomplete PREFIX line
+                // Do not suggest nonsense after incomplete PREFIX line
                 if (line.startsWith("PREFIX ")) {
 
-                    keywords =   [];
-                    if (!requestExtension)
-                        addMatches(keywords, "", prefixes, function(w) {
-                            return w;
-                        });
+					// use empty list as a start and add only prefixes
+                    keywords = [];
+                    if (!requestExtension) {
+                        addMatches(keywords, undefined, prefixes, function(w) { return w; });
+                    }
 
                 } else {
 
@@ -214,21 +149,23 @@ var lastWidget = undefined;
 }`;
                     // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
                     if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                        keywords =   ['PREFIX '];
+                        keywords = ['PREFIX '];
                     } else {
-                        keywords =   [];
+                        keywords = [];
                     }
 
                     // add prefixes to select suggestion
                     if (!requestExtension) {
-                        addMatches(keywords, "", prefixes, function(w) {
+                        addMatches(keywords, undefined, prefixes, function(w) {
                             return w;
                         });
+                        // it's still possible to type "select"
                         if ('select'.indexOf(line.toLowerCase()) == 0) {
                             keywords.push(select);
                         }
                     }
                 }
+                
                 if (!requestExtension)
                     callback({
                         list: keywords,
@@ -242,6 +179,7 @@ var lastWidget = undefined;
             return false;
         }
 
+		// get current token
         var token = editor.getTokenAt(cur, true),
             start, end, search;
         if (token.end > cur.ch) {
@@ -249,6 +187,7 @@ var lastWidget = undefined;
             token.string = token.string.slice(0, cur.ch - token.start);
         }
 
+		// parse prefixes (reals ones and ql: prefixes)
         var prefixName = '';
         if (token.string.match(/^[?!.`"\w<_:@-]*$/)) {
             search = token.string.split(':');
@@ -283,10 +222,8 @@ var lastWidget = undefined;
             //////////////////////////////////////////////////////////////////////////////////
             if (absolutePosition < match.index) {
 
-                // TODO: Caching: we don't need to do this twice, do we?
                 $.ajax({
                     url: "/api/prefixes",
-                    result: keywords
                 }).done(function(data) {
                     // add prefixes to suggestion
                     keywords = [];
@@ -296,9 +233,7 @@ var lastWidget = undefined;
 
                     if (!requestExtension) {
                         if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                            addMatches(keywords, "", $.parseJSON(data).suggestions, function(w) {
-                                return w;
-                            });
+                            addMatches(keywords, undefined, $.parseJSON(data).suggestions, function(w) { return w; });
                         }
                         callback({
                             list: keywords,
@@ -321,27 +256,29 @@ var lastWidget = undefined;
             //
             //////////////////////////////////////////////////////////////////////////////////
 
-            var startIndex = match.index;
-            if (absolutePosition >= startIndex) {
+            if (absolutePosition >= match.index) {
 
                 mode = 'values';
 
-                // valid: some static keywords PLUS known variables
+                // show variables in thie situation
                 variables = true;
-                tables = [];
-
-                if (line.substr(cur.ch - 7, cur.ch) == 'SELECT ' || line.substr(cur.ch - 8, cur.ch) == 'SELECT D' || line.substr(cur.ch - 9, cur.ch) == 'SELECT DI' ||
-                    line.substr(cur.ch - 10, cur.ch) == 'SELECT DIS' || line.substr(cur.ch - 11, cur.ch) == 'SELECT DIST' || line.substr(cur.ch - 12, cur.ch) == 'SELECT DISTI') {
-                    keywords = ["distinct ", "score()", "text()"];
-                } else if (line.substr(cur.ch - 6, cur.ch) == 'SELECT') {
-                    keywords = [];
-                } else if (lastCharEmpty) {
-                    keywords = ["score()", "text()"];
-                } else if (line[cur.ch - 1] == "(" && line[cur.ch - 2] != 'T') {
-                    keywords = ["text()"];
-                } else {
-                    keywords = [""]
-                }
+				
+				keywords = [];
+				
+				// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				// TODO: activate REAL search behaviour
+				// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				if('distinct'.indexOf(token.string.toLowerCase()) != -1 || token.string == " "){
+					keywords.push('distinct');
+				}
+				
+				if('score()'.indexOf(token.string.toLowerCase()) != -1 || token.string == " "){
+					keywords.push('score()');
+				}
+				
+				if('text()'.indexOf(token.string.toLowerCase()) != -1 || token.string == " "){
+					keywords.push('text()');
+				}
             }
 
         } else {
@@ -353,7 +290,7 @@ var lastWidget = undefined;
         //    2. WHERE is also present!
         //
         //    So the condition params will follow this statement ...
-        //  No template suggestions in here ...
+        //    No template suggestions in here ...
         //
         //////////////////////////////////////////////////////////////////////////////////
 
@@ -361,42 +298,36 @@ var lastWidget = undefined;
         match = re.exec(content)
         if (match != null) {
 
-            var startIndex = match.index + 5;
-
-            if (absolutePosition > startIndex) {
+			// after end of WHERE word
+            if (absolutePosition > match.index + 5) {
                 mode = 'params';
 
                 // detect line position (subj / predicate / object)
                 var j = cur.ch;
-
                 while (j < line.length) {
-                    if (line.charAt(j) != " ") {
-                        j++;
-                    } else {
-                        break;
-                    }
+                    if (line.charAt(j) != " ") { j++; } else { break; }
                 }
 
                 var k = cur.ch;
-
                 while (k >= 0) {
-                    if (line.charAt(k) != " ") {
-                        k--;
-                    } else {
-                        break;
-                    }
+                    if (line.charAt(k) != " ") { k--; } else { break; }
                 }
 
-                word = editor.getRange({
-                    'line': cur.line,
-                    'ch': k + 1
-                }, {
-                    'line': cur.line,
-                    'ch': j
+                word = editor.getRange({ 'line': cur.line, 'ch': k + 1 }, 
+                	{ 'line': cur.line, 'ch': j
                 });
+                
+                // TODO: the sample above could be replaced by using the
+                // token variable as long as soon as the tokenizer knows
+                // that prefixes are part of words.
+                 
                 var words = line.trimLeft().replace('  ', ' ').split(" ");
 
+				// do not suggest anything behind the "."
+				// TODO: There are some new features in SPARQL with more
+				// then four words in one line still being valid
                 if (words.length < 4) {
+	                
                     // detect full query parameters
                     re = new RegExp(/WHERE \{([\s\S\n\w]*)}/g, 'g');
                     match = re.exec(content);
@@ -534,11 +465,10 @@ var lastWidget = undefined;
 
                     }
 
-                    tables = [];
-                    if (parameter == 'predicate' || parameter == 'has-predicate') {
-                        tables = ['ql:contains-entity ', 'ql:contains-word '];
-                    }
                     keywords = [];
+                    if (parameter == 'predicate' || parameter == 'has-predicate') {
+                        keywords = ['ql:contains-entity ', 'ql:contains-word '];
+                    }
 
                 } else {
                     console.warn('Skipping every suggestions based on current position...')
@@ -569,8 +499,6 @@ var lastWidget = undefined;
                 mode = 'afterParams';
 
                 variables = false;
-                tables = [];
-                defaultTable =   [];
 
                 keywords = [];
                 re = new RegExp(/[^T]LIMIT /g, 'g');
@@ -618,8 +546,6 @@ var lastWidget = undefined;
 
             variables = false;
             keywords = ["1\n", "5\n", "10\n", "25\n", "50\n", "100\n", "250\n", "500\n", "1000\n", "5000\n"];
-            defaultTable = [];
-            tables = [];
         }
 
         if (line.startsWith('TEXTLIMIT')) {
@@ -627,8 +553,6 @@ var lastWidget = undefined;
 
             variables = false;
             keywords = ["2\n", "5\n", "10\n"];
-            defaultTable = [];
-            tables = [];
         }
 
         //////////////////////////////////////////////////////////////////////////////////
@@ -646,8 +570,6 @@ var lastWidget = undefined;
 
             variables = true;
             keywords = ["desc()", "asc()", "score()"];
-            defaultTable =   [];
-            tables = [];
 
             if (line[cur.ch - 1] == ')') {
                 keywords = [];
@@ -666,8 +588,6 @@ var lastWidget = undefined;
 
             variables = true;
             keywords = [];
-            defaultTable =   [];
-            tables = [];
 
         }
 
@@ -799,18 +719,12 @@ var lastWidget = undefined;
         // add the static suggestions if available
         ////////////////////////////////////////////
         if (!requestExtension)
-            addMatches(result, search, tables, function(w) {
-                return w;
-            });
-
-        if (!requestExtension)
-            addMatches(result, search, defaultTable, function(w) {
-                return w;
-            });
-
-        if (!disableKeywords && !requestExtension)
-            addMatches(result, search, keywords, function(w) {
-                if (w != undefined) return w.toUpperCase()
+            addMatches(result, undefined, keywords, function(w) {
+                if (w.indexOf('ql:') == -1) {
+	                return w.toUpperCase();
+	            } else {
+		            return w;
+	            }
             });
 
         ////////////////////////////////////////////
@@ -861,15 +775,21 @@ var lastWidget = undefined;
                                 search: search,
                                 result2: result2,
                             }).done(function(data) {
+	                            try {
+	                            	data = $.parseJSON(data);
+	                            } catch(err) {}
                                 console.log("Got suggestions from QLever.");
-                                step2 = true;
                                 console.log("Query took " + data.time.total + ".");
 
                                 resultSize = data.resultsize;
 
                                 var suggestions = [];
-                                for (var result of data.res) {
-                                    suggestions.push(result[0]);
+                                if(data.res){
+	                                for (var result of data.res) {
+	                                    suggestions.push(result[0]);
+	                                }
+                                } else {
+	                                console.error(data.exception);
                                 }
                                 addMatches(result2, search, suggestions, function(w) {
 

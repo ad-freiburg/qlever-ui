@@ -16,7 +16,8 @@ from django.shortcuts import redirect
 
 import datetime, time
 
-def index(request,backend=None,short=None):
+
+def index(request, backend=None, short=None):
     """
 
         Index view - shows the UI with all available backends
@@ -42,21 +43,23 @@ def index(request,backend=None,short=None):
     else:
         # go to the last active backend if set
         if request.session['backend']:
-            backend = Backend.objects.filter(pk=request.session['backend']).first()
+            backend = Backend.objects.filter(
+                pk=request.session['backend']).first()
             # and if still available
             if backend:
-                return redirect('/'+backend.slugify())
+                return redirect('/' + backend.slugify())
         # find a default backend
         else:
             backend = Backend.objects.order_by('isDefault').first()
-            return redirect('/'+backend.slugify())
+            return redirect('/' + backend.slugify())
 
     if activeBackend:
         request.session['scorePredicate'] = activeBackend.scorePredicate
         request.session['backend'] = activeBackend.pk
         request.session['backendUrl'] = activeBackend.baseUrl
         request.session['backendName'] = activeBackend.name
-        request.session['backendSuggestions'] = activeBackend.dynamicSuggestions
+        request.session[
+            'backendSuggestions'] = activeBackend.dynamicSuggestions
         request.session['subjectName'] = activeBackend.subjectName
         request.session['predicateName'] = activeBackend.predicateName
         request.session['objectName'] = activeBackend.objectName
@@ -64,15 +67,16 @@ def index(request,backend=None,short=None):
         examples = Example.objects.filter(backend=activeBackend)
 
     if short:
-        link = Link.objects.filter(identifier=short.replace('/','')).first()
+        link = Link.objects.filter(identifier=short.replace('/', '')).first()
         if link:
             prefill = link.content
 
-    return render(request, 'index.html', {
-        'backends': Backend.objects.all(),
-        'examples': examples,
-        'prefill': prefill
-    })
+    return render(
+        request, 'index.html', {
+            'backends': Backend.objects.all(),
+            'examples': examples,
+            'prefill': prefill
+        })
 
 
 def shareLink(request):
@@ -80,22 +84,27 @@ def shareLink(request):
         Generate a sharing link
     """
 
-    if request.GET.get('cleanup',False) == False:
+    if request.GET.get('cleanup', False) == False:
 
         existing = Link.objects.filter(content=request.GET.get('link'))
         if existing.exists():
-            return JsonResponse({'link':existing.first().identifier})
-        
+            return JsonResponse({'link': existing.first().identifier})
+
         # space for 56.800.235.584 unique queries in history
         # asuming that one query is about 500 Bytes these are ~ 28 TB of history data
         # asuming that one query is about 1000 Bytes these are ~ 56 TB of history data
-        identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
+        identifier = ''.join(
+            random.choice(string.ascii_lowercase + string.ascii_uppercase +
+                          string.digits) for _ in range(6))
         while Link.objects.filter(identifier=identifier).exists():
-            identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
+            identifier = ''.join(
+                random.choice(string.ascii_lowercase + string.ascii_uppercase +
+                              string.digits) for _ in range(6))
 
-        Link.objects.create(identifier=identifier,content=request.GET.get('link'))
+        Link.objects.create(
+            identifier=identifier, content=request.GET.get('link'))
 
-        return JsonResponse({'link':identifier})
+        return JsonResponse({'link': identifier})
 
     else:
 
@@ -110,25 +119,35 @@ def getPrefixes(request):
         Return all prefixes for the current backend
 
     """
-    backend = Backend.objects.get(pk=request.session.get('backend')) # backend id
+    backend = Backend.objects.get(
+        pk=request.session.get('backend'))  # backend id
     suggestions = []
 
     log('Retrieving prefixes from local backend')
     t1 = time.time()
-    prefixes = list(Prefix.objects.filter(backend__pk=request.session.get('backend')).order_by('-occurrences'))
+    prefixes = list(
+        Prefix.objects.filter(backend__pk=request.session.get('backend'))
+        .order_by('-occurrences'))
 
     for prefix in prefixes:
-        suggestions.append('PREFIX %s: <%s>\n'%(prefix.name, prefix.prefix.strip('<>')))
+        suggestions.append('PREFIX %s: <%s>\n' % (prefix.name,
+                                                  prefix.prefix.strip('<>')))
 
     t2 = time.time()
-    log('%fms'%((t2-t1)*1000))
+    log('%fms' % ((t2 - t1) * 1000))
 
-    return HttpResponse(json.dumps({'suggestions': suggestions, 'found': len(suggestions), 'time': "%.4f"%((t2-t1))}))
+    return HttpResponse(
+        json.dumps({
+            'suggestions': suggestions,
+            'found': len(suggestions),
+            'time': "%.4f" % ((t2 - t1))
+        }))
 
 
 #
 # Helpers
 #
+
 
 def collectPrefixes(backend, output=print):
     """
@@ -138,7 +157,8 @@ def collectPrefixes(backend, output=print):
     """
 
     if not backend or not backend.ntFilePath:
-        raise StandardError('There was no nt-source specified for this backend.')
+        raise StandardError(
+            'There was no nt-source specified for this backend.')
 
     if not os.path.isfile(backend.ntFilePath):
         raise StandardError('Error opening file "%s"' % backend.ntFilePath)
@@ -166,10 +186,15 @@ def collectPrefixes(backend, output=print):
             log("Found %d prefixes." % len(prefixes), output=output)
             if len(prefixes) > 20:
                 log("Storing the 20 most common.", output=output)
-            sortedPrefixList = sorted([(k, prefixes[k]) for k in prefixes], key=lambda x:x[1])[:20]
+            sortedPrefixList = sorted(
+                [(k, prefixes[k]) for k in prefixes], key=lambda x: x[1])[:20]
             for prefix in sortedPrefixList:
-                name = "".join([s[0] for s in prefix[0][7:].replace("www.", "").split("/-") if s])
-                instance, created = Prefix.objects.get_or_create(backend=backend, prefix=prefix[0])
+                name = "".join([
+                    s[0] for s in prefix[0][7:].replace("www.", "").split("/-")
+                    if s
+                ])
+                instance, created = Prefix.objects.get_or_create(
+                    backend=backend, prefix=prefix[0])
                 instance.occurrences = prefix[1]
                 if created:
                     instance.name = name
@@ -185,12 +210,14 @@ def collectPrefixes(backend, output=print):
             backend.save()
             raise
     else:
-        raise StandardError("Index collection for this backend already running")
+        raise StandardError(
+            "Index collection for this backend already running")
 
 
 def log(msg, output=print):
     """
         Helper to log things that happen during the process
     """
-    logMsg = datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S') + ' ' + str(msg)
+    logMsg = datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S') + ' ' + str(
+        msg)
     output(logMsg)

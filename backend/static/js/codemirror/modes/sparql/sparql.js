@@ -10,21 +10,32 @@
 })(function(CodeMirror) {
     "use strict";
 
+		
+	var keywordList = ["prefix", "select", "distinct", "from", "where", "order", "limit", "offset",
+        "optional", "by", "asc", "desc", "as", "avg", "having", "values", "group",
+	    "not", "textlimit", "score", "text", "contains-entity", "contains-word",
+        "occurrences", "count", "sample", "min", "max", "average", "concat",
+        "group_concat", "filter"
+    ];
+
     CodeMirror.defineMode("sparql", function(config) {
         var indentUnit = config.indentUnit;
         var curPunc;
 
-        function wordRegexp(words) {
+		// -----------------------------------------------------
+		// 	   List and detect language keywords
+		// -----------------------------------------------------
+		
+		function wordRegexp(words) {
             return new RegExp("^(?:" + words.join("|") + ")$", "i");
         }
 
-        var keywords = wordRegexp(["prefix", "select", "distinct", "from", "where", "order", "limit", "offset",
-            "optional", "by", "asc", "desc", "as", "avg", "having", "values", "group",
-            "not", "textlimit", "score", "text", "contains-entity", "contains-word",
-            "occurrences", "count", "sample", "min", "max", "average", "concat",
-            "group_concat", "filter"
-        ]);
+        var keywords = wordRegexp(keywordList);
 
+
+		// -----------------------------------------------------
+		// 	   Detect tokens and their types
+		// -----------------------------------------------------
         function tokenBase(stream, state) {
 
             var ch = stream.next();
@@ -35,7 +46,7 @@
                 return "variable-2";
             } else if (ch == "\"" || ch == "'") {
                 state.tokenize = tokenLiteral(ch);
-                return state.tokenize(stream, state);
+                return state.tokenize(stream, state);   
             } else if (/[{}\(\),\.;\[\]]/.test(ch)) {
                 curPunc = ch;
                 return "bracket";
@@ -56,6 +67,7 @@
             }
         }
 
+		// support escaping inside strings
         function tokenLiteral(quote) {
             return function(stream, state) {
                 var escaped = false,
@@ -71,6 +83,7 @@
             };
         }
 
+		// Go deeper into scope
         function pushContext(state, type, col) {
             state.context = {
                 prev: state.context,
@@ -80,12 +93,14 @@
             };
         }
 
+		// Escape from scope
         function popContext(state) {
             state.indent = state.context.indent;
             state.context = state.context.prev;
         }
 
         return {
+	        
             startState: function() {
                 return {
                     tokenize: tokenBase,
@@ -148,15 +163,13 @@
             },
 
             lineComment: "#"
+            
         };
     });
 
     CodeMirror.defineMIME("application/sparql-query", {
         name: "sparql",
-        keywords: ["prefix", "select", "distinct", "from", "where", "order", "limit", "offset",
-            "optional", "by", "asc", "desc", "as", "having", "values", "group", "not",
-            "textlimit", "score", "text", "filter"
-        ],
+        keywords: keywordList,
     });
 
 });
