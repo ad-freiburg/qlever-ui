@@ -33,6 +33,8 @@ def index(request,backend=None):
             if availableBackend.slugify() == backend:
                 activeBackend = availableBackend
                 break
+        if activeBackend == None:
+        	return redirect('/')
     # if no backend is given activate the last one
     else:
         # go to the last active backend if set
