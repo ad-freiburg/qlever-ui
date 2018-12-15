@@ -71,6 +71,7 @@
 		        {% endif %}
 		        <h6 class="dropdown-header">QLever UI Components</h6>
 		            <li><a href="/admin" target="_blank"><i class="glyphicon glyphicon-cog"></i>&nbsp; QLever UI Admin</a></li>
+		            <li><a href="/share?cleanup=true"><i class="glyphicon glyphicon-trash"></i>&nbsp; Clear History</a></li>
 		            <li><a href="?test=jasmine"><i class="glyphicon glyphicon-play"></i>&nbsp; Run UI Tests</a></li>
 	            <h6 class="dropdown-header">Other Resources</h6>
 					<li><a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank"><i class="glyphicon glyphicon-folder-open"></i>&nbsp; QLever Publication</a></li>
@@ -141,7 +142,7 @@
     <div class="well" id="queryBlock">
         <div class="row">
 	        <div class="col-md-8">
-		        <textarea id="query" class="form-control"></textarea>
+		        <textarea id="query" class="form-control">{% if prefill %}{{ prefill }}{% endif %}</textarea>
 		        <br>
 	        </div>
 	         <div class="col-md-4" id="help" style="margin-top: 310px;">
@@ -176,7 +177,7 @@
 		        </div>
 	        </div>
 	        <div class="col-md-8">
-		        <button id="runbtn" class="btn btn-success"><i class="glyphicon glyphicon-refresh"></i> Show query results</button>
+		        <button id="runbtn" class="btn btn-success"><i class="glyphicon glyphicon-refresh"></i> Show results</button>
 		         <div class="btn-group" role="group">
 				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-download"></i> Download
 					  <span class="caret"></span></button>
@@ -186,36 +187,35 @@
 					  </ul>
 				  </div>
 				  <div class="btn-group pull-right" role="group">
-				    <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host + location.pathname"><i class="glyphicon glyphicon-trash"></i> Reset UI</button>
+				    <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host + location.pathname"><i class="glyphicon glyphicon-trash"></i> Reset</button>
 				    <button class="btn btn-default" onclick="processQuery('?cmd=clearcache',false,this);"><i class="glyphicon glyphicon-refresh"></i> Clear cache</button>
 				    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="glyphicon glyphicon-align-left"></i> Examples
 					  <span class="caret"></span></button>
 					  <ul class="dropdown-menu">
 					  	{% for example in examples %}
-					  		<li><a onclick="example=1;editor.setValue(example{{ forloop.counter }});">{{ example.name }}{% if request.user.is_authenticated %} &nbsp; <span onclick="window.location = '/admin/backend/example/{{ example.pk }}/change/';"><i class="glyphicon glyphicon-pencil"></i></span>{% endif %}</a></li>
+					  		<li><a onclick="example=1;editor.setValue(example{{ forloop.counter }});">{{ example.name }}{% if request.user.is_authenticated %} &nbsp; <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"><i class="glyphicon glyphicon-pencil"></i></span>{% endif %}</a></li>
 					  	{% endfor %}
 					  	{% if request.user.is_authenticated %}
 					  		<li class="divider"></li>
-					  		<li><a onclick="window.location = '/admin/backend/example/add/?backend={{ request.session.backend }}&query='+encodeURI(editor.getValue());"><i class="glyphicon glyphicon-check"></i> Add current query as example</a></li>
-					  		<li><a href="/admin/backend/example/add/?backend={{ request.session.backend }}"><i class="glyphicon glyphicon-edit"></i> Add new example</a></li>
+					  		<li><a onclick="window.open('/admin/backend/example/add/?backend={{ request.session.backend }}&query='+encodeURI(editor.getValue()),'_blank');"><i class="glyphicon glyphicon-check"></i> Add current query as example</a></li>
+					  		<li><a href="/admin/backend/example/add/?backend={{ request.session.backend }}" target="_blank"><i class="glyphicon glyphicon-edit"></i> Add new example</a></li>
 					  	{% endif %}
 					  </ul>
 				</div>
 	        </div>
 	        <div class="col-md-4">
-				<div class="checkbox" style="margin-top: 0px;">
-					<label>
-						<input type="checkbox" id="clear"> Clear the cache before every request
-					</label>
-				</div>
 				<select class="form-control" id="dynamicSuggestions">
 					<option value="0" {% if request.session.backendSuggestions == 0 %}selected="selected"{% endif %}>1. SPARQL syntax & keywords only</option>
 					<option value="1" {% if request.session.backendSuggestions == 1 %}selected="selected"{% endif %}>2. SPARQL & context insensitive entities</option>
 					<option value="2" {% if request.session.backendSuggestions == 2 %}selected="selected"{% endif %}>3. SPARQL & context sensitive entities</option>
 				</select>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="clear"> Clear the cache before every request
+					</label>
+				</div>
 	        </div>
         </div>
-        <br>
     </div>
 
     <!-- The info block -->

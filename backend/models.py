@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-import urllib
+import urllib, string
 
 class Backend(models.Model):
     MODES = (
@@ -34,15 +34,17 @@ class Backend(models.Model):
         
         if self.isDefault == True:
             Backend.objects.exclude(pk=self.pk).update(isDefault=False) 
-        
-
+    
     def __unicode__(self):
         return self.name
         
     def slugify(self):
-        return self.name.replace(' ','_')
-    
+        return filter(lambda x: ord(x) in range(40,123), self.name.replace(' ','_').replace('/','-').replace('*','-')) 
 
+
+class Link(models.Model):
+	identifier = models.CharField(max_length=256)
+	content = models.TextField()
 
 class Prefix(models.Model):
     class Meta:
@@ -52,11 +54,10 @@ class Prefix(models.Model):
     backend = models.ForeignKey(Backend)
     occurrences = models.IntegerField(default=1)
 
-
 class Example(models.Model):
-    def __unicode__(self):
-        return self.name
-
     backend = models.ForeignKey(Backend)
     name = models.CharField(max_length=100)
     query = models.TextField()
+    
+    def __unicode__(self):
+        return self.name

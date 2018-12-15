@@ -10,13 +10,13 @@ from django.db.models import Max
 
 from .models import *
 
-import re, json, os, subprocess, requests, codecs, urllib
+import re, json, os, subprocess, requests, codecs, urllib, random, string
 from collections import Counter
 from django.shortcuts import redirect
 
 import datetime, time
 
-def index(request,backend=None):
+def index(request,backend=None,short=None):
     """
 
         Index view - shows the UI with all available backends
@@ -26,6 +26,7 @@ def index(request,backend=None):
 
     activeBackend = None
     examples = []
+    prefill = None
 
     # if a backend is given try to activate it
     if backend:
@@ -33,8 +34,10 @@ def index(request,backend=None):
             if availableBackend.slugify() == backend:
                 activeBackend = availableBackend
                 break
+
         if activeBackend == None:
-        	return redirect('/')
+            return redirect('/')
+    
     # if no backend is given activate the last one
     else:
         # go to the last active backend if set
@@ -49,7 +52,6 @@ def index(request,backend=None):
             return redirect('/'+backend.slugify())
 
     if activeBackend:
-
         request.session['scorePredicate'] = activeBackend.scorePredicate
         request.session['backend'] = activeBackend.pk
         request.session['backendUrl'] = activeBackend.baseUrl
@@ -61,11 +63,43 @@ def index(request,backend=None):
 
         examples = Example.objects.filter(backend=activeBackend)
 
+    if short:
+        link = Link.objects.filter(identifier=short.replace('/','')).first()
+        if link:
+            prefill = link.content
+
     return render(request, 'index.html', {
         'backends': Backend.objects.all(),
         'examples': examples,
+        'prefill': prefill
     })
 
+
+def shareLink(request):
+    """
+        Generate a sharing link
+    """
+
+    if request.GET.get('cleanup',False) == False:
+
+        existing = Link.objects.filter(content=request.GET.get('link'))
+        if existing.exists():
+            return JsonResponse({'link':existing.first().identifier})
+        
+        identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
+        while Link.objects.filter(identifier=identifier).exists():
+            identifier = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(6))
+        
+        Link.objects.create(identifier=identifier,content=request.GET.get('link'))
+        
+        return JsonResponse({'link':identifier})
+    
+    else:
+    
+        Link.objects.all().delete()
+    
+        return redirect('/')
+    
 
 def getSuggestions(request):
     """
