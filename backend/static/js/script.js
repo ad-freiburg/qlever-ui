@@ -123,31 +123,7 @@ $(document).ready(function () {
     }
     
     handleStatsDisplay();
-            
-    var ind = window.location.href.indexOf("?query=");
-    if (ind > 0) {
-        ind += 7;
-        var ccInd = window.location.href.indexOf("&cmd=clearcache");
-        if (ccInd > 0) {
-            $("#clear").prop("checked", true);
-        }
-        var sInd = window.location.href.indexOf("&send=");
-        if (sInd > 0) {
-            if (ccInd <= 0 || ccInd > sInd) {
-                ccInd = sInd;
-            }
-        }
-        var queryEscaped;
-        if (ccInd > 0) {
-                queryEscaped = window.location.href.substr(ind, ccInd - ind);
-        } else {
-                queryEscaped = window.location.href.substr(ind);
-        }
-        console.log('Load predefined query');
-        editor.setValue(decodeURIComponent(queryEscaped.replace(/\+/g, '%20')));
-        processQuery(window.location.href.substr(ind - 7));
-    }
-    
+        
     if(subjectName || predicateName || objectName){
         $('.cm-variable').hover(showRealName);
     }
@@ -235,10 +211,15 @@ $(document).ready(function () {
         if ($("#clear").prop('checked')) {
             queryString += "&cmd=clearcache";
         }
-        queryString += "&send=100"
-        var loc = window.location.href.substr(0, window.location.href.indexOf("?"));
-        window.history.pushState("html:index.html", "QLever", loc + queryString);
+        queryString += "&send=100";
         processQuery(queryString,true,this);
+        
+        // generate pretty link
+        $.getJSON('api/share?link='+encodeURI(editor.getValue()), function (result) {
+	        console.log('Got pretty link from backend');
+	        window.history.pushState("html:index.html", "QLever", window.location.origin+window.location.pathname.split('/').slice(0,2).join('/')+'/'+result.link);
+		});
+        
         $("#runbtn").focus();
         if(editor.state.completionActive){
             editor.state.completionActive.close();
