@@ -28,11 +28,19 @@ class Backend(models.Model):
     predicateName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a predicate (without prefixes).",verbose_name="Predicate name relation")
     objectName = models.CharField(max_length=100, default='', blank=True, help_text="Relation that tells QLever UI the name of a object (without prefixes).",verbose_name="Object name relation")
 
+    def save(self, *args, **kwargs):
+        
+        super(Backend, self).save(*args, **kwargs)
+        
+        if self.isDefault == True:
+            Backend.objects.exclude(pk=self.pk).update(isDefault=False) 
+        
+
     def __unicode__(self):
         return self.name
         
     def slugify(self):
-	    return self.name.replace(' ','_')
+        return self.name.replace(' ','_')
     
 
 
