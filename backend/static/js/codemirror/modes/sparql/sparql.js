@@ -10,13 +10,15 @@
 })(function(CodeMirror) {
     "use strict";
 
-		
-	var keywordList = ["prefix", "select", "distinct", "from", "where", "order", "limit", "offset",
-        "optional", "by", "asc", "desc", "as", "avg", "having", "values", "group",
-	    "not", "textlimit", "score", "text", "contains-entity", "contains-word",
-        "occurrences", "count", "sample", "min", "max", "average", "concat",
-        "group_concat", "filter"
-    ];
+
+	var keywordList = ["prefix", "select", "distinct", "where", "order", "limit",
+      "offset", "optional", "by", "as", "having", "not", "textlimit",
+      "contains-entity", "contains-word", "filter"
+  ];
+
+  var functionList = ["asc", "desc", "avg", "values", "group", "score", "text",
+      "count", "sample", "min", "max", "average", "concat", "group_concat"
+  ];
 
     CodeMirror.defineMode("sparql", function(config) {
         var indentUnit = config.indentUnit;
@@ -25,13 +27,13 @@
 		// -----------------------------------------------------
 		// 	   List and detect language keywords
 		// -----------------------------------------------------
-		
+
 		function wordRegexp(words) {
             return new RegExp("^(?:" + words.join("|") + ")$", "i");
         }
 
         var keywords = wordRegexp(keywordList);
-
+        var functions = wordRegexp(functionList);
 
 		// -----------------------------------------------------
 		// 	   Detect tokens and their types
@@ -40,40 +42,47 @@
 
             var ch = stream.next();
             curPunc = null;
-
-            if (ch == "$" || ch == "?") {
+            if (ch == "?") {
                 stream.match(/^[\w\d]*/);
-                return "variable-2";
+                return "variable";
             } else if (ch == "\"" || ch == "'") {
                 state.tokenize = tokenLiteral(ch);
-                return state.tokenize(stream, state);   
-            } else if (/[{}\(\),\.;\[\]]/.test(ch)) {
+                return state.tokenize(stream, state);
+            } else if (/[{}\(\)\[\]]/.test(ch)) {
                 curPunc = ch;
                 return "bracket";
+            } else if (/[,;]/.test(ch)) {
+                curPunc = ch;
+                return "control";
+            } else if (ch == "<") {
+                stream.match(/^[\S]*/);
+                return "entity";
             } else {
-                stream.eatWhile(/[_\w\d-]/);
+                stream.match(/[_\w\d-]*:?/);
                 var word = stream.current();
-
-                if (stream.next() == ':' && word[0] != '<') {
-                    return "prefix"
-                } 
-                else if (keywords.test(word)) {
-                    stream.backUp(1);
+                console.log(word)
+                if (word[word.length-1] == ':'){
+                    return "prefix";
+                } else if (word == "."){
+                    return "control";
+                } else if (keywords.test(word)) {
                     return "keyword";
+                } else if (functions.test(word)) {
+                    return "function";
                 } else {
-                    return "variable";
+                    return "entity";
                 }
-
             }
         }
 
-		// support escaping inside strings
+		    // support escaping inside strings
         function tokenLiteral(quote) {
             return function(stream, state) {
-                var escaped = false,
-                    ch;
+                var escaped = false;
+                var ch;
                 while ((ch = stream.next()) != null) {
                     if (ch == quote && !escaped) {
+                        stream.match(/@[\w-]*/);
                         state.tokenize = tokenBase;
                         break;
                     }
@@ -100,7 +109,7 @@
         }
 
         return {
-	        
+
             startState: function() {
                 return {
                     tokenize: tokenBase,
@@ -163,13 +172,13 @@
             },
 
             lineComment: "#"
-            
+
         };
     });
 
     CodeMirror.defineMIME("application/sparql-query", {
         name: "sparql",
-        keywords: keywordList,
+        keywords: keywordList + functionList,
     });
 
 });
