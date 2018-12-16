@@ -120,60 +120,55 @@ var lastWidget = undefined; // last auto completion widget instance
         match = re.exec(content)
 
         if (content == "" || content == " " || match == null) {
-            $.ajax({
-                url: "/api/prefixes",
-            }).done(function(data) {
-                data = $.parseJSON(data).suggestions;
-                prefixes = [];
-                
-                // Started to write anything that can be completed to prefix but prefix not used yet
-                $(data).each(function(key, value) {
-                    if (content.indexOf(value) == -1 && 'prefix'.indexOf(line.toLowerCase()) == 0) {
-                        prefixes.push(value);
-                    }
-                });
+            
+            prefixes = [];
+            
+            // Started to write anything that can be completed to prefix but prefix not used yet
+            $(collectedPrefixes).each(function(key, value) {
+                if (content.indexOf(value) == -1 && 'prefix'.indexOf(line.toLowerCase()) == 0) {
+                    prefixes.push(value);
+                }
+            });
 
-                // Do not suggest nonsense after incomplete PREFIX line
-                if (line.startsWith("PREFIX ")) {
+            // Do not suggest nonsense after incomplete PREFIX line
+            if (line.startsWith("PREFIX ")) {
 
-					// use empty list as a start and add only prefixes
-                    keywords = [];
-                    if (!requestExtension) {
-                        addMatches(keywords, undefined, prefixes, function(w) { return w; });
-                    }
+				// use empty list as a start and add only prefixes
+                keywords = [];
+                if (!requestExtension) {
+                    addMatches(keywords, undefined, prefixes, function(w) { return w; });
+                }
 
-                } else {
+            } else {
 
-                    var select = `SELECT  WHERE {
+                var select = `SELECT  WHERE {
 
 }`;
-                    // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
-                    if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                        keywords = ['PREFIX '];
-                    } else {
-                        keywords = [];
-                    }
+                // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
+                if ('prefix'.indexOf(line.toLowerCase()) == 0) {
+                    keywords = ['PREFIX '];
+                } else {
+                    keywords = [];
+                }
 
-                    // add prefixes to select suggestion
-                    if (!requestExtension) {
-                        addMatches(keywords, undefined, prefixes, function(w) {
-                            return w;
-                        });
-                        // it's still possible to type "select"
-                        if ('select'.indexOf(line.toLowerCase()) == 0) {
-                            keywords.push(select);
-                        }
+                // add prefixes to select suggestion
+                if (!requestExtension) {
+                    addMatches(keywords, undefined, prefixes, function(w) {
+                        return w;
+                    });
+                    // it's still possible to type "select"
+                    if ('select'.indexOf(line.toLowerCase()) == 0) {
+                        keywords.push(select);
                     }
                 }
-                
-                if (!requestExtension)
-                    callback({
-                        list: keywords,
-                        from: Pos(cur.line, 0),
-                        to: Pos(cur.line, end)
-                    });
-
-            });
+            }
+            
+            if (!requestExtension)
+                callback({
+                    list: keywords,
+                    from: Pos(cur.line, 0),
+                    to: Pos(cur.line, end)
+                });
 
             // no other suggestions needed
             return false;
@@ -222,26 +217,23 @@ var lastWidget = undefined; // last auto completion widget instance
             //////////////////////////////////////////////////////////////////////////////////
             if (absolutePosition < match.index) {
 
-                $.ajax({
-                    url: "/api/prefixes",
-                }).done(function(data) {
-                    // add prefixes to suggestion
-                    keywords = [];
-                    if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                        keywords.push("PREFIX ");
-                    }
+                
+                // add prefixes to suggestion
+                keywords = [];
+                if ('prefix'.indexOf(line.toLowerCase()) == 0) {
+                    keywords.push("PREFIX ");
+                }
 
-                    if (!requestExtension) {
-                        if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                            addMatches(keywords, undefined, $.parseJSON(data).suggestions, function(w) { return w; });
-                        }
-                        callback({
-                            list: keywords,
-                            from: Pos(cur.line, 0),
-                            to: Pos(cur.line, end)
-                        });
+                if (!requestExtension) {
+                    if ('prefix'.indexOf(line.toLowerCase()) == 0) {
+                        addMatches(keywords, undefined, collectedPrefixes, function(w) { return w; });
                     }
-                });
+                    callback({
+                        list: keywords,
+                        from: Pos(cur.line, 0),
+                        to: Pos(cur.line, end)
+                    });
+                }
 
                 // no other suggestions needed
                 return false;

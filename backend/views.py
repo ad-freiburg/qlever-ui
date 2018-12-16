@@ -27,6 +27,7 @@ def index(request, backend=None, short=None):
 
     activeBackend = None
     examples = []
+    prefixes = []
     prefill = None
 
     # if a backend is given try to activate it
@@ -54,10 +55,20 @@ def index(request, backend=None, short=None):
             return redirect('/' + backend.slugify())
 
     if activeBackend:
+    
+        # safe to session
         request.session['backend'] = activeBackend.pk
 
+        # get examples
         examples = Example.objects.filter(backend=activeBackend)
+        
+        # get prefixes
+        prefs = list(Prefix.objects.filter(backend=activeBackend).order_by('-occurrences'))
+    
+        for prefix in prefs:
+            prefixes.append('PREFIX %s: <%s>\n' % (prefix.name, prefix.prefix.strip('<>')))
 
+    # collect shortlink data
     if short:
         link = Link.objects.filter(identifier=short.replace('/', '')).first()
         if link:
@@ -65,7 +76,8 @@ def index(request, backend=None, short=None):
 
     return render(
         request, 'index.html', {
-	        'backend': activeBackend,
+            'backend': activeBackend,
+            'prefixes': prefixes,
             'backends': Backend.objects.all(),
             'examples': examples,
             'prefill': prefill
@@ -104,38 +116,6 @@ def shareLink(request):
         Link.objects.all().delete()
 
         return redirect('/')
-
-
-def getPrefixes(request):
-    """
-
-        Return all prefixes for the current backend
-
-    """
-    backend = Backend.objects.get(
-        pk=request.session.get('backend'))  # backend id
-    suggestions = []
-
-    log('Retrieving prefixes from local backend')
-    t1 = time.time()
-    prefixes = list(
-        Prefix.objects.filter(backend__pk=request.session.get('backend'))
-        .order_by('-occurrences'))
-
-    for prefix in prefixes:
-        suggestions.append('PREFIX %s: <%s>\n' % (prefix.name,
-                                                  prefix.prefix.strip('<>')))
-
-    t2 = time.time()
-    log('%fms' % ((t2 - t1) * 1000))
-
-    return HttpResponse(
-        json.dumps({
-            'suggestions': suggestions,
-            'found': len(suggestions),
-            'time': "%.4f" % ((t2 - t1))
-        }))
-
 
 #
 # Helpers

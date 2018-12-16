@@ -100,7 +100,7 @@
 		  <span class="caret"></span></button>
 		  <ul class="dropdown-menu">
 	       {% for b in backends %}
-			<li><a href="/{{ backend.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a></li>
+			<li><a href="/{{ b.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a></li>
 		   {% endfor %}
 		  </ul>
 	  </div>
@@ -193,7 +193,7 @@
 					  <span class="caret"></span></button>
 					  <ul class="dropdown-menu">
 					  	{% for example in examples %}
-					  		<li><a onclick="example=1;editor.setValue(example{{ forloop.counter }});">{{ example.name }}{% if request.user.is_authenticated %} &nbsp; <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"><i class="glyphicon glyphicon-pencil"></i></span>{% endif %}</a></li>
+					  		<li><a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);">{{ example.name }}{% if request.user.is_authenticated %} &nbsp; <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"><i class="glyphicon glyphicon-pencil"></i></span>{% endif %}</a></li>
 					  	{% endfor %}
 					  	{% if request.user.is_authenticated %}
 					  		<li class="divider"></li>
@@ -374,8 +374,13 @@
   var predicateName = "{% autoescape off %}{{ backend.predicateName }}{% endautoescape %}";
   var objectName = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
   var scorePredicate = "{{ backend.scorePredicate }}";
+  var collectedPrefixes = [];
+  {% for prefix in prefixes %}
+  collectedPrefixes.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
+  {% endfor %}
+  var examples = [];
   {% for example in examples %}
-  var example{{ forloop.counter }} = `{{ example.query|safe }}`;
+  examples.push(`{{ example.query|safe }}`);
   {% endfor %}
 </script>
 </body>
