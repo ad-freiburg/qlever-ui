@@ -96,11 +96,11 @@
 	<div class="btn-group" role="group" >
 	  <button onclick="$('#stats').toggle();" class="btn btn-default" id="statsButton"><i class="glyphicon glyphicon-stats"></i> Loading information...</button>
 	  <div class="btn-group" role="group">
-	    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{% if request.session.backend %}{{ request.session.backendName }}{% else %}Choose backend{% endif %}
+	    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}
 		  <span class="caret"></span></button>
 		  <ul class="dropdown-menu">
-	       {% for backend in backends %}
-			<li><a href="/{{ backend.slugify }}">{% if request.session.backend == backend.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ backend.name }}</a></li>
+	       {% for b in backends %}
+			<li><a href="/{{ backend.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a></li>
 		   {% endfor %}
 		  </ul>
 	  </div>
@@ -197,17 +197,17 @@
 					  	{% endfor %}
 					  	{% if request.user.is_authenticated %}
 					  		<li class="divider"></li>
-					  		<li><a onclick="window.open('/admin/backend/example/add/?backend={{ request.session.backend }}&query='+encodeURI(editor.getValue()),'_blank');"><i class="glyphicon glyphicon-check"></i> Add current query as example</a></li>
-					  		<li><a href="/admin/backend/example/add/?backend={{ request.session.backend }}" target="_blank"><i class="glyphicon glyphicon-edit"></i> Add new example</a></li>
+					  		<li><a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURI(editor.getValue()),'_blank');"><i class="glyphicon glyphicon-check"></i> Add current query as example</a></li>
+					  		<li><a href="/admin/backend/example/add/?backend={{ backend.pk }}" target="_blank"><i class="glyphicon glyphicon-edit"></i> Add new example</a></li>
 					  	{% endif %}
 					  </ul>
 				</div>
 	        </div>
 	        <div class="col-md-4">
 				<select class="form-control" id="dynamicSuggestions">
-					<option value="0" {% if request.session.backendSuggestions == 0 %}selected="selected"{% endif %}>1. SPARQL syntax & keywords only</option>
-					<option value="1" {% if request.session.backendSuggestions == 1 %}selected="selected"{% endif %}>2. SPARQL & context insensitive entities</option>
-					<option value="2" {% if request.session.backendSuggestions == 2 %}selected="selected"{% endif %}>3. SPARQL & context sensitive entities</option>
+					<option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>1. SPARQL syntax & keywords only</option>
+					<option value="1" {% if backend.dynamicSuggestions == 1 %}selected="selected"{% endif %}>2. SPARQL & context insensitive entities</option>
+					<option value="2" {% if backend.dynamicSuggestions == 2 %}selected="selected"{% endif %}>3. SPARQL & context sensitive entities</option>
 				</select>
 				<div class="checkbox">
 					<label>
@@ -369,14 +369,14 @@
 </footer>
 
 <script>
-  BASEURL = "{{ request.session.backendUrl }}";
-  subjectName = "{% autoescape off %}{{ request.session.subjectName }}{% endautoescape %}";
-  predicateName = "{% autoescape off %}{{ request.session.predicateName }}{% endautoescape %}";
-  objectName = "{% autoescape off %}{{ request.session.objectName }}{% endautoescape %}";
+  var BASEURL = "{{ backend.baseUrl }}";
+  var subjectName = "{% autoescape off %}{{ backend.subjectName }}{% endautoescape %}";
+  var predicateName = "{% autoescape off %}{{ backend.predicateName }}{% endautoescape %}";
+  var objectName = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
+  var scorePredicate = "{{ backend.scorePredicate }}";
   {% for example in examples %}
-  example{{ forloop.counter }} = `{{ example.query|safe }}`;
+  var example{{ forloop.counter }} = `{{ example.query|safe }}`;
   {% endfor %}
-  var scorePredicate = "{{ request.session.scorePredicate }}";
 </script>
 </body>
 </html>

@@ -54,15 +54,7 @@ def index(request, backend=None, short=None):
             return redirect('/' + backend.slugify())
 
     if activeBackend:
-        request.session['scorePredicate'] = activeBackend.scorePredicate
         request.session['backend'] = activeBackend.pk
-        request.session['backendUrl'] = activeBackend.baseUrl
-        request.session['backendName'] = activeBackend.name
-        request.session[
-            'backendSuggestions'] = activeBackend.dynamicSuggestions
-        request.session['subjectName'] = activeBackend.subjectName
-        request.session['predicateName'] = activeBackend.predicateName
-        request.session['objectName'] = activeBackend.objectName
 
         examples = Example.objects.filter(backend=activeBackend)
 
@@ -73,6 +65,7 @@ def index(request, backend=None, short=None):
 
     return render(
         request, 'index.html', {
+	        'backend': activeBackend,
             'backends': Backend.objects.all(),
             'examples': examples,
             'prefill': prefill
