@@ -40,14 +40,6 @@ var lastWidget = undefined; // last auto completion widget instance
         return CodeMirror.resolveMode(mode).keywords;
     }
 
-	// extract text from non string types
-    function getText(item) {
-        if (item == undefined) {
-            return ""
-        }
-        return typeof item == "string" ? item : item.text;
-    }
-
 	// add matches to result
     function addMatches(result, search, wordlist, formatter) {
         for (var i = 0; i < wordlist.length; i++) {
@@ -78,25 +70,22 @@ var lastWidget = undefined; // last auto completion widget instance
         var mode = 'all'; // where am I in the query
         var parameter = 'undefined'; // where am I in the where clause
 
+
         var cur = editor.getCursor(); // current cursor position
         var line = editor.getLine(cur.line); // current line
         
-        var absolutePosition = 0; // absolute cursor position in text
+        
+        
+        var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
+        var currentContext = getCurrentContext(absolutePosition); // get current context
+
+
+        
         var lastCharEmpty = false; // tells you if the position follows a whitespace
         var content = editor.getValue().replace('\r\n', '\n'); // editor content
         var match = null; // regex match
         var variables = true; // tell if variables should be suggested
 
-
-        // detect the absolute position inside the query
-        $('.CodeMirror-line').each(function(i) {
-            if (i < cur.line) {
-                absolutePosition += $(this).text().length;
-            } else {
-                absolutePosition += cur.ch;
-                return false;
-            }
-        });
 
         // get given keywords
         keywords = getKeywords(editor);
@@ -316,8 +305,6 @@ var lastWidget = undefined; // last auto completion widget instance
                 var words = line.trimLeft().replace('  ', ' ').split(" ");
 
 				// do not suggest anything behind the "."
-				// TODO: There are some new features in SPARQL with more
-				// then four words in one line still being valid
                 if (words.length < 4) {
 	                
                     // detect full query parameters
@@ -841,4 +828,145 @@ var lastWidget = undefined; // last auto completion widget instance
 
     });
     CodeMirror.hint.sparql.async = true;
+    
+    
+    /**
+	   
+	   Returns absolute cursor position inside editor.getValue()
+	    
+	**/
+    function getTypeSuggestions(type,context){
+	    if(typeof type.suggestions){}
+	    // https://stackoverflow.com/questions/22483214/regex-check-if-input-still-has-chances-to-become-matching/22489941#22489941
+    }
+
+    /**
+	   
+	   Returns absolute cursor position inside editor.getValue()
+	    
+	**/
+    function getAbsolutePosition(cur){
+	    var absolutePosition = 0;
+	    $('.CodeMirror-line').each(function(i) {
+            if (i < cur.line) {
+	            // count line breaks as chars
+                absolutePosition += $(this).text().length+1;
+            } else {
+                absolutePosition += cur.ch;
+                return false;
+            }
+        });
+        return absolutePosition;
+    }
+    
+    /**
+	   
+	   Returns the current context
+	    
+	**/    
+    function getCurrentContext(absPosition){
+	    var editorContent = editor.getValue()
+	    var foundContext = undefined;
+	    
+	    $(CONTEXTS).each(function(index,context){
+		    
+		    context.definition.lastIndex = 0;
+		    var match = context.definition.exec(editorContent)
+		    
+			if(match && match.length > 1){
+			    
+			    // we are inside the outer match of the whole context group
+			    if(absPosition >= match.index && absPosition <= match.index+match[0].length){
+				   foundContext = context;
+				   return false;
+			    }
+			}
+	    });
+	    
+	    return foundContext;
+    }
+
+    /**
+	   
+	   Returns the value of the defined context
+	   
+	   		- Excludes duplicate definitions if told to do so
+	    
+	**/
+    function getValueOfContext(context){
+	    var editorContent = editor.getValue()
+		
+		context.definition.lastIndex = 0;
+	    var relevantPart = context.definition.exec(editorContent);
+	    
+	    if(relevantPart.length > 1){
+		    return relevantPart[1];
+	    }
+	    return "";
+    }
+    
+    /**
+	   
+	   Returns prefixes to suggest
+	   
+	   		- Excludes duplicate definitions if told to do so
+	   		- Add list with all unused variables as one suggestion
+	    
+	**/
+    function getVariables(context, allowDuplicatesInContext, suggestListOfAllUnusedVariables){
+	    
+	    var variables = [];
+	    
+	    // get content of current context
+	    var testAgainst = getValueOfContext(context);
+	    
+	    // get the variables
+	    $('.CodeMirror .cm-variable').each(function(variable){
+		    
+		    if(allowDuplicatesInContext == false && testAgainst.indexOf(variable) != -1){
+				continue;
+		    }
+		    
+		    variables.push(variable);
+	    });
+		
+		if(suggestListOfAllUnusedVariables){
+			$(variables).each(function(){
+				variables.push(variables.join(' '));
+			});
+		}
+		
+	    return variables;
+	    
+    }
+    
+    /**
+	   
+	   Returns prefixes to suggest
+	   
+	   		- Excludes duplicate definitions directly 
+	    
+	**/
+    function getPrefix(context){
+	    
+	    var prefixes = []
+	    	    
+	    // get content of current context
+	    var testAgainst = getValueOfContext(context);
+	    
+	    // get the prefixes
+	    $(collectedPrefixes).each(function(prefix){
+		    
+		    if(testAgainst.indexOf(prefix) != -1){
+				continue;
+		    }
+		    
+		    prefixes.push(prefix);
+	    });
+	    
+	    return prefixes;
+	    
+    }
+    
+    
 });
