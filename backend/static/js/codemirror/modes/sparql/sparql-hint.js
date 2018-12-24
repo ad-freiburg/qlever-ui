@@ -46,7 +46,8 @@ var lastWidget = undefined; // last auto completion widget instance
 
         for (var i = 0; i < wordlist.length; i++) {
 	        var word = formatter(wordlist[i]);
-	        if(word.toLowerCase().indexOf(token.string.toLowerCase()) != -1 || token.string.length < 2){
+	        
+	        if(word.toLowerCase().indexOf(token.string.toLowerCase()) != -1 || token.string.trim().length < 1){
 	            result.push(word);
 	        }
         }
@@ -101,9 +102,6 @@ var lastWidget = undefined; // last auto completion widget instance
             search = "";
         }
 
-
-
-
         types = getAvailableTypes(context);
          
 		for(var i = 0; i < types.length; i++){
@@ -117,10 +115,6 @@ var lastWidget = undefined; // last auto completion widget instance
         });
         
         return false;
-        
-        
-        
-        
         
 
 		/*****************
@@ -302,104 +296,6 @@ var lastWidget = undefined; // last auto completion widget instance
             keywords.push("WHERE {\n}");
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        //
-        // Detection of contexts is done by reaching this line.
-        // Starting here we will evaluate the suggestions based
-        // on our detection
-        //
-        ////////////////////////////////////////////////////////////////////////
-
-        var result = [];
-
-        ////////////////////////////////////////////
-        // add the variables if activated
-        ////////////////////////////////////////////
-
-        if (variables != false && !requestExtension) {
-            // Add suggestions for variables starting with ?
-            var word = options && options.word || /\?[\w\d]+/g;
-            var range = options && options.range || 500;
-            var cur = editor.getCursor(),
-                curLine = editor.getLine(cur.line);
-
-            while (end < curLine.length && word.test(curLine.charAt(end))) ++end;
-            while (start && word.test(curLine.charAt(start - 1))) --start;
-            var curWord = start != end && curLine.slice(start, end);
-
-            var list = [],
-                seen = {},
-                list2 = [];
-
-            if (mode == 'params' && parameter == 'object') {
-                var variableCandidate = curLine.trim().split(/[\s,.\-\/:]+/).slice(-1)[0].replace('>', '').replace('<', '').replace('?', '');
-                if (variableCandidate != '<' && variableCandidate != '') {
-                    seen['?' + variableCandidate.toLowerCase()] = true;
-                    list.push('?' + variableCandidate.toLowerCase() + ' .');
-                }
-            }
-
-            var prefix = '';
-
-            function scan(dir) {
-                var line = cur.line,
-                    end = Math.min(Math.max(line + dir * range, editor.firstLine()), editor.lastLine()) + dir;
-                for (; line != end; line += dir) {
-                    var text = editor.getLine(line),
-                        m;
-                    var testPrefix = /((PREFIX (.*))(<.+>))/g.exec(text)
-                    if (testPrefix) {
-                        prefix = testPrefix[4];
-                    }
-                    word.lastIndex = 0;
-                    while (m = word.exec(text)) {
-                        if ((!curWord || m[0].indexOf(curWord) == 0) && !seen.hasOwnProperty(m[0])) {
-                            seen[m[0]] = true;
-                            if (mode == 'values' && lastCharEmpty) {
-                                re = new RegExp("\\" + m[0] + " ql:contains-", 'g');
-                                match = re.exec(content)
-                                if (match != null) {
-                                    // space after variables only if not in brackets
-                                    var l = editor.getLine(cur.line);
-                                    list2.push('SCORE(' + m[0].trim() + ')');
-                                    list2.push('TEXT(' + m[0].trim() + ')');
-                                }
-                                list2.push('(COUNT(' + m[0].trim() + ') AS )');
-                                list2.push('(SAMPLE(' + m[0].trim() + ') AS )');
-                                list2.push('(MIN(' + m[0].trim() + ') AS )');
-                                list2.push('(MAX(' + m[0].trim() + ') AS )');
-                                list2.push('(AVG(' + m[0].trim() + ') AS )');
-                                list2.push('(GROUP_CONCAT(' + m[0].trim() + ';separator=",") AS )');
-                            }
-                            if (mode == 'order') {
-                                re = new RegExp("\\" + m[0] + " ql:contains-", 'g');
-                                match = re.exec(content)
-                                if (match != null) {
-                                    list.push('SCORE(' + m[0].trim() + ')');
-                                }
-                            }
-                            if (mode == 'group') {
-                                list.push(m[0].trim() + "\n");
-                            }
-                            if (mode == 'params' && parameter == 'object') {
-                                list.push(m[0].trim() + " .");
-                            } else if (mode != 'group') {
-                                // space after variables only if not in brackets
-                                var l = editor.getLine(cur.line);
-                                if (l[cur.ch - 1] == "(" || l[cur.ch] == ' ') {
-                                    list.push(m[0].trim());
-                                } else {
-                                    list.push(m[0].trim() + " ");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            scan(-1);
-            scan(1);
-        }
-
         ////////////////////////////////////////////
         // DYNAMIC (backend) suggestions follow here
         ////////////////////////////////////////////
@@ -552,13 +448,13 @@ function getTypeSuggestions(type, context){
     suggestions = []
     
     if(type.onlyOnce){
-	    
+
 	    // get content to test with
-		content = "";
 		if(context){
-			content = context['content']
-		}
-		content = editor.getValue();
+			var content = context['content'];
+		} else {
+			var content = editor.getValue();
+	    }
 	    
 	    type.definition.lastIndex = 0;
 	    var match = type.definition.exec(content);
@@ -627,7 +523,7 @@ function getTypeSuggestions(type, context){
 		
 		}
 	}
-	
+		
 	if(type.onlyOncePerVariation){
 
 		// get content to test with
@@ -647,6 +543,7 @@ function getTypeSuggestions(type, context){
 		}	
 
 	}
+	
 	return suggestions;
 
 }
@@ -775,14 +672,11 @@ function getVariables(context, suggestListOfAllUnusedVariables){
         
     var variables = [];
     
-    
     // get the variables
     $('.CodeMirror .cm-variable').each(function(key,variable){
-	    
 	    if(variables.indexOf(variable.innerHTML) == -1){
 		    variables.push(variable.innerHTML);
 		}
-
     });
 		
 	if(suggestListOfAllUnusedVariables && variables.length > 1){
@@ -803,8 +697,7 @@ function getVariables(context, suggestListOfAllUnusedVariables){
 **/
 function getPrefixSuggestions(context){
     
-    if(context){
-	    
+    if(context){    
     	var prefixes = []
 
 	    // get content of current context
@@ -816,18 +709,15 @@ function getPrefixSuggestions(context){
 		    if(testAgainst.indexOf(prefix) != -1){
 				return true;
 		    }
-		    
 		    prefixes.push(prefix);
+		    
 	    });
 	    
 	} else {
-		
-		var prefixes = collectedPrefixes;
-		
+		var prefixes = collectedPrefixes;	
 	}
     
     return prefixes;   
-    
 }
 
 function identity(x){
