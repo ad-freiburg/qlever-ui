@@ -668,13 +668,18 @@ function getValueOfContext(context){
    		- Add list with all unused variables as one suggestion
     
 **/
-function getVariables(context, suggestListOfAllUnusedVariables){
+function getVariables(context, excludeAggregationVariables, suggestListOfAllUnusedVariables){
         
     var variables = [];
     
+    filter = '.CodeMirror .cm-variable';
+	if(excludeAggregationVariables){
+    	filter = ".CodeMirror .cm-variable:not('.cm-aggregate-variable')";
+    }
+    
     // get the variables
-    $('.CodeMirror .cm-variable').each(function(key,variable){
-	    if(variables.indexOf(variable.innerHTML) == -1){
+    $(filter).each(function(key,variable){
+		if(variables.indexOf(variable.innerHTML) == -1){
 		    variables.push(variable.innerHTML);
 		}
     });
