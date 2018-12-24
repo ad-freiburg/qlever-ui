@@ -2300,18 +2300,6 @@ function updateLineText(cm, lineView) {
   } else if (cls) {
     lineView.text.className = cls
   }
-
-  $(".cm-string").each(function(){
-    var content = $(this).html().split("@");
-    var newContent = ['<span class="cm-stringvalue">' + content[0] + '</span>'];
-    if (content.length > 1) {
-      newContent.push(['<span class="cm-stringlang">@' + content[1] + '</span>']);
-    }
-    $(this).html($(newContent.join("")));
-  });
-  $(".cm-prefix").each(function(){
-    
-  }
 }
 
 function updateLineClasses(cm, lineView) {
