@@ -1509,6 +1509,10 @@ StringStream.prototype.next = function () {
   if (this.pos < this.string.length)
     { return this.string.charAt(this.pos++) }
 };
+StringStream.prototype.peekback = function (n) {
+  if (this.pos > 0)
+    { return this.string.charAt(this.pos-n-1) }
+};
 StringStream.prototype.eat = function (match) {
   var ch = this.string.charAt(this.pos)
   var ok
@@ -1534,6 +1538,7 @@ StringStream.prototype.skipTo = function (ch) {
   if (found > -1) {this.pos = found; return true}
 };
 StringStream.prototype.backUp = function (n) {this.pos -= n};
+StringStream.prototype.advance = function (n) {this.pos += n};
 StringStream.prototype.column = function () {
   if (this.lastColumnPos < this.start) {
     this.lastColumnValue = countColumn(this.string, this.start, this.tabSize, this.lastColumnPos, this.lastColumnValue)

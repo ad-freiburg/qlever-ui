@@ -13,11 +13,13 @@
 
 	var keywordList = ["prefix", "select", "distinct", "where", "order", "limit",
       "offset", "optional", "by", "as", "having", "not", "textlimit",
-      "contains-entity", "contains-word", "filter"
+      "contains-entity", "contains-word", "filter", "group", "union",
+      "optional", "has-predicate"
   ];
 
-  var functionList = ["asc", "desc", "avg", "values", "group", "score", "text",
-      "count", "sample", "min", "max", "average", "concat", "group_concat"
+  var functionList = ["asc", "desc", "avg", "values", "score", "text",
+      "count", "sample", "min", "max", "average", "concat", "group_concat",
+      "langMatches", "lang", "regex"
   ];
 
     CodeMirror.defineMode("sparql", function(config) {
@@ -39,9 +41,11 @@
 		// 	   Detect tokens and their types
 		// -----------------------------------------------------
         function tokenBase(stream, state) {
-
             var ch = stream.next();
+            var before = "";
+            
             curPunc = null;
+            
             if (ch == "?") {
                 stream.match(/^[\w\d]*/);
                 return "variable";
@@ -55,25 +59,55 @@
                 curPunc = ch;
                 return "control";
             } else if (ch == "<") {
-                stream.match(/^[\S]*/);
+	            before = getBefore(stream, /[\s:]/);
+                stream.match(/^[\S]*>/);
+                
+                if (before.indexOf(":") != -1) {
+	                return "prefix-declaration prefix-value"
+                }
                 return "entity";
-            } else {
-                stream.match(/[_\w\d-]*:?/);
+            }  else if (ch == "@") {
+                stream.match(/[\w-]*/);
+                return "string string-language";
+            } else  {
+	            before = getBefore(stream, /:/);
+                var match = stream.match(/[_\w\d\.-]*(:(\s*))?/);
                 var word = stream.current();
-                console.log(word)
-                if (word[word.length-1] == ':'){
-                    return "prefix";
-                } else if (word == "."){
+                if (word.indexOf(":") != -1) {
+	                if (match[2].length > 0) {
+		                stream.backUp(match[2].length);
+		                return "prefix-declaration prefix-name";
+	                }
+                    return "entity prefixed-entity prefix-name";
+                } else if (word.match(/[.|<|>|=]/)) {
                     return "control";
                 } else if (keywords.test(word)) {
                     return "keyword";
                 } else if (functions.test(word)) {
                     return "function";
-                } else {
-                    return "entity";
+                } else if (word.match(/[\d]+/)) {
+	            	return "literal";
+	            } else {
+	                if (before.length > 0) {
+		                return "entity prefixed-entity entity-name"
+	                }
+	                // console.warn("Could not tokenize word: " + word);
+                    return "other";
                 }
             }
         }
+
+		
+		function getBefore(stream, chars) {
+			var before = "";
+			var i = 1;
+			var ch = stream.peekback(i);
+			while (ch != null && ch.match(chars)) {
+				before = ch + before;
+				ch = stream.peekback(++i);
+			}
+			return before;
+		}
 
 		    // support escaping inside strings
         function tokenLiteral(quote) {
@@ -81,14 +115,13 @@
                 var escaped = false;
                 var ch;
                 while ((ch = stream.next()) != null) {
-                    if (ch == quote && !escaped) {
-                        stream.match(/@[\w-]*/);
-                        state.tokenize = tokenBase;
-                        break;
-                    }
+	                if (ch == quote && !escaped) {
+	                    state.tokenize = tokenBase;
+	                    break;
+	                }
                     escaped = !escaped && ch == "\\";
                 }
-                return "string";
+                return "string string-value";
             };
         }
 
