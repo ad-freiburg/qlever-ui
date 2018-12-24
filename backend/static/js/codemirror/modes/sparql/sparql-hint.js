@@ -42,9 +42,13 @@ var lastWidget = undefined; // last auto completion widget instance
 
 	// add matches to result
     function addMatches(result, wordlist, formatter) {
-	    // TODO: add prefix search here
+		var token = editor.getTokenAt(editor.getCursor(), true)
+
         for (var i = 0; i < wordlist.length; i++) {
-            result.push(formatter(wordlist[i]));
+	        var word = formatter(wordlist[i]);
+	        if(word.toLowerCase().indexOf(token.string.toLowerCase()) != -1 || token.string.length < 2){
+	            result.push(word);
+	        }
         }
     }
 	
@@ -547,10 +551,17 @@ function getTypeSuggestions(type, context){
     
     suggestions = []
     
-    if(type.onlyOnce && context){
+    if(type.onlyOnce){
+	    
+	    // get content to test with
+		content = "";
+		if(context){
+			content = context['content']
+		}
+		content = editor.getValue();
 	    
 	    type.definition.lastIndex = 0;
-	    var match = type.definition.exec(context['content']);
+	    var match = type.definition.exec(content);
 	    
 	    // this should occur only once and is already found once
 		if(match && match.length > 1){
@@ -587,12 +598,12 @@ function getTypeSuggestions(type, context){
 		// no multiplying placeholders - simply use the string with no value
 		if(placeholders.length == 0){
 			suggestions.push(dynString);
-		} else if(placeholders[0].length != 0){
+		} else if(placeholders[0].length != 0 && placeholders[0] != false){
 			// mulitply the suggestiony by placeholders
 			tempStrings = [];
 			for(var k = 0; k < placeholders.length; k++){
 				// there are no valid values for this placeholder. Skip.
-				if(placeholders[k].length != 0){
+				if(placeholders[k].length != 0 && placeholders[k] != false)	{
 					// multiply by each valid value for each placeholder
 					for(var l = 0; l < placeholders[k].length; l++){
 						if(k == 0){
@@ -607,6 +618,8 @@ function getTypeSuggestions(type, context){
 							}
 						}
 					}
+				} else {
+					tempStrings = [];
 				}
 			}
 			
@@ -615,13 +628,20 @@ function getTypeSuggestions(type, context){
 		}
 	}
 	
-	if(type.onlyOncePerVariation && context){
+	if(type.onlyOncePerVariation){
+
+		// get content to test with
+		content = "";
+		if(context){
+			content = context['content']
+		}
+		content = editor.getValue();
 
 		var tempSuggestions = $.extend([],suggestions);
 		suggestions = [];
 		// check if this combination is already in use in this context
 		for(var i = 0; i < tempSuggestions.length; i++){
-			if(context['content'].indexOf(tempSuggestions[i]) == -1){
+			if(content.indexOf(tempSuggestions[i]) == -1){
 				suggestions.push(tempSuggestions[i]);
 			}
 		}	
@@ -686,6 +706,40 @@ function getCurrentContext(absPosition){
 
 /**
    
+   Returns the context by its name
+   
+   @params absPosition - absolute position in text
+    
+**/    
+function getContextByName(name){
+    var editorContent = editor.getValue()
+    var foundContext = undefined;
+    
+    $(CONTEXTS).each(function(index,context){
+	    
+	    if(context.w3name == name){
+		    
+		    context.definition.lastIndex = 0;
+		    var match = context.definition.exec(editorContent);
+		    
+			if(match && match.length > 1){
+			    
+				foundContext = context;
+				foundContext['start'] = match.index;
+				foundContext['end'] = match.index+match[0].length;
+				foundContext['content'] = getValueOfContext(context);
+				return false;
+				
+			}
+		}
+		
+    });
+    
+    return foundContext;
+}
+
+/**
+   
    Returns the value of the given context
    
    @params context - the current context
@@ -717,29 +771,22 @@ function getValueOfContext(context){
    		- Add list with all unused variables as one suggestion
     
 **/
-function getVariables(context, allowDuplicatesInContext, suggestListOfAllUnusedVariables){
-    
+function getVariables(context, suggestListOfAllUnusedVariables){
+        
     var variables = [];
     
-    // get content of current context
-    var testAgainst = context['content'];
     
     // get the variables
     $('.CodeMirror .cm-variable').each(function(key,variable){
 	    
-	    if(allowDuplicatesInContext == false && testAgainst.indexOf(variable.innerHTML) != -1){
-			// consider keeping this variables for other use cases
-	    } else {
-		    if(variables.indexOf(variable.innerHTML) == -1){
-		    	variables.push(variable.innerHTML);
-		    }
+	    if(variables.indexOf(variable.innerHTML) == -1){
+		    variables.push(variable.innerHTML);
 		}
+
     });
 		
 	if(suggestListOfAllUnusedVariables && variables.length > 1){
-		$(variables).each(function(){
-			variables.push(variables.join(' '));
-		});
+		variables.push(variables.join(' '));
 	}
 	
 	return variables;

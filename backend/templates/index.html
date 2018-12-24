@@ -579,7 +579,7 @@
             {
                 name: 'PREFIX',
                 definition: /PREFIX ([.*])/g,
-                suggestions: [['PREFIX ',getPrefixSuggestions]],
+                suggestions: [['PREFIX ',getPrefixSuggestions,'\n']],
                 availableInContext: ['PrefixDecl','undefined'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -598,17 +598,17 @@
             },
             {
                 name: 'VARIABLE',
-                definition: /\?([.*])/g,
-                suggestions: [[function(c){ var a = []; $(getVariables(c,false,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
+                definition: /\?([a-zA-Z]*)/g,
+                suggestions: [[function(c){ var a = []; $(getVariables(c,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
                 availableInContext: ['SelectClause'],
-                onlyOnce: false,
+                onlyOnce: true,
                 onlyOncePerVariation: false,
                 usePrefixSearch: false,
             },
             {
                 name: 'COUNT AS', 
-                definition: /\(COUNT\((.*)\) as (.*)\)/g,
-                suggestions: [['COUNT(',function(c){ return getVariables(c,true,false)},' as ?count) ']],
+                definition: /COUNT\((.*) as (.*)\)/g,
+                suggestions: [['COUNT(',getVariables,' as ?count) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
@@ -617,7 +617,7 @@
             {
                 name: 'TEXT',
                 definition: /TEXT\((.*)\)/g,
-                suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c,true,false),function(k,v){ if(c['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+                suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -626,7 +626,7 @@
             {
                 name: 'SCORE',
                 definition: /SCORE\((.*)\)/g,
-                suggestions: [['SCORE(',function(c){ var a = []; $.each(getVariables(c,true,false),function(k,v){ if(c['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+                suggestions: [['SCORE(',function(c){ var a = []; $.each(getVariables(c),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -635,7 +635,7 @@
             {
                 name: 'MIN',
                 definition: /MIN\((.*)\)/g,
-                suggestions: [['MIN(',function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -644,7 +644,7 @@
             {
                 name: 'MAX',
                 definition: /MAX\((.*)\)/g,
-                suggestions: [['MAX(',function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -653,7 +653,7 @@
             {
                 name: 'SUM',
                 definition: /SUM\((.*)\)/g,
-                suggestions: [['SUM(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -662,7 +662,7 @@
             {
                 name: 'AVG',
                 definition: /AVG\((.*)\)/g,
-                suggestions: [['AVG(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -671,7 +671,7 @@
             {
                 name: 'SAMPLE',
                 definition: /SAMPLE\((.*)\)/g,
-                suggestions: [['SAMPLE(',function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['SAMPLE(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -680,7 +680,7 @@
             {
                 name: 'COUNT',
                 definition: /COUNT\((.*)\)/g,
-                suggestions: [['COUNT(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -689,7 +689,7 @@
             {
                 name: 'GROUP_CONCAT',
                 definition: /GROUP_CONCAT\((.*)\)/g,
-                suggestions: [['GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                suggestions: [['GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c); } else { return false; } },') ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -716,7 +716,7 @@
             {
                 name: 'ORDER BY',
                 definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
-                suggestions: [['ORDER BY ', ['DESC(','ASC('], function(c){ return getVariables(c,false,false); } ,')\n']],
+                suggestions: [['ORDER BY ', ['DESC(','ASC('], getVariables ,')\n']],
                 availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
@@ -725,7 +725,7 @@
             {
                 name: 'GROUP BY',
                 definition: /GROUP BY (.*)/g,
-                suggestions: [['GROUP BY ', function(c){ return getVariables(c,false,false); }]],
+                suggestions: [['GROUP BY ', getVariables,'\n']],
                 availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
