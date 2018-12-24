@@ -48,7 +48,7 @@
             
             if (ch == "?") {
 	            before = getBefore(stream, /\s/);
-	            var isAggregate = (before != "" && stream.peekback(before.length+1 == "a") && stream.peekback(before.length+1 == "s"));
+	            var isAggregate = (before != "" && stream.peekback(before.length+3).match(/\s/) && stream.peekback(before.length+2) == "a" && stream.peekback(before.length+1) == "s");
                 stream.match(/^[\w\d]*/);
                 if (isAggregate) {
 	                return "variable aggregate-variable";	
