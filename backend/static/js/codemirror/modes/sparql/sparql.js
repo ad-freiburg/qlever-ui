@@ -47,9 +47,10 @@
             curPunc = null;
             
             if (ch == "?") {
-	            before = getBefore(stream, /[\sas]/i).trim();
+	            before = getBefore(stream, /\s/);
+	            var isAggregate = (before != "" && stream.peekback(before.length+1 == "a") && stream.peekback(before.length+1 == "s"));
                 stream.match(/^[\w\d]*/);
-                if (before.toLowerCase() == "as") {
+                if (isAggregate) {
 	                return "variable aggregate-variable";	
                 }
                 return "variable";
