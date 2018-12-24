@@ -19,7 +19,7 @@
 
   var functionList = ["asc", "desc", "avg", "values", "score", "text",
       "count", "sample", "min", "max", "average", "concat", "group_concat",
-      "langMatches", "lang", "regex"
+      "langMatches", "lang", "regex", "sum"
   ];
 
     CodeMirror.defineMode("sparql", function(config) {
@@ -47,10 +47,11 @@
             curPunc = null;
             
             if (ch == "?") {
-	            before = getBefore(stream, /[\sas]/i).trim();
+	            before = getBefore(stream, /\s/);
+	            var isAggregate = (before != "" && stream.peekback(before.length+1 == "a") && stream.peekback(before.length+1 == "s"));
                 stream.match(/^[\w\d]*/);
-                if (before.toLowerCase() == "as") {
-	                return "variable aggregate-variable";
+                if (isAggregate) {
+	                return "variable aggregate-variable";	
                 }
                 return "variable";
             } else if (ch == "\"" || ch == "'") {
