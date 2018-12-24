@@ -211,7 +211,7 @@ var lastWidget = undefined; // last auto completion widget instance
 
 
                                 if (suggestionMode == 1) {
-                                    sparqlQuery = prefixes +
+                                    sparqlQuery = prefixes.join("\n") +
                                         "\nSELECT ?qleverui_predicate WHERE {" +
                                         "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
                                     if (search != undefined && search.length > 1) {
@@ -241,7 +241,7 @@ var lastWidget = undefined; // last auto completion widget instance
                                     }*/
 
                                     clause[cursorLine] = subject + " ql:has-predicate ?qleverui_predicate .";
-                                    sparqlQuery = prefixes +
+                                    sparqlQuery = prefixes.join("\n") +
                                         "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {\n  " +
                                         clause.join('\n  ') +
                                         "\n}\nGROUP BY ?qleverui_predicate" +
@@ -255,7 +255,7 @@ var lastWidget = undefined; // last auto completion widget instance
                             if (words.length > 2 && words[2] == word) {
                                 parameter = 'object';
                                 if (suggestionMode == 1) {
-                                    sparqlQuery = prefixes +
+                                    sparqlQuery = prefixes.join("\n") +
                                         "\nSELECT ?qleverui_object WHERE {\n  " +
                                         "?qleverui_object ql:entity-type ql:object .";
                                     if (search != undefined && search.length > 1) {
@@ -271,7 +271,7 @@ var lastWidget = undefined; // last auto completion widget instance
                                     var subject = parameters[0];
                                     var predicate = parameters[1];
                                     clause[cursorLine] = subject + " " + predicate + " ?qleverui_object .";
-                                    sparqlQuery = prefixes +
+                                    sparqlQuery = prefixes.join("\n") +
                                         "\nSELECT ?qleverui_object WHERE {\n  " +
                                         clause.join('\n  ');
                                     if (search != undefined && search.length > 1) {
