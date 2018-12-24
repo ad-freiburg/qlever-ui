@@ -2311,7 +2311,7 @@ function updateLineText(cm, lineView) {
   });
   $(".cm-prefix").each(function(){
     
-  }
+  });
 }
 
 function updateLineClasses(cm, lineView) {

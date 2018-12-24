@@ -24,7 +24,7 @@ var lastWidget = undefined; // last auto completion widget instance
     var activeLineBadgeLine; // the bade holder in the current active line
     var activeLineNumber; // the line number of the active line (replaced by loader)
 
-    var keywords; // language keywords
+    var suggestions; // language keywords
 
     var Pos = CodeMirror.Pos,
         cmpPos = CodeMirror.cmpPos;
@@ -41,7 +41,8 @@ var lastWidget = undefined; // last auto completion widget instance
     }
 
 	// add matches to result
-    function addMatches(result, search, wordlist, formatter) {
+    function addMatches(result, wordlist, formatter) {
+	    // TODO: add prefix search here
         for (var i = 0; i < wordlist.length; i++) {
             result.push(formatter(wordlist[i]));
         }
@@ -58,111 +59,21 @@ var lastWidget = undefined; // last auto completion widget instance
         //
         // ************************************************************************************
 
-        //
-        // Different modes:
-        //    - 1: values - between "SELECT" and "WHERE"
-        //    - 2: params - between "WHERE {" and "}"
-        //    - 3: limit - after "LIMIT"
-        //    - 4: order - after "ORDER BY"
-        //    - 5: all   - everywhere else
-		//    - TODO: add the others
-		
-        var mode = 'all'; // where am I in the query
-        var parameter = 'undefined'; // where am I in the where clause
-
+		var suggestions = [];
 
         var cur = editor.getCursor(); // current cursor position
-        var line = editor.getLine(cur.line); // current line
-        
-        
-        
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
-        var currentContext = getCurrentContext(absolutePosition); // get current context
+        var context = getCurrentContext(absolutePosition); // get current context
 
-
-        
-        var lastCharEmpty = false; // tells you if the position follows a whitespace
-        var content = editor.getValue().replace('\r\n', '\n'); // editor content
-        var match = null; // regex match
-        var variables = true; // tell if variables should be suggested
-
-
-        // get given keywords
-        keywords = getKeywords(editor);
-        
-        // detect if current char follows a white space or not
-        if (line[cur.ch - 1] == " " && line.substr(0, cur.ch).slice(-3) != "AS ") {
-            lastCharEmpty = true;
-        } else {
-            lastCharEmpty = false;
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////
-        //
-        //    0. Input ist totally empty
-        //
-        //    We suggest SELECT (1. Step) and SELECT + PREFIXES in 2. Step
-        //
-        //////////////////////////////////////////////////////////////////////////////////
-
-        var re = new RegExp(/SELECT/, 'g');
-        match = re.exec(content)
-
-        if (content == "" || content == " " || match == null) {
-            
-            prefixes = [];
-            
-            // Started to write anything that can be completed to prefix but prefix not used yet
-            $(collectedPrefixes).each(function(key, value) {
-                if (content.indexOf(value) == -1 && 'prefix'.indexOf(line.toLowerCase()) == 0) {
-                    prefixes.push(value);
-                }
-            });
-
-            // Do not suggest nonsense after incomplete PREFIX line
-            if (line.startsWith("PREFIX ")) {
-
-				// use empty list as a start and add only prefixes
-                keywords = [];
-                if (!requestExtension) {
-                    addMatches(keywords, undefined, prefixes, function(w) { return w; });
-                }
-
-            } else {
-
-                var select = `SELECT  WHERE {
-
-}`;
-                // the default suggestion: SELECT + WHERE Clause and empty "PREFIX"
-                if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                    keywords = ['PREFIX '];
-                } else {
-                    keywords = [];
-                }
-
-                // add prefixes to select suggestion
-                if (!requestExtension) {
-                    addMatches(keywords, undefined, prefixes, function(w) {
-                        return w;
-                    });
-                    // it's still possible to type "select"
-                    if ('select'.indexOf(line.toLowerCase()) == 0) {
-                        keywords.push(select);
-                    }
-                }
-            }
-            
-            if (!requestExtension)
-                callback({
-                    list: keywords,
-                    from: Pos(cur.line, 0),
-                    to: Pos(cur.line, end)
-                });
-
-            // no other suggestions needed
-            return false;
-        }
-
+		console.log('Starting suggestion');
+		console.log('--------------------------');
+		console.log('Position: '+absolutePosition);
+		if(context){
+			console.log('Context: '+context.w3name);
+		} else {
+			console.log('Context: None');
+		}
+		
 		// get current token
         var token = editor.getTokenAt(cur, true),
             start, end, search;
@@ -186,102 +97,32 @@ var lastWidget = undefined; // last auto completion widget instance
             search = "";
         }
 
-        //////////////////////////////////////////////////////////////////////////////////
-        //
-        //    1. Select statement is present
-        //
-        //     We are possibly before or after the "SELECT" statement. Before SELECT prefixes
-        //    are the only valid choice. After select it could be "values" or any other part
-        //
-        //////////////////////////////////////////////////////////////////////////////////
 
-        if (match != null) {
 
-            //////////////////////////////////////////////////////////////////////////////////
-            //
-            //    1.1 Before the select statement
-            //
-            //    The only valid suggestions here are prefixes
-            //
-            //////////////////////////////////////////////////////////////////////////////////
-            if (absolutePosition < match.index) {
 
-                
-                // add prefixes to suggestion
-                keywords = [];
-                if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                    keywords.push("PREFIX ");
-                }
+        types = getAvailableTypes(context);
+         
+		for(var i = 0; i < types.length; i++){
+	        addMatches(suggestions, getTypeSuggestions(types[i], context), identity);
+		}
+			
+		callback({
+            list: suggestions,
+            from: Pos(cur.line, start),
+            to: Pos(cur.line, end)
+        });
+        
+        return false;
+        
+        
+        
+        
+        
 
-                if (!requestExtension) {
-                    if ('prefix'.indexOf(line.toLowerCase()) == 0) {
-                        addMatches(keywords, undefined, collectedPrefixes, function(w) { return w; });
-                    }
-                    callback({
-                        list: keywords,
-                        from: Pos(cur.line, 0),
-                        to: Pos(cur.line, end)
-                    });
-                }
-
-                // no other suggestions needed
-                return false;
-
-            }
-
-            //////////////////////////////////////////////////////////////////////////////////
-            //
-            //    1.2 Behind the select statement
-            //
-            //    Valid suggestions are known variables and some (limited) keywords
-            //
-            //////////////////////////////////////////////////////////////////////////////////
-
-            if (absolutePosition >= match.index) {
-
-                mode = 'values';
-
-                // show variables in thie situation
-                variables = true;
-				
-				keywords = [];
-				
-				// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				// TODO: activate REAL search behaviour
-				// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				if('distinct'.indexOf(token.string.toLowerCase()) != -1 || token.string == " "){
-					keywords.push('distinct');
-				}
-				
-				if('score()'.indexOf(token.string.toLowerCase()) != -1 || token.string == " "){
-					keywords.push('score()');
-				}
-				
-				if('text()'.indexOf(token.string.toLowerCase()) != -1 || token.string == " "){
-					keywords.push('text()');
-				}
-            }
-
-        } else {
-            keywords.push(select);
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////
-        //
-        //    2. WHERE is also present!
-        //
-        //    So the condition params will follow this statement ...
-        //    No template suggestions in here ...
-        //
-        //////////////////////////////////////////////////////////////////////////////////
-
-        re = new RegExp(/WHERE \{/gm, 'g');
-        match = re.exec(content)
-        if (match != null) {
-
-			// after end of WHERE word
-            if (absolutePosition > match.index + 5) {
-                mode = 'params';
+		/*****************
+		/  WhereClause
+		*****************/
+        if(context.w3name == 'WhereClause'){
 
                 // detect line position (subj / predicate / object)
                 var j = cur.ch;
@@ -453,123 +294,9 @@ var lastWidget = undefined; // last auto completion widget instance
                     console.warn('Skipping every suggestions based on current position...')
                     return false;
                 }
-            }
         } else {
             keywords.push("WHERE {\n}");
         }
-
-        //////////////////////////////////////////////////////////////////////////////////
-        //
-        //    3. WHERE is not only present but also "closed" by the enclosing brackets
-        //
-        //    If we are behind the bracket there are some templating options again -
-        //  we could either want to add a LIMIT or a ORDER BY - or both. Or none of them.
-        //  Both should not be douplicated so the can occur only once
-        //
-        //////////////////////////////////////////////////////////////////////////////////
-
-        re = new RegExp(/WHERE \{[\s\S\n\w\.]*}/g, 'g');
-        match = re.exec(content)
-        if (match != null) {
-
-            var startIndex = match.index + match[0].length - cur.line - 1;
-
-            if (absolutePosition > startIndex) {
-                mode = 'afterParams';
-
-                variables = false;
-
-                keywords = [];
-                re = new RegExp(/[^T]LIMIT /g, 'g');
-                match = re.exec(content)
-                if (match == null) {
-                    keywords = keywords.concat(['LIMIT ', 'LIMIT 1\n', 'LIMIT 10\n', 'LIMIT 100\n', 'LIMIT 1000\n']);
-                }
-                re = new RegExp(/TEXTLIMIT /g, 'g');
-                match = re.exec(content)
-                if (match == null) {
-                    keywords = keywords.concat(['TEXTLIMIT ', 'TEXTLIMIT 2\n', 'TEXTLIMIT 5\n', 'TEXTLIMIT 10\n']);
-                }
-                re = new RegExp(/ORDER BY /g, 'g');
-                match = re.exec(content)
-                if (match == null) {
-                    keywords = keywords.concat(['ORDER BY ', 'ORDER BY DESC()', 'ORDER BY ASC()', 'ORDER BY SCORE()']);
-                }
-                re = new RegExp(/GROUP BY /g, 'g');
-                match = re.exec(content)
-                if (match == null) {
-                    keywords = keywords.concat(['GROUP BY ']);
-                }
-
-                if (editor.getLine(cur.line)[cur.ch - 1] == '}') {
-                    for (i = 0; i < keywords.length; i++) {
-                        keywords[i] = '\n' + keywords[i];
-                    }
-                }
-
-            }
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////
-        //
-        //    4. LIMIT is present
-        //
-        //    Well ... we are directly behind a "limit" statement so we'd possibly like to
-        //  type some numbers here. There are quite a few choices ...
-        //
-        //////////////////////////////////////////////////////////////////////////////////
-
-        line = editor.getLine(cur.line)
-        if (line.startsWith('LIMIT')) {
-            mode = 'limit';
-
-            variables = false;
-            keywords = ["1\n", "5\n", "10\n", "25\n", "50\n", "100\n", "250\n", "500\n", "1000\n", "5000\n"];
-        }
-
-        if (line.startsWith('TEXTLIMIT')) {
-            mode = 'textlimit';
-
-            variables = false;
-            keywords = ["2\n", "5\n", "10\n"];
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////
-        //
-        //    5. ORDERING is present
-        //
-        //    We are directly behind a "ORDER BY" statement ... some variables and a few
-        //  valid keywords will follow here
-        //
-        //////////////////////////////////////////////////////////////////////////////////
-
-        if (line.startsWith('ORDER BY')) {
-
-            mode = 'order';
-
-            variables = true;
-            keywords = ["desc()", "asc()", "score()"];
-
-            if (line[cur.ch - 1] == ')') {
-                keywords = [];
-            }
-            if (line[cur.ch - 1] == '(') {
-                keywords = [];
-                if (line[cur.ch - 2].toUpperCase() == 'C') {
-                    keywords = ['score()'];
-                }
-            }
-        }
-
-        if (line.startsWith('GROUP BY')) {
-
-            mode = 'group';
-
-            variables = true;
-            keywords = [];
-
-        }
-
 
         ////////////////////////////////////////////////////////////////////////
         //
@@ -667,53 +394,7 @@ var lastWidget = undefined; // last auto completion widget instance
             }
             scan(-1);
             scan(1);
-
-            if (mode == 'values') {
-
-                var variables = list;
-                var list = [];
-                var monsterquery = "";
-                for (var i = 0; i < variables.length; i++) {
-                    re = new RegExp("SELECT (.*)" + variables[i].trim().replace('?', '\\?').replace('(', '\\(').replace(')', '\\)') + "(.*) WHERE", 'g');
-                    if (re.exec(content) == null) {
-                        list.push(variables[i]);
-                        if (!variables[i].startsWith('(')) {
-                            monsterquery += variables[i] + ' ';
-                        }
-                    }
-                }
-                if (monsterquery.split(' ').length > 2) {
-                    list.push(monsterquery.trim());
-                }
-            }
-
-            list = list.concat(list2);
-
-            addMatches(result, search, list, function(w) {
-                return w;
-            });
         }
-
-        ////////////////////////////////////////////
-        // add the static suggestions if available
-        ////////////////////////////////////////////
-        if (!requestExtension)
-            addMatches(result, undefined, keywords, function(w) {
-                if (w.indexOf('ql:') == -1) {
-	                return w.toUpperCase();
-	            } else {
-		            return w;
-	            }
-            });
-
-        ////////////////////////////////////////////
-        // suggest what we have found so far ...
-        ////////////////////////////////////////////
-        callback({
-            list: result,
-            from: Pos(cur.line, start + prefixName.length),
-            to: Pos(cur.line, end)
-        });
 
         ////////////////////////////////////////////
         // DYNAMIC (backend) suggestions follow here
@@ -829,144 +510,279 @@ var lastWidget = undefined; // last auto completion widget instance
     });
     CodeMirror.hint.sparql.async = true;
     
-    
-    /**
-	   
-	   Returns absolute cursor position inside editor.getValue()
-	    
-	**/
-    function getTypeSuggestions(type,context){
-	    if(typeof type.suggestions){}
-	    // https://stackoverflow.com/questions/22483214/regex-check-if-input-still-has-chances-to-become-matching/22489941#22489941
-    }
+});
 
-    /**
-	   
-	   Returns absolute cursor position inside editor.getValue()
+ /**
 	    
-	**/
-    function getAbsolutePosition(cur){
-	    var absolutePosition = 0;
-	    $('.CodeMirror-line').each(function(i) {
-            if (i < cur.line) {
-	            // count line breaks as chars
-                absolutePosition += $(this).text().length+1;
-            } else {
-                absolutePosition += cur.ch;
-                return false;
-            }
-        });
-        return absolutePosition;
+    Find the complex types that still have the chance to match
+	https://stackoverflow.com/questions/22483214/regex-check-if-input-still-has-chances-to-become-matching/22489941#22489941
+    
+    @params context - the current context
+    
+**/
+function getAvailableTypes(context){
+    types = [];
+    
+    contextName = "undefined";
+    if(context){
+	    contextName = context.w3name;
     }
     
-    /**
-	   
-	   Returns the current context
+    // check for complex types that are valid in this context
+	for(var i = 0; i < COMPLEXTYPES.length; i++){
+		if(COMPLEXTYPES[i].availableInContext.indexOf(contextName) != -1){
+			types.push(COMPLEXTYPES[i]);
+		}
+	}
+	
+	return types;
+}
+
+/**
+   
+   Returns the suggestions defined for a given complex type
+    
+**/
+function getTypeSuggestions(type, context){
+    
+    suggestions = []
+    
+    if(type.onlyOnce && context){
 	    
-	**/    
-    function getCurrentContext(absPosition){
-	    var editorContent = editor.getValue()
-	    var foundContext = undefined;
+	    type.definition.lastIndex = 0;
+	    var match = type.definition.exec(context['content']);
 	    
-	    $(CONTEXTS).each(function(index,context){
+	    // this should occur only once and is already found once
+		if(match && match.length > 1){
+			return [];
+		}
+    }
+    
+    for(var i = 0; i < type.suggestions.length; i++){
+		
+	    var suggestion = type.suggestions[i];
+	    var dynString = "";
+		var placeholders = [];
+	    
+	    // evaluate placeholders in definition
+	    for(var j = 0; j < suggestion.length; j++){
 		    
-		    context.definition.lastIndex = 0;
-		    var match = context.definition.exec(editorContent)
-		    
-			if(match && match.length > 1){
-			    
-			    // we are inside the outer match of the whole context group
-			    if(absPosition >= match.index && absPosition <= match.index+match[0].length){
-				   foundContext = context;
-				   return false;
-			    }
+			// concat dyn string
+			if(typeof suggestion[j] == 'object'){
+			    if(suggestion[j] && suggestion[j].length > 0){
+				    dynString += '{{'+placeholders.length+'}}';
+				    placeholders.push(suggestion[j]);
+				}
+		    } else if(typeof suggestion[j] == 'function'){
+			    if(suggestion[j] && suggestion[j].length > 0){
+				    dynString += '{{'+placeholders.length+'}}';
+				    placeholders.push(suggestion[j](context));
+				}
+		    } else {
+			    dynString += suggestion[j]
 			}
-	    });
-	    
-	    return foundContext;
-    }
-
-    /**
-	   
-	   Returns the value of the defined context
-	   
-	   		- Excludes duplicate definitions if told to do so
-	    
-	**/
-    function getValueOfContext(context){
-	    var editorContent = editor.getValue()
-		
-		context.definition.lastIndex = 0;
-	    var relevantPart = context.definition.exec(editorContent);
-	    
-	    if(relevantPart.length > 1){
-		    return relevantPart[1];
-	    }
-	    return "";
-    }
-    
-    /**
-	   
-	   Returns prefixes to suggest
-	   
-	   		- Excludes duplicate definitions if told to do so
-	   		- Add list with all unused variables as one suggestion
-	    
-	**/
-    function getVariables(context, allowDuplicatesInContext, suggestListOfAllUnusedVariables){
-	    
-	    var variables = [];
-	    
-	    // get content of current context
-	    var testAgainst = getValueOfContext(context);
-	    
-	    // get the variables
-	    $('.CodeMirror .cm-variable').each(function(variable){
-		    
-		    if(allowDuplicatesInContext == false && testAgainst.indexOf(variable) != -1){
-				continue;
-		    }
-		    
-		    variables.push(variable);
-	    });
-		
-		if(suggestListOfAllUnusedVariables){
-			$(variables).each(function(){
-				variables.push(variables.join(' '));
-			});
+			
 		}
 		
-	    return variables;
-	    
-    }
+		// no multiplying placeholders - simply use the string with no value
+		if(placeholders.length == 0){
+			suggestions.push(dynString);
+		} else if(placeholders[0].length != 0){
+			// mulitply the suggestiony by placeholders
+			tempStrings = [];
+			for(var k = 0; k < placeholders.length; k++){
+				// there are no valid values for this placeholder. Skip.
+				if(placeholders[k].length != 0){
+					// multiply by each valid value for each placeholder
+					for(var l = 0; l < placeholders[k].length; l++){
+						if(k == 0){
+							// first iteration is different
+							tempStrings.push(dynString.replace('{{'+k+'}}',placeholders[k][l]));
+						} else {
+							// second iteration mulitplies the solutions already found
+							newTempStrings = $.extend([],tempStrings);
+							tempStrings = [];
+							for(var m = 0; m < newTempStrings.length; m++){
+								tempStrings.push(newTempStrings[m].replace('{{'+k+'}}',placeholders[k][l]));
+							}
+						}
+					}
+				}
+			}
+			
+			$.extend(suggestions,tempStrings);
+		
+		}
+	}
+	
+	if(type.onlyOncePerVariation && context){
+
+		var tempSuggestions = $.extend([],suggestions);
+		suggestions = [];
+		// check if this combination is already in use in this context
+		for(var i = 0; i < tempSuggestions.length; i++){
+			if(context['content'].indexOf(tempSuggestions[i]) == -1){
+				suggestions.push(tempSuggestions[i]);
+			}
+		}	
+
+	}
+	return suggestions;
+
+}
+
+/**
+   
+   Returns absolute cursor position inside editor.getValue()
+   
+   @params cur - position object of current position
     
-    /**
-	   
-	   Returns prefixes to suggest
-	   
-	   		- Excludes duplicate definitions directly 
+**/
+function getAbsolutePosition(cur){
+    var absolutePosition = 0;
+    $('.CodeMirror-line').each(function(i) {
+        if (i < cur.line) {
+            // count line breaks as chars
+            absolutePosition += $(this).text().length+1;
+        } else {
+            absolutePosition += cur.ch;
+            return false;
+        }
+    });
+    return absolutePosition;
+}
+
+/**
+   
+   Returns the current context
+   
+   @params absPosition - absolute position in text
+    
+**/    
+function getCurrentContext(absPosition){
+    var editorContent = editor.getValue()
+    var foundContext = undefined;
+    
+    $(CONTEXTS).each(function(index,context){
 	    
-	**/
-    function getPrefix(context){
+	    context.definition.lastIndex = 0;
+	    var match = context.definition.exec(editorContent);
 	    
-	    var prefixes = []
-	    	    
+		if(match && match.length > 1){
+		    
+		    // we are inside the outer match of the whole context group
+		    if(absPosition >= match.index && absPosition <= match.index+match[0].length){
+			   foundContext = context;
+			   foundContext['start'] = match.index;
+			   foundContext['end'] = match.index+match[0].length;
+			   foundContext['content'] = getValueOfContext(context);
+			   return false;
+		    }
+		}
+    });
+    
+    return foundContext;
+}
+
+/**
+   
+   Returns the value of the given context
+   
+   @params context - the current context
+   
+   		- Excludes duplicate definitions if told to do so
+    
+**/
+function getValueOfContext(context){
+    var editorContent = editor.getValue();
+	
+	context.definition.lastIndex = 0;
+    var relevantPart = context.definition.exec(editorContent);
+    
+    if(relevantPart.length > 1){
+	    return relevantPart[1];
+    }
+    return "";
+}
+
+/**
+   
+   Returns prefixes to suggest
+   
+   @params context - the current context
+   @params allowDuplicatesInContext - allow variables to be suggested when they are already set
+   @params suggestListOfAllUnusedVariables - generate a list with all variables in it
+   
+   		- Excludes duplicate definitions if told to do so
+   		- Add list with all unused variables as one suggestion
+    
+**/
+function getVariables(context, allowDuplicatesInContext, suggestListOfAllUnusedVariables){
+    
+    var variables = [];
+    
+    // get content of current context
+    var testAgainst = context['content'];
+    
+    // get the variables
+    $('.CodeMirror .cm-variable').each(function(key,variable){
+	    
+	    if(allowDuplicatesInContext == false && testAgainst.indexOf(variable.innerHTML) != -1){
+			// consider keeping this variables for other use cases
+	    } else {
+		    if(variables.indexOf(variable.innerHTML) == -1){
+		    	variables.push(variable.innerHTML);
+		    }
+		}
+    });
+		
+	if(suggestListOfAllUnusedVariables && variables.length > 1){
+		$(variables).each(function(){
+			variables.push(variables.join(' '));
+		});
+	}
+	
+	return variables;
+}
+
+/**
+   
+   Returns prefixes to suggest
+   
+   @params context - the prefix context
+   
+   		- Excludes duplicate definitions 
+    
+**/
+function getPrefixSuggestions(context){
+    
+    if(context){
+	    
+    	var prefixes = []
+
 	    // get content of current context
-	    var testAgainst = getValueOfContext(context);
+	    var testAgainst = context['content'];
 	    
 	    // get the prefixes
 	    $(collectedPrefixes).each(function(prefix){
 		    
 		    if(testAgainst.indexOf(prefix) != -1){
-				continue;
+				return true;
 		    }
 		    
 		    prefixes.push(prefix);
 	    });
 	    
-	    return prefixes;
-	    
-    }
+	} else {
+		
+		var prefixes = collectedPrefixes;
+		
+	}
     
+    return prefixes;   
     
-});
+}
+
+function identity(x){
+	return x
+}

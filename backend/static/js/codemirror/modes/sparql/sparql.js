@@ -60,7 +60,6 @@
             } else {
                 stream.match(/[_\w\d-]*:?/);
                 var word = stream.current();
-                console.log(word)
                 if (word[word.length-1] == ':'){
                     return "prefix";
                 } else if (word == "."){
