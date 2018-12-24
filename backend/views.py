@@ -66,7 +66,7 @@ def index(request, backend=None, short=None):
         prefs = list(Prefix.objects.filter(backend=activeBackend).order_by('-occurrences'))
     
         for prefix in prefs:
-            prefixes.append('PREFIX %s: <%s>\n' % (prefix.name, prefix.prefix.strip('<>')))
+            prefixes.append('%s: <%s>\n' % (prefix.name, prefix.prefix.strip('<>')))
 
     # collect shortlink data
     if short:

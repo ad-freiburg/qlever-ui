@@ -524,7 +524,7 @@
                     <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf">
                         QLever: SPARQL+Text Search
                     </a>
-                     - Chair of algorithms and data structures - University of Freiburg - 
+                     - Chair of algorithms and data definitions - University of Freiburg - 
                     <a href="https://github.com/ad-freiburg/QLever">
                         QLever
                     </a>: 
@@ -575,79 +575,172 @@
                 }
             ];
           
-          var complextypes = [
-              
+          var COMPLEXTYPES = [
             {
-                name: 'COUNT AS', 
-                structure: /\(COUNT\((.*)\) as (.*)\)/g,
-                classes: ['aggregator','count'],
-                suggestions: [['!VARIABLE'],['?count']],
-                context: ['SolutionModifier'],
+                name: 'PREFIX',
+                definition: /PREFIX ([.*])/g,
+                suggestions: [['PREFIX ',getPrefixSuggestions]],
+                availableInContext: ['PrefixDecl','undefined'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'SELECT',
+                definition: /SELECT [.*]/g,
+                suggestions: [[`SELECT  WHERE {
+  
+}\n`]],
+                availableInContext: ['PrefixDecl','undefined'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
                 usePrefixSearch: true,
             },
             {
+                name: 'VARIABLE',
+                definition: /\?([.*])/g,
+                suggestions: [[function(c){ var a = []; $(getVariables(c,false,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: false,
+                usePrefixSearch: false,
+            },
+            {
+                name: 'COUNT AS', 
+                definition: /\(COUNT\((.*)\) as (.*)\)/g,
+                suggestions: [['COUNT(',function(c){ return getVariables(c,true,false)},' as ?count) ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: true,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'TEXT',
+                definition: /TEXT\((.*)\)/g,
+                suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c,true,false),function(k,v){ if(c['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'SCORE',
+                definition: /SCORE\((.*)\)/g,
+                suggestions: [['SCORE(',function(c){ var a = []; $.each(getVariables(c,true,false),function(k,v){ if(c['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'MIN',
+                definition: /MIN\((.*)\)/g,
+                suggestions: [['MIN(',function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'MAX',
+                definition: /MAX\((.*)\)/g,
+                suggestions: [['MAX(',function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'SUM',
+                definition: /SUM\((.*)\)/g,
+                suggestions: [['SUM(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'AVG',
+                definition: /AVG\((.*)\)/g,
+                suggestions: [['AVG(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'SAMPLE',
+                definition: /SAMPLE\((.*)\)/g,
+                suggestions: [['SAMPLE(',function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'COUNT',
+                definition: /COUNT\((.*)\)/g,
+                suggestions: [['COUNT(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'GROUP_CONCAT',
+                definition: /GROUP_CONCAT\((.*)\)/g,
+                suggestions: [['GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(c['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true,false); } else { return false; } },') ']],
+                availableInContext: ['SelectClause'],
+                onlyOnce: false,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
                 name: 'LIMIT',
-                structure: /LIMIT ([0-9+])/g,
-                classes: ['limit'],
-                suggestions: [[1,10,100,1000]],
-                context: ['SolutionModifier'],
+                definition: /LIMIT ([0-9+])/g,
+                suggestions: [['LIMIT ',[1,10,100,1000],'\n']],
+                availableInContext: ['SolutionModifier'],
+                onlyOnce: true,
+                onlyOncePerVariation: true,
+                usePrefixSearch: true,
+            },
+            {
+                name: 'TEXTLIMIT',
+                definition: /TEXTLIMIT ([0-9+])/g,
+                suggestions: [['TEXTLIMIT ',[2,5,10],'\n']],
+                availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
                 usePrefixSearch: true,
             },
             {
                 name: 'ORDER BY',
-                structure: /ORDER BY ((DESC|ASC)\(.*\))/g,
-                classes: ['order'],
-                suggestions: [['!DESC','!ASC'],['DESC','ASC']],
-                context: ['SolutionModifier'],
+                definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
+                suggestions: [['ORDER BY ', ['DESC(','ASC('], function(c){ return getVariables(c,false,false); } ,')\n']],
+                availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
                 usePrefixSearch: true,
             },
             {
-                name: 'DESC',
-                structure: /DESC\((.*)\)/g,
-                classes: ['order-type'],
-                suggestions: [
-                    [function(context){ var vars = getVariables(context, true); var res = []; for(var i = 0; i < vars.lenght; i++) { res.push('DESC('+vars[i]+')'); } return res;}]],
-                context: ['SolutionModifier'],
-                onlyOnce: false,
+                name: 'GROUP BY',
+                definition: /GROUP BY (.*)/g,
+                suggestions: [['GROUP BY ', function(c){ return getVariables(c,false,false); }]],
+                availableInContext: ['SolutionModifier'],
+                onlyOnce: true,
                 onlyOncePerVariation: true,
                 usePrefixSearch: true,
             },
-            {
-                name: 'VARIABLE',
-                structure: /\?([.*])/g,
-                classes: ['variable'],
-                suggestions: [[]],
-                context: ['SelectClause','WhereClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: false,
-                usePrefixSearch: false,
-            },
-            {
-                name: 'PREFIX',
-                structure: /PREFIX ([.*])/g,
-                classes: ['prefix'],
-                suggestions: [['PREFS']],
-                context: ['PrefixDecl'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-                usePrefixSearch: true,
-            },
-            {
+            /*{
                 name: 'TRIPLES',
-                structure: /([.*]) ([.*]) ([.*])/g,
+                definition: /([.*]) ([.*]) ([.*])/g,
                 classes: ['triple'],
-                suggestions: [['!VARIABLE','SUBS'],['ql:contains-entitiy','PREDS'],['VARS','OBJS']],
-                context: ['WhereClause'],
+                suggestions: [function(context){ return getVariables(context,true,false); }],['ql:contains-entitiy',['<is-a>']],['VARS',['<Astronout>']]],
+                availableInContext: ['WhereClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: false,
                 usePrefixSearch: true,
-            }
+            }*/
           ];
           
         </script>
