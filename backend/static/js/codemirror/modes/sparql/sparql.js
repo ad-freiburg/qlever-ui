@@ -47,7 +47,11 @@
             curPunc = null;
             
             if (ch == "?") {
+	            before = getBefore(stream, /[\sas]/i).trim();
                 stream.match(/^[\w\d]*/);
+                if (before.toLowerCase() == "as") {
+	                return "variable aggregate-variable";
+                }
                 return "variable";
             } else if (ch == "\"" || ch == "'") {
                 state.tokenize = tokenLiteral(ch);
