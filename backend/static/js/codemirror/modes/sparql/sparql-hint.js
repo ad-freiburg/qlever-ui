@@ -685,6 +685,7 @@ function getVariables(context, excludeAggregationVariables, suggestListOfAllUnus
     });
 		
 	if(suggestListOfAllUnusedVariables && variables.length > 1){
+		// remove duplicates
 		variables.push(variables.join(' '));
 	}
 	

@@ -595,7 +595,7 @@ function wordRegexp(words) {
     return new RegExp("^(?:" + words.join("|") + ")$", "i");
 }
 var keywords = wordRegexp(["prefix", "select( (\n|.)*)?", "distinct", "from", "where", "order(.*)?", "limit(.*)?", "offset",
-    "optional", "asc(.*)?", "desc(.*)?", "as", ".*avg.*as.*", "having", "values", "group by", "not",
+    "optional", "asc(.*)?", "desc(.*)?", "as", ".*avg.*as.*", ".*sum.*as.*", "having", "values", "group(.*)?", "not",
     "textlimit(.*)?", "score(.*)?", "text(.*)?", "text", "ql:contains-entity", "ql:num-triples", "ql:contains-word", ".*count.*as.*",
     ".*sample.*as.*", ".*min.*as.*", ".*max.*as.*", ".*avg.*as.*", ".*concat.*as.*", "group_concat.*as.*", "filter(.*)?"
 ]);
