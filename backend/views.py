@@ -43,7 +43,7 @@ def index(request, backend=None, short=None):
     # if no backend is given activate the last one
     else:
         # go to the last active backend if set
-        if request.session['backend']:
+        if request.session.get('backend',False):
             backend = Backend.objects.filter(
                 pk=request.session['backend']).first()
             # and if still available
