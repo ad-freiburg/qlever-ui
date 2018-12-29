@@ -158,297 +158,6 @@ var lastWidget = undefined; // last auto completion widget instance
         
         return false;
         
-
-		/*****************
-		/  WhereClause
-		*****************/
-        if(context.w3name == 'WhereClause'){
-
-                // detect line position (subj / predicate / object)
-                var j = cur.ch;
-                while (j < line.length) {
-                    if (line.charAt(j) != " ") { j++; } else { break; }
-                }
-
-                var k = cur.ch;
-                while (k >= 0) {
-                    if (line.charAt(k) != " ") { k--; } else { break; }
-                }
-
-                word = editor.getRange({ 'line': cur.line, 'ch': k + 1 }, 
-                	{ 'line': cur.line, 'ch': j
-                });
-                
-                // TODO: the sample above could be replaced by using the
-                // token variable as long as soon as the tokenizer knows
-                // that prefixes are part of words.
-                 
-                var words = line.trimLeft().replace('  ', ' ').split(" ");
-
-				// do not suggest anything behind the "."
-                if (words.length < 4) {
-	                
-                    // detect full query parameters
-                    re = new RegExp(/WHERE \{([\s\S\n\w]*)}/g, 'g');
-                    match = re.exec(content);
-
-                    // things that are only relevant if WHERE clause exists
-                    if (match != null && match[1]) {
-
-                        var clause = match[1].trim().split('\n');
-
-                        var skipLines = 0;
-                        var prefixes = "";
-                        var prefixesRelation = {};
-                        var countEmptyLines = true;
-                        var lines = editor.getValue().split('\n');
-                        var suggestionMode = document.getElementById("dynamicSuggestions").value;
-
-                        for (var k = 0; k < lines.length; k++) {
-                            if (lines[k].trim().startsWith("PREFIX")) {
-                                skipLines++;
-                                prefixes += lines[k].trim();
-
-                                var prefixesRegex = /PREFIX (.*): ?<(.*)>/g;
-                                var match = prefixesRegex.exec(lines[k].trim());
-                                if (match) {
-                                    prefixesRelation[match[1]] = match[2];
-                                }
-                            }
-                            if (lines[k].trim().startsWith("SELECT")) {
-                                skipLines++;
-                                countEmptyLines = false;
-                            }
-                            if (countEmptyLines == true && lines[k].trim() == "") {
-                                skipLines++;
-                            }
-                        }
-                        var cursorLine = cur.line - skipLines;
-
-                        if (clause.length > cursorLine) {
-                            if (clause[cursorLine]) {
-                                var parameters = clause[cursorLine].trim().split(' ');
-                            }
-                            clause = clause.slice(0, cursorLine);
-
-                            if (search.indexOf('<') != 0 && search.indexOf('"') != 0) {
-                                search = "<" + search;
-                            }
-
-                            var searchEnd = search.slice(0, -1) + String.fromCharCode(search.charCodeAt(search.length - 1) + 1);
-
-                            if (words.length > 0 && words[0] == word) {
-                                parameter = 'subject';
-                            }
-
-                            if (words.length > 1 && words[1].trim() == word) {
-                                parameter = 'predicate';
-                                var variables = false;
-
-
-                                if (suggestionMode == 1) {
-                                    sparqlQuery = prefixes.join("\n") +
-                                        "\nSELECT ?qleverui_predicate WHERE {" +
-                                        "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
-                                    if (search != undefined && search.length > 1) {
-                                        sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + search + "\")";
-                                    }
-                                    if (scorePredicate.length > 0) {
-                                        sparqlQuery += "\n  ?qleverui_predicate " + scorePredicate + " ?qleverui_score ." +
-                                            "\n}\nORDER BY DESC(?qleverui_score)";
-                                    } else {
-                                        sparqlQuery += "\n}";
-                                    }
-                                } else if (suggestionMode == 2) {
-                                    parameter = 'has-predicate';
-                                    var subject = parameters[0];
-
-                                    /* remove unrelated constraints */
-                                    /*var connected = false;
-                                    for(var i = 0; i < clause.length; i++){
-                                        if(clause.indexOf(subject) != -1){
-                                            connected = true;
-                                            break;
-                                        }
-                                    }
-
-                                    if(connected == false){
-                                        clause = [];
-                                    }*/
-
-                                    clause[cursorLine] = subject + " ql:has-predicate ?qleverui_predicate .";
-                                    sparqlQuery = prefixes.join("\n") +
-                                        "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {\n  " +
-                                        clause.join('\n  ') +
-                                        "\n}\nGROUP BY ?qleverui_predicate" +
-                                        "\nORDER BY DESC(?count)";
-                                    if (search != undefined && search.length > 1) {
-                                        sparqlQuery += "\n  HAVING regex(?qleverui_predicate, \"^" + search + "\")";
-                                    }
-                                }
-                            }
-
-                            if (words.length > 2 && words[2] == word) {
-                                parameter = 'object';
-                                if (suggestionMode == 1) {
-                                    sparqlQuery = prefixes.join("\n") +
-                                        "\nSELECT ?qleverui_object WHERE {\n  " +
-                                        "?qleverui_object ql:entity-type ql:object .";
-                                    if (search != undefined && search.length > 1) {
-                                        sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
-                                    }
-                                    if (scorePredicate.length > 0) {
-                                        sparqlQuery += "\n  ?qleverui_object " + scorePredicate + " ?qleverui_score ." +
-                                            "\n}\nORDER BY DESC(?qleverui_score)";
-                                    } else {
-                                        sparqlQuery += "\n}";
-                                    }
-                                } else if (suggestionMode == 2) {
-                                    var subject = parameters[0];
-                                    var predicate = parameters[1];
-                                    clause[cursorLine] = subject + " " + predicate + " ?qleverui_object .";
-                                    sparqlQuery = prefixes.join("\n") +
-                                        "\nSELECT ?qleverui_object WHERE {\n  " +
-                                        clause.join('\n  ');
-                                    if (search != undefined && search.length > 1) {
-                                        sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
-                                    }
-                                    sparqlQuery += "\n}";
-                                    sparqlQuery += "\nGROUP BY ?qleverui_object";
-                                    sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
-                                }
-                            }
-
-                        } else {
-                            parameter = 'subject';
-                        }
-
-                    }
-
-                    keywords = [];
-                    if (parameter == 'predicate' || parameter == 'has-predicate') {
-                        keywords = ['ql:contains-entity ', 'ql:contains-word '];
-                    }
-
-                } else {
-                    console.warn('Skipping every suggestions based on current position...')
-                    return false;
-                }
-        } else {
-            keywords.push("WHERE {\n}");
-        }
-
-        ////////////////////////////////////////////
-        // DYNAMIC (backend) suggestions follow here
-        ////////////////////////////////////////////
-
-        // reset loading indicator
-        if (activeLine)  {
-            activeLine.html(activeLineNumber);
-        }
-        if (document.getElementById("dynamicSuggestions").value > 0) {
-            try {
-                // add a little delay for reducing useless queries
-                window.clearTimeout(timeoutCompletion);
-                timeoutCompletion = window.setTimeout(function(search, prefix, mode, parameter, result) {
-                    var result2 = JSON.parse(JSON.stringify(result));
-
-                    if (mode != 'params' || mode == 'params' && parameter == undefined || parameter == 'subject') {
-                        return true;
-                    }
-
-                    // show the loading indicator
-                    activeLineBadgeLine = $('.CodeMirror-activeline-background');
-                    activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
-                    activeLineNumber = activeLine.html();
-                    activeLine.html('<img src="/static/img/ajax-loader.gif">');
-                    $('#aBadge').remove();
-                    if (document.getElementById("dynamicSuggestions").value > 0) {
-
-                        if (sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-predicate')) {
-
-                            sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
-
-                            console.log('Getting suggestions from QLever:');
-                            console.log(sparqlQuery);
-                            lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
-                            $.ajax({
-                                url: lastUrl,
-                                search: search,
-                                result2: result2,
-                            }).done(function(data) {
-	                            try {
-	                            	data = $.parseJSON(data);
-	                            } catch(err) {}
-                                console.log("Got suggestions from QLever.");
-                                console.log("Query took " + data.time.total + ".");
-
-                                resultSize = data.resultsize;
-
-                                var suggestions = [];
-                                if(data.res){
-	                                for (var result of data.res) {
-	                                    suggestions.push(result[0]);
-	                                }
-                                } else {
-	                                console.error(data.exception);
-                                }
-                                addMatches(result2, search, suggestions, function(w) {
-
-                                    for (prefix in prefixesRelation) {
-                                        if (w.indexOf(prefixesRelation[prefix]) > 0) {
-                                            w = w.replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
-                                        }
-                                    }
-
-                                    if (w.length > 0) {
-                                        if (parameter == 'object') {
-                                            return w + " .";
-                                        }
-                                        return w + " ";
-                                    }
-                                }, context);
-
-                                console.log("Showing hints popup.");
-                                callback({
-                                    list: result2,
-                                    from: Pos(cur.line, start + prefixName.length),
-                                    to: Pos(cur.line, end)
-                                });
-
-                                // reset loading indicator
-                                console.log("Resetting load indicator & showing badge.");
-                                activeLine.html(activeLineNumber);
-                                $('#aBadge').remove();
-                                if (resultSize != undefined && resultSize != null) {
-                                    activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + resultSize + '</span>');
-                                }
-
-                            }).fail(function(e) {
-
-                                // things went terribly wrong...
-                                console.error('Failed to load suggestions from QLever (step 2)', e);
-                                activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
-
-                            });
-
-                        } else {
-                            console.warn('Skipping step 2 suggestions based on current position...')
-                        }
-                    }
-
-                }, 500, search, prefix, mode, parameter, result);
-            } catch (err) {
-                console.error(err);
-                activeLine.html(activeLineNumber);
-            }
-
-        }
-
-        ////////////////////////////////////////////
-        // It's over, it's done ...
-        ////////////////////////////////////////////
-
     });
     CodeMirror.hint.sparql.async = true;
     
@@ -480,6 +189,268 @@ function getAvailableTypes(context){
 	return types;
 }
 
+
+function getDynamicSuggestions(context){
+	
+	var cur = editor.getCursor();	
+   
+    word = editor.getTokenAt(cur);
+    types = word.type.split(' ');
+    // used tokenizer data to find the current word with its prefix
+    if(types.indexOf('prefixed-entity') != -1){
+	    if(types.indexOf('entity-name') != -1){
+		    word = editor.getTokenAt({ch:word.start-1 ,line: cur.line}).string+word.string;
+		} else if(types.indexOf('prefix-name') != -1){
+			word = word.string+editor.getTokenAt({ch:word.end+1 ,line: cur.line}).string;
+		}
+    } else {
+	    word = word.string;
+    }
+     
+    // get current line
+    var words = line.trimLeft().replace('  ', ' ').split(" ");
+	
+	// only if we are in a triple
+    if (words[0] == '' || words[0].startsWith('?') || words.length < 4) {
+        
+        var clause = context['content'];
+
+        var prefixes = "";
+        var prefixesRelation = {};
+        var lines = getContextByName('PrefixDcl')['content'].split('\n');
+
+        for (var k = 0; k < lines.length; k++) {
+            if (lines[k].trim().startsWith("PREFIX")) {
+                skipLines++;
+                prefixes += lines[k].trim();
+
+                var prefixesRegex = /PREFIX (.*): ?<(.*)>/g;
+                var match = prefixesRegex.exec(lines[k].trim());
+                if (match) {
+                    prefixesRelation[match[1]] = match[2];
+                }
+            }
+            if (lines[k].trim().startsWith("SELECT")) {
+                skipLines++;
+                countEmptyLines = false;
+            }
+            if (countEmptyLines == true && lines[k].trim() == "") {
+                skipLines++;
+            }
+        }
+        var cursorLine = cur.line - skipLines;
+
+        if (clause.length > cursorLine) {
+            if (clause[cursorLine]) {
+                var parameters = clause[cursorLine].trim().split(' ');
+            }
+            clause = clause.slice(0, cursorLine);
+
+            if (search.indexOf('<') != 0 && search.indexOf('"') != 0) {
+                search = "<" + search;
+            }
+
+            var searchEnd = search.slice(0, -1) + String.fromCharCode(search.charCodeAt(search.length - 1) + 1);
+
+            if (words.length > 0 && words[0] == word) {
+                parameter = 'subject';
+            }
+
+            if (words.length > 1 && words[1].trim() == word) {
+                parameter = 'predicate';
+                var variables = false;
+
+				var suggestionMode = document.getElementById("dynamicSuggestions").value;
+                if (suggestionMode == 1) {
+                    sparqlQuery = prefixes.join("\n") +
+                        "\nSELECT ?qleverui_predicate WHERE {" +
+                        "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
+                    if (search != undefined && search.length > 1) {
+                        sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + search + "\")";
+                    }
+                    if (scorePredicate.length > 0) {
+                        sparqlQuery += "\n  ?qleverui_predicate " + scorePredicate + " ?qleverui_score ." +
+                            "\n}\nORDER BY DESC(?qleverui_score)";
+                    } else {
+                        sparqlQuery += "\n}";
+                    }
+                } else if (suggestionMode == 2) {
+                    parameter = 'has-predicate';
+                    var subject = parameters[0];
+
+                    /* remove unrelated constraints */
+                    /*var connected = false;
+                    for(var i = 0; i < clause.length; i++){
+                        if(clause.indexOf(subject) != -1){
+                            connected = true;
+                            break;
+                        }
+                    }
+
+                    if(connected == false){
+                        clause = [];
+                    }*/
+
+                    clause[cursorLine] = subject + " ql:has-predicate ?qleverui_predicate .";
+                    sparqlQuery = prefixes.join("\n") +
+                        "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {\n  " +
+                        clause.join('\n  ') +
+                        "\n}\nGROUP BY ?qleverui_predicate" +
+                        "\nORDER BY DESC(?count)";
+                    if (search != undefined && search.length > 1) {
+                        sparqlQuery += "\n  HAVING regex(?qleverui_predicate, \"^" + search + "\")";
+                    }
+                }
+            }
+
+            if (words.length > 2 && words[2] == word) {
+                parameter = 'object';
+                if (suggestionMode == 1) {
+                    sparqlQuery = prefixes.join("\n") +
+                        "\nSELECT ?qleverui_object WHERE {\n  " +
+                        "?qleverui_object ql:entity-type ql:object .";
+                    if (search != undefined && search.length > 1) {
+                        sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
+                    }
+                    if (scorePredicate.length > 0) {
+                        sparqlQuery += "\n  ?qleverui_object " + scorePredicate + " ?qleverui_score ." +
+                            "\n}\nORDER BY DESC(?qleverui_score)";
+                    } else {
+                        sparqlQuery += "\n}";
+                    }
+                } else if (suggestionMode == 2) {
+                    var subject = parameters[0];
+                    var predicate = parameters[1];
+                    clause[cursorLine] = subject + " " + predicate + " ?qleverui_object .";
+                    sparqlQuery = prefixes.join("\n") +
+                        "\nSELECT ?qleverui_object WHERE {\n  " +
+                        clause.join('\n  ');
+                    if (search != undefined && search.length > 1) {
+                        sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + search + "\")";
+                    }
+                    sparqlQuery += "\n}";
+                    sparqlQuery += "\nGROUP BY ?qleverui_object";
+                    sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
+                }
+            }
+
+        } else {
+            parameter = 'subject';
+        }
+
+
+        keywords = [];
+        if (parameter == 'predicate' || parameter == 'has-predicate') {
+            keywords = ['ql:contains-entity ', 'ql:contains-word '];
+        }
+
+    } else {
+        console.warn('Skipping every suggestions based on current position...')
+        return false;
+    }
+    if (activeLine)  {
+        activeLine.html(activeLineNumber);
+    }
+    if (document.getElementById("dynamicSuggestions").value > 0) {
+        try {
+            // add a little delay for reducing useless queries
+            window.clearTimeout(timeoutCompletion);
+            timeoutCompletion = window.setTimeout(function(search, prefix, mode, parameter, result) {
+                var result2 = JSON.parse(JSON.stringify(result));
+
+                if (mode != 'params' || mode == 'params' && parameter == undefined || parameter == 'subject') {
+                    return true;
+                }
+
+                // show the loading indicator
+                activeLineBadgeLine = $('.CodeMirror-activeline-background');
+                activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
+                activeLineNumber = activeLine.html();
+                activeLine.html('<img src="/static/img/ajax-loader.gif">');
+                $('#aBadge').remove();
+                if (document.getElementById("dynamicSuggestions").value > 0) {
+
+                    if (sparqlQuery != undefined && mode == 'params' && (parameter == 'object' || parameter == 'predicate' || parameter == 'has-predicate')) {
+
+                        sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
+
+                        console.log('Getting suggestions from QLever:');
+                        console.log(sparqlQuery);
+                        lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
+                        $.ajax({
+                            url: lastUrl,
+                            search: search,
+                            result2: result2,
+                        }).done(function(data) {
+                            try {
+                            	data = $.parseJSON(data);
+                            } catch(err) {}
+                            console.log("Got suggestions from QLever.");
+                            console.log("Query took " + data.time.total + ".");
+
+                            resultSize = data.resultsize;
+
+                            var suggestions = [];
+                            if(data.res){
+                                for (var result of data.res) {
+                                    suggestions.push(result[0]);
+                                }
+                            } else {
+                                console.error(data.exception);
+                            }
+                            addMatches(result2, search, suggestions, function(w) {
+
+                                for (prefix in prefixesRelation) {
+                                    if (w.indexOf(prefixesRelation[prefix]) > 0) {
+                                        w = w.replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
+                                    }
+                                }
+
+                                if (w.length > 0) {
+                                    if (parameter == 'object') {
+                                        return w + " .";
+                                    }
+                                    return w + " ";
+                                }
+                            }, context);
+
+                            console.log("Showing hints popup.");
+                            callback({
+                                list: result2,
+                                from: Pos(cur.line, start + prefixName.length),
+                                to: Pos(cur.line, end)
+                            });
+
+                            // reset loading indicator
+                            console.log("Resetting load indicator & showing badge.");
+                            activeLine.html(activeLineNumber);
+                            $('#aBadge').remove();
+                            if (resultSize != undefined && resultSize != null) {
+                                activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + resultSize + '</span>');
+                            }
+
+                        }).fail(function(e) {
+
+                            // things went terribly wrong...
+                            console.error('Failed to load suggestions from QLever (step 2)', e);
+                            activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
+
+                        });
+
+                    } else {
+                        console.warn('Skipping step 2 suggestions based on current position...')
+                    }
+                }
+
+            }, 500, search, prefix, mode, parameter, result);
+        } catch (err) {
+            console.error(err);
+            activeLine.html(activeLineNumber);
+        }
+
+    }
+}
+
 /**
    
    Returns the suggestions defined for a given complex type
@@ -489,7 +460,7 @@ function getTypeSuggestions(type, context){
     
     suggestions = []
     
-    if(type.onlyOnce){
+    if(type.onlyOnce == true){
 	    
 	    // get content to test with
 		if(!context || type.availableInContext.length > 1){
@@ -498,12 +469,14 @@ function getTypeSuggestions(type, context){
 			var content = context['content'];
 	    }
 	    
-	    type.definition.lastIndex = 0;
-	    var match = type.definition.exec(content);
-	    
-	    // this should occur only once and is already found once
-		if(match && match.length > 1){
-			return [];
+	    if(type.definition){
+		    type.definition.lastIndex = 0;
+		    var match = type.definition.exec(content);
+		    
+		    // this should occur only once and is already found once
+			if(match && match.length > 1){
+				return [];
+			}
 		}
     }
     
@@ -567,9 +540,8 @@ function getTypeSuggestions(type, context){
 		
 		}
 	}
-	console.log(suggestions);
 		
-	if(type.onlyOncePerVariation){
+	if(type.onlyOncePerVariation != false){
 
 		// get content to test with
 		content = "";
