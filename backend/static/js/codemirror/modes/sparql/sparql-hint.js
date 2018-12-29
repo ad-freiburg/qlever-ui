@@ -45,40 +45,54 @@ var lastWidget = undefined; // last auto completion widget instance
 	    
 	    // current line
 	    var cursor = editor.getCursor();
-	    var line = editor.getLine(cursor.line);
-	    var position = cursor.ch - 1;
-	    
+	    var line = editor.getLine(cursor.line).slice(0, cursor.ch);
+	    var lineTokens = [];
 	    var token = "";
-	     
-	    if(context && context.w3name != 'SelectClause'){
-		    if(line[cursor.ch-1] == ' '){
-			    position = position - 1;
-		    }
-	    }
 	    
-	    var scopeCounter = 0;
-	    for(var i = position; i >= 0; i--){
+	    var tokenStart = undefined;
+	    var tries = 0;
+	    do {
+		    tokenStart = getLastLineToken(line);
+		    token = line.slice(tokenStart);
+		    if (!(token[0] == "?" && (token[token.length-1] == " " && token.trim().slice(-1) != ")"))) {
+			    lineTokens.unshift(token);
+		    }
+		    line = line.slice(0, tokenStart)
+	    } while (tokenStart != 0 && ++tries < 100);
+	    
+	    for (var j = lineTokens.length-1; j >= 0; j--) {
+		    token = lineTokens.slice(j).join("")
+		    for (var i = 0; i < wordlist.length; i++) {
+		        var word = formatter(wordlist[i]);
+		        
+		        if(word.toLowerCase().startsWith(token.toLowerCase()) != false || token.trim().length < 1){
+			        for (var completedWord of token.split(" ").slice(0, -1)) {
+				        word = word.replace(RegExp(completedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
+			        }
+		            result.push(word);
+		            j = 0;
+		        }
+	        }
+	    }
+    }
+    
+    function getLastLineToken(line) {
+	    line = line.replace(/\s*$/, "");
+	    var tokenStart = 0;
+	    var bracketCounter = 0;
+	    for(var i = line.length-1; i >= 0; i--){
 		    if (line[i] == ')'){
-			    scopeCounter--;
+			    bracketCounter--;
 		    } else if (line[i] == '('){
-			    scopeCounter++;
-			    if(scopeCounter > 0){
-				    token = line.slice(i,cursor.ch);
+			    bracketCounter++;
+			    if (bracketCounter >= 0) {
+				    return i;
 			    }
-			} else if (line[i] == ' ' && token == ""){
-				token = line.slice(i+1,cursor.ch);
+			} else if (tokenStart == 0 && line[i].match(/\s/)){
+				return i+1;
 			}
 	    }   
-		if(token == ""){
-			token = line;
-		}
-        for (var i = 0; i < wordlist.length; i++) {
-	        var word = formatter(wordlist[i]);
-	        
-	        if(word.toLowerCase().startsWith(token.toLowerCase()) != false || token.trim().length < 1){
-	            result.push(word);
-	        }
-        }
+		return 0;
     }
 	
     CodeMirror.registerHelper("hint", "sparql", function(editor, callback, options) {
