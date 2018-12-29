@@ -606,15 +606,6 @@
                 usePrefixSearch: false,
             },
             {
-                name: 'COUNT_AS', 
-                definition: /\(COUNT\((.*)\) as (.*)\)/g,
-                suggestions: [['(COUNT(',getVariables,') as ?count) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: true,
-                onlyOncePerVariation: true,
-                usePrefixSearch: true,
-            },
-            {
                 name: 'TEXT',
                 definition: /TEXT\((.*)\)/g,
                 suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
@@ -635,7 +626,7 @@
             {
                 name: 'MIN',
                 definition: /\(MIN\((.*)\) as (.*)\)/g,
-                suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min) ']],
+                suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -644,7 +635,7 @@
             {
                 name: 'MAX',
                 definition: /\(MAX\((.*)\) as (.*)\)/g,
-                suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max) ']],
+                suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -653,7 +644,7 @@
             {
                 name: 'SUM',
                 definition: /\(SUM\((.*)\) as (.*)\)/g,
-                suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum) ']],
+                suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -662,7 +653,7 @@
             {
                 name: 'AVG',
                 definition: /\(AVG\((.*)\) as (.*)\)/g,
-                suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg) ']],
+                suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -671,7 +662,7 @@
             {
                 name: 'SAMPLE',
                 definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
-                suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample) ']],
+                suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample_{[0]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -680,7 +671,7 @@
             {
                 name: 'COUNT',
                 definition: /\(COUNT\((.*)\) as (.*)\)/g,
-                suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count) ']],
+                suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count_{[1]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
@@ -689,7 +680,7 @@
             {
                 name: 'GROUP_CONCAT',
                 definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
-                suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat) ']],
+                suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat_{[1]}) ']],
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,

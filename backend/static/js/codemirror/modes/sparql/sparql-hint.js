@@ -41,13 +41,42 @@ var lastWidget = undefined; // last auto completion widget instance
     }
 
 	// add matches to result
-    function addMatches(result, wordlist, formatter) {
-		var token = editor.getTokenAt(editor.getCursor(), true)
-
+    function addMatches(result, wordlist, formatter, context) {
+	    
+	    // current line
+	    var cursor = editor.getCursor();
+	    var line = editor.getLine(cursor.line);
+	    var position = cursor.ch - 1;
+	    
+	    var token = "";
+	     
+	    if(context && context.w3name != 'SelectClause'){
+		    if(line[cursor.ch-1] == ' '){
+			    position = position - 1;
+		    }
+	    }
+	    
+	    var scopeCounter = 0;
+	    for(var i = position; i >= 0; i--){
+		    if (line[i] == ')'){
+			    scopeCounter--;
+		    } else if (line[i] == '('){
+			    scopeCounter++;
+			    if(scopeCounter > 0){
+				    token = line.slice(i,cursor.ch);
+			    }
+			} else if (line[i] == ' ' && token == ""){
+				token = line.slice(i+1,cursor.ch);
+			}
+	    }   
+		if(token == ""){
+			token = line;
+		}
+		
         for (var i = 0; i < wordlist.length; i++) {
 	        var word = formatter(wordlist[i]);
 	        
-	        if(word.toLowerCase().indexOf(token.string.toLowerCase()) != -1 || token.string.trim().length < 1){
+	        if(word.toLowerCase().startsWith(token.toLowerCase()) != false || token.trim().length < 1){
 	            result.push(word);
 	        }
         }
@@ -105,7 +134,7 @@ var lastWidget = undefined; // last auto completion widget instance
         types = getAvailableTypes(context);
          
 		for(var i = 0; i < types.length; i++){
-	        addMatches(suggestions, getTypeSuggestions(types[i], context), identity);
+	        addMatches(suggestions, getTypeSuggestions(types[i], context), identity, context);
 		}
 			
 		callback({
@@ -365,7 +394,7 @@ var lastWidget = undefined; // last auto completion widget instance
                                         }
                                         return w + " ";
                                     }
-                                });
+                                }, context);
 
                                 console.log("Showing hints popup.");
                                 callback({
@@ -477,12 +506,12 @@ function getTypeSuggestions(type, context){
 			// concat dyn string
 			if(typeof suggestion[j] == 'object'){
 			    if(suggestion[j] && suggestion[j].length > 0){
-				    dynString += '{{'+placeholders.length+'}}';
+				    dynString += '{['+placeholders.length+']}';
 				    placeholders.push(suggestion[j]);
 				}
 		    } else if(typeof suggestion[j] == 'function'){
 			    if(suggestion[j] && suggestion[j].length > 0){
-				    dynString += '{{'+placeholders.length+'}}';
+				    dynString += '{['+placeholders.length+']}';
 				    placeholders.push(suggestion[j](context));
 				}
 		    } else {
@@ -501,16 +530,18 @@ function getTypeSuggestions(type, context){
 				// there are no valid values for this placeholder. Skip.
 				if(placeholders[k].length != 0 && placeholders[k] != false)	{
 					// multiply by each valid value for each placeholder
+					newTempStrings = $.extend([],tempStrings);
+					tempStrings = [];
 					for(var l = 0; l < placeholders[k].length; l++){
 						if(k == 0){
 							// first iteration is different
-							tempStrings.push(dynString.replace('{{'+k+'}}',placeholders[k][l]));
+							placeholders[k][l] = ''+placeholders[k][l];
+							tempStrings.push(dynString.replace('{['+k+']}',placeholders[k][l]).replace('{['+k+']}',(placeholders[k][l]).replace('?','')));
 						} else {
 							// second iteration mulitplies the solutions already found
-							newTempStrings = $.extend([],tempStrings);
-							tempStrings = [];
 							for(var m = 0; m < newTempStrings.length; m++){
-								tempStrings.push(newTempStrings[m].replace('{{'+k+'}}',placeholders[k][l]));
+								placeholders[k][l] = ''+placeholders[k][l];
+								tempStrings.push(newTempStrings[m].replace('{['+k+']}',placeholders[k][l]).replace('{['+k+']}',(placeholders[k][l]).replace('?','')));
 							}
 						}
 					}
@@ -679,7 +710,7 @@ function getVariables(context, excludeAggregationVariables, suggestListOfAllUnus
     
     // get the variables
     $(filter).each(function(key,variable){
-		if(variables.indexOf(variable.innerHTML) == -1){
+		if(variables.indexOf(variable.innerHTML) == -1 && variable.innerHTML.length > 1){
 		    variables.push(variable.innerHTML);
 		}
     });
