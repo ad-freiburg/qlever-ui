@@ -84,7 +84,7 @@
 		                return "prefix-declaration prefix-name";
 	                }
                     return "entity prefixed-entity prefix-name";
-                } else if (word.match(/[.|<|>|=]/)) {
+                } else if (word.match(/^[.|<|>|=]+$/)) {
                     return "control";
                 } else if (keywords.test(word)) {
                     return "keyword";
