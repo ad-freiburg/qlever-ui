@@ -66,7 +66,7 @@ var activeLineNumber; // the line number of the active line (replaced by loader)
 	    for (var j = 0; j < lineTokens.length; j++) {
 		    token = lineTokens.slice(j).join("")
 		    for (var i = 0; i < wordlist.length; i++) {
-		        var word = formatter(wordlist[i]);
+		        var word = wordlist[i];
 		        
 		        if(word.toLowerCase().startsWith(token.toLowerCase()) != false || token.trim().length < 1){
 			        for (var completedWord of token.split(" ").slice(0, -1)) {
