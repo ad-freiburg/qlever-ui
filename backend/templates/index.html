@@ -571,30 +571,28 @@
                 },
                 {
                     w3name: 'SolutionModifier',
-                    definition: /\}([\s\S]+)/g,
+                    definition: /\}([\s\S]+)$/g,
                 }
             ];
           
           var COMPLEXTYPES = [
             {
                 name: 'PREFIX',
-                definition: /PREFIX ([.*])/g,
+                definition: /PREFIX (.*)/g,
                 suggestions: [['PREFIX ',getPrefixSuggestions,'\n']],
                 availableInContext: ['PrefixDecl','undefined'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'SELECT',
-                definition: /SELECT [.*]/g,
+                definition: /SELECT (.*)/g,
                 suggestions: [[`SELECT  WHERE {
   
 }\n`]],
                 availableInContext: ['PrefixDecl','undefined'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'VARIABLE',
@@ -603,7 +601,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: false,
             },
             {
                 name: 'TEXT',
@@ -612,7 +609,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'SCORE',
@@ -621,7 +617,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'MIN',
@@ -630,7 +625,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'MAX',
@@ -639,7 +633,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'SUM',
@@ -648,7 +641,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'AVG',
@@ -657,7 +649,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'SAMPLE',
@@ -666,7 +657,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'COUNT',
@@ -675,7 +665,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'GROUP_CONCAT',
@@ -684,7 +673,6 @@
                 availableInContext: ['SelectClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'LIMIT',
@@ -693,7 +681,6 @@
                 availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'TEXTLIMIT',
@@ -702,7 +689,6 @@
                 availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'ORDER BY',
@@ -711,7 +697,6 @@
                 availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             {
                 name: 'GROUP BY',
@@ -720,7 +705,6 @@
                 availableInContext: ['SolutionModifier'],
                 onlyOnce: true,
                 onlyOncePerVariation: true,
-                usePrefixSearch: true,
             },
             /*{
                 name: 'TRIPLES',
@@ -730,7 +714,6 @@
                 availableInContext: ['WhereClause'],
                 onlyOnce: false,
                 onlyOncePerVariation: false,
-                usePrefixSearch: true,
             }*/
           ];
           

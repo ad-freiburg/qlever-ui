@@ -477,12 +477,12 @@ function getTypeSuggestions(type, context){
     suggestions = []
     
     if(type.onlyOnce){
-
+	    
 	    // get content to test with
-		if(context){
-			var content = context['content'];
-		} else {
+		if(!context || type.availableInContext.length > 1){
 			var content = editor.getValue();
+		} else {
+			var content = context['content'];
 	    }
 	    
 	    type.definition.lastIndex = 0;
@@ -554,6 +554,7 @@ function getTypeSuggestions(type, context){
 		
 		}
 	}
+	console.log(suggestions);
 		
 	if(type.onlyOncePerVariation){
 
@@ -562,13 +563,15 @@ function getTypeSuggestions(type, context){
 		if(context){
 			content = context['content']
 		}
-		content = editor.getValue();
+		
+		// ignore DISTINCT keywords when detecting duplicates
+		content = editor.getValue().replace(/DISTINCT /g,'');
 
 		var tempSuggestions = $.extend([],suggestions);
 		suggestions = [];
 		// check if this combination is already in use in this context
 		for(var i = 0; i < tempSuggestions.length; i++){
-			if(content.indexOf(tempSuggestions[i]) == -1){
+			if(content.indexOf(tempSuggestions[i].replace('DISTINCT ','')) == -1){
 				suggestions.push(tempSuggestions[i]);
 			}
 		}	
@@ -608,7 +611,7 @@ function getAbsolutePosition(cur){
     
 **/    
 function getCurrentContext(absPosition){
-    var editorContent = editor.getValue()
+    var editorContent = $.trim(editor.getValue());
     var foundContext = undefined;
     
     $(CONTEXTS).each(function(index,context){
@@ -628,6 +631,10 @@ function getCurrentContext(absPosition){
 		    }
 		}
     });
+    
+    if(foundContext == undefined && absPosition > editorContent.length){
+		foundContext = getContextByName('SolutionModifier');
+	}
     
     return foundContext;
 }
@@ -741,7 +748,7 @@ function getPrefixSuggestions(context){
 	    var testAgainst = context['content'];
 	    
 	    // get the prefixes
-	    $(collectedPrefixes).each(function(prefix){
+	    $(collectedPrefixes).each(function(key,prefix){
 		    
 		    if(testAgainst.indexOf(prefix) != -1){
 				return true;
@@ -751,7 +758,7 @@ function getPrefixSuggestions(context){
 	    });
 	    
 	} else {
-		var prefixes = collectedPrefixes;	
+		var prefixes = $.extend([],collectedPrefixes);	
 	}
     
     return prefixes;   
