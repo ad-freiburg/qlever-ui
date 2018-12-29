@@ -540,13 +540,13 @@
         
         <script>
           var BASEURL = "{{ backend.baseUrl }}";
-          var subjectName = "{% autoescape off %}{{ backend.subjectName }}{% endautoescape %}";
-          var predicateName = "{% autoescape off %}{{ backend.predicateName }}{% endautoescape %}";
-          var objectName = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
-          var scorePredicate = "{{ backend.scorePredicate }}";
-          var collectedPrefixes = [];
+          var SUBJECTNAME = "{% autoescape off %}{{ backend.subjectName }}{% endautoescape %}";
+          var PREDICATENAME = "{% autoescape off %}{{ backend.predicateName }}{% endautoescape %}";
+          var OBJECTNAME = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
+          var SCOREPREDICATE = "{{ backend.scorePredicate }}";
+          var COLLECTEDPREFIXES = [];
           {% for prefix in prefixes %}
-          collectedPrefixes.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
+          COLLECTEDPREFIXES.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
           {% endfor %}
           var examples = [];
           {% for example in examples %}
@@ -715,6 +715,8 @@
                 availableInContext: ['WhereClause-subject'],
                 suggestOnlyWhenMatch: true,
             },
+            // TODO: Implement the suggestOnlyWhenMatch Variable
+            /*
             {
                 name: 'SUBQUERY',
                 suggestions: [['{\n SELECT WHERE {\n\n }\n}\n']],
@@ -726,7 +728,8 @@
                 suggestions: [['OPTIONAL {\n\n }\n']],
                 availableInContext: ['WhereClause'],
                 suggestOnlyWhenMatch: true,
-            },
+            },*/
+            
             /*{
                 name: 'TRIPLES',
                 definition: /([.*]) ([.*]) ([.*])/g,

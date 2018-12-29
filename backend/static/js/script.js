@@ -72,7 +72,7 @@ $(document).ready(function() {
     //}, 100);
 
     editor.on("keyup", function(instance, event) {
-        if (subjectName || predicateName || objectName) {
+        if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-variable').hover(showRealName);
         }
 
@@ -127,11 +127,15 @@ $(document).ready(function() {
 
     handleStatsDisplay();
 
-    if (subjectName || predicateName || objectName) {
+    if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
         $('.cm-variable').hover(showRealName);
     }
 
     function showRealName(element) {
+	    
+	    // TODO: Reactivate
+	    return true;
+	    
         var prefixes = "";
         var lines = editor.getValue().split('\n');
 
@@ -159,7 +163,7 @@ $(document).ready(function() {
                     });
                 }
             } else {
-                query = prefixes + "SELECT ?name WHERE {\n " + element + " " + subjectName + " ?name }";
+                query = prefixes + "SELECT ?name WHERE {\n " + element + " " + SUBJECTNAME + " ?name }";
                 $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
                     if (result['res'] && result['res'][0]) {
                         $(domElement).tooltip({
@@ -182,7 +186,7 @@ $(document).ready(function() {
                     });
                 }
             } else {
-                query = prefixes + "SELECT ?name WHERE {\n " + element + " " + predicateName + " ?name }";
+                query = prefixes + "SELECT ?name WHERE {\n " + element + " " + PREDICATENAME + " ?name }";
                 $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
                     if (result['res'] && result['res'][0]) {
                         $(domElement).tooltip({
@@ -205,7 +209,7 @@ $(document).ready(function() {
                     });
                 }
             } else {
-                query = prefixes + "SELECT ?name WHERE {\n " + element + " " + objectName + " ?name }";
+                query = prefixes + "SELECT ?name WHERE {\n " + element + " " + OBJECTNAME + " ?name }";
                 $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
                     if (result['res'] && result['res'][0]) {
                         $(domElement).tooltip({
@@ -619,9 +623,9 @@ function handleStatsDisplay() {
         $("#nrecords").html("Number of text records: <b>" + tsep(result.nofrecords) + "</b> ");
         $("#nwo").html("Number of word occurrences: <b>" + tsep(result.nofwordpostings) + "</b> ");
         $("#neo").html("Number of entity occurrences: <b>" + tsep(result.nofentitypostings) + "</b> ");
-        $("#subjectName").html("Subject name relation: <b>" + tsep(subjectName) + "</b> ");
-        $("#predicateName").html("Predicate name relation: <b>" + tsep(predicateName) + "</b> ");
-        $("#objectName").html("Object name relation: <b>" + tsep(objectName) + "</b> ");
+        $("#subjectName").html("Subject name relation: <b>" + tsep(SUBJECTNAME) + "</b> ");
+        $("#predicateName").html("Predicate name relation: <b>" + tsep(PREDICATENAME) + "</b> ");
+        $("#objectName").html("Object name relation: <b>" + tsep(OBJECTNAME) + "</b> ");
         $("#permstats").html("Registered <b>" + result.permutations + "</b> permutations of the index.");
         if (result.permutations == "6") {
             $("#kbstats").html("Number of subjects: <b>" +
