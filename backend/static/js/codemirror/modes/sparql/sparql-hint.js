@@ -42,8 +42,7 @@ var lastWidget = undefined; // last auto completion widget instance
 
 	// add matches to result
     function addMatches(result, wordlist, formatter) {
-		var token = editor.getTokenAt(editor.getCursor(), true)
-
+		var token = editor.getTokenAt(editor.getCursor(), true);
         for (var i = 0; i < wordlist.length; i++) {
 	        var word = formatter(wordlist[i]);
 	        

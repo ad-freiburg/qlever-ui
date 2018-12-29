@@ -68,7 +68,7 @@
                 stream.match(/^[\S]*>/);
                 
                 if (before.indexOf(":") != -1) {
-	                return "prefix-declaration prefix-value"
+	                return "prefix-declaration prefix-value";
                 }
                 return "entity";
             }  else if (ch == "@") {
