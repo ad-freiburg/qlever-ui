@@ -41,16 +41,17 @@ var lastWidget = undefined; // last auto completion widget instance
     }
 
 	// add matches to result
-    function addMatches(result, wordlist, formatter, context) {
+    function addMatches(result, wordlist, formatter) {
 	    
 	    // current line
 	    var cursor = editor.getCursor();
 	    var line = editor.getLine(cursor.line).slice(0, cursor.ch);
+	    var curChar = line[line.length-1];
 	    var lineTokens = [];
 	    var token = "";
 	    
+	    // split line by brackets and white spaces
 	    var tokenStart = undefined;
-	    var tries = 0;
 	    do {
 		    tokenStart = getLastLineToken(line);
 		    token = line.slice(tokenStart);
@@ -58,9 +59,11 @@ var lastWidget = undefined; // last auto completion widget instance
 			    lineTokens.unshift(token);
 		    }
 		    line = line.slice(0, tokenStart)
-	    } while (tokenStart != 0 && ++tries < 100);
-	    
-	    for (var j = lineTokens.length-1; j >= 0; j--) {
+	    } while (tokenStart != 0);
+
+	    // remove tokens one by one from until there are suggestions
+	    var foundSuggestions = false;
+	    for (var j = 0; j < lineTokens.length; j++) {
 		    token = lineTokens.slice(j).join("")
 		    for (var i = 0; i < wordlist.length; i++) {
 		        var word = formatter(wordlist[i]);
@@ -70,17 +73,27 @@ var lastWidget = undefined; // last auto completion widget instance
 				        word = word.replace(RegExp(completedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
 			        }
 		            result.push(word);
-		            j = 0;
+		            foundSuggestions = true;
+		            j = lineTokens.length;
 		        }
+	        }
+	    }
+	    
+	    // suggest everything if we didn't find any suggestion and didn't start typing a word
+	    if (!foundSuggestions && curChar.match(/\s/)) {
+		    for (var i = 0; i < wordlist.length; i++) {
+		        var word = formatter(wordlist[i]);
+		        result.push(word);
 	        }
 	    }
     }
     
+    // eats the string from the right side, returning the index
+    // of groups in parentheses or white space
     function getLastLineToken(line) {
 	    line = line.replace(/\s*$/, "");
-	    var tokenStart = 0;
 	    var bracketCounter = 0;
-	    for(var i = line.length-1; i >= 0; i--){
+	    for(var i = line.length-1; i >= 0; i--) {
 		    if (line[i] == ')'){
 			    bracketCounter--;
 		    } else if (line[i] == '('){
@@ -88,7 +101,7 @@ var lastWidget = undefined; // last auto completion widget instance
 			    if (bracketCounter >= 0) {
 				    return i;
 			    }
-			} else if (tokenStart == 0 && line[i].match(/\s/)){
+			} else if (line[i].match(/\s/)) {
 				return i+1;
 			}
 	    }   
@@ -146,9 +159,11 @@ var lastWidget = undefined; // last auto completion widget instance
 
         types = getAvailableTypes(context);
          
+        var allSuggestions = [];
 		for(var i = 0; i < types.length; i++){
-	        addMatches(suggestions, getTypeSuggestions(types[i], context), identity, context);
+	        allSuggestions = allSuggestions.concat(getTypeSuggestions(types[i], context));
 		}
+		addMatches(suggestions, allSuggestions, identity);
 			
 		callback({
             list: suggestions,
