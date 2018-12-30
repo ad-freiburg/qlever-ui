@@ -299,6 +299,7 @@
                             elt.hintId = lastSize + i;
                         }
                         requestExtension = false;
+                        
                     }
                 });
             }

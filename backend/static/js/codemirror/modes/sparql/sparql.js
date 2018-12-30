@@ -38,7 +38,7 @@ var COMPLEXTYPES = [
     name: 'SELECT',
     definition: /SELECT (.*)/g,
     suggestions: [[`SELECT  WHERE {
-
+  
 }\n`]],
     availableInContext: ['PrefixDecl','undefined'],
     onlyOnce: true,
