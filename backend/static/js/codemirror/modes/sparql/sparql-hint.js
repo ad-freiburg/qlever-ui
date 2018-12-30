@@ -51,26 +51,33 @@ var lastWidget = undefined; // last auto completion widget instance
 	    var token = "";
 	    
 	    // split line by brackets and white spaces
-	    var tokenStart = undefined;
+	    var nextToken = undefined;
 	    do {
-		    tokenStart = getLastLineToken(line);
-		    token = line.slice(tokenStart);
-		    if (!(token[0] == "?" && (token[token.length-1] == " " && token.trim().slice(-1) != ")"))) {
-			    lineTokens.unshift(token);
+		    nextToken = getLastLineToken(line);
+		    if (!(nextToken.string.match(/^\?[\w\d]*$/) && nextToken.endsInWhitespace)) {
+			    lineTokens.unshift(nextToken);
 		    }
-		    line = line.slice(0, tokenStart)
-	    } while (tokenStart != 0);
+		    line = line.slice(0, nextToken.start)
+	    } while (nextToken == undefined || nextToken.start != 0);
 
-	    // remove tokens one by one from until there are suggestions
+	    // remove tokens one by one until there are suggestions
 	    var foundSuggestions = false;
 	    for (var j = 0; j < lineTokens.length; j++) {
-		    token = lineTokens.slice(j).join("")
+		    var currentTokens = lineTokens.slice(j);
+		    var token = "";
+		    for (var subToken of currentTokens) {
+			    token += subToken.string;
+			    if (subToken.endsInWhitespace) {
+				    token += " ";
+			    }
+		    }
 		    for (var i = 0; i < wordlist.length; i++) {
 		        var word = formatter(wordlist[i]);
-		        
-		        if(word.toLowerCase().startsWith(token.toLowerCase()) != false || token.trim().length < 1){
-			        for (var completedWord of token.split(" ").slice(0, -1)) {
-				        word = word.replace(RegExp(completedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
+		        if(word.toLowerCase().startsWith(token.toLowerCase()) || token.trim().length < 1){
+			        for (var subToken of currentTokens) {
+				        if (subToken.endsInWhitespace) {
+					        word = word.replace(RegExp(subToken.string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
+				        }
 			        }
 		            result.push(word);
 		            foundSuggestions = true;
@@ -91,21 +98,17 @@ var lastWidget = undefined; // last auto completion widget instance
     // eats the string from the right side, returning the index
     // of groups in parentheses or white space
     function getLastLineToken(line) {
+	    var fullLength = line.length;
 	    line = line.replace(/\s*$/, "");
-	    var bracketCounter = 0;
+	    var end = line.length;
+	    var start = 0;
 	    for(var i = line.length-1; i >= 0; i--) {
-		    if (line[i] == ')'){
-			    bracketCounter--;
-		    } else if (line[i] == '('){
-			    bracketCounter++;
-			    if (bracketCounter >= 0) {
-				    return i;
-			    }
-			} else if (line[i].match(/\s/)) {
-				return i+1;
+		    if (line[i].match(/\s/)) {
+			    start = i + 1;
+				break;
 			}
-	    }   
-		return 0;
+	    }
+		return {start: start, end: end, string: line.slice(start, end), endsInWhitespace: (fullLength != end)}
     }
 	
     CodeMirror.registerHelper("hint", "sparql", function(editor, callback, options) {
@@ -135,26 +138,15 @@ var lastWidget = undefined; // last auto completion widget instance
 		}
 		
 		// get current token
-        var token = editor.getTokenAt(cur, true),
-            start, end, search;
-        if (token.end > cur.ch) {
-            token.end = cur.ch;
-            token.string = token.string.slice(0, cur.ch - token.start);
-        }
-
-		// parse prefixes (reals ones and ql: prefixes)
-        var prefixName = '';
-        if (token.string.match(/^[?!.`"\w<_:@-]*$/)) {
-            search = token.string.split(':');
-            if (search.length > 1 && search[0] != 'ql') {
-                prefixName = search[0] + ':';
-            }
-            search = search[search.length - 1];
-            start = token.start;
-            end = token.end;
-        } else {
-            start = end = cur.ch;
-            search = "";
+        var line = editor.getLine(cur.line).slice(0, cur.ch);
+        var token = getLastLineToken(line);
+        var start, end;
+        if (token.endsInWhitespace) {
+	        start = end = cur.ch;
+        } else  {
+	        start = token.start;
+			end = token.end;
+			
         }
 
         types = getAvailableTypes(context);
