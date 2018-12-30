@@ -152,18 +152,17 @@ var COMPLEXTYPES = [
     availableInContext: ['WhereClause'],
     onlyOncePerVariation: false,
 },
-// TODO: Implement the suggestOnlyWhenMatch Variable
-/*{
+{
     name: 'FILTER',
     definition: /FILTER \((.*)/g,
-    suggestions: [['FILTER (', getVariables,' ']],
+    suggestions: [['FILTER (', function(c){ return getVariables(c);},' ']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
 },
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
-    suggestions: [['FILTER langMatches(lang(', getVariables, ', ', ['"en"','"de"'] ,') .\n']],
+    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, ', ', ['"en"','"de"'] ,') .\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
 },
@@ -178,7 +177,7 @@ var COMPLEXTYPES = [
     suggestions: [['OPTIONAL {\n\n }\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
-},*/
+},
 ];
 
 
