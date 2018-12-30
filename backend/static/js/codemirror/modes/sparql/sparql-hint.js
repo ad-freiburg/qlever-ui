@@ -91,7 +91,7 @@ var suggestions;
 	    }
 	    
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
-	    if (!foundSuggestions && curChar && curChar.match(/\s/)) {
+	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
 		    for (var suggestion of suggestions) {
 			    var type = types[suggestion.type] || {};
 		        if (type.suggestOnlyWhenMatch != true) {
