@@ -320,7 +320,11 @@ function getDynamicSuggestions(context){
         }
         
         getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
-		return ['ql:contains-entity ','ql:contains-word '];
+        if(!requestExtension){
+			return ['ql:contains-entity ','ql:contains-word '];
+		} else {
+			return [];
+		}
     }
 
     if (words.length == 3 && suggestionMode > 0) {
@@ -363,7 +367,11 @@ function getDynamicSuggestions(context){
         }
         
         getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
-		return response;
+        if(!requestExtension){
+			return response;
+		} else {
+			return [];
+		}
     }
     
     console.warn('Skipping every suggestions based on current position...');
