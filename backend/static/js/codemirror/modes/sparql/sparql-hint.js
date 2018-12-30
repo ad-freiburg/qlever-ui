@@ -257,7 +257,7 @@ function getDynamicSuggestions(context){
             }
         }
     }
-
+	
 	var lines = context['content'].split('\n');
 	for(var i = 0; i < lines.length; i++){
 		if(lines[i] == line){
@@ -265,12 +265,8 @@ function getDynamicSuggestions(context){
 			break
 		}	
 	}
-	lines = lines.join('\n');
 
-	// TODO: Use only connected triples
-	// IDEA: Go through all lines until you see a line that contains a variable you know
-	// If this line contains another variable add this to your list of known variables
-	// Go through the list again and repeat until all variables / lines are eaten.
+	
 	
     // replace the prefixes
     $.each(prefixesRelation,function(key,value){
@@ -290,7 +286,46 @@ function getDynamicSuggestions(context){
         }
         return response;
         
-    } else if (words.length == 2 && suggestionMode > 0) {
+    } else {
+	    
+	    // find connected lines in given select clause
+		variableRegex = /(\?.+?)\s/g
+		variable = line.match(variableRegex);
+		if(variable){
+			
+			// at first we know only the variable in our current line
+			var seenVariables = [variable];
+			// and do not use any other lines
+			var linesTaken = [];
+			// for each line
+			for(var i = 0; i < lines.length; i++){
+				// check for each already seen variable
+				for(var j = 0; j < seenVariables.length; j++){
+					// if the variable occurs in this line and the line is not taken alread
+					if(linesTaken.indexOf(lines[i]) == -1 && lines[i].indexOf(seenVariables[j]) != -1){
+						linesTaken.push(lines[i]);
+						var allLineVariables = variableRegex.exec(lines[i]);
+						// search for variables
+						while(allLineVariables != null){
+							for(var k = 0; k < allLineVariables.length; k++){
+								// if not take all new variables to the list
+								if(seenVariables.indexOf(allLineVariables[1]) == -1){
+									// take the variable and the line because they are connected
+									seenVariables.push(allLineVariables[1]);
+									// restart because the seen variable list changed
+									i = 0;
+								}
+							}
+							allLineVariables = variableRegex.exec(lines[i]);
+						}
+					}
+				}
+			}
+			lines = linesTaken;
+		}
+	    lines = '\n'+lines.join('\n');
+	    
+	    if (words.length == 2 && suggestionMode > 0) {
         
         if (suggestionMode == 1) {
         
@@ -328,53 +363,52 @@ function getDynamicSuggestions(context){
 		} else {
 			return [];
 		}
-    }
-
-    if (words.length == 3 && suggestionMode > 0) {
-
-        if (suggestionMode == 1) {
+	    } else if (words.length == 3 && suggestionMode > 0) {
+	
+	        if (suggestionMode == 1) {
+		        
+	        	// Build SPARQL query without context
+	            sparqlQuery = prefixes +
+	                "\nSELECT ?qleverui_object WHERE {\n  " +
+	                "?qleverui_object ql:entity-type ql:object .";
+	            if (word.length > 1) {
+	                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + word + "\")";
+	            }
+	            if (SCOREPREDICATE.length > 0) {
+	                sparqlQuery += "\n  ?qleverui_object " + SCOREPREDICATE + " ?qleverui_score ." +
+	                    "\n}\nORDER BY DESC(?qleverui_score)";
+	            } else {
+	                sparqlQuery += "\n}";
+	            }
+	            
+	        } else if (suggestionMode == 2) {
+		        
+				// Build SPARQL query with context
+	            lines += "\n"+words[0] + " " + words[1] + " ?qleverui_object .";
+	            sparqlQuery = prefixes +
+	                "\nSELECT ?qleverui_object WHERE {\n  " +
+	                lines;
+	            if (word.length > 1) {
+	                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + word + "\")";
+	            }
+	            sparqlQuery += "\n}";
+	            sparqlQuery += "\nGROUP BY ?qleverui_object";
+	            sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
+	        }
 	        
-        	// Build SPARQL query without context
-            sparqlQuery = prefixes +
-                "\nSELECT ?qleverui_object WHERE {\n  " +
-                "?qleverui_object ql:entity-type ql:object .";
-            if (word.length > 1) {
-                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + word + "\")";
-            }
-            if (SCOREPREDICATE.length > 0) {
-                sparqlQuery += "\n  ?qleverui_object " + SCOREPREDICATE + " ?qleverui_score ." +
-                    "\n}\nORDER BY DESC(?qleverui_score)";
-            } else {
-                sparqlQuery += "\n}";
-            }
-            
-        } else if (suggestionMode == 2) {
+	        var response = [];
+	        var variables = getVariables(context)
+	        for(var i = 0; i < variables.length; i++){
+		        response.push(variables[i]+' .');
+	        }
 	        
-			// Build SPARQL query with context
-            lines += "\n"+words[0] + " " + words[1] + " ?qleverui_object .";
-            sparqlQuery = prefixes +
-                "\nSELECT ?qleverui_object WHERE {\n  " +
-                lines;
-            if (word.length > 1) {
-                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + word + "\")";
-            }
-            sparqlQuery += "\n}";
-            sparqlQuery += "\nGROUP BY ?qleverui_object";
-            sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
-        }
-        
-        var response = [];
-        var variables = getVariables(context)
-        for(var i = 0; i < variables.length; i++){
-	        response.push(variables[i]+' .');
-        }
-        
-        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
-        if(!requestExtension){
-			return response;
-		} else {
-			return [];
-		}
+	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
+	        if(!requestExtension){
+				return response;
+			} else {
+				return [];
+			}
+	    }
     }
     
     console.warn('Skipping every suggestions based on current position...');
