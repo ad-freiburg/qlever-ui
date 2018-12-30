@@ -15,6 +15,7 @@ var sparqlFrom;
 var sparqlTo;
 var sparqlTimeout;
 var sparqlRequest;
+var suggestions;
 
 (function(mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -29,8 +30,6 @@ var sparqlRequest;
 
     var timeoutCompletion; // holds the window.timeout of the completion - needed to stop requests
     var sparqlQuery; // holds the sparql query that is executed
-
-    var suggestions;
     
     var Pos = CodeMirror.Pos,
         cmpPos = CodeMirror.cmpPos;
@@ -138,7 +137,7 @@ var sparqlRequest;
         var cur = editor.getCursor(); // current cursor position
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
         var context = getCurrentContext(absolutePosition); // get current context
-		var suggestions = [];
+		suggestions = [];
 		
 		console.log('Starting suggestion');
 		console.log('--------------------------');
@@ -179,11 +178,11 @@ var sparqlRequest;
 		sparqlFrom = Pos(cur.line, start);
 		sparqlTo = Pos(cur.line, end);
         
-        var allSuggestions = [];
+        var allTypeSuggestions = [];
 		for(var i = 0; i < types.length; i++){
-	        allSuggestions = allSuggestions.concat(getTypeSuggestions(types[i], context));
+	        allTypeSuggestions = allTypeSuggestions.concat(getTypeSuggestions(types[i], context));
 		}
-		addMatches(suggestions, allSuggestions);
+		addMatches(suggestions, allTypeSuggestions);
 		
 		sparqlCallback({
             list: suggestions,
@@ -289,7 +288,12 @@ function getDynamicSuggestions(context){
 	
     if (words.length < 2) {
         
-        return getVariables(context);
+        var response = [];
+        var variables = getVariables(context)
+        for(var i = 0; i < variables.length; i++){
+	        response.push(variables[i]+' ');
+        }
+        return response;
         
     } else if (words.length == 2 && suggestionMode > 0) {
         
@@ -323,8 +327,8 @@ function getDynamicSuggestions(context){
             }
         }
         
-        return $.extend(getQleverSuggestions(sparqlQuery,prefixesRelation),['ql:contains-entity ','ql:contains-word ']);
-
+        getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
+		return ['ql:contains-entity ','ql:contains-word '];
     }
 
     if (words.length == 3 && suggestionMode > 0) {
@@ -360,8 +364,14 @@ function getDynamicSuggestions(context){
             sparqlQuery += "\nORDER BY DESC((COUNT(?qleverui_object) AS ?count))";
         }
         
-        // TODO add points after the objects
-		return $.extend(getQleverSuggestions(sparqlQuery,prefixesRelation),getVariables(context));
+        var response = [];
+        var variables = getVariables(context)
+        for(var i = 0; i < variables.length; i++){
+	        response.push(variables[i]+' .');
+        }
+        
+        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
+		return response;
     }
     
     console.warn('Skipping every suggestions based on current position...');
@@ -370,7 +380,7 @@ function getDynamicSuggestions(context){
 }
 
 
-function getQleverSuggestions(sparqlQuery,prefixesRelation){
+function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 	
 	try {
         
@@ -411,7 +421,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation){
 		                    }
 		                }
 		                
-		                dynamicSuggestions.push(result[0]+' ');
+		                dynamicSuggestions.push(result[0]+appendix);
 		            }
 		            
 		        } else {
@@ -428,7 +438,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation){
 		        }
 		        
 		        sparqlCallback({
-		            list: $.extend(suggestions,dynamicSuggestions),
+		            list: suggestions.concat(dynamicSuggestions),
 		            from: sparqlFrom,
 		            to: sparqlTo
 		        });
@@ -460,7 +470,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation){
 **/
 function getTypeSuggestions(type, context){
     
-    suggestions = []
+    typeSuggestions = []
     
     if(type.onlyOnce == true){
 	    
@@ -510,7 +520,7 @@ function getTypeSuggestions(type, context){
 		
 		// no multiplying placeholders - simply use the string with no value
 		if(placeholders.length == 0){
-			suggestions.push(dynString);
+			typeSuggestions.push(dynString);
 		} else if(placeholders[0].length != 0 && placeholders[0] != false){
 			// mulitply the suggestiony by placeholders
 			tempStrings = [];
@@ -540,7 +550,7 @@ function getTypeSuggestions(type, context){
 				}
 			}
 			
-			$.extend(suggestions,tempStrings);
+			$.extend(typeSuggestions,tempStrings);
 		
 		}
 	}
@@ -554,18 +564,18 @@ function getTypeSuggestions(type, context){
 		// ignore DISTINCT keywords when detecting duplicates
 		content = editor.getValue().replace(/DISTINCT /g,'');
 
-		var tempSuggestions = $.extend([],suggestions);
-		suggestions = [];
+		var tempSuggestions = $.extend([],typeSuggestions);
+		typeSuggestions = [];
 		// check if this combination is already in use in this context
 		for(var i = 0; i < tempSuggestions.length; i++){
 			if(content.indexOf(tempSuggestions[i].replace('DISTINCT ','')) == -1){
-				suggestions.push(tempSuggestions[i]);
+				typeSuggestions.push(tempSuggestions[i]);
 			}
 		}	
 
 	}
 	
-	return suggestions;
+	return typeSuggestions;
 
 }
 
