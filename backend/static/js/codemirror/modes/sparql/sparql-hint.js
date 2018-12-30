@@ -10,6 +10,12 @@ var activeLine; // the current active line that holds loader / counter badge
 var activeLineBadgeLine; // the bade holder in the current active line
 var activeLineNumber; // the line number of the active line (replaced by loader)
 
+var sparqlCallback;
+var sparqlFrom;
+var sparqlTo;
+var sparqlTimeout;
+var sparqlRequest;
+
 (function(mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
         mod(require("../../lib/codemirror"), require("../../mode/sparql/sparql"));
@@ -25,7 +31,7 @@ var activeLineNumber; // the line number of the active line (replaced by loader)
     var sparqlQuery; // holds the sparql query that is executed
 
     var suggestions;
-
+    
     var Pos = CodeMirror.Pos,
         cmpPos = CodeMirror.cmpPos;
 
@@ -82,7 +88,7 @@ var activeLineNumber; // the line number of the active line (replaced by loader)
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && curChar.match(/\s/)) {
 		    for (var i = 0; i < wordlist.length; i++) {
-		        var word = formatter(wordlist[i]);
+		        var word = wordlist[i];
 		        result.push(word);
 	        }
 	    }
@@ -119,6 +125,16 @@ var activeLineNumber; // the line number of the active line (replaced by loader)
         //
         // ************************************************************************************
 
+		 // skip everything that is running by now
+        window.clearTimeout(sparqlTimeout);
+        if(sparqlRequest) { sparqlRequest.abort(); }
+		
+		// reset the previous loader
+		if (activeLine)  {
+	        activeLine.html(activeLineNumber);
+	    }
+    
+    
         var cur = editor.getCursor(); // current cursor position
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
         var context = getCurrentContext(absolutePosition); // get current context
@@ -157,17 +173,22 @@ var activeLineNumber; // the line number of the active line (replaced by loader)
         }
 
         types = getAvailableTypes(context);
-         
+        
+        
+		sparqlCallback = callback;
+		sparqlFrom = Pos(cur.line, start);
+		sparqlTo = Pos(cur.line, end);
+        
         var allSuggestions = [];
 		for(var i = 0; i < types.length; i++){
 	        allSuggestions = allSuggestions.concat(getTypeSuggestions(types[i], context));
 		}
 		addMatches(suggestions, allSuggestions);
-			
-		callback({
+		
+		sparqlCallback({
             list: suggestions,
-            from: Pos(cur.line, start),
-            to: Pos(cur.line, end)
+            from: sparqlFrom,
+            to: sparqlTo
         });
         
         return false;
@@ -179,8 +200,7 @@ var activeLineNumber; // the line number of the active line (replaced by loader)
 
  /**
 	    
-    Find the complex types that still have the chance to match
-	https://stackoverflow.com/questions/22483214/regex-check-if-input-still-has-chances-to-become-matching/22489941#22489941
+    Find the complex types
     
     @params context - the current context
     
@@ -352,15 +372,8 @@ function getDynamicSuggestions(context){
 
 function getQleverSuggestions(sparqlQuery,prefixesRelation){
 	
-	// reset the previous loader
-	if (activeLine)  {
-        activeLine.html(activeLineNumber);
-    }
-    
 	try {
         
-        // TODO add a little delay for reducing useless queries
-
         // show the loading indicator and badge
         activeLineBadgeLine = $('.CodeMirror-activeline-background');
         activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
@@ -377,54 +390,63 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation){
         lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
         var dynamicSuggestions = [];
         
-        $.ajax({ url: lastUrl, async: false }).done(function(data) {
-            
-            try {
-            	data = $.parseJSON(data);
-            } catch(err) {}
-            
-            console.log("Got suggestions from QLever.");
-            console.log("Query took " + data.time.total + ".");
-
-            
-            if(data.res){
-                for (var result of data.res) {
-	                
-	                // add back the prefixes
-	                for (prefix in prefixesRelation) {
-	                    if (result[0].indexOf(prefixesRelation[prefix]) > 0) {
-	                        result[0] = result[0].replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
-	                    }
-	                }
-	                
-                    dynamicSuggestions.push(result[0]);
-                }
-                
-            } else {
-                console.error(data.exception);
-            }
-            
-            // reset loading indicator
-            activeLine.html(activeLineNumber);
-            $('#aBadge').remove();
-            
-            // add badge
-            if (data.resultsize != undefined && data.resultsize != null) {
-                activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + data.resultsize + '</span>');
-            }
-
-        }).fail(function(e) {
-
-            // things went terribly wrong...
-            console.error('Failed to load suggestions from QLever (step 2)', e);
-            activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
-
-        });
+        sparqlTimeout = window.setTimeout(function(){
+	         
+		    sparqlRequest = $.ajax({ url: lastUrl }).done(function(data) {
+		                
+		        try {
+		        	data = $.parseJSON(data);
+		        } catch(err) {}
+		        
+		        console.log("Got suggestions from QLever.");
+		        console.log("Query took " + data.time.total + ".");
+		
+		        if(data.res){
+		            for (var result of data.res) {
+		                
+		                // add back the prefixes
+		                for (prefix in prefixesRelation) {
+		                    if (result[0].indexOf(prefixesRelation[prefix]) > 0) {
+		                        result[0] = result[0].replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
+		                    }
+		                }
+		                
+		                dynamicSuggestions.push(result[0]+' ');
+		            }
+		            
+		        } else {
+		            console.error(data.exception);
+		        }
+		        
+		        // reset loading indicator
+		        activeLine.html(activeLineNumber);
+		        $('#aBadge').remove();
+		        
+		        // add badge
+		        if (data.resultsize != undefined && data.resultsize != null) {
+		            activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + data.resultsize + '</span>');
+		        }
+		        
+		        sparqlCallback({
+		            list: $.extend(suggestions,dynamicSuggestions),
+		            from: sparqlFrom,
+		            to: sparqlTo
+		        });
+		        
+		        return []
+		        
+		    }).fail(function(e) {
+			
+				console.log(e);
+		        // things went terribly wrong...
+		        console.error('Failed to load suggestions from QLever (step 2)', e);
+		        activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
+		
+		    });
         
-        return dynamicSuggestions;
+    }, 500);
         
     } catch (err) {
-        console.error(err);
         activeLine.html(activeLineNumber);
         return [];
     }
