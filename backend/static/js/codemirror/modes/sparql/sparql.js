@@ -1,3 +1,198 @@
+/**********************************************************
+	
+	
+	LANGUAGE DEFINITIONS
+	
+	
+**********************************************************/
+
+var CONTEXTS = [
+    {
+        w3name: 'PrefixDecl',
+        definition: /^([\s\S]*)SELECT/g,
+    },
+    {
+        w3name: 'SelectClause',
+        definition: /SELECT ([\S\s]*) WHERE/g,
+    },
+    {
+        w3name: 'WhereClause',
+        definition: /\{([\s\S]*)\}/g,
+    
+    },
+    {
+        w3name: 'SolutionModifier',
+        definition: /\}([\s\S]+)$/g,
+    }
+];
+
+var COMPLEXTYPES = [
+{
+    name: 'PREFIX',
+    definition: /PREFIX (.*)/g,
+    suggestions: [['PREFIX ',getPrefixSuggestions,'\n']],
+    availableInContext: ['PrefixDecl','undefined'],
+    
+},
+{
+    name: 'SELECT',
+    definition: /SELECT (.*)/g,
+    suggestions: [[`SELECT  WHERE {
+
+}\n`]],
+    availableInContext: ['PrefixDecl','undefined'],
+    onlyOnce: true,
+    
+},
+{
+    name: 'VARIABLE',
+    definition: /\?([a-zA-Z]*)/g,
+    suggestions: [[function(c){ var a = []; $(getVariables(c,true,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'TEXT',
+    definition: /TEXT\((.*)\)/g,
+    suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'SCORE',
+    definition: /SCORE\((.*)\)/g,
+    suggestions: [['SCORE(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'MIN',
+    definition: /\(MIN\((.*)\) as (.*)\)/g,
+    suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'MAX',
+    definition: /\(MAX\((.*)\) as (.*)\)/g,
+    suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'SUM',
+    definition: /\(SUM\((.*)\) as (.*)\)/g,
+    suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'AVG',
+    definition: /\(AVG\((.*)\) as (.*)\)/g,
+    suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'SAMPLE',
+    definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
+    suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample_{[0]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'COUNT',
+    definition: /\(COUNT\((.*)\) as (.*)\)/g,
+    suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count_{[1]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'GROUP_CONCAT',
+    definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
+    suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat_{[1]}) ']],
+    availableInContext: ['SelectClause'],
+    
+},
+{
+    name: 'LIMIT',
+    definition: /LIMIT ([0-9+])/g,
+    suggestions: [['LIMIT ',[1,10,100,1000],'\n']],
+    availableInContext: ['SolutionModifier'],
+    onlyOnce: true,
+    
+},
+{
+    name: 'TEXTLIMIT',
+    definition: /TEXTLIMIT ([0-9+])/g,
+    suggestions: [['TEXTLIMIT ',[2,5,10],'\n']],
+    availableInContext: ['SolutionModifier'],
+    onlyOnce: true,
+    
+},
+{
+    name: 'ORDER BY',
+    definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
+    suggestions: [['ORDER BY ', ['DESC(','ASC('], getVariables ,')\n']],
+    availableInContext: ['SolutionModifier'],
+    onlyOnce: true,
+    
+},
+{
+    name: 'GROUP BY',
+    definition: /GROUP BY \?(.+)/g,
+    suggestions: [['GROUP BY ', getVariables,'\n']],
+    availableInContext: ['SolutionModifier'],
+    onlyOnce: true,
+    
+},
+{
+    name: 'TRIPLE',
+    suggestions: [[getDynamicSuggestions]],
+    availableInContext: ['WhereClause'],
+    onlyOncePerVariation: false,
+},
+// TODO: Implement the suggestOnlyWhenMatch Variable
+/*{
+    name: 'FILTER',
+    definition: /FILTER \((.*)/g,
+    suggestions: [['FILTER (', getVariables,' ']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+},
+{
+    name: 'FILTER LANGUAGE',
+    definition: /FILTER langMatches(.*)/g,
+    suggestions: [['FILTER langMatches(lang(', getVariables, ', ', ['"en"','"de"'] ,') .\n']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+},
+{
+    name: 'SUBQUERY',
+    suggestions: [['{\n SELECT WHERE {\n\n }\n}\n']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+},
+{
+    name: 'OPTIONAL',
+    suggestions: [['OPTIONAL {\n\n }\n']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+},*/
+];
+
+
+
+
+/**********************************************************
+	
+	
+	CodeMirror Language mode
+	
+	
+**********************************************************/
+
+
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 (function(mod) {
@@ -114,7 +309,7 @@
 			return before;
 		}
 
-		    // support escaping inside strings
+		// support escaping inside strings
         function tokenLiteral(quote) {
             return function(stream, state) {
                 var escaped = false;

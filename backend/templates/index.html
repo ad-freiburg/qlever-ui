@@ -540,183 +540,18 @@
         
         <script>
           var BASEURL = "{{ backend.baseUrl }}";
-          var subjectName = "{% autoescape off %}{{ backend.subjectName }}{% endautoescape %}";
-          var predicateName = "{% autoescape off %}{{ backend.predicateName }}{% endautoescape %}";
-          var objectName = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
-          var scorePredicate = "{{ backend.scorePredicate }}";
-          var collectedPrefixes = [];
+          var SUBJECTNAME = "{% autoescape off %}{{ backend.subjectName }}{% endautoescape %}";
+          var PREDICATENAME = "{% autoescape off %}{{ backend.predicateName }}{% endautoescape %}";
+          var OBJECTNAME = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
+          var SCOREPREDICATE = "{{ backend.scorePredicate }}";
+          var COLLECTEDPREFIXES = [];
           {% for prefix in prefixes %}
-          collectedPrefixes.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
+          COLLECTEDPREFIXES.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
           {% endfor %}
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);
           {% endfor %}
-          
-          // TODO: MOVE THIS WHOLE THING THE THE DATABASE AND MAKE IT DYNAMIC
-          
-          var CONTEXTS = [
-                {
-                    w3name: 'PrefixDecl',
-                    definition: /^([\s\S]*)SELECT/g,
-                },
-                {
-                    w3name: 'SelectClause',
-                    definition: /SELECT ([\S\s]*) WHERE/g,
-                },
-                {
-                    w3name: 'WhereClause',
-                    definition: /WHERE[ ]*{([\s\S]*)}/g,
-                
-                },
-                {
-                    w3name: 'SolutionModifier',
-                    definition: /\}([\s\S]+)$/g,
-                }
-            ];
-          
-          var COMPLEXTYPES = [
-            {
-                name: 'PREFIX',
-                definition: /PREFIX (.*)/g,
-                suggestions: [['PREFIX ',getPrefixSuggestions,'\n']],
-                availableInContext: ['PrefixDecl','undefined'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'SELECT',
-                definition: /SELECT (.*)/g,
-                suggestions: [[`SELECT  WHERE {
-  
-}\n`]],
-                availableInContext: ['PrefixDecl','undefined'],
-                onlyOnce: true,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'VARIABLE',
-                definition: /\?([a-zA-Z]*)/g,
-                suggestions: [[function(c){ var a = []; $(getVariables(c,true,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'TEXT',
-                definition: /TEXT\((.*)\)/g,
-                suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'SCORE',
-                definition: /SCORE\((.*)\)/g,
-                suggestions: [['SCORE(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'MIN',
-                definition: /\(MIN\((.*)\) as (.*)\)/g,
-                suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'MAX',
-                definition: /\(MAX\((.*)\) as (.*)\)/g,
-                suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'SUM',
-                definition: /\(SUM\((.*)\) as (.*)\)/g,
-                suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'AVG',
-                definition: /\(AVG\((.*)\) as (.*)\)/g,
-                suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'SAMPLE',
-                definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
-                suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample_{[0]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'COUNT',
-                definition: /\(COUNT\((.*)\) as (.*)\)/g,
-                suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count_{[1]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'GROUP_CONCAT',
-                definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
-                suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat_{[1]}) ']],
-                availableInContext: ['SelectClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'LIMIT',
-                definition: /LIMIT ([0-9+])/g,
-                suggestions: [['LIMIT ',[1,10,100,1000],'\n']],
-                availableInContext: ['SolutionModifier'],
-                onlyOnce: true,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'TEXTLIMIT',
-                definition: /TEXTLIMIT ([0-9+])/g,
-                suggestions: [['TEXTLIMIT ',[2,5,10],'\n']],
-                availableInContext: ['SolutionModifier'],
-                onlyOnce: true,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'ORDER BY',
-                definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
-                suggestions: [['ORDER BY ', ['DESC(','ASC('], getVariables ,')\n']],
-                availableInContext: ['SolutionModifier'],
-                onlyOnce: true,
-                onlyOncePerVariation: true,
-            },
-            {
-                name: 'GROUP BY',
-                definition: /GROUP BY (.*)/g,
-                suggestions: [['GROUP BY ', getVariables,'\n']],
-                availableInContext: ['SolutionModifier'],
-                onlyOnce: true,
-                onlyOncePerVariation: true,
-            },
-            /*{
-                name: 'TRIPLES',
-                definition: /([.*]) ([.*]) ([.*])/g,
-                classes: ['triple'],
-                suggestions: [function(context){ return getVariables(context,true,false); }],['ql:contains-entitiy',['<is-a>']],['VARS',['<Astronout>']]],
-                availableInContext: ['WhereClause'],
-                onlyOnce: false,
-                onlyOncePerVariation: false,
-            }*/
-          ];
-          
         </script>
     </body>
 </html>
