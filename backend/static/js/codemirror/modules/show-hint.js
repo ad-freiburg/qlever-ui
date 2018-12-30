@@ -272,7 +272,7 @@
         lastWidget = this;
         hints.onscroll = function(el) {
             var percentage = el.target.scrollTop / (el.target.scrollHeight - el.target.clientHeight);
-            if (percentage >= 0.7 && requestExtension == false && found - 10 > lastWidget.data.list.length) {
+            if (percentage >= 0.7 && requestExtension == false && resultSize - 10 > lastWidget.data.list.length) {
                 lastSize = size;
                 size = 2 * size;
                 requestExtension = true;

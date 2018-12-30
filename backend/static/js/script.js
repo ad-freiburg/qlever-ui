@@ -133,17 +133,18 @@ $(document).ready(function() {
 
     function showRealName(element) {
 	    
-	    // TODO: Reactivate
-	    return true;
-	    
-        var prefixes = "";
-        var lines = editor.getValue().split('\n');
-
-        for (var k = 0; k < lines.length; k++) {
-            if (lines[k].trim().startsWith("PREFIX")) {
-                prefixes += lines[k] + "\n";
-            }
-        }
+        // collect prefixes (as string and dict)
+	    var prefixes = "";
+	    var lines = getContextByName('PrefixDecl')['content'].split('\n');
+	
+	    for (var k = 0; k < lines.length; k++) {
+	        if (lines[k].trim().startsWith("PREFIX")) {
+	            var match = /PREFIX (.*): ?<(.*)>/g.exec(lines[k].trim());
+	            if (match) {
+	                prefixes += lines[k].trim()+'\n';
+	            }
+	        }
+	    }
 
         line = $(this).parent().text().trim();
         values = line.split(' ');

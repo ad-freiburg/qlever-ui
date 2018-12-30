@@ -263,7 +263,6 @@ function getDynamicSuggestions(context){
         }
     }
 
-	// TODO: Use only connected triples
 	var lines = context['content'].split('\n');
 	for(var i = 0; i < lines.length; i++){
 		if(lines[i] == line){
@@ -272,10 +271,11 @@ function getDynamicSuggestions(context){
 		}	
 	}
 	lines = lines.join('\n');
-	
-	// TODO: it should not be necessary to type "<" to get suggestions
-	// only relevant for FreebaseEasy
-	
+
+	// TODO: Use only connected triples
+	// IDEA: Go through all lines until you see a line that contains a variable you know
+	// If this line contains another variable add this to your list of known variables
+	// Go through the list again and repeat until all variables / lines are eaten.
 	
     // replace the prefixes
     $.each(prefixesRelation,function(key,value){
@@ -434,6 +434,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 		        
 		        // add badge
 		        if (data.resultsize != undefined && data.resultsize != null) {
+			        resultSize = data.resultsize;
 		            activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + data.resultsize + '</span>');
 		        }
 		        
