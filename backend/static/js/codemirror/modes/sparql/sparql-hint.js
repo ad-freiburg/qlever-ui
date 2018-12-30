@@ -46,8 +46,7 @@ var suggestions;
     }
 
 	// add matches to result
-    function addMatches(result, wordlist) {
-	    
+    function addMatches(result, suggestions) {
 	    // current line
 	    var cursor = editor.getCursor();
 	    var line = editor.getLine(cursor.line).slice(0, cursor.ch);
@@ -76,9 +75,9 @@ var suggestions;
 				    token += " ";
 			    }
 		    }
-		    for (var i = 0; i < wordlist.length; i++) {
-		        var word = wordlist[i];
-		        if(word.toLowerCase().startsWith(token.toLowerCase()) || token.trim().length < 1){
+		    for (var suggestion of suggestions) {
+		        var word = suggestion.word;
+		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0){
 			        for (var subToken of currentTokens) {
 				        if (subToken.endsInWhitespace) {
 					        word = word.replace(RegExp(subToken.string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
@@ -93,9 +92,11 @@ var suggestions;
 	    
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && curChar && curChar.match(/\s/)) {
-		    for (var i = 0; i < wordlist.length; i++) {
-		        var word = wordlist[i];
-		        result.push(word);
+		    for (var suggestion of suggestions) {
+			    var type = types[suggestion.type] || {};
+		        if (type.suggestOnlyWhenMatch != true) {
+			        result.push(suggestion.word);
+		        }
 	        }
 	    }
     }
@@ -172,7 +173,9 @@ var suggestions;
         
         var allTypeSuggestions = [];
 		for(var i = 0; i < types.length; i++){
-	        allTypeSuggestions = allTypeSuggestions.concat(getTypeSuggestions(types[i], context));
+			for (var suggestion of getTypeSuggestions(types[i], context)) {
+				allTypeSuggestions.push({word: suggestion, type: i});
+			}
 		}
 		addMatches(suggestions, allTypeSuggestions);
 		
