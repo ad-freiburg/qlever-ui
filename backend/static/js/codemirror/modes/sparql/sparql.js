@@ -30,7 +30,7 @@ var COMPLEXTYPES = [
 {
     name: 'PREFIX',
     definition: /PREFIX (.*)/g,
-    suggestions: [['PREFIX ',getPrefixSuggestions,'\n']],
+    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n']],
     availableInContext: ['PrefixDecl','undefined'],
     
 },
@@ -133,7 +133,7 @@ var COMPLEXTYPES = [
 {
     name: 'ORDER BY',
     definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
-    suggestions: [['ORDER BY ', ['DESC(','ASC('], getVariables ,')\n']],
+    suggestions: [['ORDER BY ', ['DESC(','ASC('], function(c){ return getVariables(c);} ,')\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
@@ -141,14 +141,14 @@ var COMPLEXTYPES = [
 {
     name: 'GROUP BY',
     definition: /GROUP BY \?(.+)/g,
-    suggestions: [['GROUP BY ', getVariables,'\n']],
+    suggestions: [['GROUP BY ', function(c){ return getVariables(c);},'\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
 },
 {
     name: 'TRIPLE',
-    suggestions: [[getDynamicSuggestions]],
+    suggestions: [[ function(c){ return getDynamicSuggestions(c); }]],
     availableInContext: ['WhereClause'],
     onlyOncePerVariation: false,
 },
