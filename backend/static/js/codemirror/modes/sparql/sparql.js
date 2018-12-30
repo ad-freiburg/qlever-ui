@@ -116,7 +116,7 @@ var COMPLEXTYPES = [
 },
 {
     name: 'LIMIT',
-    definition: /LIMIT ([0-9+])/g,
+    definition: /\bLIMIT ([0-9+])/g,
     suggestions: [['LIMIT ',[1,10,100,1000],'\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
