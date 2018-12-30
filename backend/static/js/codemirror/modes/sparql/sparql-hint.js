@@ -100,8 +100,8 @@ var suggestions;
 	    }
     }
     
-    // eats the string from the right side, returning the index
-    // of groups in parentheses or white space
+    // eats the string from the right side, returning
+    // tokens that are separated by whitespace
     function getLastLineToken(line) {
 	    var fullLength = line.length;
 	    line = line.replace(/\s*$/, "");
