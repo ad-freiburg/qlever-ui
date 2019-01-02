@@ -46,7 +46,7 @@ var suggestions;
     }
 
 	// add matches to result
-    function addMatches(result, suggestions) {
+    function addMatches(result, suggestions, context) {
 	    // current line
 	    var cursor = editor.getCursor();
 	    var line = editor.getLine(cursor.line).slice(0, cursor.ch);
@@ -54,7 +54,7 @@ var suggestions;
 	    var lineTokens = [];
 	    var token = "";
 	    
-	    // split line by brackets and white spaces
+	    // split line by white spaces
 	    var nextToken = undefined;
 	    do {
 		    nextToken = getLastLineToken(line);
@@ -63,12 +63,15 @@ var suggestions;
 		    }
 		    line = line.slice(0, nextToken.start)
 	    } while (nextToken == undefined || nextToken.start != 0);
-
+		
 	    // remove tokens one by one until there are suggestions
 	    var foundSuggestions = false;
+	    var allSuggestions = [];
 	    for (var j = 0; j < lineTokens.length; j++) {
 		    var currentTokens = lineTokens.slice(j);
 		    var token = "";
+
+			// Rebuild the token we just typed
 		    for (var subToken of currentTokens) {
 			    token += subToken.string;
 			    if (subToken.endsInWhitespace) {
@@ -77,7 +80,42 @@ var suggestions;
 		    }
 		    for (var suggestion of suggestions) {
 		        var word = suggestion.word;
+		        var type = types[suggestion.type] || {};
+		        var alreadyExists = false;
+
+				// check if the type already exists
+				if(type.onlyOnce == true){
+				    // get content to test with
+					if(!context || type.availableInContext.length > 1){
+						var content = editor.getValue();
+					} else {
+						var content = context['content'];
+				    }
+				    
+				    if(type.definition){
+					    type.definition.lastIndex = 0;
+					    var match = content.match(type.definition) || [];
+						alreadyExists = match.length;
+					}
+			    }
+
+		        if (type.suggestOnlyWhenMatch != true && alreadyExists == 0) {
+			        allSuggestions.push(suggestion.word);
+		        }
+		        
 		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0){
+			        // if the type already exists but it is within the token we just typed: continue suggesting it
+			        // if it is outside of what we typed: don't suggest it
+			        if (alreadyExists == 1){
+					    type.definition.lastIndex = 0;
+					    var match = type.definition.exec(token);
+						if (!match) {
+							continue;
+						}
+					} else if (alreadyExists > 1) {
+						continue;
+					}
+			        
 			        for (var subToken of currentTokens) {
 				        if (subToken.endsInWhitespace) {
 					        word = word.replace(RegExp(subToken.string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
@@ -92,12 +130,9 @@ var suggestions;
 	    
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
-		    for (var suggestion of suggestions) {
-			    var type = types[suggestion.type] || {};
-		        if (type.suggestOnlyWhenMatch != true) {
-			        result.push(suggestion.word);
-		        }
-	        }
+		    for (var suggestion of allSuggestions) {
+			    result.push(suggestion);
+		    }
 	    }
     }
     
@@ -177,7 +212,7 @@ var suggestions;
 				allTypeSuggestions.push({word: suggestion, type: i});
 			}
 		}
-		addMatches(suggestions, allTypeSuggestions);
+		addMatches(suggestions, allTypeSuggestions, context);
 		
 		sparqlCallback({
             list: suggestions,
@@ -509,26 +544,6 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 function getTypeSuggestions(type, context){
     
     typeSuggestions = []
-    
-    if(type.onlyOnce == true){
-	    
-	    // get content to test with
-		if(!context || type.availableInContext.length > 1){
-			var content = editor.getValue();
-		} else {
-			var content = context['content'];
-	    }
-	    
-	    if(type.definition){
-		    type.definition.lastIndex = 0;
-		    var match = type.definition.exec(content);
-		    
-		    // this should occur only once and is already found once
-			if(match && match.length > 1){
-				return [];
-			}
-		}
-    }
     
     for(var i = 0; i < type.suggestions.length; i++){
 		
