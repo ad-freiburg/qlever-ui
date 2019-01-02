@@ -20,7 +20,7 @@ $(document).ready(function() {
             "Space": function(cm) {
                 var cursor = editor.getDoc().getCursor();
                 var pos = { line: cursor.line, ch: cursor.ch }
-                doc.replaceRange(" ", pos);
+                editor.replaceRange(" ", pos);
                 CodeMirror.commands.autocomplete(editor);
             },
             "Tab": function(cm) { switchStates(cm); },
@@ -35,11 +35,7 @@ $(document).ready(function() {
     $('.CodeMirror').resizable({
         resize: function() {
 	        // fix the "help"-box position on resize
-            if ($(this).width() > 740) {
-                $('#help').css({ 'margin-top': $(this).height() + 10 });
-            } else {
-                $('#help').css({ 'margin-top': 0 });
-            }
+            $('#help').css({ 'margin-top':  $(this).width() > 740 ? $(this).height() + 10 : 0 }); 
             editor.setSize($(this).width(), $(this).height());
         }
     });
@@ -57,7 +53,7 @@ $(document).ready(function() {
 
 	// initialize the name hover
     if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
-        $('.cm-entities').hover(showRealName);
+        $('.cm-entity').hover(showRealName);
     }
 
 	// initializing done
@@ -68,7 +64,7 @@ $(document).ready(function() {
 	    
 	    // (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
-            $('.cm-entities').hover(showRealName);
+            $('.cm-entity').hover(showRealName);
         }
 		
 		// do not overwrite ENTER inside an completion window
@@ -76,7 +72,7 @@ $(document).ready(function() {
             return;
         }
         
-        
+        // TODO: find a general function to gather this information
         var cur = instance.getCursor();
         var line = instance.getLine(cur.line);
         var token = instance.getTokenAt(cur);
@@ -86,33 +82,16 @@ $(document).ready(function() {
             string = token.string;
         }
         
-        // TODO: detect if this is still valid after latest changes [02.01.19]
-		// detect positions where we want to add suggestions in general
-        if (
-            (line.length <= 3 && line.trim() != "}") || // suggest on line beginning
-            line[cur.ch] == " " || // suggest after whitespace
-            line[cur.ch - 1] == " " || // suggest after (double) whitespace
-            line[cur.ch + 1] == " " || // suggest before whitespace
-            line[cur.ch + 1] == undefined || // suggest before end
-            line[cur.ch - 1] == ":" || // suggest after prefix char
-            line[cur.ch] == ')' || // suggest inside brackets 
-            event.keyCode == 8 // suggest after backspace
-        ) {
-            if (
-                line[cur.ch] != "." || // don't suggest after points
-                line[cur.ch - 1] != " ") // dont'suggest if last char isn't a white space
-            {
+        // do not suggest anything inside a word
+        if (line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) {
+           
+			// invoke autocompletion after a very short delay
+            window.setTimeout(function() {
+                if (example == 1) { example = 0; } else {
+                    CodeMirror.commands.autocomplete(instance);
+                }
+            }, 150);
 
-				// invoke autocompletion after a very short delay
-                window.setTimeout(function() {
-                    if (example == 1) {
-                        example = 0;
-                    } else {
-                        CodeMirror.commands.autocomplete(instance);
-                    }
-                }, 150);
-
-            }
         } else {
             console.warn('Skipped completion due to cursor position');
         }
@@ -122,17 +101,17 @@ $(document).ready(function() {
     editor.on("endCompletion", function() { $('#aBadge').remove(); });
 
     function showRealName(element) {
-	    
+	   	    
         // collect prefixes (as string and dict)
         // TODO: move this to a function. Also use this new function in sparql-hint.js
 	    var prefixes = "";
 	    var lines = getContextByName('PrefixDecl')['content'].split('\n');
 	
-	    for (var k = 0; k < lines.length; k++) {
-	        if (lines[k].trim().startsWith("PREFIX")) {
-	            var match = /PREFIX (.*): ?<(.*)>/g.exec(lines[k].trim());
+	    for (var line of lines) {
+	        if (line.trim().startsWith("PREFIX")) {
+	            var match = /PREFIX (.*): ?<(.*)>/g.exec(line.trim());
 	            if (match) {
-	                prefixes += lines[k].trim()+'\n';
+	                prefixes += line.trim()+'\n';
 	            }
 	        }
 	    }
@@ -142,6 +121,25 @@ $(document).ready(function() {
         element = $(this).text().trim();
         domElement = this;
 
+		// TODO: do something like this to add hover to prefixes 
+		/*
+		word = editor.getTokenAt(cur);
+	    var types = [];
+	    if(word.type){
+	 	   types = word.type.split(' ');
+	 	}
+	    // used tokenizer data to find the current word with its prefix
+	    if(types.indexOf('prefixed-entity') != -1){
+		    if(types.indexOf('entity-name') != -1){
+			    word = editor.getTokenAt({ch:word.start-1 ,line: cur.line}).string+word.string;
+			} else if(types.indexOf('prefix-name') != -1){
+				word = word.string+editor.getTokenAt({ch:word.end+1 ,line: cur.line}).string;
+			}
+	    } else {
+		    word = word.string;
+	    }
+		*/
+		
         if ($(this).prev().hasClass('cm-prefix')) {
             element = $(this).prev().text() + element;
         }
@@ -187,17 +185,13 @@ $(document).ready(function() {
 function addNameHover(element,domElement, list, namepredicate, prefixes){
 	if (list[element] != undefined) {
         if (list[element] != "") {
-            $(domElement).tooltip({
-                title: list[element]
-            });
+            $(domElement).tooltip({ title: list[element] });
         }
     } else {
         query = prefixes + "SELECT ?name WHERE {\n " + element + " " + namepredicate + " ?name }";
         $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
             if (result['res'] && result['res'][0]) {
-                $(domElement).tooltip({
-                    title: result['res'][0]
-                });
+                $(domElement).tooltip({ title: result['res'][0] });
                 window.setTimeout(function() {
                     $(domElement).trigger('mouseenter');
                 }, 100);
@@ -212,9 +206,8 @@ function addNameHover(element,domElement, list, namepredicate, prefixes){
 function processQuery(query, showStatus, element) {
 
     console.log('Preparing query...');
-    if (showStatus != false) {
-        displayStatus("Waiting for response...");
-    }
+    if (showStatus != false) displayStatus("Waiting for response...");
+    
     $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
     $(element).find('.glyphicon').removeClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', $(element).css('color'));
@@ -235,20 +228,15 @@ function processQuery(query, showStatus, element) {
         $(element).find('.glyphicon').removeClass('glyphicon-spin');
         if (showStatus != false) {
 
-            if (result.status == "ERROR") {
-                displayError(result);
-                return;
-            }
-            var res = "<div id=\"res\">";
-            // Time
-            res += "<div id=\"time\">";
+            if (result.status == "ERROR") { displayError(result); return; }
+            var res = '<div id="res"><div id="time"></div>';
             var nofRows = result.res.length;
             $('#resultSize').html(result.resultsize);
             $('#totalTime').html(result.time.total);
             $('#computationTime').html(result.time.computeResult);
             $('#jsonTime').html((parseInt(result.time.total.replace(/ms/, "")) -
                 parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
-            res += "</div>";
+            
             if (maxSend > 0 && maxSend <= nofRows && maxSend < parseInt(result.resultsize)) {
                 res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Output limited to " + maxSend.toString() + " results.</button>  <a class=\"btn btn-default\" href=\"" + window.location.href.substr(0, window.location.href.indexOf("&")) + "\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
             }
@@ -257,53 +245,52 @@ function processQuery(query, showStatus, element) {
             selection = decodeURIComponent(selection.trim())
 
             indentation = 0;
-            remainder = ""
+            remainder = "";
             columns = result.selected;
 
             var tableHead = $('#resTable thead');
             var head = "<tr><th></th>";
-            for (var i = 0; i < columns.length; i++) {
-                if (columns[i]) {
-                    head += "<th>" + columns[i] + "</th>";
-                }
+            for (var column of columns) {
+                if (column) { head += "<th>" + column + "</th>"; }
             }
             head += "</tr>";
-            tableHead.html(head);
+            tableHead.html(head)
+            ;
             var tableBody = $('#resTable tbody');
-            tableBody.html('');
-            for (var i = 0; i < result.res.length; i++) {
+            tableBody.html("");
+            var i = 0;
+            for (var resultLine of result.res) {
                 var row = "<tr>";
                 row += "<td>" + i + "</td>";
-                for (var j = 0; j < result.res[i].length; ++j) {
+                var j = 0;
+                for (var resultColumn of resultLine) {
                     // GROUP_CONCAT
                     if ($('#resTable thead tr').children('th')[j + 1].innerHTML.startsWith('(GROUP_CONCAT')) {
                         match = (/separator[\s]?=[\s]?\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j + 1].innerHTML);
-                        if (match && match[1]) {
-                            sep = match[1];
-                        } else {
-                            sep = "";
-                        }
-                        results = result.res[i][j].split(sep);
-                        row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(result.res[i][j]).replace(/\"/g, "&quot;") + "\">"
-                        for (var k = 0; k < Math.min(results.length, 5); k++) {
-                            row += htmlEscape(getShortStr(results[k], 50, j)) + "<br>";
+                        (match && match[1]) ? sep = match[1] : sep = "";
+                        results = resultColumn.split(sep);
+                        row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">"
+                        for (var resultColumnValues of results) {
+                            row += htmlEscape(getShortStr(resultColumnValues, 50, j)) + "<br>";
                         }
                         if (results.length > 5) {
                             row += "<a onclick=\"showAllConcats(this,'" + sep + "','" + j + "')\">... and " + (results.length - 5) + " more.</a>";
                         }
                         row += "</span></td>";
                     } else {
-                        if (result.res[i][j]) {
-                            row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(result.res[i][j]).replace(/\"/g, "&quot;") + "\">" +
-                                htmlEscape(getShortStr(result.res[i][j], 50, j)) +
+                        if (resultColumn) {
+                            row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
+                                htmlEscape(getShortStr(resultColumn, 50, j)) +
                                 "</span></td>";
                         } else {
                             row += "<td><span>-</span></td>";
                         }
                     }
+                    j++;
                 }
                 row += "</tr>";
                 tableBody.append(row);
+                i++;
             }
             $('[data-toggle="tooltip"]').tooltip();
             $('#infoBlock,#errorBlock').hide();
