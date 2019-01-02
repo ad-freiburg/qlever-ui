@@ -228,9 +228,8 @@ function processQuery(query, showStatus, element) {
             maxSend = parseInt(window.location.href.substr(sInd + 6))
         }
     }
-    var uri = BASEURL + query;
     console.log('Sending request...');
-    $.getJSON(uri, function(result) {
+    $.getJSON(query, function(result) {
         console.log('Evaluating and displaying results...');
 
         $(element).find('.glyphicon').removeClass('glyphicon-spin');
