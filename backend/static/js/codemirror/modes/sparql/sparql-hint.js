@@ -68,8 +68,11 @@ var suggestions;
 	    // remove tokens one by one until there are suggestions
 	    var foundSuggestions = false;
 	    var allSuggestions = [];
-	    tokens:
+
 	    for (var j in lineTokens) {
+		    if (foundSuggestions) {
+			    break;
+		    }
 		    var currentTokens = lineTokens.slice(j);
 		    var token = "";
 
@@ -121,7 +124,6 @@ var suggestions;
 			        }
 		            result.push(word);
 		            foundSuggestions = true;
-		            break tokens;
 		        }
 	        }
 	    }
