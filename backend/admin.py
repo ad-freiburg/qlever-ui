@@ -20,8 +20,12 @@ class PrefixAdmin(admin.ModelAdmin):
 class ExampleAdmin(admin.ModelAdmin):
     list_display = ['backend', 'name']
 
+class LinkAdmin(admin.ModelAdmin):
+    list_display = ['identifier', 'content']
+
 admin.site.unregister(Group)
 
 admin.site.register(Backend, BackendAdmin)
 admin.site.register(Prefix, PrefixAdmin)
 admin.site.register(Example, ExampleAdmin)
+#admin.site.register(Link, LinkAdmin)

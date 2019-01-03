@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseServerError, JsonResponse
 from django.shortcuts import render
@@ -83,7 +84,7 @@ def index(request, backend=None, short=None):
             'prefill': prefill
         })
 
-
+@csrf_exempt
 def shareLink(request):
     """
         Generate a sharing link
@@ -91,7 +92,7 @@ def shareLink(request):
 
     if request.GET.get('cleanup', False) == False:
 
-        existing = Link.objects.filter(content=request.GET.get('link'))
+        existing = Link.objects.filter(content=request.POST.get('content'))
         if existing.exists():
             return JsonResponse({'link': existing.first().identifier})
 
@@ -107,7 +108,7 @@ def shareLink(request):
                               string.digits) for _ in range(6))
 
         Link.objects.create(
-            identifier=identifier, content=request.GET.get('link'))
+            identifier=identifier, content=request.POST.get('content'))
 
         return JsonResponse({'link': identifier})
 
