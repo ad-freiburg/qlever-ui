@@ -46,7 +46,7 @@ var suggestions;
     }
 
 	// add matches to result
-    function addMatches(result, suggestions, context) {
+    function addMatches(result, addedSuggestions, context) {
 	    // current line
 	    var cursor = editor.getCursor();
 	    var line = editor.getLine(cursor.line).slice(0, cursor.ch);
@@ -67,7 +67,8 @@ var suggestions;
 	    // remove tokens one by one until there are suggestions
 	    var foundSuggestions = false;
 	    var allSuggestions = [];
-	    for (var j = 0; j < lineTokens.length; j++) {
+	    tokens:
+	    for (var j in lineTokens) {
 		    var currentTokens = lineTokens.slice(j);
 		    var token = "";
 
@@ -78,10 +79,10 @@ var suggestions;
 				    token += " ";
 			    }
 		    }
-		    for (var suggestion of suggestions) {
+		    for (var suggestion of addedSuggestions) {
 		        var word = suggestion.word;
 		        var type = types[suggestion.type] || {};
-		        var alreadyExists = false;
+		        var alreadyExists = 0;
 
 				// check if the type already exists
 				if(type.onlyOnce == true){
@@ -100,7 +101,9 @@ var suggestions;
 			    }
 
 		        if (type.suggestOnlyWhenMatch != true && alreadyExists == 0) {
-			        allSuggestions.push(suggestion.word);
+			        if(allSuggestions.indexOf(suggestion.word) == -1){
+				        allSuggestions.push(suggestion.word);
+				    }
 		        }
 		        
 		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0){
@@ -123,7 +126,7 @@ var suggestions;
 			        }
 		            result.push(word);
 		            foundSuggestions = true;
-		            j = lineTokens.length;
+		            break tokens;
 		        }
 	        }
 	    }
@@ -134,22 +137,6 @@ var suggestions;
 			    result.push(suggestion);
 		    }
 	    }
-    }
-    
-    // eats the string from the right side, returning
-    // tokens that are separated by whitespace
-    function getLastLineToken(line) {
-	    var fullLength = line.length;
-	    line = line.replace(/\s*$/, "");
-	    var end = line.length;
-	    var start = 0;
-	    for(var i = line.length-1; i >= 0; i--) {
-		    if (line[i].match(/\s/)) {
-			    start = i + 1;
-				break;
-			}
-	    }
-		return {start: start, end: end, string: line.slice(start, end), endsInWhitespace: (fullLength != end)}
     }
 	
     CodeMirror.registerHelper("hint", "sparql", function(editor, callback, options) {
@@ -171,7 +158,6 @@ var suggestions;
 		if (activeLine)  {
 	        activeLine.html(activeLineNumber);
 	    }
-    
     
         var cur = editor.getCursor(); // current cursor position
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
@@ -198,22 +184,21 @@ var suggestions;
 			end = token.end;
 			
         }
-
+		
         types = getAvailableTypes(context);
-        
         
 		sparqlCallback = callback;
 		sparqlFrom = Pos(cur.line, start);
 		sparqlTo = Pos(cur.line, end);
         
         var allTypeSuggestions = [];
-		for(var i = 0; i < types.length; i++){
+        for(var i = 0; i < types.length; i++){
 			for (var suggestion of getTypeSuggestions(types[i], context)) {
 				allTypeSuggestions.push({word: suggestion, type: i});
 			}
 		}
 		addMatches(suggestions, allTypeSuggestions, context);
-		
+
 		sparqlCallback({
             list: suggestions,
             from: sparqlFrom,
@@ -254,27 +239,14 @@ function getAvailableTypes(context){
 
 
 function getDynamicSuggestions(context){
-	
+
 	var cur = editor.getCursor();
 	var line = editor.getLine(cur.line);	
 	var suggestionMode = parseInt($("#dynamicSuggestions").val()+'');
     
-    word = editor.getTokenAt(cur);
-    var types = [];
-    if(word.type){
- 	   types = word.type.split(' ');
- 	}
-    // used tokenizer data to find the current word with its prefix
-    if(types.indexOf('prefixed-entity') != -1){
-	    if(types.indexOf('entity-name') != -1){
-		    word = editor.getTokenAt({ch:word.start-1 ,line: cur.line}).string+word.string;
-		} else if(types.indexOf('prefix-name') != -1){
-			word = word.string+editor.getTokenAt({ch:word.end+1 ,line: cur.line}).string;
-		}
-    } else {
-	    word = word.string;
-    }
-     
+    word = getLastLineToken(line.slice(0,cur.ch));
+    if(word.endsInWhitespace){ word = ""; } else { word = word.string; }
+    
     // get current line
     var words = line.slice(0,cur.ch).trimLeft().replace('  ', ' ').split(" ");
 	    
@@ -283,11 +255,11 @@ function getDynamicSuggestions(context){
     var prefixesRelation = {};
     var lines = getContextByName('PrefixDecl')['content'].split('\n');
 
-    for (var k = 0; k < lines.length; k++) {
-        if (lines[k].trim().startsWith("PREFIX")) {
-            var match = /PREFIX (.*): ?<(.*)>/g.exec(lines[k].trim());
+    for (var line of lines) {
+        if (line.trim().startsWith("PREFIX")) {
+            var match = /PREFIX (.*): ?<(.*)>/g.exec(line.trim());
             if (match) {
-                prefixes += lines[k].trim()+'\n';
+                prefixes += line.trim()+'\n';
                 prefixesRelation[match[1]] = match[2];
             }
         }
@@ -299,9 +271,7 @@ function getDynamicSuggestions(context){
 			lines = lines.slice(0,i);
 			break
 		}	
-	}
-
-	
+	}	
 	
     // replace the prefixes
     $.each(prefixesRelation,function(key,value){
@@ -315,7 +285,7 @@ function getDynamicSuggestions(context){
     if (words.length < 2) {
         
         var response = [];
-        var variables = getVariables(context)
+        var variables = getVariables(context);
         for(var i = 0; i < variables.length; i++){
 	        response.push(variables[i]+' ');
         }
@@ -361,43 +331,40 @@ function getDynamicSuggestions(context){
 	    lines = '\n'+lines.join('\n');
 	    
 	    if (words.length == 2 && suggestionMode > 0) {
-        
-        if (suggestionMode == 1) {
-        
-        	// Build SPARQL query without context
-            sparqlQuery = prefixes +
-                "\nSELECT ?qleverui_predicate WHERE {" +
-                "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
-            if (word.length > 1) {
-                sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + word + "\")";
-            }
-            if (SCOREPREDICATE.length > 0) {
-                sparqlQuery += "\n  ?qleverui_predicate " + SCOREPREDICATE + " ?qleverui_score ." +
-                    "\n}\nORDER BY DESC(?qleverui_score)";
-            } else {
-                sparqlQuery += "\n}";
-            }
-        
-        } else if (suggestionMode == 2) {
-                            
-			// Build SPARQL query with context
-            lines += "\n"+words[0] + " ql:has-predicate ?qleverui_predicate .";
-            sparqlQuery = prefixes +
-                "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {" +
-                lines +
-                "\n}\nGROUP BY ?qleverui_predicate" +
-                "\nORDER BY DESC(?count)";
-            if (word.length > 1) {
-                sparqlQuery += "\nHAVING regex(?qleverui_predicate, \"^" + word + "\")";
-            }
-        }
-        
-        getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
-        if(!requestExtension){
-			return ['ql:contains-entity ','ql:contains-word '];
-		} else {
-			return [];
-		}
+	        
+	        if (suggestionMode == 1) {
+	        
+	        	// Build SPARQL query without context
+	            sparqlQuery = prefixes +
+	                "\nSELECT ?qleverui_predicate WHERE {" +
+	                "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
+	            if (word.length > 1) {
+	                sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + word + "\")";
+	            }
+	            if (SCOREPREDICATE.length > 0) {
+	                sparqlQuery += "\n  ?qleverui_predicate " + SCOREPREDICATE + " ?qleverui_score ." +
+	                    "\n}\nORDER BY DESC(?qleverui_score)";
+	            } else {
+	                sparqlQuery += "\n}";
+	            }
+	        
+	        } else if (suggestionMode == 2) {
+	                            
+				// Build SPARQL query with context
+	            lines += "\n"+words[0] + " ql:has-predicate ?qleverui_predicate .";
+	            sparqlQuery = prefixes +
+	                "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {" +
+	                lines +
+	                "\n}\nGROUP BY ?qleverui_predicate" +
+	                "\nORDER BY DESC(?count)";
+	            if (word.length > 1) {
+	                sparqlQuery += "\nHAVING regex(?qleverui_predicate, \"^" + word + "\")";
+	            }
+	        }
+	        
+	        getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
+	        return (!requestExtension) ? ['ql:contains-entity ','ql:contains-word '] : [];
+	        
 	    } else if (words.length == 3 && suggestionMode > 0) {
 	
 	        if (suggestionMode == 1) {
@@ -432,17 +399,13 @@ function getDynamicSuggestions(context){
 	        }
 	        
 	        var response = [];
-	        var variables = getVariables(context)
-	        for(var i = 0; i < variables.length; i++){
-		        response.push(variables[i]+' .');
+	        var variables = getVariables(context);
+	        for(var variable of variables){
+		        response.push(variable+' .');
 	        }
-	        
+	        	        
 	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
-	        if(!requestExtension){
-				return response;
-			} else {
-				return [];
-			}
+	        return (!requestExtension) ? response : [];
 	    }
     }
     
@@ -462,7 +425,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
         activeLineNumber = activeLine.html();
         activeLine.html('<img src="/static/img/ajax-loader.gif">');
         $('#aBadge').remove();
-        
+
         // do the limits for the scrolling feature
         sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
@@ -602,7 +565,6 @@ function getTypeSuggestions(type, context){
 					tempStrings = [];
 				}
 			}
-			
 			$.extend(typeSuggestions,tempStrings);
 		
 		}
@@ -612,7 +574,7 @@ function getTypeSuggestions(type, context){
 
 		// get content to test with
 		content = "";
-		if(context){ content = context['content'] }
+		if(context){ content = context['content']; }
 		
 		// ignore DISTINCT keywords when detecting duplicates
 		content = editor.getValue().replace(/DISTINCT /g,'');
@@ -627,9 +589,7 @@ function getTypeSuggestions(type, context){
 		}	
 
 	}
-	
 	return typeSuggestions;
-
 }
 
 /**
@@ -719,7 +679,6 @@ function getContextByName(name){
 		}
 		
     });
-    
     return foundContext;
 }
 
@@ -810,4 +769,20 @@ function getPrefixSuggestions(context){
 	}
     
     return prefixes;   
+}
+
+// eats the string from the right side, returning
+// tokens that are separated by whitespace
+function getLastLineToken(line) {
+    var fullLength = line.length;
+    line = line.replace(/\s*$/, "");
+    var end = line.length;
+    var start = 0;
+    for(var i = line.length-1; i >= 0; i--) {
+	    if (line[i].match(/\s/)) {
+		    start = i + 1;
+			break;
+		}
+    }
+	return {start: start, end: end, string: line.slice(start, end), endsInWhitespace: (fullLength != end)}
 }
