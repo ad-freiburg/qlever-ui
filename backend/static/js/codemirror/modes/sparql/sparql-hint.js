@@ -53,6 +53,7 @@ var suggestions;
 	    var curChar = line[line.length-1];
 	    var lineTokens = [];
 	    var token = "";
+	    var types = getAvailableTypes(context);
 	    
 	    // split line by white spaces
 	    var nextToken = undefined;
@@ -87,11 +88,7 @@ var suggestions;
 				// check if the type already exists
 				if(type.onlyOnce == true){
 				    // get content to test with
-					if(!context || type.availableInContext.length > 1){
-						var content = editor.getValue();
-					} else {
-						var content = context['content'];
-				    }
+				    var content = (context) ? context['content'] : editor.getValue();
 				    
 				    if(type.definition){
 					    type.definition.lastIndex = 0;
@@ -99,11 +96,9 @@ var suggestions;
 						alreadyExists = match.length;
 					}
 			    }
-
-		        if (type.suggestOnlyWhenMatch != true && alreadyExists == 0) {
-			        if(allSuggestions.indexOf(suggestion.word) == -1){
-				        allSuggestions.push(suggestion.word);
-				    }
+				
+		        if (j == 0 && type.suggestOnlyWhenMatch != true && alreadyExists == 0) {
+				    allSuggestions.push(suggestion.word);
 		        }
 		        
 		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0){
@@ -573,11 +568,10 @@ function getTypeSuggestions(type, context){
 	if(type.onlyOncePerVariation != false){
 
 		// get content to test with
-		content = "";
-		if(context){ content = context['content']; }
+		content = (context) ? context['content'] : editor.getValue();
 		
 		// ignore DISTINCT keywords when detecting duplicates
-		content = editor.getValue().replace(/DISTINCT /g,'');
+		content = content.replace(/DISTINCT /g,'');
 
 		var tempSuggestions = $.extend([],typeSuggestions);
 		typeSuggestions = [];
