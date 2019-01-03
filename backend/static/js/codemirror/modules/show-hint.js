@@ -91,7 +91,7 @@
         },
 
         pick: function(data, i) {
-            var completion = data.list[i];
+            var completion = (typeof data.list[i] == "string") ? data.list[i] : data.list[i].completion;
             if (completion.slice(-1) == ".") {
                 completion = completion + "\n  "
             }
@@ -290,11 +290,11 @@
                         for (var i = 0; i < completions.length; ++i) {
                             var elt = hints.appendChild(document.createElement("li")),
                                 cur = completions[i];
-                            var className = getBase(completions[i]) + " " + HINT_ELEMENT_CLASS + (i != lastWidget.selectedHint ? "" : " " + ACTIVE_HINT_ELEMENT_CLASS);
+                            var className = HINT_ELEMENT_CLASS + (i != lastWidget.selectedHint ? "" : " " + ACTIVE_HINT_ELEMENT_CLASS);
                             if (cur != undefined && cur.className != null) className = cur.className + " " + className;
                             elt.className = className;
                             if (cur != undefined && cur.render) cur.render(elt, data, cur);
-                            else if (cur != undefined) elt.appendChild(document.createTextNode(cur.displayText || getText(cur)));
+                            else if (cur != undefined) addQLeverHint(elt, cur);
                             else elt.appendChild(document.createTextNode(getText(cur)));
                             elt.hintId = lastSize + i;
                         }
@@ -312,13 +312,57 @@
         for (var i = 0; i < completions.length; ++i) {
             var elt = hints.appendChild(document.createElement("li")),
                 cur = completions[i];
-            var className = getBase(completions[i]) + " " + HINT_ELEMENT_CLASS + (i != this.selectedHint ? "" : " " + ACTIVE_HINT_ELEMENT_CLASS);
+            var className = HINT_ELEMENT_CLASS + (i != this.selectedHint ? "" : " " + ACTIVE_HINT_ELEMENT_CLASS);
             if (cur != undefined && cur.className != null) className = cur.className + " " + className;
             elt.className = className;
-            if (cur != undefined && cur.render) cur.render(elt, data, cur);
-            else if (cur != undefined) elt.appendChild(document.createTextNode(cur.displayText || getText(cur)));
-            else elt.appendChild(document.createTextNode(getText(cur)));
+            if (cur != undefined && cur.render) {
+	            cur.render(elt, data, cur);
+	        } else if (cur != undefined) {
+		        // our qlever hints seem to always end in this case
+		        addQLeverHint(elt, cur);
+		    } else {
+			    elt.appendChild(document.createTextNode(getText(cur)));
+			}
             elt.hintId = i;
+        }
+        
+        function addQLeverHint(elt, cur) {
+	        var text = document.createElement('div');
+	        var displayText = tokenizeHints(cur.displayText || getText(cur))
+	        text.appendChild(displayText);
+	        if (cur.name) {
+		        var name = document.createElement("span");
+		        name.className = "hint-name";
+		        name.appendChild(document.createTextNode(" "+cur.name));
+		        text.appendChild(name);
+	        }
+	        elt.appendChild(text);
+        }
+        
+        function tokenizeHints(text) {
+  			var stream = new StringStream(text.trim(), 0, undefined);
+  			// get tokenizer from sparql mode
+  			var state = CodeMirror.modes["sparql"]({indeuntUnit:undefined}).startState();
+  			var tokenize = state.tokenize;
+  			var displayText = document.createElement('span');
+
+  			while (!stream.eol()) {
+	  			if (stream.eatSpace()) {
+		  			// Don't tokenize white spaces - skip them
+		  			displayText.appendChild(document.createTextNode(stream.current()));
+		  			stream.start = stream.pos;
+	  			}
+	  			var classNames = "";
+	  			for (var className of tokenize(stream, state).split(" ")) {
+		  			classNames += ((classNames.length > 0) ? " " : "") + "cm-" + className;	
+		  		}
+	  			var token = document.createElement("span");
+	  			token.className = classNames;
+	  			token.appendChild(document.createTextNode(stream.current()));
+	  			displayText.appendChild(token);
+	  			stream.start = stream.pos;
+  			}
+  			return displayText;
         }
 
         var pos = cm.cursorCoords(completion.options.alignWithWord ? data.from : null);
@@ -361,9 +405,6 @@
             }
             hints.style.left = (left = pos.left - overlapX) + "px";
         }
-        if (scrolls)
-            for (var node = hints.firstChild; node; node = node.nextSibling)
-                node.style.paddingRight = cm.display.nativeBarWidth + "px"
 
         cm.addKeyMap(this.keyMap = buildKeyMap(completion, {
             moveFocus: function(n, avoidWrap) {
@@ -591,32 +632,3 @@
 
     CodeMirror.defineOption("hintOptions", null);
 });
-
-function wordRegexp(words) {
-    return new RegExp("^(?:" + words.join("|") + ")$", "i");
-}
-var keywords = wordRegexp(["prefix", "select( (\n|.)*)?", "distinct", "from", "where", "order(.*)?", "limit(.*)?", "offset",
-    "optional", "asc(.*)?", "desc(.*)?", "as", ".*avg.*as.*", ".*sum.*as.*", "having", "values", "group(.*)?", "not",
-    "textlimit(.*)?", "score(.*)?", "text(.*)?", "text", "ql:contains-entity", "ql:num-triples", "ql:contains-word", ".*count.*as.*",
-    ".*sample.*as.*", ".*min.*as.*", ".*max.*as.*", ".*avg.*as.*", ".*concat.*as.*", "group_concat.*as.*", "filter(.*)?"
-]);
-
-function getBase(word) {
-    if (word && word.length > 0) {
-        var ch = word[0]
-        if (ch == "$" || ch == "?") {
-            return "variable-2";
-        } else if (/^([0-9]*)$/.test(word)) {
-            return "number";
-        } else {
-            if (keywords.test(word.trim()))
-                return "keyword";
-            else if (word.slice(-1) == ':')
-                return "prefix";
-            else
-                return "variable";
-        }
-    } else {
-        return "empty";
-    }
-}

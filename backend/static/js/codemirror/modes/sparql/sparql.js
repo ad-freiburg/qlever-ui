@@ -272,7 +272,7 @@ var COMPLEXTYPES = [
 	            before = getBefore(stream, /:/);
                 var match = stream.match(/[_\w\d\.-]*(:(\s*))?/);
                 var word = stream.current();
-                if (word.indexOf(":") != -1) {
+                if (match && match[2] !== undefined) {
 	                if (match[2].length > 0) {
 		                stream.backUp(match[2].length);
 		                return "prefix-declaration prefix-name";

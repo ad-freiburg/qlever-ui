@@ -493,7 +493,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 		                    }
 		                }
 		                
-		                dynamicSuggestions.push(result[0]+appendix);
+		                dynamicSuggestions.push({displayText: result[0]+appendix, completion: result[0]+appendix, name:"todo add name"});
 		            }
 		            
 		        } else {

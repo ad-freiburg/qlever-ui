@@ -1493,7 +1493,7 @@ function startState(mode, a1, a2) {
 // Fed to the mode parsers, provides helper functions to make
 // parsers more succinct.
 
-var StringStream = function(string, tabSize, lineOracle) {
+window.StringStream = function(string, tabSize, lineOracle) {
   this.pos = this.start = 0
   this.string = string
   this.tabSize = tabSize || 8

@@ -94,11 +94,11 @@ th { color: #82B36F; white-space: nowrap; }
 	padding: 0px 5px 2px 5px;
 }
 
-.cm-s-default .cm-atom {
+.cm-atom {
 	color: #05a !important;
 }
 
-.cm-s-default .cm-keyword {
+.cm-keyword {
 	font-weight: 600;
 }
 
@@ -199,28 +199,15 @@ th { color: #82B36F; white-space: nowrap; }
   cursor: pointer;
 }
 
+.CodeMirror-hint {
+	padding-right: 10px;
+}
+
 li.CodeMirror-hint-active {
-  background: #08f;
-  color: white;
+  background: #d5ebff;
 }
 
-.variable-2.CodeMirror-hint {
-	color: #05a;
-}
-
-.number.CodeMirror-hint {
+.CodeMirror-hint .hint-name {
+	float: right;
 	color: grey;
-}
-
-.keyword.CodeMirror-hint {
-  font-weight: bold; 
-  color: #708;
-}
-
-.prefix.CodeMirror-hint {
-  font-weight: 600; 
-}
-
-.CodeMirror-hint-active {
-	color: white !important;
 }
