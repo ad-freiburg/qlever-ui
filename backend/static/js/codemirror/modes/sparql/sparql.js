@@ -30,7 +30,7 @@ var COMPLEXTYPES = [
 {
     name: 'PREFIX',
     definition: /PREFIX (.*)/g,
-    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX ']],
+    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX '],['PREFIX p1: <'],['PREFIX p2: <'],['PREFIX p3: <']],
     availableInContext: ['PrefixDecl','undefined'],
     
 },
@@ -43,6 +43,14 @@ var COMPLEXTYPES = [
     availableInContext: ['PrefixDecl','undefined'],
     onlyOnce: true,
     
+},
+{
+    name: 'DISTINCT',
+    definition: /DISTINCT|[?\w]+ [?\w]*/g,
+    suggestions: [['DISTINCT ']],
+    availableInContext: ['SelectClause'],
+    onlyOnce: true,
+    onlyOncePerVariation: false,
 },
 {
     name: 'VARIABLE',
@@ -131,9 +139,23 @@ var COMPLEXTYPES = [
     
 },
 {
+    name: 'ASC',
+    definition: /ASC(\?.*)/g,
+    suggestions: [['ASC(',function(c){ return getVariables(c);},')\n']],
+    availableInContext: [],
+
+},
+{
+    name: 'DESC',
+    definition: /DESC(\?.*)/g,
+    suggestions: [['DESC(',function(c){ return getVariables(c);},')\n']],
+    availableInContext: [],
+    
+},
+{
     name: 'ORDER BY',
-    definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
-    suggestions: [['ORDER BY ', ['DESC(','ASC('], function(c){ return getVariables(c);} ,')\n']],
+    definition: /ORDER BY .*/g,
+    suggestions: [['ORDER BY ', function(c){ var result = getVariables(c); for(type of COMPLEXTYPES){ if(['COUNT','AVG','MIN','MAX','SUM','ASC','DESC'].indexOf(type.name) != -1){ var s = getTypeSuggestions(type,c); if(s.length > 0) { result = result.concat(s); } } } return result; } ,'\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
@@ -142,6 +164,14 @@ var COMPLEXTYPES = [
     name: 'GROUP BY',
     definition: /GROUP BY \?(.+)/g,
     suggestions: [['GROUP BY ', function(c){ return getVariables(c);},'\n']],
+    availableInContext: ['SolutionModifier'],
+    onlyOnce: true,
+    
+},
+{
+    name: 'HAVING',
+    definition: /HAVING \?(.+)/g,
+    suggestions: [['HAVING (', function(c){ return getVariables(c);},' ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
@@ -175,6 +205,12 @@ var COMPLEXTYPES = [
 {
     name: 'OPTIONAL',
     suggestions: [['OPTIONAL {\n\n }\n']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+},
+{
+    name: 'UNION',
+    suggestions: [['UNION {\n\n }\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
 },

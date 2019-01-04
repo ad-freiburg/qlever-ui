@@ -84,10 +84,11 @@ var suggestions;
 			    }
 		    }
 		    for (var suggestion of addedSuggestions) {
+				
 		        var word = suggestion.word;
 		        var type = types[suggestion.type] || {};
 		        var alreadyExists = 0;
-
+				
 				// check if the type already exists
 				if(type.onlyOnce == true){
 				    // get content to test with
@@ -99,12 +100,13 @@ var suggestions;
 						alreadyExists = match.length;
 					}
 			    }
-				
+			    
 		        if (j == 0 && type.suggestOnlyWhenMatch != true && alreadyExists == 0) {
 				    allSuggestions.push(suggestion.word);
 		        }
 		        
-		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0){
+		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0 && word != token){
+			    	    
 			        // if the type already exists but it is within the token we just typed: continue suggesting it
 			        // if it is outside of what we typed: don't suggest it
 			        if (alreadyExists == 1){
@@ -122,18 +124,23 @@ var suggestions;
 					        word = word.replace(RegExp(subToken.string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
 				        }
 			        }
+			        
 		            result.push(word);
 		            foundSuggestions = true;
 		        }
 	        }
 	    }
 	    
+		line = editor.getLine(cursor.line).slice(0, cursor.ch);
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
-		    for (var suggestion of allSuggestions) {
-			    result.push(suggestion);
-		    }
+		    if((context && context.w3name == 'SelectClause') || line == undefined || line.match(/^\s?$/)){
+			    for (var suggestion of allSuggestions) {
+				    result.push(suggestion);
+			    }
+			}
 	    }
+	    
     }
 	
     CodeMirror.registerHelper("hint", "sparql", function(editor, callback, options) {
@@ -194,6 +201,7 @@ var suggestions;
 				allTypeSuggestions.push({word: suggestion, type: i});
 			}
 		}
+		
 		addMatches(suggestions, allTypeSuggestions, context);
 
 		sparqlCallback({
@@ -271,10 +279,12 @@ function getDynamicSuggestions(context){
 	}	
 	
     // replace the prefixes
+    var replacedRelations = false;
     $.each(prefixesRelation,function(key,value){
         newWord = word.replace(key+':',value)
         if(newWord != word){
-            word = '<'+newWord+'>';
+            word = '<'+newWord;
+            replacedRelations = true;
             return true;
         }
     });
@@ -383,8 +393,15 @@ function getDynamicSuggestions(context){
 	            
 	        }
 	        
+	        var response = ['ql:contains-entity ','ql:contains-word '];
+	        if(replacedRelations == false){
+		        for(var prefix in prefixesRelation){
+			     	response.push(prefix+':');
+				}
+			}
+	        
 	        getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
-	        return (!requestExtension) ? ['ql:contains-entity ','ql:contains-word '] : [];
+	        return (!requestExtension) ? response : [];
 	        
 	    } else if (words.length == 3 && suggestionMode > 0) {
 	
@@ -420,10 +437,19 @@ function getDynamicSuggestions(context){
 	        }
 	        
 	        var response = [];
+	        var lastWord = words[1].split(/[.\/\#:]/g);
+	        response.push('?'+lastWord[lastWord.length-1].replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+	        
 	        var variables = getVariables(context);
 	        for(var variable of variables){
 		        response.push(variable+' .');
 	        }
+	        
+	        if(replacedRelations == false){
+		        for(var prefix in prefixesRelation){
+			     	response.push(prefix+':');
+				}
+			}
 	        	        
 	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
 	        return (!requestExtension) ? response : [];
@@ -753,7 +779,17 @@ function getVariables(context, excludeAggregationVariables, suggestListOfAllUnus
 		
 	if(suggestListOfAllUnusedVariables && variables.length > 1){
 		// remove duplicates
-		variables.push(variables.join(' '));
+		var varlist = "";
+		var listlength = 0
+		for(variable of variables){
+			if(getContextByName('SelectClause').content.indexOf(variable) == -1){
+				varlist += variable+' ';
+				listlength++;
+			}
+		}
+		if(varlist != "" && listlength > 1){
+			variables.push(varlist);
+		}
 	}
 	
 	return variables;

@@ -1,21 +1,18 @@
 describe('Theme', function () {
 
 	beforeEach(function(done) {
-		$('#main').css('opacity', 0.5);
-		window.setTimeout(done, 1000);
+		window.setTimeout(done, 500);
 	});
 
 	it('switches accordingly', function () {
 		
-		if($('body').css('background-color') != 'rgb(255, 255, 255)'){
-			changeTheme();
-		}
+		changeTheme('default');
 		
 		// reset if style was changed manually
 		document.cookie = 'theme=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 		
 		// check style change
-		$('#main > div.pull-right > button').trigger('click');
+		changeTheme();
 		
 		// expect changes in color and cookie
 		expect($('body').css('background-color')).toEqual('rgb(49, 49, 49)');
@@ -33,20 +30,24 @@ describe('Editor', function () {
 		window.setTimeout(done, 500);
 	});
 
-	it('makes more than 1 inital completion', function () {
+	it('makes no inital completions', function () {
 		
 		// initials completions are shown
 		expect($('.CodeMirror-hints')).not.toEqual(undefined);
-		expect($('.CodeMirror-hints').find('li').length).toBeGreaterThan(1);
+		expect($('.CodeMirror-hints').find('li').length).toEqual(0);
 
   	});
+	
+	it('it suggests when start typing',function(){
+		
+		CodeMirror.commands.autocomplete(editor);
+		expect($('.CodeMirror-hints').find('li').length).toBeGreaterThan(0);
+	});
 	
 	it('allows to chose one completion', function () {
 		
 		$('.CodeMirror-hints li:nth-child(2)').trigger('click');
-		expect(editor.getValue()).toEqual(`SELECT  WHERE {
-  
-}`);
+		expect(editor.getLine(0)).toEqual('SELECT  WHERE {');
 
 	});
 	
@@ -85,7 +86,7 @@ describe('Editor', function () {
 	  	
 		CodeMirror.commands.autocomplete(editor);
 		expect($('.CodeMirror-hints')).not.toEqual(undefined);
-		expect($('.CodeMirror-hints').find('li').length).toBeGreaterThan(4);
+		expect($('.CodeMirror-hints').find('li').length).toBeGreaterThan(3);
 		
 	});
 
@@ -100,15 +101,15 @@ describe('Editor', function () {
 		
 		CodeMirror.commands.autocomplete(editor);
 		$('.CodeMirror-hints li:nth-child(3)').trigger('click');
-		expect(editor.getLine(0)).toEqual("SELECT DISTINCT SCORE(?name) WHERE {");
+		expect(editor.getLine(0)).toEqual("SELECT DISTINCT SCORE(?name)  WHERE {");
 		
 	});
 	
 	it('uses context sensitive keywords after SELECT', function () {
 		
-		editor.setCursor(editor.getCursor().line=4);
+		editor.setCursor(editor.getCursor().line=3);
 		CodeMirror.commands.autocomplete(editor);
-		expect($('.CodeMirror-hints li').length).toBeGreaterThan(12);
+		expect($('.CodeMirror-hints li').length).toBeGreaterThan(10);
 		
 	});
 	
@@ -116,27 +117,9 @@ describe('Editor', function () {
 		
 		$('.CodeMirror-hints li:nth-child(3)').trigger('click');
 		CodeMirror.commands.autocomplete(editor);
-		expect($('.CodeMirror-hints li').length).toBeLessThan(12);
+		expect($('.CodeMirror-hints li').length).toBeLessThan(10);
 		
 	});
-});
-
-describe('Examples', function () {
-
-	beforeEach(function(done) {
-		window.setTimeout(done, 1000);
-	});
-
-	it('are available', function () {
-		
-		// expect samples to be present
-		$('#main > div:nth-child(7) > div > div.col-md-4 > div.btn-group > button.btn.btn-default.dropdown-toggle').trigger('click');
-		expect(sample1).not.toEqual(undefined);
-		
-		$('#main').hide();
-
-  	});
-
 });
 
 function insertTextAtCursor(text) {
