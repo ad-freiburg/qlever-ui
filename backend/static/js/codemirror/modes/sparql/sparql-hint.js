@@ -755,7 +755,17 @@ function getVariables(context, excludeAggregationVariables, suggestListOfAllUnus
 		
 	if(suggestListOfAllUnusedVariables && variables.length > 1){
 		// remove duplicates
-		variables.push(variables.join(' '));
+		var varlist = "";
+		var listlength = 0
+		for(variable of variables){
+			if(getContextByName('SelectClause').content.indexOf(variable) == -1){
+				varlist += variable+' ';
+				listlength++;
+			}
+		}
+		if(varlist != "" && listlength > 1){
+			variables.push(varlist);
+		}
 	}
 	
 	return variables;

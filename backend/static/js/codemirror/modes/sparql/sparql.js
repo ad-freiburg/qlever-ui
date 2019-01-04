@@ -30,7 +30,7 @@ var COMPLEXTYPES = [
 {
     name: 'PREFIX',
     definition: /PREFIX (.*)/g,
-    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX ']],
+    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX '],['PREFIX p1: <'],['PREFIX p2: <'],['PREFIX p3: <']],
     availableInContext: ['PrefixDecl','undefined'],
     
 },
@@ -154,7 +154,7 @@ var COMPLEXTYPES = [
 },
 {
     name: 'ORDER BY',
-    definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
+    definition: /ORDER BY .*/g,
     suggestions: [['ORDER BY ', function(c){ var result = getVariables(c); for(type of COMPLEXTYPES){ if(['COUNT','AVG','MIN','MAX','SUM','ASC','DESC'].indexOf(type.name) != -1){ var s = getTypeSuggestions(type,c); if(s.length > 0) { result = result.concat(s); } } } return result; } ,'\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
