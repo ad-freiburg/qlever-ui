@@ -84,10 +84,11 @@ var suggestions;
 			    }
 		    }
 		    for (var suggestion of addedSuggestions) {
+				
 		        var word = suggestion.word;
 		        var type = types[suggestion.type] || {};
 		        var alreadyExists = 0;
-
+				
 				// check if the type already exists
 				if(type.onlyOnce == true){
 				    // get content to test with
@@ -99,12 +100,13 @@ var suggestions;
 						alreadyExists = match.length;
 					}
 			    }
-				
+			    
 		        if (j == 0 && type.suggestOnlyWhenMatch != true && alreadyExists == 0) {
 				    allSuggestions.push(suggestion.word);
 		        }
 		        
-		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0){
+		        if(word.toLowerCase().startsWith(token.toLowerCase()) && token.trim().length > 0 && word != token){
+			    	    
 			        // if the type already exists but it is within the token we just typed: continue suggesting it
 			        // if it is outside of what we typed: don't suggest it
 			        if (alreadyExists == 1){
@@ -138,6 +140,7 @@ var suggestions;
 			    }
 			}
 	    }
+	    
     }
 	
     CodeMirror.registerHelper("hint", "sparql", function(editor, callback, options) {
@@ -198,7 +201,11 @@ var suggestions;
 				allTypeSuggestions.push({word: suggestion, type: i});
 			}
 		}
+		console.log('All types:');
+		console.log(allTypeSuggestions);
 		addMatches(suggestions, allTypeSuggestions, context);
+		console.log('After Matching:');
+		console.log(suggestions);
 
 		sparqlCallback({
             list: suggestions,
@@ -364,7 +371,6 @@ function getDynamicSuggestions(context){
 	                sparqlQuery += "\nHAVING regex(?qleverui_predicate, \"^" + word + "\")";
 	            }
 	        }
-	        
 	        
 	        var response = ['ql:contains-entity ','ql:contains-word '];
 	        if(replacedRelations == false){

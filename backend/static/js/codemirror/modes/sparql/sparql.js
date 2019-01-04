@@ -45,6 +45,14 @@ var COMPLEXTYPES = [
     
 },
 {
+    name: 'DISTINCT',
+    definition: /DISTINCT|[?\w]+ [?\w]*/g,
+    suggestions: [['DISTINCT ']],
+    availableInContext: ['SelectClause'],
+    onlyOnce: true,
+    onlyOncePerVariation: false,
+},
+{
     name: 'VARIABLE',
     definition: /\?([a-zA-Z]*)/g,
     suggestions: [[function(c){ var a = []; $(getVariables(c,true,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
@@ -147,6 +155,14 @@ var COMPLEXTYPES = [
     
 },
 {
+    name: 'HAVING',
+    definition: /HAVING \?(.+)/g,
+    suggestions: [['HAVING ',]],
+    availableInContext: ['SolutionModifier'],
+    onlyOnce: true,
+    
+},
+{
     name: 'TRIPLE',
     suggestions: [[ function(c){ return getDynamicSuggestions(c); }]],
     availableInContext: ['WhereClause'],
@@ -175,6 +191,12 @@ var COMPLEXTYPES = [
 {
     name: 'OPTIONAL',
     suggestions: [['OPTIONAL {\n\n }\n']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+},
+{
+    name: 'UNION',
+    suggestions: [['UNION {\n\n }\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
 },

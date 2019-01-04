@@ -201,7 +201,7 @@
                 <div class="row">
                     <div class="col-md-8">
                         <!-- The main editor (code mirror textarea) -->
-                        <textarea id="query" class="form-control">{% if prefill %}{{ prefill }}{% endif %}</textarea><br>
+                        <textarea id="query" class="form-control">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
                     </div>
                      <div class="col-md-4" id="help" style="margin-top: 310px;">
                         <div id="uiHelp" style="display: none;">
@@ -269,7 +269,7 @@
                             <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
                                 <i class="glyphicon glyphicon-trash"></i> Reset
                             </button>
-                            <button class="btn btn-default" onclick="processQuery('?cmd=clearcache',false,this);">
+                            <button class="btn btn-default" onclick="processQuery(BASEURL+'?cmd=clearcache',false,this);">
                                 <i class="glyphicon glyphicon-refresh"></i> Clear cache
                             </button>
                             
