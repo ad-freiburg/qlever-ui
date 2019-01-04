@@ -139,9 +139,23 @@ var COMPLEXTYPES = [
     
 },
 {
+    name: 'ASC',
+    definition: /ASC(\?.*)/g,
+    suggestions: [['ASC(',function(c){ return getVariables(c);},')\n']],
+    availableInContext: [],
+
+},
+{
+    name: 'DESC',
+    definition: /DESC(\?.*)/g,
+    suggestions: [['DESC(',function(c){ return getVariables(c);},')\n']],
+    availableInContext: [],
+    
+},
+{
     name: 'ORDER BY',
     definition: /ORDER BY ((DESC|ASC)\(.*\))/g,
-    suggestions: [['ORDER BY ', ['DESC(','ASC('], function(c){ return getVariables(c);} ,')\n']],
+    suggestions: [['ORDER BY ', function(c){ var result = getVariables(c); for(type of COMPLEXTYPES){ if(['COUNT','AVG','MIN','MAX','SUM','ASC','DESC'].indexOf(type.name) != -1){ var s = getTypeSuggestions(type,c); if(s.length > 0) { result = result.concat(s); } } } return result; } ,'\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
@@ -157,7 +171,7 @@ var COMPLEXTYPES = [
 {
     name: 'HAVING',
     definition: /HAVING \?(.+)/g,
-    suggestions: [['HAVING ',]],
+    suggestions: [['HAVING (', function(c){ return getVariables(c);},' ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     

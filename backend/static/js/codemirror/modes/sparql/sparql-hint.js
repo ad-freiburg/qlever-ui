@@ -201,11 +201,8 @@ var suggestions;
 				allTypeSuggestions.push({word: suggestion, type: i});
 			}
 		}
-		console.log('All types:');
-		console.log(allTypeSuggestions);
+		
 		addMatches(suggestions, allTypeSuggestions, context);
-		console.log('After Matching:');
-		console.log(suggestions);
 
 		sparqlCallback({
             list: suggestions,
