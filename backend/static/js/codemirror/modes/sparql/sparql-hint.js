@@ -122,17 +122,21 @@ var suggestions;
 					        word = word.replace(RegExp(subToken.string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i"), "").replace(/^\s*/, "");
 				        }
 			        }
+			        
 		            result.push(word);
 		            foundSuggestions = true;
 		        }
 	        }
 	    }
 	    
+		line = editor.getLine(cursor.line).slice(0, cursor.ch);
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
-		    for (var suggestion of allSuggestions) {
-			    result.push(suggestion);
-		    }
+		    if((context && context.w3name == 'SelectClause') || line == undefined || line.match(/^\s?$/)){
+			    for (var suggestion of allSuggestions) {
+				    result.push(suggestion);
+			    }
+			}
 	    }
     }
 	
@@ -271,10 +275,12 @@ function getDynamicSuggestions(context){
 	}	
 	
     // replace the prefixes
+    var replacedRelations = false;
     $.each(prefixesRelation,function(key,value){
         newWord = word.replace(key+':',value)
         if(newWord != word){
-            word = '<'+newWord+'>';
+            word = '<'+newWord;
+            replacedRelations = true;
             return true;
         }
     });
@@ -359,8 +365,16 @@ function getDynamicSuggestions(context){
 	            }
 	        }
 	        
+	        
+	        var response = ['ql:contains-entity ','ql:contains-word '];
+	        if(replacedRelations == false){
+		        for(var prefix in prefixesRelation){
+			     	response.push(prefix+':');
+				}
+			}
+	        
 	        getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
-	        return (!requestExtension) ? ['ql:contains-entity ','ql:contains-word '] : [];
+	        return (!requestExtension) ? response : [];
 	        
 	    } else if (words.length == 3 && suggestionMode > 0) {
 	
@@ -396,10 +410,19 @@ function getDynamicSuggestions(context){
 	        }
 	        
 	        var response = [];
+	        var lastWord = words[1].split(/[.\/\#:]/g);
+	        response.push('?'+lastWord[lastWord.length-1].replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+	        
 	        var variables = getVariables(context);
 	        for(var variable of variables){
 		        response.push(variable+' .');
 	        }
+	        
+	        if(replacedRelations == false){
+		        for(var prefix in prefixesRelation){
+			     	response.push(prefix+':');
+				}
+			}
 	        	        
 	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
 	        return (!requestExtension) ? response : [];
