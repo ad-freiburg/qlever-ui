@@ -60,8 +60,7 @@ class Backend(models.Model):
         help_text=
         "Relation that tells QLever UI the name of a subject (without prefixes).",
         verbose_name="Subject name relation")
-    predicateName = models.CharField(
-        max_length=100,
+    predicateName = models.TextField(
         default='',
         blank=True,
         help_text=
@@ -89,6 +88,11 @@ class Backend(models.Model):
         return filter(lambda x: ord(x) in range(40, 123),
                       self.name.replace(' ', '_').replace('/', '-').replace(
                           '*', '-'))
+    
+    def predicateNameQuery(self):
+	    import json
+	    return json.dumps(self.predicateName.split("\n"))
+    
 
 
 class Link(models.Model):
