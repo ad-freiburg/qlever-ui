@@ -359,36 +359,51 @@ function getDynamicSuggestions(context){
 	                            
 				// Build SPARQL query with context
 	            lines += "\n"+words[0] + " ql:has-predicate ?qleverui_predicate .";
-	            
-	            sparqlQuery =
-	            prefixes +
-	            "SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n" +
-	            "  {\n" +
+
+	            var entityQuery =
 	            "    {\n" +
 	            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
 	            "        " + lines + "\n" +
 	            "      }\n" +
-	            "      GROUP BY ?qleverui_predicate\n" +
-	            "      HAVING regex(?qleverui_predicate, \"^" + word + "\")" + "\n" +
-	            "    }\n" +
+	            "      GROUP BY ?qleverui_predicate\n" + ((word.length > 1) ?
+	            "      HAVING regex(?qleverui_predicate, \"^" + word + "\")\n" : "") +
+	            "    }\n" + ((PREDICATENAME.length > 0) ?
 	            "    OPTIONAL {\n" +
-	            "      " + PREDICATENAME.join("\n") + "\n" +
-	            "    }\n" +
-	            "  }\n" +
-	            "  UNION\n" +
-	            "  {\n" +
-	            "    {\n" +
-	            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
-	            "        " + lines + "\n" +
-	            "      }\n" +
-	            "      GROUP BY ?qleverui_predicate\n" +
-	            "    }\n" +
-	            "    " + PREDICATENAME.join("\n") + "\n" +
-	            "    FILTER regex(?qleverui_name, '^\"" + word + "')" + "\n" +
-	            "  }\n" +
-	            "}\n" +
-				"ORDER BY DESC(?qleverui_count)";	            
-	            
+	            "      " + PREDICATENAME.replace(/\n/g, " ") + "\n" +
+	            "    }\n" : "" );
+
+				sparqlQuery = prefixes;
+				if (PREDICATENAME.length > 0) {
+					sparqlQuery +=
+					"SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n";
+					
+					if (word.length > 1) {
+						sparqlQuery +=
+						"  {\n" +
+						entityQuery +
+						"  }\n" +
+			            "  UNION\n" +
+			            "  {\n" +
+					    "    {\n" +
+			            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
+			            "        " + lines + "\n" +
+			            "      }\n" +
+			            "      GROUP BY ?qleverui_predicate\n" +
+			            "    }\n" +
+			            "    " + PREDICATENAME.replace(/\n/g, " ") + "\n" +
+			            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
+			            "  }\n";
+			        } else {
+				        sparqlQuery += entityQuery;
+			        }
+				} else {
+			        sparqlQuery +=
+					"SELECT ?qleverui_predicate ?qleverui_count WHERE {\n" +
+					entityQuery;
+		        }
+		        sparqlQuery +=
+		        "}\n" +
+		        "ORDER BY DESC(?qleverui_count)";
 	            
 	        }
 	        
@@ -489,13 +504,8 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 		        	data = $.parseJSON(data);
 		        } catch(err) {}
 		        
-		        if (data.status == "ERROR") {
-			        console.warn("Backend returned an error");
-					console.warn(data.exception);
-		        } else {
-			        console.log("Got suggestions from QLever.");
-					console.log("Query took " + data.time.total + ".");
-		        }
+			    console.log("Got suggestions from QLever.");
+				console.log("Query took " + data.time.total + ".");
 		        
 		        if(data.res){
 		            for (var result of data.res) {

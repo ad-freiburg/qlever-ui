@@ -540,7 +540,7 @@
         <script>
           var BASEURL = "{{ backend.baseUrl }}";
           var SUBJECTNAME = "{% autoescape off %}{{ backend.subjectName }}{% endautoescape %}";
-          var PREDICATENAME = {% autoescape off %}{{ backend.predicateNameQuery }}{% endautoescape %};
+          var PREDICATENAME = {% autoescape off %}{{ backend.predicateNameQuery }}["PREDICATENAME"]{% endautoescape %};
           var OBJECTNAME = "{% autoescape off %}{{ backend.objectName }}{% endautoescape %}";
           var SCOREPREDICATE = "{{ backend.scorePredicate }}";
           var COLLECTEDPREFIXES = [];
