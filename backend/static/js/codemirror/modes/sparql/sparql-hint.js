@@ -359,16 +359,7 @@ function getDynamicSuggestions(context){
 	                            
 				// Build SPARQL query with context
 	            lines += "\n"+words[0] + " ql:has-predicate ?qleverui_predicate .";
-	            sparqlQuery = prefixes +
-	                "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {" +
-	                lines +
-	                "\n}\nGROUP BY ?qleverui_predicate" +
-	                "\nORDER BY DESC(?count)";
-	            if (word.length > 1) {
-	                sparqlQuery += "\nHAVING regex(?qleverui_predicate, \"^" + word + "\")";
-	            }
 	            
-	            /*
 	            sparqlQuery =
 	            prefixes +
 	            "SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n" +
@@ -397,7 +388,7 @@ function getDynamicSuggestions(context){
 	            "  }\n" +
 	            "}\n" +
 				"ORDER BY DESC(?qleverui_count)";	            
-	            */
+	            
 	            
 	        }
 	        
@@ -493,14 +484,19 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
         sparqlTimeout = window.setTimeout(function(){
 	         
 		    sparqlRequest = $.ajax({ url: lastUrl }).done(function(data) {
-		                
+
 		        try {
 		        	data = $.parseJSON(data);
 		        } catch(err) {}
 		        
-		        console.log("Got suggestions from QLever.");
-		        console.log("Query took " + data.time.total + ".");
-		
+		        if (data.status == "ERROR") {
+			        console.warn("Backend returned an error");
+					console.warn(data.exception);
+		        } else {
+			        console.log("Got suggestions from QLever.");
+					console.log("Query took " + data.time.total + ".");
+		        }
+		        
 		        if(data.res){
 		            for (var result of data.res) {
 		                
@@ -510,8 +506,9 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 		                        result[0] = result[0].replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
 		                    }
 		                }
-		                
-		                dynamicSuggestions.push({displayText: result[0]+appendix, completion: result[0]+appendix, name:"todo add name"});
+		                var nameIndex = data.selected.indexOf("?qleverui_name");
+		                var entityName = (nameIndex != -1) ? result[nameIndex] : "";
+		                dynamicSuggestions.push({displayText: result[0]+appendix, completion: result[0]+appendix, name: entityName});
 		            }
 		            
 		        } else {
