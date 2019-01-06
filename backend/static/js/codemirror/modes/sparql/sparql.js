@@ -14,6 +14,7 @@ var CONTEXTS = [
     {
         w3name: 'SelectClause',
         definition: /SELECT ([\S\s]*) WHERE/g,
+        suggestInSameLine: true,
     },
     {
         w3name: 'WhereClause',
@@ -21,9 +22,21 @@ var CONTEXTS = [
     
     },
     {
+        w3name: 'OrderCondition',
+        definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)(\n|$)/g,
+        suggestInSameLine: true,
+        forceLineBreak: true,
+    },
+    {
+        w3name: 'GroupCondition',
+        definition: /GROUP BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)(\n|$)/g,
+        suggestInSameLine: true,
+        forceLineBreak: true,
+    },
+    {
         w3name: 'SolutionModifier',
         definition: /\}([\s\S]+)$/g,
-    }
+    },
 ];
 
 var COMPLEXTYPES = [
@@ -55,8 +68,8 @@ var COMPLEXTYPES = [
 {
     name: 'VARIABLE',
     definition: /\?([a-zA-Z]*)/g,
-    suggestions: [[function(c){ var a = []; $(getVariables(c,true,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
-    availableInContext: ['SelectClause'],
+    suggestions: [[function(c){ var a = []; $(getVariables(c,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
+    availableInContext: ['SelectClause','OrderCondition','GroupCondition'],
     
 },
 {
@@ -77,28 +90,28 @@ var COMPLEXTYPES = [
     name: 'MIN',
     definition: /\(MIN\((.*)\) as (.*)\)/g,
     suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
-    availableInContext: ['SelectClause'],
+    availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'MAX',
     definition: /\(MAX\((.*)\) as (.*)\)/g,
     suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
-    availableInContext: ['SelectClause'],
+    availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'SUM',
     definition: /\(SUM\((.*)\) as (.*)\)/g,
     suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
-    availableInContext: ['SelectClause'],
+    availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'AVG',
     definition: /\(AVG\((.*)\) as (.*)\)/g,
     suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
-    availableInContext: ['SelectClause'],
+    availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
@@ -141,21 +154,21 @@ var COMPLEXTYPES = [
 {
     name: 'ASC',
     definition: /ASC(\?.*)/g,
-    suggestions: [['ASC(',function(c){ return getVariables(c);},')\n']],
-    availableInContext: [],
+    suggestions: [['ASC(',function(c){ return getVariables(c);},') ']],
+    availableInContext: ['OrderCondition'],
 
 },
 {
     name: 'DESC',
     definition: /DESC(\?.*)/g,
-    suggestions: [['DESC(',function(c){ return getVariables(c);},')\n']],
-    availableInContext: [],
+    suggestions: [['DESC(',function(c){ return getVariables(c);},') ']],
+    availableInContext: ['OrderCondition'],
     
 },
 {
     name: 'ORDER BY',
     definition: /ORDER BY .*/g,
-    suggestions: [['ORDER BY ', function(c){ var result = getVariables(c); for(type of COMPLEXTYPES){ if(['COUNT','AVG','MIN','MAX','SUM','ASC','DESC'].indexOf(type.name) != -1){ var s = getTypeSuggestions(type,c); if(s.length > 0) { result = result.concat(s); } } } return result; } ,'\n']],
+    suggestions: [['ORDER BY ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
@@ -163,7 +176,7 @@ var COMPLEXTYPES = [
 {
     name: 'GROUP BY',
     definition: /GROUP BY \?(.+)/g,
-    suggestions: [['GROUP BY ', function(c){ return getVariables(c);},'\n']],
+    suggestions: [['GROUP BY ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     

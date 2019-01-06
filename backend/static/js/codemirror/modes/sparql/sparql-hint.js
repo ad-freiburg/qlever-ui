@@ -68,7 +68,7 @@ var suggestions;
 	    // remove tokens one by one until there are suggestions
 	    var foundSuggestions = false;
 	    var allSuggestions = [];
-
+	    
 	    for (var j in lineTokens) {
 		    if (foundSuggestions) {
 			    break;
@@ -134,7 +134,7 @@ var suggestions;
 		line = editor.getLine(cursor.line).slice(0, cursor.ch);
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
-		    if((context && context.w3name == 'SelectClause') || line == undefined || line.match(/^\s?$/)){
+		    if((context && context.suggestInSameLine == true) || line == undefined || line.match(/^\s?$/)){
 			    for (var suggestion of allSuggestions) {
 				    result.push(suggestion);
 			    }
@@ -198,6 +198,9 @@ var suggestions;
         var allTypeSuggestions = [];
         for(var i = 0; i < types.length; i++){
 			for (var suggestion of getTypeSuggestions(types[i], context)) {
+				if(context.forceLineBreak && !suggestion.endsWith('\n')){
+					suggestion += "\n";
+				}
 				allTypeSuggestions.push({word: suggestion, type: i});
 			}
 		}
@@ -691,9 +694,10 @@ function getCurrentContext(absPosition){
 	    var match = context.definition.exec(editorContent);
 	    
 		if(match && match.length > 1){
-		    
-		    // we are inside the outer match of the whole context group
-		    if(absPosition >= match.index && absPosition <= match.index+match[0].length){
+			// we are inside the outer match of the whole context group
+		    endIndex = match.index+match[0].length
+		    if(context.suggestInSameLine){ endIndex += 1 }
+		    if(absPosition >= match.index && absPosition <= endIndex){
 			   foundContext = context;
 			   foundContext['start'] = match.index;
 			   foundContext['end'] = match.index+match[0].length;
@@ -770,13 +774,12 @@ function getValueOfContext(context){
    
    @params context - the current context
    @params allowDuplicatesInContext - allow variables to be suggested when they are already set
-   @params suggestListOfAllUnusedVariables - generate a list with all variables in it
    
    		- Excludes duplicate definitions if told to do so
    		- Add list with all unused variables as one suggestion
     
 **/
-function getVariables(context, excludeAggregationVariables, suggestListOfAllUnusedVariables){
+function getVariables(context, excludeAggregationVariables){
         
     var variables = [];
     
@@ -792,7 +795,7 @@ function getVariables(context, excludeAggregationVariables, suggestListOfAllUnus
 		}
     });
 		
-	if(suggestListOfAllUnusedVariables && variables.length > 1){
+	if(context['w3name'] == 'SelectClause' && variables.length > 1){
 		// remove duplicates
 		var varlist = "";
 		var listlength = 0
