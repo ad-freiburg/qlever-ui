@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-import urllib, string
+import urllib, string, json
 
 
 class Backend(models.Model):
@@ -75,7 +75,9 @@ class Backend(models.Model):
         verbose_name="Object name relation")
 
     def save(self, *args, **kwargs):
-
+        self.subjectName = self.subjectName.replace("\r\n", "\n").replace("\r", "\n")
+        self.predicateName = self.predicateName.replace("\r\n", "\n").replace("\r", "\n")
+        self.objectName = self.objectName.replace("\r\n", "\n").replace("\r", "\n")
         super(Backend, self).save(*args, **kwargs)
 
         if self.isDefault == True:
@@ -90,8 +92,7 @@ class Backend(models.Model):
                           '*', '-'))
     
     def predicateNameQuery(self):
-	    import json
-	    return json.dumps(self.predicateName.split("\n"))
+        return json.dumps({"PREDICATENAME": self.predicateName})
     
 
 
