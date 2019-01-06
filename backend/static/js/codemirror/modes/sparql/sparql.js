@@ -9,17 +9,16 @@
 var CONTEXTS = [
     {
         w3name: 'PrefixDecl',
-        definition: /^([\s\S]*)SELECT/g,
+        definition: /^([\s\S]*?)SELECT/g,
     },
     {
         w3name: 'SelectClause',
-        definition: /SELECT ([\S\s]*) WHERE/g,
+        definition: /SELECT ([\S\s]*?) WHERE/g,
         suggestInSameLine: true,
     },
     {
         w3name: 'WhereClause',
-        definition: /\{([\s\S]*)\}/g,
-    
+        definition: /\{([\s\S]*?)\}/g,
     },
     {
         w3name: 'OrderCondition',
@@ -35,7 +34,7 @@ var CONTEXTS = [
     },
     {
         w3name: 'SolutionModifier',
-        definition: /\}([\s\S]+)$/g,
+        definition: /\}([\s\S]+?)({|\}|$)/g,
     },
 ];
 

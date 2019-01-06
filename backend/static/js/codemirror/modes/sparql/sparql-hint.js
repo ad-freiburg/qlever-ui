@@ -198,7 +198,7 @@ var suggestions;
         var allTypeSuggestions = [];
         for(var i = 0; i < types.length; i++){
 			for (var suggestion of getTypeSuggestions(types[i], context)) {
-				if(context.forceLineBreak && !suggestion.endsWith('\n')){
+				if(context && context.forceLineBreak && !suggestion.endsWith('\n')){
 					suggestion += "\n";
 				}
 				allTypeSuggestions.push({word: suggestion, type: i});
@@ -684,19 +684,19 @@ function getCurrentContext(absPosition){
     $(CONTEXTS).each(function(index,context){
 	    
 	    context.definition.lastIndex = 0;
-	    var match = context.definition.exec(editorContent);
-	    
-		if(match && match.length > 1){
-			// we are inside the outer match of the whole context group
-		    endIndex = match.index+match[0].length
-		    if(context.suggestInSameLine){ endIndex += 1 }
-		    if(absPosition >= match.index && absPosition <= endIndex){
-			   foundContext = context;
-			   foundContext['start'] = match.index;
-			   foundContext['end'] = match.index+match[0].length;
-			   foundContext['content'] = getValueOfContext(context);
-			   return false;
-		    }
+	    while(match = context.definition.exec(editorContent)){
+			if(match && match.length > 1){
+				// we are inside the outer match of the whole context group
+			    endIndex = match.index+match[0].length
+			    if(context.suggestInSameLine){ endIndex += 1 }
+			    if(absPosition >= match.index && absPosition <= endIndex){
+				   foundContext = context;
+				   foundContext['start'] = match.index;
+				   foundContext['end'] = match.index+match[0].length;
+				   foundContext['content'] = getValueOfContext(context);
+				   return false;
+			    }
+			}
 		}
     });
     
