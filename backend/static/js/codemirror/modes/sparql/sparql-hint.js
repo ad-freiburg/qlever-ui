@@ -260,11 +260,11 @@ function getDynamicSuggestions(context){
     var prefixesRelation = {};
     var lines = getContextByName('PrefixDecl')['content'].split('\n');
 
-    for (var line of lines) {
-        if (line.trim().startsWith("PREFIX")) {
-            var match = /PREFIX (.*): ?<(.*)>/g.exec(line.trim());
+    for (var prefLine of lines) {
+        if (prefLine.trim().startsWith("PREFIX")) {
+            var match = /PREFIX (.*): ?<(.*)>/g.exec(prefLine.trim());
             if (match) {
-                prefixes += line.trim()+'\n';
+                prefixes += prefLine.trim()+'\n';
                 prefixesRelation[match[1]] = match[2];
             }
         }
