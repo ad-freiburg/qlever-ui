@@ -30,7 +30,7 @@ var COMPLEXTYPES = [
 {
     name: 'PREFIX',
     definition: /PREFIX (.*)/g,
-    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX '],['PREFIX p1: <'],['PREFIX p2: <'],['PREFIX p3: <']],
+    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX '],['PREFIX p1: <']],
     availableInContext: ['PrefixDecl','undefined'],
     
 },
