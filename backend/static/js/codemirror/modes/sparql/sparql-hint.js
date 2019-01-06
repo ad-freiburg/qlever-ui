@@ -359,8 +359,16 @@ function getDynamicSuggestions(context){
 	                            
 				// Build SPARQL query with context
 	            lines += "\n"+words[0] + " ql:has-predicate ?qleverui_predicate .";
+	            sparqlQuery = prefixes +
+	                "\nSELECT ?qleverui_predicate (COUNT(?qleverui_predicate) as ?count) WHERE {" +
+	                lines +
+	                "\n}\nGROUP BY ?qleverui_predicate" +
+	                "\nORDER BY DESC(?count)";
+	            if (word.length > 1) {
+	                sparqlQuery += "\nHAVING regex(?qleverui_predicate, \"^" + word + "\")";
+	            }
 	            
-	            
+	            /*
 	            sparqlQuery =
 	            prefixes +
 	            "SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n" +
@@ -389,7 +397,7 @@ function getDynamicSuggestions(context){
 	            "  }\n" +
 	            "}\n" +
 				"ORDER BY DESC(?qleverui_count)";	            
-	            
+	            */
 	            
 	        }
 	        
