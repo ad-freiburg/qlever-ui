@@ -18,7 +18,15 @@ var CONTEXTS = [
     },
     {
         w3name: 'WhereClause',
-        definition: /\{([\s\S]*?)\}/g,
+        definition: /WHERE \{([\s\S]*?)\}/g,
+    },
+    {
+        w3name: 'UnionClause',
+        definition: /UNION \{([\s\S]*?)\}/g,
+    },
+    {
+        w3name: 'OptionalClause',
+        definition: /OPTIONAL \{([\s\S]*?)\}/g,
     },
     {
         w3name: 'OrderCondition',
@@ -210,8 +218,8 @@ var COMPLEXTYPES = [
 },
 {
     name: 'SUBQUERY',
-    suggestions: [['{\n SELECT WHERE {\n\n }\n}\n']],
-    availableInContext: ['WhereClause'],
+    suggestions: [['{\n SELECT WHERE {\n\n  }\n}\n']],
+    availableInContext: ['WhereClause', 'UnionClause'],
     suggestOnlyWhenMatch: true,
 },
 {
