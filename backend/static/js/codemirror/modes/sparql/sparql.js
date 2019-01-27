@@ -17,8 +17,12 @@ var CONTEXTS = [
         suggestInSameLine: true,
     },
     {
+        w3name: 'SolutionModifier',
+        definition: /\}([\s\S]+?)({|\}|$)/g,
+    },
+    {
         w3name: 'SubQuery',
-        definition: /^\s+\{([\s\S]*?)\}/gm,
+        definition: /^\s+\{([\s\S]*)\}/gm,
     },
     {
         w3name: 'WhereClause',
@@ -26,11 +30,11 @@ var CONTEXTS = [
     },
     {
         w3name: 'UnionClause',
-        definition: /UNION \{([\s\S]*?)\}/g,
+        definition: /UNION \{([\s\S]*)\}/g,
     },
     {
         w3name: 'OptionalClause',
-        definition: /OPTIONAL \{([\s\S]*?)\}/g,
+        definition: /OPTIONAL \{([\s\S]*)\}/g,
     },
     {
         w3name: 'OrderCondition',
@@ -43,10 +47,6 @@ var CONTEXTS = [
         definition: /GROUP BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/g,
         suggestInSameLine: true,
         forceLineBreak: true,
-    },
-    {
-        w3name: 'SolutionModifier',
-        definition: /\}([\s\S]+?)({|\}|$)/g,
     },
 ];
 

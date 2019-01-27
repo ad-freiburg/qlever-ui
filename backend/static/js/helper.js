@@ -1,5 +1,14 @@
 // UI helpers
 
+function log(message,kind){
+	if((kind == 'parsing' && $('#logParsing').is(':checked')) ||
+	   (kind == 'other' && $('#logOther').is(':checked')) ||
+	   (kind == 'requests' && $('#logRequests').is(':checked')) ||
+	   (kind == 'suggestions' && $('#logSuggestions').is(':checked'))){
+		   console.log('['+kind+']: '+message);
+	} 
+}
+
 function getQueryString(){
 	var q = encodeURIComponent(editor.getValue());
     var queryString = "?query=" + q;
@@ -10,7 +19,7 @@ function getQueryString(){
 }
 
 function switchStates(cm) {
-    console.log('Switching between placeholders...');
+	log('Switching between placeholders...','other');
     if (activeState == 0) {
         // move to end of select clause
         for (var i = 0; i < cm.lastLine(); i++) {
@@ -67,7 +76,7 @@ function switchStates(cm) {
 
 function changeTheme(theme = undefined) {
     if (editor.getOption("theme") == 'railscasts' || theme == 'default') {
-        console.log('Setting theme to default...');
+		log('Setting theme to default...','other');
         editor.setOption('theme', 'default');
         $('body').css('background', '#FFFFFF');
         $('.well').css('background', '#F6F6F6');
@@ -76,7 +85,7 @@ function changeTheme(theme = undefined) {
         $('.navbar').addClass('navbar-inverse');
         createCookie("theme", "default", 3);
     } else {
-        console.log('Setting theme to dark...');
+        log('Setting theme to dark...','other');
         editor.setOption('theme', 'railscasts');
         $('body').css('background', '#313131');
         $('.well,.navbar').css('background', '#D2D2D2');

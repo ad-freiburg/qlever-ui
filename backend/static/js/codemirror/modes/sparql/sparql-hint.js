@@ -168,13 +168,11 @@ var suggestions;
         var context = getCurrentContext(absolutePosition,$.trim(editor.getValue()),0); // get current context
 		suggestions = [];
 		
-		console.log('Starting suggestion');
-		console.log('--------------------------');
-		console.log('Position: '+absolutePosition);
+		log('Position: '+absolutePosition,'suggestions');
 		if(context){
-			console.log('Context: '+context.w3name);
+			log('Context: '+context.w3name,'suggestions');
 		} else {
-			console.log('Context: None');
+			log('Context: None','suggestions');
 		}
 		
 		// get current token
@@ -537,8 +535,8 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
         // do the limits for the scrolling feature
         sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
-        console.info('Getting suggestions from QLever:');
-        console.log(sparqlQuery);
+        log('Getting suggestions from QLever:','requests');
+        log(sparqlQuery,'requests');
         
         lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
         var dynamicSuggestions = [];
@@ -551,8 +549,8 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 		        	data = $.parseJSON(data);
 		        } catch(err) {}
 		        
-			    console.log("Got suggestions from QLever.");
-				console.log("Query took " + data.time.total + ".");
+			    log("Got suggestions from QLever.",'other');
+				log("Query took " + data.time.total + ".",'requests');
 		        
 		        if(data.res){
 		            for (var result of data.res) {
@@ -593,7 +591,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 		        
 		    }).fail(function(e) {
 			
-				console.log(e);
+				console.error(e);
 		        // things went terribly wrong...
 		        console.error('Failed to load suggestions from QLever (step 2)', e);
 		        activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');

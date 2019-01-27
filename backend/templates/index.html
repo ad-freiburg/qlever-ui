@@ -71,21 +71,6 @@
                           </a>
                           <ul class="dropdown-menu">
                              
-                            <!-- Dropdown navigation part -->
-                            {% if request.user.is_authenticated %}
-                            <h6 class="dropdown-header">Internal Documents</h6>
-                                <li>
-                                    <a href="http://ad-wiki.informatik.uni-freiburg.de/teaching/BachelorAndMasterProjectsAndTheses/SparqlTextUI" target="_blank">
-                                        <i class="glyphicon glyphicon-eye-close"></i>  Project Description
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="https://docs.google.com/document/d/1gy3z3UkyicYaF75ZXsxTEzS8c28hPTFa6dQU6Y0dj0o/edit" target="_blank">
-                                        <i class="glyphicon glyphicon-eye-close"></i>  Google Doc
-                                    </a>
-                                </li>
-                            {% endif %}
-                            
                             <h6 class="dropdown-header">QLever UI Components</h6>
                                 <li>
                                     <a href="/admin/" target="_blank">
@@ -114,14 +99,12 @@
                                         <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/" target="_blank">
-                                        <i class="glyphicon glyphicon glyphicon-tasks"></i>&nbsp; QLever UI Website
-                                    </a>
-                                </li>
-                            
-                            <h6 class="dropdown-header">Version</h6>
+                            <h6 class="dropdown-header">Developer</h6>
                                 <li><a href="">Revision {{ STATIC_VERSION }}</a></li>
+                                <li><a href=""><input id="logParsing" type="checkbox" checked="checked"> Log parsing</a></li>
+                                <li><a href=""><input id="logRequests" type="checkbox" checked="checked"> Log requests</a></li>
+                                <li><a href=""><input id="logSuggestions" type="checkbox" checked="checked"> Log suggestions</a></li>
+                                <li><a href=""><input id="logOther" type="checkbox" checked="checked"> Log UI events</a></li>
                             
                           </ul>
                         </li>

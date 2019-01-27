@@ -57,7 +57,7 @@ $(document).ready(function() {
     }
 
 	// initializing done
-    console.log('Editor initialized.');
+    log('Editor initialized.','other');
 
 	// Do some custom activities (overwrite codemirror behaviour)
 	editor.on("keydown", function(instance, event) {
@@ -143,12 +143,12 @@ $(document).ready(function() {
     }
 
     $("#runbtn").click(function() {
-        console.log('Start processing');
+        log('Start processing','other');
         processQuery(getQueryString() + '&send=100', true, this);
         
         // generate pretty link
         $.post('/api/share',{'content':editor.getValue()}, function(result) {
-            console.log('Got pretty link from backend');
+            log('Got pretty link from backend','other');
             window.history.pushState("html:index.html", "QLever", window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/' + result.link);
         },'json');
 
@@ -157,12 +157,12 @@ $(document).ready(function() {
     });
 
     $("#csvbtn").click(function() {
-        console.log('Download CSV');
+		log('Download CSV','other');
         window.location.href = getQueryString() + "&action=csv_export";
     });
 
     $("#tsvbtn").click(function() {
-        console.log('Download TSV');
+		log('Download TSV','other');
         window.location.href = getQueryString() + "&action=tsv_export";
     });
 
@@ -181,8 +181,8 @@ function addNameHover(element,domElement, list, namepredicate, prefixes){
         }
     } else {
         query = prefixes + "SELECT ?qleverui_name WHERE {\n" + "  " + namepredicate.replace(/\n/g, "\n  ").replace(/\?qleverui_(subject|object|predicate)/g, element) + "\n}";
-        console.log("Retrieving name for " + element + ":");
-        console.log(query);
+        log("Retrieving name for " + element + ":",'requests');
+        log(query,'requests');
         $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
             if (result['res'] && result['res'][0]) {
 	            list[element] = result['res'][0];
@@ -199,7 +199,7 @@ function addNameHover(element,domElement, list, namepredicate, prefixes){
 
 function processQuery(query, showStatus, element) {
 
-    console.log('Preparing query...');
+    log('Preparing query...','other');
     if (showStatus != false) displayStatus("Waiting for response...");
     
     $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
@@ -215,9 +215,9 @@ function processQuery(query, showStatus, element) {
             maxSend = parseInt(window.location.href.substr(sInd + 6))
         }
     }
-    console.log('Sending request...');
+    log('Sending request...','other');
     $.getJSON(query, function(result) {
-        console.log('Evaluating and displaying results...');
+        log('Evaluating and displaying results...','other');
 
         $(element).find('.glyphicon').removeClass('glyphicon-spin');
         if (showStatus != false) {
@@ -308,12 +308,12 @@ function processQuery(query, showStatus, element) {
 }
 
 function handleStatsDisplay() {
-    console.log('Loading backend statistics...');
+    log('Loading backend statistics...','other');
     $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Loading information...');
     $('#statsButton').attr('disabled', 'disabled');
 
     $.getJSON(BASEURL + "?cmd=stats", function(result) {
-        console.log('Evaluating and displaying stats...');
+        log('Evaluating and displaying stats...','other');
         $("#kbname").html(tsep(result.kbindex));
         $("#textname").html(tsep(result.textindex));
         $("#ntriples").html(tsep(result.noftriples));
