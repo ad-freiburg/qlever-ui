@@ -83,15 +83,13 @@ $(document).ready(function() {
         }
         
         // do not suggest anything inside a word
-        if (line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) {
-           
-			// invoke autocompletion after a very short delay
-            window.setTimeout(function() {
-                if (example == 1) { example = 0; } else {
-                    CodeMirror.commands.autocomplete(instance);
-                }
-            }, 150);
-
+        if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}") {
+				// invoke autocompletion after a very short delay
+	            window.setTimeout(function() {
+	                if (example == 1) { example = 0; } else {
+	                    CodeMirror.commands.autocomplete(instance);
+	                }
+	            }, 150);
         } else {
             console.warn('Skipped completion due to cursor position');
         }
