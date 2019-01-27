@@ -53,8 +53,7 @@ class Backend(models.Model):
         verbose_name="Predicate for ranking",
         blank=True)
 
-    subjectName = models.CharField(
-        max_length=100,
+    subjectName = models.TextField(
         default='',
         blank=True,
         help_text=
