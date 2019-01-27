@@ -60,13 +60,17 @@ $(document).ready(function() {
     console.log('Editor initialized.');
 
 	// Do some custom activities (overwrite codemirror behaviour)
+	editor.on("keydown", function(instance, event) {
+		$('[data-tooltip=tooltip]').tooltip('hide');
+		console.log($('[data-tooltip=tooltip]').length);
+	});
+	
     editor.on("keyup", function(instance, event) {
 	    
 	    // (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-entity').hover(showRealName);
         }
-		
 		// do not overwrite ENTER inside an completion window
         if (instance.state.completionActive || event.keyCode == 27) {
             return;
