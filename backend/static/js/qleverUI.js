@@ -120,31 +120,12 @@ $(document).ready(function() {
         values = $(this).parent().text().trim().split(' ');
         element = $(this).text().trim();
         domElement = this;
-
-		// TODO: do something like this to add hover to prefixes 
-		/*
-		word = editor.getTokenAt(cur);
-	    var types = [];
-	    if(word.type){
-	 	   types = word.type.split(' ');
-	 	}
-	    // used tokenizer data to find the current word with its prefix
-	    if(types.indexOf('prefixed-entity') != -1){
-		    if(types.indexOf('entity-name') != -1){
-			    word = editor.getTokenAt({ch:word.start-1 ,line: cur.line}).string+word.string;
-			} else if(types.indexOf('prefix-name') != -1){
-				word = word.string+editor.getTokenAt({ch:word.end+1 ,line: cur.line}).string;
-			}
-	    } else {
-		    word = word.string;
-	    }
-		*/
 		
-        if ($(this).prev().hasClass('cm-prefix')) {
+        if ($(this).prev().hasClass('cm-prefix-name')) {
             element = $(this).prev().text() + element;
         }
         
-        if ($(this).next().hasClass('cm-literal')) {
+        if ($(this).next().hasClass('cm-entity-name')) {
             element = element+$(this).next().text();
         }
 		
@@ -187,20 +168,28 @@ $(document).ready(function() {
 });
 
 function addNameHover(element,domElement, list, namepredicate, prefixes){
-	
+	if ($(domElement).data('tooltip') == 'tooltip') {
+		return;
+	}
+	console.log($(domElement).attr("data-title"));
 	if (list[element] != undefined) {
         if (list[element] != "") {
-            $(domElement).tooltip({ title: list[element] });
+            $(domElement).attr('data-title', list[element]).attr('data-container', 'body').attr('data-tooltip', 'tooltip').tooltip();
+            if ($(domElement).is(":hover")) {
+                $(domElement).trigger('mouseenter');
+            }
         }
     } else {
-        query = prefixes + "SELECT ?name WHERE {\n " + element + " " + namepredicate + " ?name }";
+        query = prefixes + "SELECT ?qleverui_name WHERE {\n" + "  " + namepredicate.replace(/\n/g, "\n  ").replace(/\?qleverui_(subject|object|predicate)/g, element) + "\n}";
+        console.log("Retrieving name for " + element + ":");
+        console.log(query);
         $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
             if (result['res'] && result['res'][0]) {
-                $(domElement).tooltip({ title: result['res'][0] });
-                window.setTimeout(function() {
-                    $(domElement).trigger('mouseenter');
-                }, 100);
-                list[element] = result['res'][0];
+	            list[element] = result['res'][0];
+                $(domElement).attr('data-title', result['res'][0]).attr('data-container', 'body').attr('data-tooltip', 'tooltip').tooltip();
+                if ($(domElement).is(":hover")) {
+	                $(domElement).trigger('mouseenter');
+                }
             } else {
                 list[element] = "";
             }
