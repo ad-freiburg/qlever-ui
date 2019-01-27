@@ -336,9 +336,11 @@ function getDynamicSuggestions(context){
 					}
 				}
 			}
-			lines = linesTaken;
+			lines = [];
+			for (var line of linesTaken) {
+				lines.push(line.trim());
+			}
 		}
-	    lines = '\n'+lines.join('\n');
 	    
 	    if (words.length == 2 && suggestionMode > 0) {
 	        
@@ -361,26 +363,27 @@ function getDynamicSuggestions(context){
 	        } else if (suggestionMode == 2) {
 	                            
 				// Build SPARQL query with context
-	            lines += "\n"+words[0] + " ql:has-predicate ?qleverui_predicate .";
+	            lines.push(words[0] + " ql:has-predicate ?qleverui_predicate .");
 
+				// find all entities whose ids match what we typed
 	            var entityQuery =
 	            "    {\n" +
 	            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
-	            "        " + lines + "\n" +
+	            "        " + lines.join("\n        ") + "\n" +
 	            "      }\n" +
-	            "      GROUP BY ?qleverui_predicate\n" + ((word.length > 1) ?
+	            "      GROUP BY ?qleverui_predicate\n" + ((word.length > 0 && word != "<") ?
 	            "      HAVING regex(?qleverui_predicate, \"^" + word + "\")\n" : "") +
-	            "    }\n" + ((PREDICATENAME.length > 0) ?
+	            "    }\n" + ((PREDICATENAME.length > 0) ?  // get entity names if we know how to query them
 	            "    OPTIONAL {\n" +
-	            "      " + PREDICATENAME.replace(/\n/g, " ") + "\n" +
+	            "      " + PREDICATENAME.replace(/\n/g, "\n      ") + "\n" +
 	            "    }\n" : "" );
 
 				sparqlQuery = prefixes;
 				if (PREDICATENAME.length > 0) {
 					sparqlQuery +=
 					"SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n";
-					
-					if (word.length > 1) {
+					if (word.length > 0 && word != "<") {
+						// find all entities whose names match what we typed and UNION it with entityQuery
 						sparqlQuery +=
 						"  {\n" +
 						entityQuery +
@@ -389,17 +392,19 @@ function getDynamicSuggestions(context){
 			            "  {\n" +
 					    "    {\n" +
 			            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
-			            "        " + lines + "\n" +
+			            "        " + lines.join("\n        ") + "\n" +
 			            "      }\n" +
 			            "      GROUP BY ?qleverui_predicate\n" +
 			            "    }\n" +
-			            "    " + PREDICATENAME.replace(/\n/g, " ") + "\n" +
+			            "    " + PREDICATENAME.replace(/\n/g, "\n    ") + "\n" +
 			            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
 			            "  }\n";
 			        } else {
+				    	// There was no input that we can search for -> just do entityQuery
 				        sparqlQuery += entityQuery;
 			        }
 				} else {
+					// We don't know how to get entity names -> just do entityQuery
 			        sparqlQuery +=
 					"SELECT ?qleverui_predicate ?qleverui_count WHERE {\n" +
 					entityQuery;
@@ -441,6 +446,7 @@ function getDynamicSuggestions(context){
 	        } else if (suggestionMode == 2) {
 		        
 				// Build SPARQL query with context
+				lines = "\n" + lines.join("\n");
 	            lines += "\n"+words[0] + " " + words[1] + " ?qleverui_object .";
 	            sparqlQuery = prefixes +
 	                "\nSELECT ?qleverui_object WHERE {\n  " +
