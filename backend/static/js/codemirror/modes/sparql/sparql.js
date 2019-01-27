@@ -17,8 +17,12 @@ var CONTEXTS = [
         suggestInSameLine: true,
     },
     {
+        w3name: 'SubQuery',
+        definition: /^\s+\{([\s\S]*?)\}/gm,
+    },
+    {
         w3name: 'WhereClause',
-        definition: /WHERE \{([\s\S]*?)\}/g,
+        definition: /WHERE \{([\s\S]*)\}/g,
     },
     {
         w3name: 'UnionClause',
@@ -60,7 +64,7 @@ var COMPLEXTYPES = [
     suggestions: [[`SELECT  WHERE {
   
 }\n`]],
-    availableInContext: ['PrefixDecl','undefined'],
+    availableInContext: ['PrefixDecl','undefined','SubQuery'],
     onlyOnce: true,
     
 },
@@ -199,27 +203,27 @@ var COMPLEXTYPES = [
 {
     name: 'TRIPLE',
     suggestions: [[ function(c){ return getDynamicSuggestions(c); }]],
-    availableInContext: ['WhereClause'],
+    availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     onlyOncePerVariation: false,
 },
 {
     name: 'FILTER',
     definition: /FILTER \((.*)/g,
     suggestions: [['FILTER (', function(c){ return getVariables(c);},' ']],
-    availableInContext: ['WhereClause'],
+    availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     suggestOnlyWhenMatch: true,
 },
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
     suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, ', ', ['"en"','"de"'] ,') .\n']],
-    availableInContext: ['WhereClause'],
+    availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     suggestOnlyWhenMatch: true,
 },
 {
     name: 'SUBQUERY',
-    suggestions: [['{\n SELECT WHERE {\n\n }\n}\n']],
-    availableInContext: ['WhereClause', 'UnionClause'],
+    suggestions: [['{\n  \n}']],
+    availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
     suggestOnlyWhenMatch: true,
 },
 {
