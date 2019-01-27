@@ -218,7 +218,7 @@ var COMPLEXTYPES = [
 },
 {
     name: 'SUBQUERY',
-    suggestions: [['{\n SELECT WHERE {\n\n  }\n}\n']],
+    suggestions: [['{\n SELECT WHERE {\n\n }\n}\n']],
     availableInContext: ['WhereClause', 'UnionClause'],
     suggestOnlyWhenMatch: true,
 },
@@ -343,7 +343,6 @@ var COMPLEXTYPES = [
                 } else if (before.length > 0) {
 		            return "entity prefixed-entity entity-name"
 	            } else if (word.match(/[\d]+/)) {
-		            console.log(word);
 	            	return "literal";
 	            } else if (before.length > 0) {
 		            return "entity prefixed-entity entity-name"

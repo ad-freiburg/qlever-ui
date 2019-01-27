@@ -134,7 +134,7 @@ var suggestions;
 		line = editor.getLine(cursor.line).slice(0, cursor.ch);
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
-		    if((context && context.suggestInSameLine == true) || line == undefined || line.match(/^\s?$/)){
+		    if((context && context.suggestInSameLine == true) || line == undefined || line.match(/^\s+$/)){
 			    for (var suggestion of allSuggestions) {
 				    result.push(suggestion);
 			    }

@@ -97,16 +97,15 @@
             
             var absPosition = getAbsolutePosition(cursor);
             var content = editor.getValue().slice(0,absPosition);
-            var whitespaces = ("  ".repeat((content.split("{").length - 1) - (content.split("}").length - 1)));
-            whitespaces = whitespaces.slice(0,whitespaces.length - (line.search(/\S|$/)));
+            var indentWhitespaces = ("  ".repeat((content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1)));
+            var whitespaces = indentWhitespaces.slice(0,indentWhitespaces.length - (line.search(/\S|$/)));
             
-            // TODO: do this when there are white spaces before the first char
-            if(line.replace(/\s/g, "") == ""){
-	            completion = whitespaces+completion.split('\n').join("\n"+whitespaces);
+            if(line.replace(/\s?\S?/g, "") == ""){
+	            completion = whitespaces+completion.split('\n').join("\n"+whitespaces+(" ".repeat(line.search(/\S|$/))));
             }
             
             if (completion.slice(-1) == ".") {
-                completion = completion + "\n"+whitespaces
+                completion = completion + "\n"+indentWhitespaces
             }
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
