@@ -165,7 +165,7 @@ var suggestions;
     
         var cur = editor.getCursor(); // current cursor position
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
-        var context = getCurrentContext(absolutePosition,$.trim(editor.getValue()),true); // get current context
+        var context = getCurrentContext(absolutePosition,$.trim(editor.getValue()),0); // get current context
 		suggestions = [];
 		
 		console.log('Starting suggestion');
@@ -728,8 +728,10 @@ function getAbsolutePosition(cur){
    @params absPosition - absolute position in text
     
 **/    
-function getCurrentContext(absPosition,content,first){
+function getCurrentContext(absPosition,content,iteration){
     var foundContext = undefined;
+    
+    if(iteration >= 10){ return undefined; }
     
     $(CONTEXTS).each(function(index,context){
 	    
@@ -750,15 +752,16 @@ function getCurrentContext(absPosition,content,first){
 		}
     });
     
-    if(first == true && foundContext == undefined && absPosition > content.length){
-		foundContext = getContextByName('SolutionModifier');
-	} else {
-		if(foundContext){
-			subContext = getCurrentContext(absPosition,foundContext['content'],false);
-			if(subContext != undefined){
-				return subContext;
-			}
+    if(foundContext){
+	    iteration += 1;
+		subContext = getCurrentContext(absPosition,foundContext['content'],iteration);
+		if(subContext != undefined){
+			foundContext = subContext;
 		}
+	}
+    
+    if(iteration == 0 && foundContext == undefined && absPosition > content.length){
+		foundContext = getContextByName('PrefixDecl');
 	}
     
     return foundContext;

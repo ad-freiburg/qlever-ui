@@ -97,7 +97,11 @@
             
             var absPosition = getAbsolutePosition(cursor);
             var content = editor.getValue().slice(0,absPosition);
-            var indentWhitespaces = ("  ".repeat((content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1)));
+            var count = (content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1);
+            var indentWhitespaces = "";
+            if (count > 0){
+	            indentWhitespaces = "  ".repeat(count);
+            }
             var whitespaces = indentWhitespaces.slice(0,indentWhitespaces.length - (line.search(/\S|$/)));
             
             if(line.replace(/\s?\S?/g, "") == ""){
