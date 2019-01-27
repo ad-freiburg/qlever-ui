@@ -499,7 +499,7 @@ function getDynamicSuggestions(context){
 	        
 	        var response = [];
 	        var lastWord = (predicateNames[words[1]] != "" && predicateNames[words[1]] != undefined) ? predicateNames[words[1]] : words[1];
-	        response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+	        response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
 	        
 	        var variables = getVariables(context);
 	        for(var variable of variables){
