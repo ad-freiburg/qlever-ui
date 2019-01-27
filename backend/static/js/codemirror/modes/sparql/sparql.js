@@ -61,9 +61,7 @@ var COMPLEXTYPES = [
 {
     name: 'SELECT',
     definition: /SELECT (.*)/g,
-    suggestions: [[`SELECT  WHERE {
-  
-}\n`]],
+    suggestions: [['SELECT  WHERE {\n  \n}\n']],
     availableInContext: ['PrefixDecl','undefined','SubQuery'],
     onlyOnce: true,
     
