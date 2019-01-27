@@ -66,8 +66,7 @@ class Backend(models.Model):
         help_text=
         "Relation that tells QLever UI the name of a predicate (without prefixes).",
         verbose_name="Predicate name relation")
-    objectName = models.CharField(
-        max_length=100,
+    objectName = models.TextField(
         default='',
         blank=True,
         help_text=
@@ -91,8 +90,8 @@ class Backend(models.Model):
                       self.name.replace(' ', '_').replace('/', '-').replace(
                           '*', '-'))
     
-    def predicateNameQuery(self):
-        return json.dumps({"PREDICATENAME": self.predicateName})
+    def entityNameQueries(self):
+        return json.dumps({"PREDICATENAME": self.predicateName, "OBJECTNAME": self.objectName, "SUBJECTNAME": self.subjectName})
     
 
 
