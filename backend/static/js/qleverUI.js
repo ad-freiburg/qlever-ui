@@ -169,7 +169,6 @@ function addNameHover(element,domElement, list, namepredicate, prefixes){
 	if ($(domElement).data('tooltip') == 'tooltip') {
 		return;
 	}
-	console.log($(domElement).attr("data-title"));
 	if (list[element] != undefined) {
         if (list[element] != "") {
             $(domElement).attr('data-title', list[element]).attr('data-container', 'body').attr('data-tooltip', 'tooltip').tooltip();
