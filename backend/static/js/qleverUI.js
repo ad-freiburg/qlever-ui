@@ -62,7 +62,6 @@ $(document).ready(function() {
 	// Do some custom activities (overwrite codemirror behaviour)
 	editor.on("keydown", function(instance, event) {
 		$('[data-tooltip=tooltip]').tooltip('hide');
-		console.log($('[data-tooltip=tooltip]').length);
 	});
 	
     editor.on("keyup", function(instance, event) {
