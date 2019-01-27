@@ -92,14 +92,25 @@
 
         pick: function(data, i) {
             var completion = (typeof data.list[i] == "string") ? data.list[i] : data.list[i].completion;
+            var cursor = editor.getCursor();
+            var line = editor.getLine(cursor.line);
+            
+            var absPosition = getAbsolutePosition(cursor);
+            var content = editor.getValue().slice(0,absPosition);
+            var whitespaces = ("  ".repeat((content.split("{").length - 1) - (content.split("}").length - 1)));
+            whitespaces = whitespaces.slice(0,whitespaces.length - (line.search(/\S|$/)));
+            
+            // TODO: do this when there are white spaces before the first char
+            if(line.replace(/\s/g, "") == ""){
+	            completion = whitespaces+completion.split('\n').join("\n"+whitespaces);
+            }
+            
             if (completion.slice(-1) == ".") {
-                completion = completion + "\n  "
+                completion = completion + "\n"+whitespaces
             }
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
 
-            var cursor = editor.getCursor();
-            var line = editor.getLine(cursor.line)
 
             if (completion.slice(-2) == "()" ||  completion.slice(-2) == " )") {
                 cursor.ch = cursor.ch - 1;
@@ -113,7 +124,7 @@
                         'line': cursor.line,
                         'ch': line.length
                     });
-                    editor.replaceSelection('\n  ')
+                    editor.replaceSelection('\n'+whitespaces)
                     cursor.ch = 0;
                     cursor.line = cursor.line + 1;
                     editor.setCursor(cursor);

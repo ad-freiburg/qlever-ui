@@ -30,13 +30,13 @@ var CONTEXTS = [
     },
     {
         w3name: 'OrderCondition',
-        definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)(\n|$)/g,
+        definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/g,
         suggestInSameLine: true,
         forceLineBreak: true,
     },
     {
         w3name: 'GroupCondition',
-        definition: /GROUP BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)(\n|$)/g,
+        definition: /GROUP BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/g,
         suggestInSameLine: true,
         forceLineBreak: true,
     },

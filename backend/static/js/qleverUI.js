@@ -101,7 +101,7 @@ $(document).ready(function() {
     editor.on("endCompletion", function() { $('#aBadge').remove(); });
 
     function showRealName(element) {
-	   	    
+	   	 
         // collect prefixes (as string and dict)
         // TODO: move this to a function. Also use this new function in sparql-hint.js
 	    var prefixes = "";
@@ -143,7 +143,11 @@ $(document).ready(function() {
         if ($(this).prev().hasClass('cm-prefix')) {
             element = $(this).prev().text() + element;
         }
-
+        
+        if ($(this).next().hasClass('cm-literal')) {
+            element = element+$(this).next().text();
+        }
+		
         index = values.indexOf(element);
         if (index == 0) {
             addNameHover(element,domElement,subjectNames,SUBJECTNAME,prefixes);
@@ -183,6 +187,7 @@ $(document).ready(function() {
 });
 
 function addNameHover(element,domElement, list, namepredicate, prefixes){
+	
 	if (list[element] != undefined) {
         if (list[element] != "") {
             $(domElement).tooltip({ title: list[element] });
