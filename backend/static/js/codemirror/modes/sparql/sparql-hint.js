@@ -47,6 +47,8 @@ var suggestions;
 
 	// add matches to result
     function addMatches(result, addedSuggestions, context) {
+	    
+	    log('Found  '+addedSuggestions.length+' suggestions for this position','suggestions');
 	    // current line
 	    var cursor = editor.getCursor();
 	    var line = editor.getLine(cursor.line).slice(0, cursor.ch);
@@ -134,6 +136,7 @@ var suggestions;
 		line = editor.getLine(cursor.line).slice(0, cursor.ch);
 	    // suggest everything if we didn't find any suggestion and didn't start typing a word
 	    if (!foundSuggestions && (!curChar || curChar.match(/\s/))) {
+			log('Could not determine any limits - showing all suggestions','suggestions');
 		    if((context && context.suggestInSameLine == true) || line == undefined || line.match(/^\s+$/)){
 			    for (var suggestion of allSuggestions) {
 				    result.push(suggestion);
@@ -728,6 +731,8 @@ function getAbsolutePosition(cur){
     
 **/    
 function getCurrentContext(absPosition,content,iteration){
+	log('Searching in','parsing')
+    log(content,'parsing')
     var foundContext = undefined;
     
     if(iteration >= 10){ return undefined; }
@@ -737,10 +742,15 @@ function getCurrentContext(absPosition,content,iteration){
 	    context.definition.lastIndex = 0;
 	    while(match = context.definition.exec(content)){
 			if(match && match.length > 1){
+				log(context.w3name+' was found in the current content','parsing');
 				// we are inside the outer match of the whole context group
-			    endIndex = match.index+match[0].length
+	            endIndex = match.index+match[0].length
 			    if(context.suggestInSameLine){ endIndex += 1 }
+			    log(match.index,'parsing');
+			    log(endIndex,'parsing');
+			    log(absPosition,'parsing');
 			    if(absPosition >= match.index && absPosition <= endIndex){
+				   log(context.w3name+' is candidate for this position | depth: '+iteration,'parsing');
 				   foundContext = context;
 				   foundContext['start'] = match.index;
 				   foundContext['end'] = match.index+match[0].length;
@@ -753,16 +763,17 @@ function getCurrentContext(absPosition,content,iteration){
     
     if(foundContext){
 	    iteration += 1;
-		subContext = getCurrentContext(absPosition,foundContext['content'],iteration);
+		subContext = getCurrentContext(absPosition - content.split(foundContext['content'])[0].length,foundContext['content'],iteration);
 		if(subContext != undefined){
 			foundContext = subContext;
 		}
+   		log('Identified '+foundContext.w3name,'parsing');
 	}
     
     if(iteration == 0 && foundContext == undefined && absPosition > content.length){
+	    log('Using PrefixDecl because there was no indicator found','parsing');
 		foundContext = getContextByName('PrefixDecl');
 	}
-    
     return foundContext;
 }
 

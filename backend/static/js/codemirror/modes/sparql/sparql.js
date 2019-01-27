@@ -22,11 +22,12 @@ var CONTEXTS = [
     },
     {
         w3name: 'SubQuery',
-        definition: /^\s+\{([\s\S]*)\}/gm,
+        definition: /^\s+\{([\s]*)\}/gm,
     },
     {
         w3name: 'WhereClause',
         definition: /WHERE \{([\s\S]*)\}/g,
+        suggestInSameLine: true
     },
     {
         w3name: 'UnionClause',

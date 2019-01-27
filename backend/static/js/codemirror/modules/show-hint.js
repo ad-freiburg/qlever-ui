@@ -105,10 +105,12 @@
             var whitespaces = indentWhitespaces.slice(0,indentWhitespaces.length - (line.search(/\S|$/)));
             
             if(line.replace(/\s?\S?/g, "") == ""){
+	            log('Added '+whitespaces.length+' whitespaces','other');
 	            completion = whitespaces+completion.split('\n').join("\n"+whitespaces+(" ".repeat(line.search(/\S|$/))));
             }
             
             if (completion.slice(-1) == ".") {
+	            log('Added linebreak','other');
                 completion = completion + "\n"+indentWhitespaces
             }
             if (completion.hint) completion.hint(this.cm, data, completion);
