@@ -422,7 +422,7 @@ function getDynamicSuggestions(context){
 				}
 			}
 	        
-	        getQleverSuggestions(sparqlQuery,prefixesRelation,' ');
+	        getQleverSuggestions(sparqlQuery,prefixesRelation,' ', predicateNames);
 	        return (!requestExtension) ? response : [];
 	        
 	    } else if (words.length == 3 && suggestionMode > 0) {
@@ -512,7 +512,7 @@ function getDynamicSuggestions(context){
 				}
 			}
 	        	        
-	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .');
+	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .', objectNames);
 	        return (!requestExtension) ? response : [];
 	    }
     }
@@ -523,7 +523,7 @@ function getDynamicSuggestions(context){
 }
 
 
-function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
+function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 	
 	try {
         
@@ -565,6 +565,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix){
 		                }
 		                var nameIndex = data.selected.indexOf("?qleverui_name");
 		                var entityName = (nameIndex != -1) ? result[nameIndex] : "";
+		                nameList[result[0]] = entityName;
 		                dynamicSuggestions.push({displayText: result[0]+appendix, completion: result[0]+appendix, name: entityName});
 		            }
 		            
