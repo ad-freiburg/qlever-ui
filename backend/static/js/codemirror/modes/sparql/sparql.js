@@ -19,6 +19,7 @@ var CONTEXTS = [
     {
         w3name: 'SolutionModifier',
         definition: /\}([\s\S]+?)({|\}|$)/g,
+        suggestInSameLine: true,
     },
     {
         w3name: 'SubQuery',
@@ -27,7 +28,7 @@ var CONTEXTS = [
     {
         w3name: 'WhereClause',
         definition: /WHERE \{([\s\S]*)\}/g,
-        suggestInSameLine: true
+        suggestInSameLine: true,
     },
     {
         w3name: 'UnionClause',

@@ -168,7 +168,7 @@ var suggestions;
     
         var cur = editor.getCursor(); // current cursor position
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
-        var context = getCurrentContext(absolutePosition,$.trim(editor.getValue()),0); // get current context
+        var context = getCurrentContext(absolutePosition,editor.getValue(),0); // get current context
 		suggestions = [];
 		
 		log('Position: '+absolutePosition,'suggestions');
@@ -745,10 +745,6 @@ function getCurrentContext(absPosition,content,iteration){
 				log(context.w3name+' was found in the current content','parsing');
 				// we are inside the outer match of the whole context group
 	            endIndex = match.index+match[0].length
-			    if(context.suggestInSameLine){ endIndex += 1 }
-			    log(match.index,'parsing');
-			    log(endIndex,'parsing');
-			    log(absPosition,'parsing');
 			    if(absPosition >= match.index && absPosition <= endIndex){
 				   log(context.w3name+' is candidate for this position | depth: '+iteration,'parsing');
 				   foundContext = context;
