@@ -25,6 +25,7 @@
     };
 
     CodeMirror.defineExtension("showHint", function(options) {
+        console.warn("YEHA");
         options = parseOptions(this, this.getCursor("start"), options);
         var selections = this.listSelections()
         if (selections.length > 1) return;

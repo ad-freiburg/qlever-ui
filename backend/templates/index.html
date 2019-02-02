@@ -155,27 +155,51 @@
             
             <!-- The backend statistics block -->
             <div id="stats" class="well">
+	            <a href="/admin/backend/backend/{{ backend.pk }}/change/" class="btn btn-default pull-right" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit this backend</a>
+	            <br>
                 <div class="row">
                     <div class="col-md-6">
                         <h4>Knowledge base index</h4>
-                        Index: <b><span id="kbname"></span></b><br>
-                        Number of triples: <b><span id="ntriples"></span></b><br>
-                        Registered <b><span id="permstats"></span></b> permutations of the index<br>
-                        <div id="kbstats"></div>
                         <br>
-                        {% if backend.subjectName %}Subject name relation: <b><code>{{ backend.subjectName }}</code></b><br>{% endif %}
-                        {% if backend.predicateName %}Predicate name relation: <b><code>{{ backend.predicateName }}</code></b><br>{% endif %}
-                        {% if backend.objectName %}Object name relation: <b><code>{{ backend.objectName }}</code></b>{% endif %}
+                        <table class="table">
+                        	<tr><th>Index:</th><td><b><span id="kbname"></span></b></td></tr>
+							<tr><th>Number of triples:</th><td><b><span id="ntriples"></span></b></td></tr>
+							<tr><th>Registered</th><td><b><span id="permstats"></span></b> permutations of the index</td></tr>
+							<tr><th>Dataset</th><td><div id="kbstats"></div></td></tr>
+                        </table>
                     </div>
                     <div class="col-md-6">
                         <h4>Fulltext index</h4>
-                        <div>
-                            Index: <b><span id="textname"></span></b><br>
-                            Number of text records: <b><span id="nrecords"></span></b><br>
-                            Number of word occurrences: <b><span id="nwo"></span></b><br>
-                            Number of entity occurrences: <b><span id="neo"></span></b>
-                        </div>
+                        <br>
+                        <table class="table">
+                            <tr><th>Index:</th><td><b><span id="textname"></span></b></td></tr>
+                            <tr><th>Dataset</th><td>
+	                            Number of text records: <b><span id="nrecords"></span></b><br>
+								Number of word occurrences: <b><span id="nwo"></span></b><br>
+								Number of entity occurrences: <b><span id="neo"></span></b>
+                            </td></tr>
+                        </table>
                     </div>
+                </div>
+                <br><br>
+                <div class="row">
+	                <div class="col-md-6">
+						<h4>Basic settings</h4>
+						<br>
+						<table class="table">
+							<tr><th>Backend Name</th><td>{{ backend.name }}</td></tr>
+							<tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
+							<tr><th>Is default:</th><td>{% if backendisDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
+						</table>
+	                </div>
+					<div class="col-md-6">
+		                <br>
+		                <h4>Name relations</h4>
+	                    {% if backend.subjectName %}<strong>Subject name relation:</strong><div style="margin-left: 20px;"><b><small><code>{{ backend.subjectName|linebreaksbr }}</code></b></small></div><br>{% endif %}
+	                    {% if backend.predicateName %}<strong>Predicate name relation:</strong><div style="margin-left: 20px;"><b><small><code>{{ backend.predicateName|linebreaksbr }}</code></b></small></div><br>{% endif %}
+	                    {% if backend.objectName %}<strong>Object name relation:</strong><div style="margin-left: 20px;"><b><small><code>{{ backend.objectName|linebreaksbr }}</code></b></div>{% endif %}
+	                </div>
                 </div>
             </div>
             

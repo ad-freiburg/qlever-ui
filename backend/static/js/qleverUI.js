@@ -4,6 +4,7 @@
  */
 var example = 0;
 var activeState = 1;
+var maxSendOnFirstRequest = 100;
 var subjectNames = {}
 var predicateNames = {}
 var objectNames = {}
@@ -65,7 +66,6 @@ $(document).ready(function() {
 	});
 	
     editor.on("keyup", function(instance, event) {
-	    
 	    // (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-entity').hover(showRealName);
@@ -84,7 +84,6 @@ $(document).ready(function() {
         if (token.string.match(/^[.`\w?<@]\w*$/)) {
             string = token.string;
         }
-        
         // do not suggest anything inside a word
         if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}") {
 				// invoke autocompletion after a very short delay
@@ -144,7 +143,7 @@ $(document).ready(function() {
 
     $("#runbtn").click(function() {
         log('Start processing','other');
-        processQuery(getQueryString() + '&send=100', true, this);
+        processQuery(getQueryString() + '&send='+maxSendOnFirstRequest, true, this);
         
         // generate pretty link
         $.post('/api/share',{'content':editor.getValue()}, function(result) {
@@ -205,16 +204,6 @@ function processQuery(query, showStatus, element) {
     $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
     $(element).find('.glyphicon').removeClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', $(element).css('color'));
-    maxSend = 0;
-    var sInd = window.location.href.indexOf("&send=");
-    if (sInd > 0) {
-        var nextAmp = window.location.href.indexOf("&", sInd + 1);
-        if (nextAmp > 0) {
-            maxSend = parseInt(window.location.href.substr(sInd + 6, nextAmp - (sInd + 6)))
-        } else {
-            maxSend = parseInt(window.location.href.substr(sInd + 6))
-        }
-    }
     log('Sending request...','other');
     $.getJSON(query, function(result) {
         log('Evaluating and displaying results...','other');
@@ -231,8 +220,8 @@ function processQuery(query, showStatus, element) {
             $('#jsonTime').html((parseInt(result.time.total.replace(/ms/, "")) -
                 parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
             
-            if (maxSend > 0 && maxSend <= nofRows && maxSend < parseInt(result.resultsize)) {
-                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Output limited to " + maxSend.toString() + " results.</button>  <a class=\"btn btn-default\" href=\"" + window.location.href.substr(0, window.location.href.indexOf("&")) + "\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
+            if (nofRows < parseInt(result.resultsize)) {
+                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Output limited to "+nofRows+" results.</button>  <a class=\"btn btn-default\" onclick=\"" + window.location.href.substr(0, window.location.href.indexOf("&")) + "\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
             }
             var selection = /SELECT(?: DISTINCT)?([^]*)WHERE/.exec(decodeURIComponent(result.query.replace(/\+/g, '%20')))[1];
 
@@ -329,7 +318,7 @@ function handleStatsDisplay() {
                 "Number of objects: <b>" + tsep(result.nofobjects) + "</b>");
         }
         $('#statsButton').removeAttr('disabled');
-        $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Toggle backend statistics');
+        $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Toggle backend information');
     }).fail(function() {
         $('#statsButton').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
     });

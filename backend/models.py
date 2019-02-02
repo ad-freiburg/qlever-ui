@@ -37,7 +37,11 @@ class Backend(models.Model):
         help_text="Check if this should be the default backend for QLever UI",
         verbose_name="Use as default")
     isImporting = models.BooleanField(default=False, editable=False)
-
+    maxDefault = models.IntegerField(
+        default=100,
+        help_text=
+        "The default for how many lines are shown in the first request",
+        verbose_name="Default Maximum")
     dynamicSuggestions = models.IntegerField(
         default=True,
         choices=MODES,
