@@ -1,6 +1,9 @@
 // UI helpers
 
 function log(message,kind){
+	if (kind == undefined) {
+		kind = "other";
+	}
 	if((kind == 'parsing' && $('#logParsing').is(':checked')) ||
 	   (kind == 'other' && $('#logOther').is(':checked')) ||
 	   (kind == 'requests' && $('#logRequests').is(':checked')) ||

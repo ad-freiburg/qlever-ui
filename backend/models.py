@@ -43,43 +43,41 @@ class Backend(models.Model):
         "The default for how many lines are shown in the first request",
         verbose_name="Default Maximum")
     dynamicSuggestions = models.IntegerField(
-        default=True,
+        default=2,
         choices=MODES,
         help_text=
         "If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
         verbose_name="Default suggestion mode")
-
-    scorePredicate = models.CharField(
-        max_length=1000,
-        default="ql:num-triples",
+    suggestSubjects = models.TextField(
+        default='',
+        blank=True,
         help_text=
-        "The predicate used to rank suggestions. Leave blank if no ordering should take place",
-        verbose_name="Predicate for ranking",
-        blank=True)
-
+        "Clause that tells QLever UI which subjects to suggest from (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}",
+        verbose_name="Suggest subjects clause")
     subjectName = models.TextField(
         default='',
         blank=True,
         help_text=
-        "Relation that tells QLever UI the name of a subject (without prefixes).",
-        verbose_name="Subject name relation")
+        "Clause that tells QLever UI the name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the subject's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_subject; &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+        verbose_name="Subject name clause")
     predicateName = models.TextField(
         default='',
         blank=True,
         help_text=
-        "Relation that tells QLever UI the name of a predicate (without prefixes).",
-        verbose_name="Predicate name relation")
+        "Clause that tells QLever UI the name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_predicate: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the predicate's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_predicate &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+        verbose_name="Predicate name clause")
     objectName = models.TextField(
         default='',
         blank=True,
         help_text=
-        "Relation that tells QLever UI the name of a object (without prefixes).",
-        verbose_name="Object name relation")
+        "Clause that tells QLever UI the name of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_object: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the object's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_object<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+        verbose_name="Object name clause")
 
     def save(self, *args, **kwargs):
         self.subjectName = self.subjectName.replace("\r\n", "\n").replace("\r", "\n")
         self.predicateName = self.predicateName.replace("\r\n", "\n").replace("\r", "\n")
         self.objectName = self.objectName.replace("\r\n", "\n").replace("\r", "\n")
+        self.suggestSubjects = self.suggestSubjects.replace("\r\n", "\n").replace("\r", "\n")
         super(Backend, self).save(*args, **kwargs)
 
         if self.isDefault == True:
@@ -94,7 +92,7 @@ class Backend(models.Model):
                           '*', '-'))
     
     def entityNameQueries(self):
-        return json.dumps({"PREDICATENAME": self.predicateName, "OBJECTNAME": self.objectName, "SUBJECTNAME": self.subjectName})
+        return json.dumps({"PREDICATENAME": self.predicateName, "OBJECTNAME": self.objectName, "SUBJECTNAME": self.subjectName, "SUGGESTSUBJECTS": self.suggestSubjects})
     
 
 

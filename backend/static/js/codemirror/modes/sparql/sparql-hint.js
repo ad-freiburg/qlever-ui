@@ -248,7 +248,6 @@ function getAvailableTypes(context){
 
 
 function getDynamicSuggestions(context){
-
 	var cur = editor.getCursor();
 	var line = editor.getLine(cur.line);	
 	var suggestionMode = parseInt($("#dynamicSuggestions").val()+'');
@@ -293,7 +292,7 @@ function getDynamicSuggestions(context){
         }
     });
 	
-    if (words.length < 2) {
+    if (words.length < 1) {
         
         var response = [];
         var variables = getVariables(context);
@@ -342,8 +341,76 @@ function getDynamicSuggestions(context){
 				lines.push(line.trim());
 			}
 		}
-	    
-	    if (words.length == 2 && suggestionMode > 0) {
+
+	    if (words.length == 1 && suggestionMode > 0) {
+	        if (SUGGESTSUBJECTS.length > 0 && word.length > 0 && word != "<" && !word.startsWith('?')) {
+		        // Build SPARQL query with context
+				// find all entities whose ids match what we typed
+	            var entityQuery =
+	            "    {\n" +
+	            "      SELECT ?qleverui_subject (COUNT(?qleverui_subject) AS ?qleverui_count) WHERE {\n" +
+	            "        " + SUGGESTSUBJECTS.replace(/\n/g, "\n        ") + "\n" +
+	            "      }\n" +
+	            "      GROUP BY ?qleverui_subject\n" + ((word.length > 0 && word != "<") ?
+	            "      HAVING regex(?qleverui_subject, \"^" + word + "\")\n" : "") +
+	            "    }\n" + ((SUBJECTNAME.length > 0) ?  // get entity names if we know how to query them
+	            "    OPTIONAL {\n" +
+	            "      " + SUBJECTNAME.replace(/\n/g, "\n      ") + "\n" +
+	            "    }\n" : "" );
+
+				sparqlQuery = prefixes;
+				if (SUBJECTNAME.length > 0) {
+					sparqlQuery +=
+					"SELECT ?qleverui_subject ?qleverui_name ?qleverui_count WHERE {\n";
+					if (word.length > 0 && word != "<") {
+						// find all entities whose names match what we typed and UNION it with entityQuery
+						sparqlQuery +=
+						"  {\n" +
+						entityQuery +
+						"  }\n" +
+			            "  UNION\n" +
+			            "  {\n" +
+					    "    {\n" +
+			            "      SELECT ?qleverui_subject (COUNT(?qleverui_subject) AS ?qleverui_count) WHERE {\n" +
+			            "        " + SUGGESTSUBJECTS.replace(/\n/g, "\n        ") + "\n" +
+			            "      }\n" +
+			            "      GROUP BY ?qleverui_subject\n" +
+			            "    }\n" +
+			            "    " + SUBJECTNAME.replace(/\n/g, "\n    ") + "\n" +
+			            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
+			            "  }\n";
+			        } else {
+				    	// There was no input that we can search for -> just do entityQuery
+				        sparqlQuery += entityQuery;
+			        }
+				} else {
+					// We don't know how to get entity names -> just do entityQuery
+			        sparqlQuery +=
+					"SELECT ?qleverui_subject ?qleverui_count WHERE {\n" +
+					entityQuery;
+		        }
+		        sparqlQuery +=
+		        "}\n" +
+		        "ORDER BY DESC(?qleverui_count)";
+		        
+		        getQleverSuggestions(sparqlQuery, prefixesRelation,' ', subjectNames);
+	        }
+	        
+	        var response = [];
+	        
+	        var variables = getVariables(context);
+	        for(var variable of variables){
+		        response.push(variable);
+	        }
+	        
+	        if(replacedRelations == false){
+		        for(var prefix in prefixesRelation){
+			     	response.push(prefix+':');
+				}
+			}
+
+	        return (!requestExtension) ? response : [];
+	    } else if (words.length == 2 && suggestionMode > 0) {
 	        
 	        if (suggestionMode == 1) {
 	        
@@ -423,7 +490,9 @@ function getDynamicSuggestions(context){
 				}
 			}
 	        
-	        getQleverSuggestions(sparqlQuery,prefixesRelation,' ', predicateNames);
+	        if (!word.startsWith('?')) {
+	        	getQleverSuggestions(sparqlQuery,prefixesRelation,' ', predicateNames);
+	        }
 	        return (!requestExtension) ? response : [];
 	        
 	    } else if (words.length == 3 && suggestionMode > 0) {
@@ -512,8 +581,9 @@ function getDynamicSuggestions(context){
 			     	response.push(prefix+':');
 				}
 			}
-	        	        
-	        getQleverSuggestions(sparqlQuery,prefixesRelation,' .', objectNames);
+	        if (!word.startsWith('?')) {
+	        	getQleverSuggestions(sparqlQuery,prefixesRelation,' .', objectNames);
+	        }
 	        return (!requestExtension) ? response : [];
 	    }
     }
