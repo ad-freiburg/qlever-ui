@@ -554,7 +554,7 @@
           var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];
           var PREDICATENAME = ENTITYNAMERELATIONS["PREDICATENAME"];
           var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
-          var SCOREPREDICATE = "{{ backend.scorePredicate }}";
+          var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
           var COLLECTEDPREFIXES = [];
           {% for prefix in prefixes %}
           COLLECTEDPREFIXES.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
