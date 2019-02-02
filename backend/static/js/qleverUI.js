@@ -4,7 +4,6 @@
  */
 var example = 0;
 var activeState = 1;
-var maxSendOnFirstRequest = 100;
 var subjectNames = {}
 var predicateNames = {}
 var objectNames = {}
@@ -143,7 +142,7 @@ $(document).ready(function() {
 
     $("#runbtn").click(function() {
         log('Start processing','other');
-        processQuery(getQueryString() + '&send='+maxSendOnFirstRequest, true, this);
+        processQuery(getQueryString() + '&send='+$('#maxSendOnFirstRequest').html(), true, this);
         
         // generate pretty link
         $.post('/api/share',{'content':editor.getValue()}, function(result) {
@@ -221,7 +220,7 @@ function processQuery(query, showStatus, element) {
                 parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
             
             if (nofRows < parseInt(result.resultsize)) {
-                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Output limited to "+nofRows+" results.</button>  <a class=\"btn btn-default\" onclick=\"" + window.location.href.substr(0, window.location.href.indexOf("&")) + "\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
+                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Output limited to "+nofRows+" results.</button>  <a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
             }
             var selection = /SELECT(?: DISTINCT)?([^]*)WHERE/.exec(decodeURIComponent(result.query.replace(/\+/g, '%20')))[1];
 
