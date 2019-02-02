@@ -13,6 +13,7 @@ var CONTEXTS = [
     },
     {
         w3name: 'SelectClause',
+        startAfter: "SELECT ",
         definition: /SELECT ([\S\s]*?) WHERE/g,
         suggestInSameLine: true,
     },
