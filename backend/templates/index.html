@@ -188,17 +188,21 @@
 						<br>
 						<table class="table">
 							<tr><th>Backend Name</th><td>{{ backend.name }}</td></tr>
+							<tr><th>Backend Slug</th><td>{{ backend.slugify }}</td></tr>
 							<tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
 							<tr><th>Is default:</th><td>{% if backendisDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
 							<tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
 						</table>
 	                </div>
 					<div class="col-md-6">
-		                <br>
 		                <h4>Name relations</h4>
-	                    {% if backend.subjectName %}<strong>Subject name relation:</strong><div style="margin-left: 20px;"><b><small><code>{{ backend.subjectName|linebreaksbr }}</code></b></small></div><br>{% endif %}
-	                    {% if backend.predicateName %}<strong>Predicate name relation:</strong><div style="margin-left: 20px;"><b><small><code>{{ backend.predicateName|linebreaksbr }}</code></b></small></div><br>{% endif %}
-	                    {% if backend.objectName %}<strong>Object name relation:</strong><div style="margin-left: 20px;"><b><small><code>{{ backend.objectName|linebreaksbr }}</code></b></div>{% endif %}
+						<br>
+						<table class="table">
+	                    	{% if backend.subjectName %}<tr><th><strong>Subject name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.subjectName }}</code></b></small></div></td></tr>{% endif %}
+							{% if backend.predicateName %}<tr><th><strong>Predicate name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.predicateName }}</code></b></small></div></td></tr>{% endif %}
+							{% if backend.objectName %}<tr><th><strong>Object name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.objectName }}</code></b></div></td></tr>{% endif %}
+						</table>
 	                </div>
                 </div>
             </div>
@@ -208,7 +212,7 @@
                 <div class="row">
                     <div class="col-md-8">
                         <!-- The main editor (code mirror textarea) -->
-                        <textarea id="query" class="form-control">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
+                        <textarea id="query" class="form-control" placeholder="Start by typing SELECT or PREFIX ...">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
                     </div>
                      <div class="col-md-4" id="help" style="margin-top: 310px;">
                         <div id="uiHelp" style="display: none;">
@@ -526,7 +530,7 @@
         <footer class="footer">
             <div class="container" style="text-align: center;">
                 <span class="text-muted">
-                    &copy; 2018 - 
+                    &copy; 2019 - 
                     <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf">
                         QLever: SPARQL+Text Search
                     </a>

@@ -25,9 +25,8 @@
     };
 
     CodeMirror.defineExtension("showHint", function(options) {
-        console.warn("YEHA");
         options = parseOptions(this, this.getCursor("start"), options);
-        var selections = this.listSelections()
+        var selections = this.listSelections();
         if (selections.length > 1) return;
         // By default, don't allow completion when something is selected.
         // A hint function can have a `supportsSelection` property to

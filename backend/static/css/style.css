@@ -211,3 +211,7 @@ li.CodeMirror-hint-active {
 	float: right;
 	color: grey;
 }
+
+.CodeMirror-placeholder {
+	color: #9a9a9a !important;
+}

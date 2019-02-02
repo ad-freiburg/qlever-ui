@@ -801,8 +801,6 @@ function getAbsolutePosition(cur){
     
 **/    
 function getCurrentContext(absPosition,content,iteration){
-	log('Searching in','parsing')
-    log(content,'parsing')
     var foundContext = undefined;
     
     if(iteration >= 10){ return undefined; }
