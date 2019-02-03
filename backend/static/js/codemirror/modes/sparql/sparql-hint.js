@@ -352,7 +352,7 @@ function getDynamicSuggestions(context){
 	            "        " + SUGGESTSUBJECTS.replace(/\n/g, "\n        ") + "\n" +
 	            "      }\n" +
 	            "      GROUP BY ?qleverui_subject\n" + ((word.length > 0 && word != "<") ?
-	            "      HAVING regex(?qleverui_subject, \"^" + word + "\")\n" : "") +
+	            "      HAVING regex(?qleverui_subject, \"^" + word.replace(/"/g, '\\"') + "\")\n" : "") +
 	            "    }\n" + ((SUBJECTNAME.length > 0) ?  // get entity names if we know how to query them
 	            "    OPTIONAL {\n" +
 	            "      " + SUBJECTNAME.replace(/\n/g, "\n      ") + "\n" +
@@ -427,7 +427,7 @@ function getDynamicSuggestions(context){
             "        " + lines.join("\n        ") + "\n" +
             "      }\n" +
             "      GROUP BY ?qleverui_predicate\n" + ((word.length > 0 && word != "<") ?
-            "      HAVING regex(?qleverui_predicate, \"^" + word + "\")\n" : "") +
+            "      HAVING regex(?qleverui_predicate, \"^" + word.replace(/"/g, '\\"') + "\")\n" : "") +
             "    }\n" + ((PREDICATENAME.length > 0) ?  // get entity names if we know how to query them
             "    OPTIONAL {\n" +
             "      " + PREDICATENAME.replace(/\n/g, "\n      ") + "\n" +
@@ -495,7 +495,7 @@ function getDynamicSuggestions(context){
             "        " + lines.join("\n        ") + "\n" +
             "      }\n" +
             "      GROUP BY ?qleverui_object\n" + ((word.length > 0 && word != "<") ?
-            "      HAVING regex(?qleverui_object, \"^" + word + "\")\n" : "") +
+            "      HAVING regex(?qleverui_object, \"^" + word.replace(/"/g, '\\"') + "\")\n" : "") +
             "    }\n" + ((OBJECTNAME.length > 0) ?  // get entity names if we know how to query them
             "    OPTIONAL {\n" +
             "      " + OBJECTNAME.replace(/\n/g, "\n      ") + "\n" +
