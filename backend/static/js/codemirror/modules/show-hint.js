@@ -97,13 +97,14 @@
             
             var absPosition = getAbsolutePosition(cursor);
             var content = editor.getValue().slice(0,absPosition);
+            var lines = content.split('\n');
             var count = (content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1);
             var indentWhitespaces = "";
             if (count > 0){
 	            indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
             }
             
-            if(line.replace(/\s?\S?/g, "") == ""){
+            if(lines[lines.length-1].replace(/\s?/g, "") == ""){
 	            log('Added '+indentWhitespaces.length+' whitespaces','other');
 	            completion = indentWhitespaces+completion.split('\n').join("\n"+indentWhitespaces);
 	            data.from['ch'] = 0;

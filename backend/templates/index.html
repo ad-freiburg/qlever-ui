@@ -541,8 +541,8 @@
 		      <div class="modal-body">
 		        <h4>Developer Logging</h4>
 		        <p>Logs are generated and written in the default developer console of your browser.</p>
-		        <div class="checkbox"><label><input name="logParsing" id="logParsing" type="checkbox" {% if request.session.logParsing == "on" %}checked="checked"{% endif %}> Log parsing</label></div>
-				<div class="checkbox"><label><input name="logRequests" id="logRequests" type="checkbox" {% if request.session.logRequests == "on"  %}checked="checked"{% endif %}> Log requests</label></div>
+		        <div class="checkbox"><label><input name="logParsing" id="logParsing" type="checkbox" {% if request.session.logParsing == "on" %}checked="checked"{% endif %}> Log parsing {{ request.session.logParsing }}</label></div>
+				<div class="checkbox"><label><input name="logRequests" id="logRequests" type="checkbox" {% if request.session.logRequests == "on"  %}checked="checked"{% endif %}> Log requests {{ request.session.logRequests }}</label></div>
                 <div class="checkbox"><label><input name="logSuggestions" id="logSuggestions" type="checkbox" {% if request.session.logSuggestions == "on"  %}checked="checked"{% endif %}> Log suggestions</label></div>
                 <div class="checkbox"><label><input name="logOther" id="logOther" type="checkbox" {% if request.session.logOther == "on"  %}checked="checked"{% endif %}> Log UI events</label></div>
 				<br>
@@ -561,7 +561,7 @@
 		</div>
         </form>
         
-        <br><br>
+        <br>
         <footer class="footer">
             <div class="container" style="text-align: center;">
                 <span class="text-muted">
