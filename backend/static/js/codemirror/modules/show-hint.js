@@ -102,11 +102,12 @@
             if (count > 0){
 	            indentWhitespaces = "  ".repeat(count);
             }
-            var whitespaces = indentWhitespaces.slice(0,indentWhitespaces.length - (line.search(/\S|$/)));
+            console.warn('Indention should be '+indentWhitespaces.length);
             
             if(line.replace(/\s?\S?/g, "") == ""){
-	            log('Added '+whitespaces.length+' whitespaces','other');
-	            completion = whitespaces+completion.split('\n').join("\n"+whitespaces+(" ".repeat(line.search(/\S|$/))));
+	            log('Added '+indentWhitespaces.length+' whitespaces','other');
+	            completion = indentWhitespaces+completion.split('\n').join("\n"+indentWhitespaces);
+	            data.from['ch'] = 0;
             }
             
             if (completion.slice(-1) == ".") {

@@ -874,6 +874,17 @@ function buildQueryTree(content,start){
 	
 }
 
+function printQueryTree(tree,absPosition,prefix){
+	var logString = "";
+	for(var element of tree){
+		logString += prefix+">>> "+element.w3name+' ['+element.start+' to '+element.end+']\n';
+		if(element.children){
+		  logString += printQueryTree(element.children,absPosition,prefix+"    ");
+		}
+	}
+	return logString;
+}
+
 /**
    
    Returns the current context
@@ -883,10 +894,8 @@ function buildQueryTree(content,start){
 **/    
 function getCurrentContext(absPosition){ 
     var tree = buildQueryTree(editor.getValue(),0);
-    console.warn(absPosition);
-    console.warn(tree);
-    console.error(searchTree(tree,absPosition));
-    return searchTree(tree,absPosition)
+	log("\n"+printQueryTree(tree,absPosition,""),'parsing');
+    return searchTree(tree,absPosition);
 }
 
 function searchTree(tree,absPosition){
