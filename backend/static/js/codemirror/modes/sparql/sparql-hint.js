@@ -352,7 +352,7 @@ function getDynamicSuggestions(context){
 	            "        " + SUGGESTSUBJECTS.replace(/\n/g, "\n        ") + "\n" +
 	            "      }\n" +
 	            "      GROUP BY ?qleverui_subject\n" + ((word.length > 0 && word != "<") ?
-	            "      HAVING regex(?qleverui_subject, \"^" + word + "\")\n" : "") +
+	            "      HAVING regex(?qleverui_subject, \"^" + word.replace(/"/g, '\\"') + "\")\n" : "") +
 	            "    }\n" + ((SUBJECTNAME.length > 0) ?  // get entity names if we know how to query them
 	            "    OPTIONAL {\n" +
 	            "      " + SUBJECTNAME.replace(/\n/g, "\n      ") + "\n" +
@@ -413,75 +413,60 @@ function getDynamicSuggestions(context){
 	    } else if (words.length == 2 && suggestionMode > 0) {
 	        
 	        if (suggestionMode == 1) {
-	        
 	        	// Build SPARQL query without context
-	            sparqlQuery = prefixes +
-	                "\nSELECT ?qleverui_predicate WHERE {" +
-	                "\n  ?qleverui_predicate ql:entity-type ql:predicate .";
-	            if (word.length > 1) {
-	                sparqlQuery += "\n  FILTER regex(?qleverui_predicate, \"^" + word + "\")";
-	            }
-	            if (SCOREPREDICATE.length > 0) {
-	                sparqlQuery += "\n  ?qleverui_predicate " + SCOREPREDICATE + " ?qleverui_score ." +
-	                    "\n}\nORDER BY DESC(?qleverui_score)";
-	            } else {
-	                sparqlQuery += "\n}";
-	            }
-	        
+	            lines = ["?qleverui_subject ql:has-predicate ?qleverui_predicate ."];
 	        } else if (suggestionMode == 2) {
-	                            
 				// Build SPARQL query with context
 	            lines.push(words[0] + " ql:has-predicate ?qleverui_predicate .");
-
-				// find all entities whose ids match what we typed
-	            var entityQuery =
-	            "    {\n" +
-	            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
-	            "        " + lines.join("\n        ") + "\n" +
-	            "      }\n" +
-	            "      GROUP BY ?qleverui_predicate\n" + ((word.length > 0 && word != "<") ?
-	            "      HAVING regex(?qleverui_predicate, \"^" + word + "\")\n" : "") +
-	            "    }\n" + ((PREDICATENAME.length > 0) ?  // get entity names if we know how to query them
-	            "    OPTIONAL {\n" +
-	            "      " + PREDICATENAME.replace(/\n/g, "\n      ") + "\n" +
-	            "    }\n" : "" );
-
-				sparqlQuery = prefixes;
-				if (PREDICATENAME.length > 0) {
-					sparqlQuery +=
-					"SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n";
-					if (word.length > 0 && word != "<") {
-						// find all entities whose names match what we typed and UNION it with entityQuery
-						sparqlQuery +=
-						"  {\n" +
-						entityQuery +
-						"  }\n" +
-			            "  UNION\n" +
-			            "  {\n" +
-					    "    {\n" +
-			            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
-			            "        " + lines.join("\n        ") + "\n" +
-			            "      }\n" +
-			            "      GROUP BY ?qleverui_predicate\n" +
-			            "    }\n" +
-			            "    " + PREDICATENAME.replace(/\n/g, "\n    ") + "\n" +
-			            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
-			            "  }\n";
-			        } else {
-				    	// There was no input that we can search for -> just do entityQuery
-				        sparqlQuery += entityQuery;
-			        }
-				} else {
-					// We don't know how to get entity names -> just do entityQuery
-			        sparqlQuery +=
-					"SELECT ?qleverui_predicate ?qleverui_count WHERE {\n" +
-					entityQuery;
-		        }
-		        sparqlQuery +=
-		        "}\n" +
-		        "ORDER BY DESC(?qleverui_count)";
-	            
 	        }
+
+			// find all entities whose ids match what we typed
+            var entityQuery =
+            "    {\n" +
+            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
+            "        " + lines.join("\n        ") + "\n" +
+            "      }\n" +
+            "      GROUP BY ?qleverui_predicate\n" + ((word.length > 0 && word != "<") ?
+            "      HAVING regex(?qleverui_predicate, \"^" + word.replace(/"/g, '\\"') + "\")\n" : "") +
+            "    }\n" + ((PREDICATENAME.length > 0) ?  // get entity names if we know how to query them
+            "    OPTIONAL {\n" +
+            "      " + PREDICATENAME.replace(/\n/g, "\n      ") + "\n" +
+            "    }\n" : "" );
+
+			sparqlQuery = prefixes;
+			if (PREDICATENAME.length > 0) {
+				sparqlQuery +=
+				"SELECT ?qleverui_predicate ?qleverui_name ?qleverui_count WHERE {\n";
+				if (word.length > 0 && word != "<") {
+					// find all entities whose names match what we typed and UNION it with entityQuery
+					sparqlQuery +=
+					"  {\n" +
+					entityQuery +
+					"  }\n" +
+		            "  UNION\n" +
+		            "  {\n" +
+				    "    {\n" +
+		            "      SELECT ?qleverui_predicate (COUNT(?qleverui_predicate) AS ?qleverui_count) WHERE {\n" +
+		            "        " + lines.join("\n        ") + "\n" +
+		            "      }\n" +
+		            "      GROUP BY ?qleverui_predicate\n" +
+		            "    }\n" +
+		            "    " + PREDICATENAME.replace(/\n/g, "\n    ") + "\n" +
+		            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
+		            "  }\n";
+		        } else {
+			    	// There was no input that we can search for -> just do entityQuery
+			        sparqlQuery += entityQuery;
+		        }
+			} else {
+				// We don't know how to get entity names -> just do entityQuery
+		        sparqlQuery +=
+				"SELECT ?qleverui_predicate ?qleverui_count WHERE {\n" +
+				entityQuery;
+	        }
+	        sparqlQuery +=
+	        "}\n" +
+	        "ORDER BY DESC(?qleverui_count)";
 	        
 	        var response = ['ql:contains-entity ','ql:contains-word '];
 	        if(replacedRelations == false){
@@ -498,78 +483,67 @@ function getDynamicSuggestions(context){
 	    } else if (words.length == 3 && suggestionMode > 0) {
 	
 	        if (suggestionMode == 1) {
-		        
-	        	// Build SPARQL query without context
-	            sparqlQuery = prefixes +
-	                "\nSELECT ?qleverui_object WHERE {\n  " +
-	                "?qleverui_object ql:entity-type ql:object .";
-	            if (word.length > 1) {
-	                sparqlQuery += "\n  FILTER regex(?qleverui_object, \"^" + word + "\")";
-	            }
-	            if (SCOREPREDICATE.length > 0) {
-	                sparqlQuery += "\n  ?qleverui_object " + SCOREPREDICATE + " ?qleverui_score ." +
-	                    "\n}\nORDER BY DESC(?qleverui_score)";
-	            } else {
-	                sparqlQuery += "\n}";
-	            }
-	            
+	        	lines = SUGGESTOBJECTS.split(/\n/g);
 	        } else if (suggestionMode == 2) {
-		        
 		        // Build SPARQL query with context
 	            lines.push(words[0] + " " + words[1] + " ?qleverui_object .");
+			}
+			// find all entities whose ids match what we typed
+            var entityQuery =
+            "    {\n" +
+            "      SELECT ?qleverui_object (COUNT(?qleverui_object) AS ?qleverui_count) WHERE {\n" +
+            "        " + lines.join("\n        ") + "\n" +
+            "      }\n" +
+            "      GROUP BY ?qleverui_object\n" + ((word.length > 0 && word != "<") ?
+            "      HAVING regex(?qleverui_object, \"^" + word.replace(/"/g, '\\"') + "\")\n" : "") +
+            "    }\n" + ((OBJECTNAME.length > 0) ?  // get entity names if we know how to query them
+            "    OPTIONAL {\n" +
+            "      " + OBJECTNAME.replace(/\n/g, "\n      ") + "\n" +
+            "    }\n" : "" );
 
-				// find all entities whose ids match what we typed
-	            var entityQuery =
-	            "    {\n" +
-	            "      SELECT ?qleverui_object (COUNT(?qleverui_object) AS ?qleverui_count) WHERE {\n" +
-	            "        " + lines.join("\n        ") + "\n" +
-	            "      }\n" +
-	            "      GROUP BY ?qleverui_object\n" + ((word.length > 0 && word != "<") ?
-	            "      HAVING regex(?qleverui_object, \"^" + word + "\")\n" : "") +
-	            "    }\n" + ((OBJECTNAME.length > 0) ?  // get entity names if we know how to query them
-	            "    OPTIONAL {\n" +
-	            "      " + OBJECTNAME.replace(/\n/g, "\n      ") + "\n" +
-	            "    }\n" : "" );
-
-				sparqlQuery = prefixes;
-				if (OBJECTNAME.length > 0) {
+			sparqlQuery = prefixes;
+			if (OBJECTNAME.length > 0) {
+				sparqlQuery +=
+				"SELECT ?qleverui_object ?qleverui_name ?qleverui_count WHERE {\n";
+				if (word.length > 0 && word != "<") {
+					// find all entities whose names match what we typed and UNION it with entityQuery
 					sparqlQuery +=
-					"SELECT ?qleverui_object ?qleverui_name ?qleverui_count WHERE {\n";
-					if (word.length > 0 && word != "<") {
-						// find all entities whose names match what we typed and UNION it with entityQuery
-						sparqlQuery +=
-						"  {\n" +
-						entityQuery +
-						"  }\n" +
-			            "  UNION\n" +
-			            "  {\n" +
-					    "    {\n" +
-			            "      SELECT ?qleverui_object (COUNT(?qleverui_object) AS ?qleverui_count) WHERE {\n" +
-			            "        " + lines.join("\n        ") + "\n" +
-			            "      }\n" +
-			            "      GROUP BY ?qleverui_object\n" +
-			            "    }\n" +
-			            "    " + OBJECTNAME.replace(/\n/g, "\n    ") + "\n" +
-			            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
-			            "  }\n";
-			        } else {
-				    	// There was no input that we can search for -> just do entityQuery
-				        sparqlQuery += entityQuery;
-			        }
-				} else {
-					// We don't know how to get entity names -> just do entityQuery
-			        sparqlQuery +=
-					"SELECT ?qleverui_object ?qleverui_count WHERE {\n" +
-					entityQuery;
+					"  {\n" +
+					entityQuery +
+					"  }\n" +
+		            "  UNION\n" +
+		            "  {\n" +
+				    "    {\n" +
+		            "      SELECT ?qleverui_object (COUNT(?qleverui_object) AS ?qleverui_count) WHERE {\n" +
+		            "        " + lines.join("\n        ") + "\n" +
+		            "      }\n" +
+		            "      GROUP BY ?qleverui_object\n" +
+		            "    }\n" +
+		            "    " + OBJECTNAME.replace(/\n/g, "\n    ") + "\n" +
+		            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
+		            "  }\n";
+		        } else {
+			    	// There was no input that we can search for -> just do entityQuery
+			        sparqlQuery += entityQuery;
 		        }
+			} else {
+				// We don't know how to get entity names -> just do entityQuery
 		        sparqlQuery +=
-		        "}\n" +
-		        "ORDER BY DESC(?qleverui_count)";
+				"SELECT ?qleverui_object ?qleverui_count WHERE {\n" +
+				entityQuery;
 	        }
+	        sparqlQuery +=
+	        "}\n" +
+	        "ORDER BY DESC(?qleverui_count)";
 	        
 	        var response = [];
 	        var lastWord = (predicateNames[words[1]] != "" && predicateNames[words[1]] != undefined) ? predicateNames[words[1]] : words[1];
-	        response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+	        if (lastWord == undefined) {
+		        log("Could not find lastWord. Words are:", "suggestions");
+		        log(words, "suggestions");
+	        } else {
+		        response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+	        }
 	        
 	        var variables = getVariables(context);
 	        for(var variable of variables){

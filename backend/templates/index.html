@@ -555,6 +555,7 @@
           var PREDICATENAME = ENTITYNAMERELATIONS["PREDICATENAME"];
           var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
           var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
+          var SUGGESTOBJECTS = ENTITYNAMERELATIONS["SUGGESTOBJECTS"];
           var COLLECTEDPREFIXES = [];
           {% for prefix in prefixes %}
           COLLECTEDPREFIXES.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
