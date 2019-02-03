@@ -52,8 +52,14 @@ class Backend(models.Model):
         default='',
         blank=True,
         help_text=
-        "Clause that tells QLever UI which subjects to suggest from (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}",
+        "Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject (COUNT(?qleverui_subject) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_subject<br>ORDER BY DESC(?qleverui_count)",
         verbose_name="Suggest subjects clause")
+    suggestObjects = models.TextField(
+        default='',
+        blank=True,
+        help_text=
+        "Clause that tells QLever UI which objects to suggest from (without prefixes). Only needed for suggestion mode 2 (context insensitive suggestions).<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_object: The objects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_object (COUNT(?qleverui_object) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest objects clause</em></b><br>}<br>GROUP BY ?qleverui_object<br>ORDER BY DESC(?qleverui_count)",
+        verbose_name="Suggest objects clause")
     subjectName = models.TextField(
         default='',
         blank=True,
@@ -74,10 +80,9 @@ class Backend(models.Model):
         verbose_name="Object name clause")
 
     def save(self, *args, **kwargs):
-        self.subjectName = self.subjectName.replace("\r\n", "\n").replace("\r", "\n")
-        self.predicateName = self.predicateName.replace("\r\n", "\n").replace("\r", "\n")
-        self.objectName = self.objectName.replace("\r\n", "\n").replace("\r", "\n")
-        self.suggestSubjects = self.suggestSubjects.replace("\r\n", "\n").replace("\r", "\n")
+        # We need to replace \r because QLever can't handle them very well
+        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects'):
+            setattr(self, field, getattr(self, field).replace("\r\n", "\n").replace("\r", "\n"))
         super(Backend, self).save(*args, **kwargs)
 
         if self.isDefault == True:
@@ -90,10 +95,12 @@ class Backend(models.Model):
         return filter(lambda x: ord(x) in range(40, 123),
                       self.name.replace(' ', '_').replace('/', '-').replace(
                           '*', '-'))
-    
+
     def entityNameQueries(self):
-        return json.dumps({"PREDICATENAME": self.predicateName, "OBJECTNAME": self.objectName, "SUBJECTNAME": self.subjectName, "SUGGESTSUBJECTS": self.suggestSubjects})
-    
+        data = {}
+        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects'):
+            data[field.upper()] = getattr(self, field)
+        return json.dumps(data)
 
 
 class Link(models.Model):
