@@ -31,6 +31,13 @@ def index(request, backend=None, short=None):
     prefixes = []
     prefill = None
 
+    if request.POST.get('whitespaces',False):
+		request.session['logParsing'] = request.POST.get('logParsing',False)
+		request.session['logRequests'] = request.POST.get('logRequests',False)
+		request.session['logSuggestions'] = request.POST.get('logSuggestions',False)
+		request.session['logOther'] = request.POST.get('logOther',False)
+		request.session['whitespaces'] = request.POST['whitespaces']
+
     # if a backend is given try to activate it
     if backend:
         for availableBackend in Backend.objects.all():

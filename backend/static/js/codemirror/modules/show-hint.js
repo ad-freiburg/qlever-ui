@@ -97,16 +97,17 @@
             
             var absPosition = getAbsolutePosition(cursor);
             var content = editor.getValue().slice(0,absPosition);
+            var lines = content.split('\n');
             var count = (content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1);
             var indentWhitespaces = "";
             if (count > 0){
-	            indentWhitespaces = "  ".repeat(count);
+	            indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
             }
-            var whitespaces = indentWhitespaces.slice(0,indentWhitespaces.length - (line.search(/\S|$/)));
             
-            if(line.replace(/\s?\S?/g, "") == ""){
-	            log('Added '+whitespaces.length+' whitespaces','other');
-	            completion = whitespaces+completion.split('\n').join("\n"+whitespaces+(" ".repeat(line.search(/\S|$/))));
+            if(lines[lines.length-1].replace(/\s?/g, "") == ""){
+	            log('Added '+indentWhitespaces.length+' whitespaces','other');
+	            completion = indentWhitespaces+completion.split('\n').join("\n"+indentWhitespaces);
+	            data.from['ch'] = 0;
             }
             
             if (completion.slice(-1) == ".") {

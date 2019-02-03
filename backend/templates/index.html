@@ -100,11 +100,8 @@
                                     </a>
                                 </li>
                             <h6 class="dropdown-header">Developer</h6>
-                                <li><a href="">Revision {{ STATIC_VERSION }}</a></li>
-                                <li><a href="#"><input id="logParsing" type="checkbox" checked="checked"> Log parsing</a></li>
-                                <li><a href="#"><input id="logRequests" type="checkbox" checked="checked"> Log requests</a></li>
-                                <li><a href="#"><input id="logSuggestions" type="checkbox" checked="checked"> Log suggestions</a></li>
-                                <li><a href="#"><input id="logOther" type="checkbox" checked="checked"> Log UI events</a></li>
+                                <li><a data-toggle="modal" data-target="#settingsModal">UI Settings</a></li>
+                                <li><a href="" style="color: #b1b1b1;">Revision {{ STATIC_VERSION }}</a></li>
                             
                           </ul>
                         </li>
@@ -135,6 +132,14 @@
                             <a href="/{{ b.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a>
                         </li>
                         {% endfor %}
+                        {% if request.user.is_authenticated %}
+                        <li class="divider"></li>
+                        <li>
+                            <a href="/admin/backend/backend/add/" target="_blank">
+                                <i class="glyphicon glyphicon-edit"></i> Add new backend
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                  </div>
             </div>
@@ -155,7 +160,7 @@
             
             <!-- The backend statistics block -->
             <div id="stats" class="well">
-	            <a href="/admin/backend/backend/{{ backend.pk }}/change/" class="btn btn-default pull-right" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit this backend</a>
+	            {% if request.user.is_authenticated %}<a href="/admin/backend/backend/{{ backend.pk }}/change/" class="btn btn-default pull-right" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit this backend</a>{% endif %}
 	            <br>
                 <div class="row">
                     <div class="col-md-6">
@@ -294,7 +299,7 @@
                                         <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);">
                                             {{ example.name }}
                                             {% if request.user.is_authenticated %} &nbsp; 
-                                            <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');">
+                                            <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
                                                 <i class="glyphicon glyphicon-pencil"></i>
                                             </span>
                                             {% endif %}
@@ -381,7 +386,7 @@
             </div>
         
             <!-- The cheat sheet block -->
-            <div class="well">
+            <!--div class="well">
                 <i class="glyphicon glyphicon-minus pull-right" onclick="$('#cheatsheet').slideToggle()" style="font-size: 1.5em;" data-toggle="tooltip" title="Slide in / slide out"></i>
                 <h3>Cheatsheet:</h3>
                 <div id="cheatsheet">
@@ -417,7 +422,6 @@
                             </ul>
                         </div>
                         <div class="col-md-8">
-                            <!-- Tab panes -->
                             <div class="tab-content">
                                 
                                 
@@ -511,7 +515,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div-->
             {% else %}
     
             <!-- The error page when no backend is avialable -->
@@ -526,7 +530,38 @@
             {% endif %}
         </div>
         
-        <br><br>
+        <form method="POST">
+	    {% csrf_token %}
+        <div class="modal" tabindex="-1" role="dialog" id="settingsModal">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title">UI Settings</h5>
+		      </div>
+		      <div class="modal-body">
+		        <h4>Developer Logging</h4>
+		        <p>Logs are generated and written in the default developer console of your browser.</p>
+		        <div class="checkbox"><label><input name="logParsing" id="logParsing" type="checkbox" {% if request.session.logParsing == "on" %}checked="checked"{% endif %}> Log parsing {{ request.session.logParsing }}</label></div>
+				<div class="checkbox"><label><input name="logRequests" id="logRequests" type="checkbox" {% if request.session.logRequests == "on"  %}checked="checked"{% endif %}> Log requests {{ request.session.logRequests }}</label></div>
+                <div class="checkbox"><label><input name="logSuggestions" id="logSuggestions" type="checkbox" {% if request.session.logSuggestions == "on"  %}checked="checked"{% endif %}> Log suggestions</label></div>
+                <div class="checkbox"><label><input name="logOther" id="logOther" type="checkbox" {% if request.session.logOther == "on"  %}checked="checked"{% endif %}> Log UI events</label></div>
+				<br>
+				<h4>Editor settings</h4>
+				<div class="form-group">
+				    <label for="whitespaces" style="font-weight: normal;">Forced amount of whitespaces per scope</label>
+				    <input type="number" class="form-control" name="whitespaces" id="whitespaces" value="{% if request.session.whitespaces %}{{ request.session.whitespaces }}{% else %}2{% endif %}" style="width: 200px;" min="0">
+				</div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		        <input class="btn btn-success" type="submit" value="Save changes">
+		      </div>
+		    </div>
+		  </div>
+		</div>
+        </form>
+        
+        <br>
         <footer class="footer">
             <div class="container" style="text-align: center;">
                 <span class="text-muted">
