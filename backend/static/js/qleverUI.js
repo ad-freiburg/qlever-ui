@@ -65,6 +65,7 @@ $(document).ready(function() {
 	});
 	
     editor.on("keyup", function(instance, event) {
+
 	    // (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-entity').hover(showRealName);

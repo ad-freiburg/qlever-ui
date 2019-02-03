@@ -168,7 +168,7 @@ var suggestions;
     
         var cur = editor.getCursor(); // current cursor position
         var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
-        var context = getCurrentContext(absolutePosition,editor.getValue(),0); // get current context
+        var context = getCurrentContext(absolutePosition); // get current context
 		suggestions = [];
 		
 		log('Position: '+absolutePosition,'suggestions');
@@ -767,6 +767,87 @@ function getAbsolutePosition(cur){
     return absolutePosition;
 }
 
+
+/**
+   
+   Build a query tree
+  
+**/    
+function buildQueryTree(content,start){
+	
+	var tree = [];
+	var i = 0;
+	
+	var tempString = "";
+	var tempElement = {w3name: 'PrefixDecl',start: start}
+	
+	while(i < content.length){
+		tempString += content[i];
+		
+		if(tempString.endsWith('SELECT ')){
+			
+			// shorten the end of prefix decl by what we needed to add to match SELECT 
+			tempElement['content'] = tempString.slice(0,tempString.length-7);
+			tempElement['end'] = i+start-6;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'SelectClause', suggestInSameLine: true, start: i+start }
+		
+		} else if(tempString.endsWith('WHERE {')){
+			
+			// shorten the end of the select clause by what we needed to add to match WHERE {
+			tempElement['content'] = tempString.slice(0,tempString.length-7);
+			tempElement['end'] = i+start-6;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i+start }
+		
+		} else if(tempString.endsWith('{')){
+			
+			// fast forward recursion
+			var depth = 1;
+			var subStart = i;
+			var subString = "";
+			while(depth != 0){
+				i++;
+				if(content[i] == '}'){
+					depth -= 1;
+				} else if(content[i] == '{'){
+					depth += 1;
+				} 
+				if(depth != 0){
+					subString += content[i];
+					tempString += content[i];
+				}
+			}
+			
+			tempElement['children'] = buildQueryTree(subString,subStart);
+			
+		} else if(tempString.endsWith('}')){
+			
+			// shorten the whereclause by what we needed to add to match the }
+			tempElement['content'] = tempString.slice(0,tempString.length-1);
+			tempElement['end'] = i+start-1;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'SolutionModifier', suggestInSameLine: true, start: i+start }
+		
+		}
+		
+		i++;
+	}
+	
+	tempElement['content'] = tempString;
+	tempElement['end'] = content.length+start;
+	tree.push(tempElement);
+	
+	return tree;
+	
+}
+
 /**
    
    Returns the current context
@@ -774,45 +855,33 @@ function getAbsolutePosition(cur){
    @params absPosition - absolute position in text
     
 **/    
-function getCurrentContext(absPosition,content,iteration){
-    var foundContext = undefined;
-    
-    if(iteration >= 10){ return undefined; }
-    
-    $(CONTEXTS).each(function(index,context){
-	    
-	    context.definition.lastIndex = 0;
-	    while(match = context.definition.exec(content)){
-			if(match && match.length > 1){
-				log(context.w3name+' was found in the current content','parsing');
-				// we are inside the outer match of the whole context group
-	            endIndex = match.index+match[0].length
-			    if(absPosition >= match.index && absPosition <= endIndex){
-				   log(context.w3name+' is candidate for this position | depth: '+iteration,'parsing');
-				   foundContext = context;
-				   foundContext['start'] = match.index;
-				   foundContext['end'] = match.index+match[0].length;
-				   foundContext['content'] = getValueOfContext(context);				   
-				   return false;
+function getCurrentContext(absPosition){ 
+    var tree = buildQueryTree(editor.getValue(),0);
+    console.warn(absPosition);
+    console.warn(tree);
+    console.error(searchTree(tree,absPosition));
+    return searchTree(tree,absPosition)
+}
+
+function searchTree(tree,absPosition){
+	for(var element of tree){
+	    if(absPosition >= element.start && absPosition <= element.end){
+		    if(element.children && absPosition >= element.children[0].start && absPosition <= element.children[element.children.length-1].end){
+			    child = searchTree(element.children,absPosition);
+			    if(child) {
+				    if(child.w3name == "PrefixDecl"){
+					    return { w3name: 'SubQuery', content: "" };
+				    }
+				    return child
+			    } else {
+				    return { w3name: 'SubQuery', content: "" };
 			    }
+		    } else {
+				return element;
 			}
-		}
-    });
-    
-    if(foundContext){
-	    iteration += 1;
-		subContext = getCurrentContext(absPosition - content.split(foundContext['content'])[0].length,foundContext['content'],iteration);
-		if(subContext != undefined){
-			foundContext = subContext;
-		}
-   		log('Identified '+foundContext.w3name,'parsing');
-	}
-    
-    if(iteration == 0 && foundContext == undefined && absPosition > content.length){
-	    log('Using PrefixDecl because there was no indicator found','parsing');
-		foundContext = getContextByName('PrefixDecl');
-	}
-    return foundContext;
+	    }
+    }
+    return undefined;
 }
 
 /**
