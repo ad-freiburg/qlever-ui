@@ -179,7 +179,7 @@ function addNameHover(element,domElement, list, namepredicate, prefixes){
             }
         }
     } else {
-        query = prefixes + "SELECT ?qleverui_name WHERE {\n" + "  " + namepredicate.replace(/\n/g, "\n  ").replace(/\?qleverui_(subject|object|predicate)/g, element) + "\n}";
+        query = prefixes + "SELECT ?qleverui_name WHERE {\n" + "  " + namepredicate.replace(/\n/g, "\n  ").replace(/\?qleverui_entity/g, element) + "\n}";
         log("Retrieving name for " + element + ":",'requests');
         log(query,'requests');
         $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function(result) {
