@@ -100,11 +100,8 @@
                                     </a>
                                 </li>
                             <h6 class="dropdown-header">Developer</h6>
-                                <li><a href="">Revision {{ STATIC_VERSION }}</a></li>
-                                <li><a href="#"><input id="logParsing" type="checkbox" checked="checked"> Log parsing</a></li>
-                                <li><a href="#"><input id="logRequests" type="checkbox" checked="checked"> Log requests</a></li>
-                                <li><a href="#"><input id="logSuggestions" type="checkbox" checked="checked"> Log suggestions</a></li>
-                                <li><a href="#"><input id="logOther" type="checkbox" checked="checked"> Log UI events</a></li>
+                                <li><a data-toggle="modal" data-target="#settingsModal">UI Settings</a></li>
+                                <li><a href="" style="color: #b1b1b1;">Revision {{ STATIC_VERSION }}</a></li>
                             
                           </ul>
                         </li>
@@ -525,6 +522,37 @@
     
             {% endif %}
         </div>
+        
+        <form method="POST">
+	    {% csrf_token %}
+        <div class="modal" tabindex="-1" role="dialog" id="settingsModal">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title">UI Settings</h5>
+		      </div>
+		      <div class="modal-body">
+		        <h4>Developer Logging</h4>
+		        <p>Logs are generated and written in the default developer console of your browser.</p>
+		        <div class="checkbox"><label><input name="logParsing" id="logParsing" type="checkbox" {% if request.session.logParsing == "on" %}checked="checked"{% endif %}> Log parsing</label></div>
+				<div class="checkbox"><label><input name="logRequests" id="logRequests" type="checkbox" {% if request.session.logRequests == "on"  %}checked="checked"{% endif %}> Log requests</label></div>
+                <div class="checkbox"><label><input name="logSuggestions" id="logSuggestions" type="checkbox" {% if request.session.logSuggestions == "on"  %}checked="checked"{% endif %}> Log suggestions</label></div>
+                <div class="checkbox"><label><input name="logOther" id="logOther" type="checkbox" {% if request.session.logOther == "on"  %}checked="checked"{% endif %}> Log UI events</label></div>
+				<br>
+				<h4>Editor settings</h4>
+				<div class="form-group">
+				    <label for="whitespaces" style="font-weight: normal;">Forced amount of whitespaces per scope</label>
+				    <input type="number" class="form-control" name="whitespaces" id="whitespaces" value="{% if request.session.whitespaces %}{{ request.session.whitespaces }}{% else %}2{% endif %}" style="width: 200px;" min="0">
+				</div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		        <input class="btn btn-success" type="submit" value="Save changes">
+		      </div>
+		    </div>
+		  </div>
+		</div>
+        </form>
         
         <br><br>
         <footer class="footer">

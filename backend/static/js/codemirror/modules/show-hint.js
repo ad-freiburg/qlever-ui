@@ -100,9 +100,8 @@
             var count = (content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1);
             var indentWhitespaces = "";
             if (count > 0){
-	            indentWhitespaces = "  ".repeat(count);
+	            indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
             }
-            console.warn('Indention should be '+indentWhitespaces.length);
             
             if(line.replace(/\s?\S?/g, "") == ""){
 	            log('Added '+indentWhitespaces.length+' whitespaces','other');

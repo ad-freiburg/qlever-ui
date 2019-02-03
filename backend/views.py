@@ -75,6 +75,13 @@ def index(request, backend=None, short=None):
         if link:
             prefill = link.content
 
+	if request.POST.get('whitespaces',False):
+		request.session['logParsing'] = request.POST.get('logParsing',False)
+		request.session['logRequests'] = request.POST.get('logRequests',False)
+		request.session['logSuggestions'] = request.POST.get('logSuggestions',False)
+		request.session['logOther'] = request.POST.get('logOther',False)
+		request.session['whitespaces'] = request.POST['whitespaces']
+
     return render(
         request, 'index.html', {
             'backend': activeBackend,
