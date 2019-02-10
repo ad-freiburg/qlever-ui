@@ -393,8 +393,14 @@ function getDynamicSuggestions(context){
 				if (typeof(lastWord) == "object") {
 					lastWord = String(lastWord);
 				}
-				
-			    response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+				if (lastWord == "ql:contains-entity") {
+					sendSparql = false;
+				} else if (lastWord == "ql:contains-word") {
+					sendSparql = false;
+					suggestVariables = false;
+				} else {
+					response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+				}
 			} else {
 				console.warn('Skipping every suggestions based on current position...');
 				return [];
