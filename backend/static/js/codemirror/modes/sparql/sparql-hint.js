@@ -906,7 +906,8 @@ function getVariables(context, excludeAggregationVariables, variableType){
     // get the variables
     $(filter).each(function(key,variable){
 		if(variables.indexOf(variable.innerHTML) == -1 && variable.innerHTML.length > 1){
-			var isTextVariable = RegExp(variable.innerHTML.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "\\s+ql:contains-(entity|word)", "i").test(editorContent);
+			var cleanedVar = variable.innerHTML.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			var isTextVariable = RegExp(cleanedVar + "\\s+ql:contains-(entity|word)", "i").test(editorContent);
 			if (variableType == "normal" && isTextVariable || variableType == "text" && !isTextVariable) {
 				return "continue";
 			}
