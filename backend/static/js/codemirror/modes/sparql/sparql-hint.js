@@ -736,7 +736,7 @@ function buildQueryTree(content,start){
 			
 			tempElement['children'] = buildQueryTree(subString,subStart);
 			
-		} else if(tempString.endsWith('}')){
+		} else if(tempString.endsWith('}') || ((tempElement.w3name == "OrderCondition" || tempElement.w3name == "GroupCondition") && tempString.endsWith('\n'))){
 			
 			// shorten the whereclause by what we needed to add to match the }
 			tempElement['content'] = tempString.slice(0,tempString.length-1);
@@ -745,6 +745,26 @@ function buildQueryTree(content,start){
 			tempString = "";
 			
 			tempElement = { w3name: 'SolutionModifier', suggestInSameLine: true, start: i+start }
+		
+		} else if(tempString.endsWith('ORDER BY ')){
+			
+			// shorten the whereclause by what we needed to add to match the }
+			tempElement['content'] = tempString.slice(0,tempString.length-9);
+			tempElement['end'] = i+start-9;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'OrderCondition', suggestInSameLine: true, start: i+start }
+		
+		} else if(tempString.endsWith('GROUP BY ')){
+			
+			// shorten the whereclause by what we needed to add to match the }
+			tempElement['content'] = tempString.slice(0,tempString.length-9);
+			tempElement['end'] = i+start-9;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'GroupCondition', suggestInSameLine: true, start: i+start }
 		
 		}
 		
