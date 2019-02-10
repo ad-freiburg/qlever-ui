@@ -295,7 +295,7 @@ function getDynamicSuggestions(context){
     if (words.length < 1) {
         
         var response = [];
-        var variables = getVariables(context);
+        var variables = getVariables(context, undefined, "both");
         for(var i = 0; i < variables.length; i++){
 	        response.push(variables[i]+' ');
         }
@@ -352,7 +352,7 @@ function getDynamicSuggestions(context){
 		var response = [];
 		if (suggestionMode > 0) {
 			if (words.length == 1) {
-				suggestVariables = true;
+				suggestVariables = "both";
 				appendToSuggestions = " ";
 				if (SUGGESTSUBJECTS.length > 0 && word.length > 0 && word != "<") {
 					sparqlLines = SUGGESTSUBJECTS.replace(/\n/g, "\n        ").trim() + ' .';
@@ -363,7 +363,7 @@ function getDynamicSuggestions(context){
 				}
 			} else if (words.length == 2) {
 				nameClause = PREDICATENAME;
-				suggestVariables = word.startsWith('?');
+				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";
 				nameList = predicateNames;
 				response = ['ql:contains-entity ', 'ql:contains-word '];
@@ -375,7 +375,7 @@ function getDynamicSuggestions(context){
 			    }
 			} else if (words.length == 3) {
 				nameClause = OBJECTNAME;
-				suggestVariables = true;
+				suggestVariables = "normal";
 				appendToSuggestions = ' .';
 				nameList = objectNames;
 				if (suggestionMode == 1) {
@@ -390,8 +390,17 @@ function getDynamicSuggestions(context){
 				}
 				
 				var lastWord = (predicateNames[words[1]] != "" && predicateNames[words[1]] != undefined) ? predicateNames[words[1]] : words[1];
-			    log(lastWord, "suggestions")
-			    response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+				if (typeof(lastWord) == "object") {
+					lastWord = String(lastWord);
+				}
+				if (lastWord == "ql:contains-entity") {
+					sendSparql = false;
+				} else if (lastWord == "ql:contains-word") {
+					sendSparql = false;
+					suggestVariables = false;
+				} else {
+					response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+				}
 			} else {
 				console.warn('Skipping every suggestions based on current position...');
 				return [];
@@ -450,7 +459,7 @@ function getDynamicSuggestions(context){
 		    }
 
 			if (suggestVariables) {
-				var variables = getVariables(context);
+				var variables = getVariables(context, undefined, suggestVariables);
 		        for(var variable of variables){
 			        response.push(variable+appendToSuggestions);
 		        }
@@ -874,15 +883,20 @@ function getValueOfContext(context){
    Returns prefixes to suggest
    
    @params context - the current context
-   @params allowDuplicatesInContext - allow variables to be suggested when they are already set
+   @params excludeAggregationVariables - excludes variables that are the result of an aggregation (SUM(?x) as ?aggregate_variable)
+   @params variableType - can be "text" for text variables, "normal" for normal variables or "both" for both
    
    		- Excludes duplicate definitions if told to do so
    		- Add list with all unused variables as one suggestion
     
 **/
-function getVariables(context, excludeAggregationVariables){
-        
+function getVariables(context, excludeAggregationVariables, variableType){
     var variables = [];
+    var editorContent = editor.getValue();
+    
+    if (variableType === undefined) {
+	    variableType = "normal";
+    }
     
     filter = '.CodeMirror .cm-variable';
 	if(excludeAggregationVariables){
@@ -892,6 +906,10 @@ function getVariables(context, excludeAggregationVariables){
     // get the variables
     $(filter).each(function(key,variable){
 		if(variables.indexOf(variable.innerHTML) == -1 && variable.innerHTML.length > 1){
+			var isTextVariable = RegExp(variable.innerHTML.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "\\s+ql:contains-(entity|word)", "i").test(editorContent);
+			if (variableType == "normal" && isTextVariable || variableType == "text" && !isTextVariable) {
+				return "continue";
+			}
 		    variables.push(variable.innerHTML);
 		}
     });

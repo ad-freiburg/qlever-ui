@@ -78,7 +78,7 @@ def index(request, backend=None, short=None):
 
     # collect shortlink data
     if short:
-        link = Link.objects.filter(identifier=short.replace('/', '')).first()
+        link = Link.objects.filter(identifier=short).first()
         if link:
             prefill = link.content
 

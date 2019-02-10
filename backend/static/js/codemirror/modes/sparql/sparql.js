@@ -87,15 +87,15 @@ var COMPLEXTYPES = [
 {
     name: 'TEXT',
     definition: /TEXT\((.*)\)/g,
-    suggestions: [['TEXT(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
+    suggestions: [['TEXT(',function(c){ var a = []; $(getVariables(c,true,"text")).each(function(k,v){ a.push(v)}); return a; },') ']],
     availableInContext: ['SelectClause'],
     
 },
 {
     name: 'SCORE',
     definition: /SCORE\((.*)\)/g,
-    suggestions: [['SCORE(',function(c){ var a = []; $.each(getVariables(c,true),function(k,v){ if(getContextByName('WhereClause')['content'].indexOf(v+' ql:contains') != -1){ a.push(v); }}); return a; },') ']],
-    availableInContext: ['SelectClause'],
+    suggestions: [['SCORE(',function(c){ var a = []; $(getVariables(c,true,"text")).each(function(k,v){ a.push(v)}); return a; },') ']],
+    availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
