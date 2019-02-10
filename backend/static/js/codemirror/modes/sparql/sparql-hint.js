@@ -746,26 +746,6 @@ function buildQueryTree(content,start){
 			
 			tempElement = { w3name: 'SolutionModifier', suggestInSameLine: true, start: i+start }
 		
-		} else if(tempString.endsWith('ORDER BY ')){
-			
-			// shorten the whereclause by what we needed to add to match the }
-			tempElement['content'] = tempString.slice(0,tempString.length-9);
-			tempElement['end'] = i+start-9;
-			tree.push(tempElement);
-			tempString = "";
-			
-			tempElement = { w3name: 'OrderCondition', suggestInSameLine: true, start: i+start }
-		
-		} else if(tempString.endsWith('GROUP BY ')){
-			
-			// shorten the whereclause by what we needed to add to match the }
-			tempElement['content'] = tempString.slice(0,tempString.length-9);
-			tempElement['end'] = i+start-9;
-			tree.push(tempElement);
-			tempString = "";
-			
-			tempElement = { w3name: 'GroupCondition', suggestInSameLine: true, start: i+start }
-		
 		}
 		
 		i++;
@@ -774,6 +754,52 @@ function buildQueryTree(content,start){
 	tempElement['content'] = tempString;
 	tempElement['end'] = content.length+start;
 	tree.push(tempElement);
+	
+	for(var element of tree){
+		if(element.w3name == "SolutionModifier"){
+			
+			var j = 0;
+			var tempSubString = "";
+		  
+			while(j < element.content.length){
+				
+		        tempSubString += element.content[j];
+		  
+			    if(tempSubString.endsWith('ORDER BY ')){
+					
+					var elementContent = "";
+					while(j < element.content.length && !elementContent.endsWith('\n')){
+						elementContent += element.content[j];
+						j++;
+					}
+					if('children' in element){
+						element['children'].push({ w3name: 'OrderCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent });
+					} else {
+						element['children'] = [{ w3name: 'OrderCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
+					}
+					tempSubString = "";
+				
+				} else if(tempSubString.endsWith('GROUP BY ')){
+					
+					var elementContent = "";
+					while(j < element.content.length && !elementContent.endsWith('\n')){
+						elementContent += element.content[j];
+						j++;
+					}
+					if('children' in element){
+						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent });
+					} else {
+						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
+					}
+					tempSubString = "";
+					
+				}
+				
+				j++;
+			}
+		}
+	}
+	
 	
 	return tree;
 	
