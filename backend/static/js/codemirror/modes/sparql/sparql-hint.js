@@ -787,9 +787,9 @@ function buildQueryTree(content,start){
 						j++;
 					}
 					if('children' in element){
-						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: +element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent });
+						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent });
 					} else {
-						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: +element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
+						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
 					}
 					tempSubString = "";
 					
