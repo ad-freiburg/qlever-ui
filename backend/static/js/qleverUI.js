@@ -121,15 +121,16 @@ $(document).ready(function() {
         element = $(this).text().trim();
         domElement = this;
 		
-        if ($(this).prev().hasClass('cm-prefix-name')) {
+        if ($(this).prev().hasClass('cm-prefix-name') || $(this).prev().hasClass('cm-string-language')) {
             element = $(this).prev().text() + element;
         }
         
         if ($(this).next().hasClass('cm-entity-name')) {
             element = element+$(this).next().text();
         }
-		
+        
         index = values.indexOf(element);
+
         if (index == 0) {
             addNameHover(element,domElement,subjectNames,SUBJECTNAME,prefixes);
         } else if (index == 1) {
@@ -168,6 +169,8 @@ $(document).ready(function() {
 });
 
 function addNameHover(element,domElement, list, namepredicate, prefixes){
+	element = element.replace(/^@[a-zA-Z-]+@/, "");
+
 	if ($(domElement).data('tooltip') == 'tooltip') {
 		return;
 	}
