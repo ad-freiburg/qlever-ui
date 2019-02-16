@@ -279,10 +279,10 @@ function getDynamicSuggestions(context){
 	var lines = context['content'].split('\n');
 	for(var i = 0; i < lines.length; i++){
 		if(lines[i] == line){
-			lines = lines.slice(0,i);
+			lines.splice(i,1);
 			break
 		}	
-	}	
+	}
 	
     // replace the prefixes
     var replacedRelations = false;
@@ -310,7 +310,6 @@ function getDynamicSuggestions(context){
 		variableRegex = /(\?.+?)\s/g
 		variable = line.match(variableRegex);
 		if(variable){
-			
 			// at first we know only the variable in our current line
 			var seenVariables = [variable];
 			// and do not use any other lines

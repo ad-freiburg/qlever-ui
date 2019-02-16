@@ -33,6 +33,7 @@ function cleanLines(cm) {
 			if(line.trim() == ""){
 				cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length});
 				cm.replaceSelection('');
+				cursor.line -= 1;
 			}
 			var startingWhitespaces = line.length - line.replace(/^\s+/,"").length;
 			cm.setSelection({line: i, ch: startingWhitespaces},{line: i, ch: line.length});
