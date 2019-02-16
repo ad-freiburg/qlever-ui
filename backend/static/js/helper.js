@@ -21,14 +21,42 @@ function getQueryString(){
     return BASEURL + queryString
 }
 
+function cleanLines(cm) {
+	var cursor = cm.getCursor();
+	var selection = cm.listSelections()[0];
+	var lastLine = undefined;
+	var line = cm.getLine(0);
+	for (var i = 0; i < cm.lastLine(); i++) {
+		if(i != cursor.line && i != cursor.line-1){
+			lastLine = line;
+	        line = cm.getLine(i);
+			if(line.trim() == ""){
+				cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length});
+				cm.replaceSelection('');
+			}
+			var startingWhitespaces = line.length - line.replace(/^\s+/,"").length;
+			cm.setSelection({line: i, ch: startingWhitespaces},{line: i, ch: line.length});
+			cm.replaceSelection(line.slice(startingWhitespaces).replace(/\s{2,}/g,' '));
+		}
+	}
+	cm.setCursor(cursor);
+	cm.setSelection(selection.anchor,selection.head);
+}
+
 function switchStates(cm) {
-	log('Switching between placeholders...','other');
+	log('Switching between placeholders...','other');	
     if (activeState == 0) {
         // move to end of select clause
         for (var i = 0; i < cm.lastLine(); i++) {
             line = cm.getLine(i);
             if (line.trim().startsWith('SELECT')) {
                 cm.setCursor(i, (line.length - 8));
+                if(line[line.length - 9] != " "){
+	                // add empty whitespace in select if not present
+	                cm.setSelection({ 'line': i, 'ch': line.length - 8},{ 'line': i, 'ch': line.length - 7 });
+	                cm.replaceSelection('  ');
+					cm.setCursor(i, (line.length - 7));
+                }
                 break;
             }
         }
@@ -41,10 +69,12 @@ function switchStates(cm) {
             line = cm.getLine(i);
             if (line.trim().startsWith('}')) {
                 if (last.trim() != "") {
+	                // add a new line at the end if not present
                     cm.setSelection({ 'line': i - 1, 'ch': last.length });
-                    cm.replaceSelection('\n  ')
+                    cm.replaceSelection('\n  ');
                     cm.setCursor(i, 2);
                 } else {
+	                // jump to the new line at the end
                     cm.setCursor(i - 1, 2);
                 }
                 break;
@@ -55,14 +85,6 @@ function switchStates(cm) {
         // move to "values"
         last = cm.lastLine();
         line = editor.getLine(last);
-        cursor = cm.getCursor();
-        curLine = cm.getLine(cursor.line);
-        if (curLine == "  ") {
-            lastLine = cm.getLine(cursor.line - 1);
-            cm.setSelection({ 'line': cursor.line - 1, 'ch': lastLine.length },
-            { 'line': cursor.line, 'ch': curLine.length });
-            cm.replaceSelection('')
-        }
         if (line.trim() != "") {
             cm.setSelection({ 'line': last, 'ch': line.length });
             cm.replaceSelection('\n')

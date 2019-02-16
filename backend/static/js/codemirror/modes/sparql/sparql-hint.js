@@ -89,6 +89,10 @@ var suggestions;
 		        var word = suggestion.word;
 		        var type = types[suggestion.type] || {};
 		        var alreadyExists = 0;
+		        
+		        if(type.requiresEmptyLine == true && editor.getLine(cursor.line).trim() != ""){
+			        continue;
+		        }
 				
 				// check if the type already exists
 				if(type.onlyOnce == true){
@@ -774,7 +778,6 @@ function buildQueryTree(content,start){
 			while(j < element.content.length){
 				
 		        tempSubString += element.content[j];
-		  
 			    if(tempSubString.endsWith('ORDER BY ')){
 					
 					var elementContent = "";
@@ -787,11 +790,14 @@ function buildQueryTree(content,start){
 					} else {
 						element['children'] = [{ w3name: 'OrderCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
 					}
+					j--;
 					tempSubString = "";
 				
-				} else if(tempSubString.endsWith('GROUP BY ')){
+				} 
+				if(tempSubString.endsWith('GROUP BY ')){
 					
 					var elementContent = "";
+					var start = element.start + j;
 					while(j < element.content.length && !elementContent.endsWith('\n')){
 						elementContent += element.content[j];
 						j++;
@@ -801,6 +807,7 @@ function buildQueryTree(content,start){
 					} else {
 						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
 					}
+					j--;
 					tempSubString = "";
 					
 				}
@@ -846,11 +853,19 @@ function searchTree(tree,absPosition){
 			    child = searchTree(element.children,absPosition);
 			    if(child) {
 				    if(child.w3name == "PrefixDecl"){
-					    return { w3name: 'SubQuery', content: "" };
+					    if(element.w3name == 'SolutionModifier'){
+						    return { w3name: 'SolutionModifier', content: "" };
+						} else {
+						    return { w3name: 'SubQuery', content: "" };
+						}
 				    }
 				    return child
 			    } else {
-				    return { w3name: 'SubQuery', content: "" };
+				    if(element.w3name == 'SolutionModifier'){
+					    return { w3name: 'SolutionModifier', content: "" };
+					} else {
+					    return { w3name: 'SubQuery', content: "" };
+					}
 			    }
 		    } else {
 				return element;

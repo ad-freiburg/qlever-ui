@@ -59,13 +59,18 @@ $(document).ready(function() {
 	// initializing done
     log('Editor initialized.','other');
 
+	// Do some custom activities on cursor activity
+	editor.on("cursorActivity", function(instance, event) {
+		cleanLines(instance);
+	});
+
 	// Do some custom activities (overwrite codemirror behaviour)
 	editor.on("keydown", function(instance, event) {
 		$('[data-tooltip=tooltip]').tooltip('hide');
 	});
 	
     editor.on("keyup", function(instance, event) {
-
+		
 	    // (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-entity').hover(showRealName);
@@ -86,12 +91,12 @@ $(document).ready(function() {
         }
         // do not suggest anything inside a word
         if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}") {
-				// invoke autocompletion after a very short delay
-	            window.setTimeout(function() {
-	                if (example == 1) { example = 0; } else {
-	                    CodeMirror.commands.autocomplete(instance);
-	                }
-	            }, 150);
+			// invoke autocompletion after a very short delay
+            window.setTimeout(function() {
+                if (example == 1) { example = 0; } else {
+                    CodeMirror.commands.autocomplete(instance);
+                }
+            }, 150);
         } else {
             console.warn('Skipped completion due to cursor position');
         }
