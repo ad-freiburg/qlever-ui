@@ -591,10 +591,7 @@
           var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
           var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
           var SUGGESTOBJECTS = ENTITYNAMERELATIONS["SUGGESTOBJECTS"];
-          var COLLECTEDPREFIXES = [];
-          {% for prefix in prefixes %}
-          COLLECTEDPREFIXES.push(`{% autoescape off %}{{ prefix }}{% endautoescape %}`);
-          {% endfor %}
+          var COLLECTEDPREFIXES = {% autoescape off %}{{ prefixes }}{% endautoescape %};
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);

@@ -105,7 +105,7 @@ $(document).ready(function() {
         // collect prefixes (as string and dict)
         // TODO: move this to a function. Also use this new function in sparql-hint.js
 	    var prefixes = "";
-	    var lines = getContextByName('PrefixDecl')['content'].split('\n');
+	    var lines = getPrefixLines();
 	
 	    for (var line of lines) {
 	        if (line.trim().startsWith("PREFIX")) {

@@ -117,7 +117,6 @@
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
 
-
             if (completion.slice(-2) == "()" ||  completion.slice(-2) == " )") {
                 cursor.ch = cursor.ch - 1;
                 editor.setCursor(cursor);
@@ -130,7 +129,7 @@
                         'line': cursor.line,
                         'ch': line.length
                     });
-                    editor.replaceSelection('\n'+whitespaces)
+                    editor.replaceSelection('\n'+whitespaces);
                     cursor.ch = 0;
                     cursor.line = cursor.line + 1;
                     editor.setCursor(cursor);
@@ -138,6 +137,32 @@
             }
             if (getText(completion).match(/SELECT  WHERE/g)) {
                 switchStates(editor);
+            }
+            // Add prefixes if not yet declared
+            var prefixLines = getPrefixLines();
+            for (var prefix in COLLECTEDPREFIXES) {
+	            if (completion.startsWith(prefix+':')) {
+		            var prefixAvailable = false;
+				    for (var line of prefixLines) {
+				        if (line.trim().startsWith("PREFIX "+prefix+':')) {
+				            prefixAvailable = true;
+				            break;
+				        }
+				    }
+				    if (!prefixAvailable) {
+					     editor.setSelection({
+	                        'line': 0,
+	                        'ch': 0
+	                    });
+	                    editor.replaceSelection('PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>\n');
+		                cursor.ch = cursor.ch + completion.length;
+	                    cursor.line = cursor.line + 1;
+	                    if (completion.indexOf("\n") != -1) {
+		                    cursor.line = cursor.line + 1;
+	                    }
+	                    editor.setCursor(cursor);
+				    }
+	            }
             }
             CodeMirror.signal(data, "pick", completion);
             this.close();
