@@ -782,14 +782,15 @@ function buildQueryTree(content,start){
 				} else if(tempSubString.endsWith('GROUP BY ')){
 					
 					var elementContent = "";
+					var start = element.start + j;
 					while(j < element.content.length && !elementContent.endsWith('\n')){
 						elementContent += element.content[j];
 						j++;
 					}
 					if('children' in element){
-						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent });
+						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: start, end: start+elementContent.length, content: elementContent });
 					} else {
-						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
+						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: start, end: start+elementContent.length, content: elementContent }];
 					}
 					tempSubString = "";
 					
@@ -836,11 +837,19 @@ function searchTree(tree,absPosition){
 			    child = searchTree(element.children,absPosition);
 			    if(child) {
 				    if(child.w3name == "PrefixDecl"){
-					    return { w3name: 'SubQuery', content: "" };
+					    if(element.w3name == 'SolutionModifier'){
+						    return { w3name: 'SolutionModifier', content: "" };
+						} else {
+						    return { w3name: 'SubQuery', content: "" };
+						}
 				    }
 				    return child
 			    } else {
-				    return { w3name: 'SubQuery', content: "" };
+				    if(element.w3name == 'SolutionModifier'){
+					    return { w3name: 'SolutionModifier', content: "" };
+					} else {
+					    return { w3name: 'SubQuery', content: "" };
+					}
 			    }
 		    } else {
 				return element;

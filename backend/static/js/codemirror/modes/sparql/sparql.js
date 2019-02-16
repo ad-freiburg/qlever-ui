@@ -14,7 +14,7 @@ var CONTEXTS = [
     {
         w3name: 'SelectClause',
         startAfter: "SELECT ",
-        definition: /SELECT ([\S\s]*?) WHERE/g,
+        definition: /SELECT ([\S\s]*?)WHERE/g,
         suggestInSameLine: true,
     },
     {
@@ -217,7 +217,7 @@ var COMPLEXTYPES = [
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
-    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, ', ', ['"en"','"de"'] ,') .\n']],
+    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, '), ', ['"en"','"de"'] ,') .\n']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     suggestOnlyWhenMatch: true,
 },

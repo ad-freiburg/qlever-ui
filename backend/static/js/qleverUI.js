@@ -59,13 +59,18 @@ $(document).ready(function() {
 	// initializing done
     log('Editor initialized.','other');
 
+	// Do some custom activities on cursor activity
+	editor.on("cursorActivity", function(instance, event) {
+		cleanLines(instance);
+	});
+
 	// Do some custom activities (overwrite codemirror behaviour)
 	editor.on("keydown", function(instance, event) {
 		$('[data-tooltip=tooltip]').tooltip('hide');
 	});
 	
     editor.on("keyup", function(instance, event) {
-
+		
 	    // (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-entity').hover(showRealName);
