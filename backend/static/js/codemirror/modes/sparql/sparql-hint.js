@@ -89,6 +89,10 @@ var suggestions;
 		        var word = suggestion.word;
 		        var type = types[suggestion.type] || {};
 		        var alreadyExists = 0;
+		        
+		        if(type.requiresEmptyLine == true && editor.getLine(cursor.line).trim() != ""){
+			        continue;
+		        }
 				
 				// check if the type already exists
 				if(type.onlyOnce == true){
@@ -769,8 +773,6 @@ function buildQueryTree(content,start){
 			while(j < element.content.length){
 				
 		        tempSubString += element.content[j];
-				console.log(tempSubString);
-		  
 			    if(tempSubString.endsWith('ORDER BY ')){
 					
 					var elementContent = "";

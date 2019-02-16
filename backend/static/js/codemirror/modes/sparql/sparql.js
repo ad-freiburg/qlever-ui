@@ -213,30 +213,35 @@ var COMPLEXTYPES = [
     suggestions: [['FILTER (', function(c){ return getVariables(c);},' ']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     suggestOnlyWhenMatch: true,
+    requiresEmptyLine: true,
 },
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
     suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, '), ', ['"en"','"de"'] ,') .\n']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
+    requiresEmptyLine: true,
 },
 {
     name: 'SUBQUERY',
     suggestions: [['{\n  \n}']],
     availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
     suggestOnlyWhenMatch: true,
+    requiresEmptyLine: true,
 },
 {
     name: 'OPTIONAL',
     suggestions: [['OPTIONAL {\n\n }\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
+    requiresEmptyLine: true,
 },
 {
     name: 'UNION',
     suggestions: [['UNION {\n\n }\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
+    requiresEmptyLine: true,
 },
 ];
 
