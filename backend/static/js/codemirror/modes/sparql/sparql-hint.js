@@ -264,7 +264,7 @@ function getDynamicSuggestions(context){
 	// collect prefixes (as string and dict)
     var prefixes = "";
     var prefixesRelation = {};
-    var lines = getContextByName('PrefixDecl')['content'].split('\n');
+    var lines = getPrefixLines();
 
     for (var prefLine of lines) {
         if (prefLine.trim().startsWith("PREFIX")) {
@@ -522,9 +522,14 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 		            for (var result of data.res) {
 		                
 		                // add back the prefixes
-		                for (prefix in prefixesRelation) {
+		                for (var prefix in prefixesRelation) {
 		                    if (result[0].indexOf(prefixesRelation[prefix]) > 0) {
 		                        result[0] = result[0].replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
+		                    }
+		                }
+		                for (var prefix in COLLECTEDPREFIXES) {
+			                if (result[0].indexOf(COLLECTEDPREFIXES[prefix]) > 0) {
+		                        result[0] = result[0].replace("<" + COLLECTEDPREFIXES[prefix], prefix + ':').slice(0, -1);
 		                    }
 		                }
 		                var nameIndex = data.selected.indexOf("?qleverui_name");
@@ -902,6 +907,28 @@ function getContextByName(name){
     return foundContext;
 }
 
+function getPrefixLines() {
+	var editorContent = editor.getValue()
+    var prefixContent;
+    
+    $(CONTEXTS).each(function(index,context){
+	    
+	    if(context.w3name == 'PrefixDecl'){
+		    
+		    context.definition.lastIndex = 0;
+		    var match = context.definition.exec(editorContent);
+		    
+			if(match && match.length > 1){
+				prefixContent = getValueOfContext(context).split('\n');
+				return false;
+				
+			}
+		}
+		
+    });
+    return prefixContent;
+}
+
 /**
    
    Returns the value of the given context
@@ -988,25 +1015,17 @@ function getVariables(context, excludeAggregationVariables, variableType){
     
 **/
 function getPrefixSuggestions(context){
-    
-    if(context){    
-    	var prefixes = []
+	var prefixes = []
 
-	    // get content of current context
-	    var testAgainst = context['content'];
-	    
-	    // get the prefixes
-	    $(COLLECTEDPREFIXES).each(function(key,prefix){
-		    if(testAgainst.indexOf(prefix) != -1){
-				return true;
-		    }
-		    prefixes.push(prefix);
-	    });
-	    
-	} else {
-		var prefixes = $.extend([],COLLECTEDPREFIXES);	
-	}
-    
+    // get content of current context
+    var testAgainst = (context) ? context['content'] : false;
+    for (var key in COLLECTEDPREFIXES) {
+	    var prefix = key + ': <' + COLLECTEDPREFIXES[key] + '>';
+	    if (testAgainst && testAgainst.indexOf(prefix) != -1){
+			continue;
+	    }
+	    prefixes.push(prefix);
+    }
     return prefixes;   
 }
 

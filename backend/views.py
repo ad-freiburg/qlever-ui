@@ -28,7 +28,7 @@ def index(request, backend=None, short=None):
 
     activeBackend = None
     examples = []
-    prefixes = []
+    prefixes = {}
     prefill = None
 
     if request.POST.get('whitespaces',False):
@@ -74,7 +74,7 @@ def index(request, backend=None, short=None):
         prefs = list(Prefix.objects.filter(backend=activeBackend).order_by('-occurrences'))
     
         for prefix in prefs:
-            prefixes.append('%s: <%s>' % (prefix.name, prefix.prefix.strip('<>')))
+            prefixes[prefix.name] = prefix.prefix.strip('<>')
 
     # collect shortlink data
     if short:
@@ -85,7 +85,7 @@ def index(request, backend=None, short=None):
     return render(
         request, 'index.html', {
             'backend': activeBackend,
-            'prefixes': prefixes,
+            'prefixes': json.dumps(prefixes),
             'backends': Backend.objects.all(),
             'examples': examples,
             'prefill': prefill
