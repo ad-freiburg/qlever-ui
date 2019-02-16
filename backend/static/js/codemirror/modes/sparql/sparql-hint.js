@@ -89,8 +89,9 @@ var suggestions;
 		        var word = suggestion.word;
 		        var type = types[suggestion.type] || {};
 		        var alreadyExists = 0;
-		        
-		        if(type.requiresEmptyLine == true && editor.getLine(cursor.line).trim() != ""){
+				
+				var fullLineContent = editor.getLine(cursor.line).trim();
+		        if(type.requiresEmptyLine == true && (fullLineContent != "" && !word.startsWith(fullLineContent))){
 			        continue;
 		        }
 				
