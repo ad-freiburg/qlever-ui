@@ -769,6 +769,7 @@ function buildQueryTree(content,start){
 			while(j < element.content.length){
 				
 		        tempSubString += element.content[j];
+				console.log(tempSubString);
 		  
 			    if(tempSubString.endsWith('ORDER BY ')){
 					
@@ -782,9 +783,11 @@ function buildQueryTree(content,start){
 					} else {
 						element['children'] = [{ w3name: 'OrderCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
 					}
+					j--;
 					tempSubString = "";
 				
-				} else if(tempSubString.endsWith('GROUP BY ')){
+				} 
+				if(tempSubString.endsWith('GROUP BY ')){
 					
 					var elementContent = "";
 					var start = element.start + j;
@@ -793,10 +796,11 @@ function buildQueryTree(content,start){
 						j++;
 					}
 					if('children' in element){
-						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: start, end: start+elementContent.length, content: elementContent });
+						element['children'].push({ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent });
 					} else {
-						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: start, end: start+elementContent.length, content: elementContent }];
+						element['children'] = [{ w3name: 'GroupCondition', suggestInSameLine: true, start: j+element.start-elementContent.length, end: j+element.start+1-(elementContent.split("\n").length - 1), content: elementContent }];
 					}
+					j--;
 					tempSubString = "";
 					
 				}
