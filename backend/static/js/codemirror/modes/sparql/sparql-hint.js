@@ -520,8 +520,12 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 				log("Query took " + data.time.total + ".",'requests');
 		        
 		        if(data.res){
+			        var suggested = {};
 		            for (var result of data.res) {
-		                
+		                if (suggested[result[0]]) {
+			                continue
+		                }
+		                suggested[result[0]] = true;
 		                // add back the prefixes
 		                for (var prefix in prefixesRelation) {
 		                    if (result[0].indexOf(prefixesRelation[prefix]) > 0) {
