@@ -111,8 +111,14 @@
             }
             
             if (completion.slice(-1) == ".") {
-	            log('Added linebreak','other');
-                completion = completion + "\n"+indentWhitespaces
+	            if (line.endsWith(".")) {
+		            editor.setSelection({line:cursor.line, ch:cursor.ch}, {line:cursor.line, ch:99999});
+		            editor.replaceSelection("");
+		        }
+		        log('Added linebreak','other');
+				completion = completion + "\n"+indentWhitespaces
+	            
+	            
             }
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
