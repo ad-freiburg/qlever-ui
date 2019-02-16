@@ -47,7 +47,6 @@ var suggestions;
 
 	// add matches to result
     function addMatches(result, addedSuggestions, context) {
-	    
 	    log('Found  '+addedSuggestions.length+' suggestions for this position','suggestions');
 	    // current line
 	    var cursor = editor.getCursor();
@@ -399,7 +398,12 @@ function getDynamicSuggestions(context){
 					sendSparql = false;
 					suggestVariables = false;
 				} else {
-					response.push('?'+lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()+' .');
+					var subject = (subjectNames[words[0]] != "" && subjectNames[words[0]] != undefined) ? subjectNames[words[0]] : words[0];
+					var subjectVarName = subject.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase();
+					var objectVarName = lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase();
+
+					response.push('?'+objectVarName+' .');
+					response.push('?'+subjectVarName+'_'+objectVarName+' .');
 				}
 			} else {
 				console.warn('Skipping every suggestions based on current position...');
