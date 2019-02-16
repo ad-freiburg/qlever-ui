@@ -166,14 +166,14 @@ var COMPLEXTYPES = [
 {
     name: 'ASC',
     definition: /ASC(\?.*)/g,
-    suggestions: [['ASC(',function(c){ return getVariables(c);},') ']],
+    suggestions: [['ASC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); } ; return a; },') ']],
     availableInContext: ['OrderCondition'],
 
 },
 {
     name: 'DESC',
     definition: /DESC(\?.*)/g,
-    suggestions: [['DESC(',function(c){ return getVariables(c);},') ']],
+    suggestions: [['DESC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); } ; return a; },') ']],
     availableInContext: ['OrderCondition'],
     
 },
