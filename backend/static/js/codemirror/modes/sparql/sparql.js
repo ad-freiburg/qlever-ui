@@ -219,7 +219,6 @@ var COMPLEXTYPES = [
     definition: /FILTER langMatches(.*)/g,
     suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, '), ', ['"en"','"de"'] ,') .\n']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
-    suggestOnlyWhenMatch: true,
 },
 {
     name: 'SUBQUERY',
