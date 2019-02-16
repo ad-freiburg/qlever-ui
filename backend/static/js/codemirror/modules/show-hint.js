@@ -414,7 +414,15 @@
                 }
             }
         }
-        var overlapX = box.right - winW;
+        
+        // dirty workaround to get real width
+        var oldLeft = parseInt(hints.style.left);
+        hints.style.left = 0 + 'px';
+        var width = parseInt(hints.offsetWidth);
+        hints.style.left = oldLeft + 'px';
+        
+        var overlapX = box.left + width - winW;
+        console.log(overlapX);
         if (overlapX > 0) {
             if (box.right - box.left > winW) {
                 hints.style.width = (winW - 5) + "px";
