@@ -318,7 +318,7 @@ var COMPLEXTYPES = [
                 }
                 return "entity";
             }  else if (ch == "@") {
-                stream.match(/[\w-]*/);
+                stream.match(/[\w-]*@/);
                 return "string string-language";
             } else  {
 	            before = getBefore(stream, /:/);
