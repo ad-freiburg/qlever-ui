@@ -32,7 +32,7 @@ function cleanLines(cm) {
 			lastLine = line;
 	        line = cm.getLine(i);
 			if(line.trim() == ""){
-				cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length});
+				cm.setSelection({line: i, ch: 0},{line: i+1, ch: 0});
 				cm.replaceSelection('');
 				if(i < cursor.line){
 					cursor.line -= 1;
