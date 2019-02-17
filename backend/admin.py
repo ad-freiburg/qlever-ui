@@ -25,7 +25,7 @@ class BackendAdmin(ImportExportModelAdmin):
             'fields': ('ntFilePath',),
         }),
         ('UI Suggestions', {
-            'fields': ('maxDefault','filteredLanguage','dynamicSuggestions','supportedKeywords','supportedFunctions', ),
+            'fields': ('maxDefault','fillPrefixes','filteredLanguage','dynamicSuggestions','supportedKeywords','supportedFunctions', ),
         }),
         ('Backend Suggestions', {
             'fields': ('suggestSubjects','suggestObjects','dynamicSuggestions', ),

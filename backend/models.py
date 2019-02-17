@@ -107,6 +107,12 @@ class Backend(models.Model):
         help_text=
         "Comma separated list of SPARQL functions supported by the backend. Will be used for funciton highlighting.",
         verbose_name="Supported functions")
+    
+    fillPrefixes = models.BooleanField(
+        default=True,
+        help_text=
+        "Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.",
+        verbose_name="Fill in known Prefixes")
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
