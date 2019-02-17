@@ -431,7 +431,7 @@ function getDynamicSuggestions(context){
 				sparqlQuery = prefixes;
 				if (nameClause.length > 0) {
 					sparqlQuery +=
-					"SELECT ?qleverui_entity ?qleverui_name ?qleverui_count WHERE {\n";
+					"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {\n";
 					if (word.length > 0) {
 						// find all entities whose names match what we typed and UNION it with entityQuery
 						sparqlQuery +=
@@ -461,6 +461,7 @@ function getDynamicSuggestions(context){
 		        }
 		        sparqlQuery +=
 		        "}\n" +
+		        "GROUP BY ?qleverui_entity\n" +
 		        "ORDER BY DESC(?qleverui_count)";
 		        
 		        getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList);
