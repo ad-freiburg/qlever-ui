@@ -97,6 +97,11 @@
                                     </a>
                                 </li>
                                 <li>
+	                                <a href="#" onclick="changeTheme();">
+				                        <i class="glyphicon glyphicon-adjust"></i>&nbsp; Switch theme
+				                    </a>
+                                </li>
+                                <li>
                                     <a href="/api/share?cleanup=true">
                                         <i class="glyphicon glyphicon-trash"></i>&nbsp; Clear History
                                     </a>
@@ -170,14 +175,9 @@
         
             <!-- The theme / help block -->
             <div class="pull-right">
-                <div class="btn-group">
-                    <button class="btn btn-default" onclick="changeTheme();">
-                        <i class="glyphicon glyphicon-adjust"></i> Switch theme
-                    </button>
-                    <button class="btn btn-default" onclick="expandEditor();">
-                        <i class="glyphicon glyphicon-question-sign"></i> Help
-                    </button>
-                </div>
+                <button class="btn btn-default" onclick="expandEditor();">
+                    <i class="glyphicon glyphicon-question-sign"></i> Help
+                </button>
             </div>
         
             <br><br>
