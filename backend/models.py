@@ -171,15 +171,16 @@ class Prefix(models.Model):
     name = models.CharField(max_length=30, default="",help_text=
         "Please chose the short name of this prefix (e.g. scm)",)
     prefix = models.CharField(max_length=200, default="",help_text=
-        "Insert the original scope with it's path (e.g. &lt;http://schema.org/&gt;).",)
+        "Insert the original scope with it's path (e.g. &lt;http://schema.org/&gt;).")
     backend = models.ForeignKey(Backend)
     occurrences = models.IntegerField(default=1,help_text=
-        "Estimated or calculated occurrences of this prefix (used for ordering).",)
+        "Estimated or calculated occurrences of this prefix (used for ordering).")
 
 
 class Example(models.Model):
     backend = models.ForeignKey(Backend)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,help_text=
+        "Name of this example to show in the user interface")
     query = models.TextField()
 
     def __unicode__(self):
