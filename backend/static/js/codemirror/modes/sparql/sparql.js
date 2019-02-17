@@ -166,14 +166,14 @@ var COMPLEXTYPES = [
 {
     name: 'ASC',
     definition: /ASC(\?.*)/g,
-    suggestions: [['ASC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); } ; return a; },') ']],
+    suggestions: [['ASC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); }; return a; },') ']],
     availableInContext: ['OrderCondition'],
 
 },
 {
     name: 'DESC',
     definition: /DESC(\?.*)/g,
-    suggestions: [['DESC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); } ; return a; },') ']],
+    suggestions: [['DESC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); }; return a; },') ']],
     availableInContext: ['OrderCondition'],
     
 },
@@ -218,7 +218,7 @@ var COMPLEXTYPES = [
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
-    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c,undefined,undefined,LANGUAGELITERAL);}, '), ', LANGUAGES ,') .\n']],
+    suggestions: [['FILTER langMatches(lang(', function(c){ var a = []; for (var v of getVariables(c,undefined,undefined,LANGUAGELITERAL)) { if(editor.getValue().indexOf("FILTER langMatches(lang("+v) == -1){ a.push(v); } }; return a;  }, '), ', LANGUAGES ,') .\n']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     requiresEmptyLine: true,
 },
