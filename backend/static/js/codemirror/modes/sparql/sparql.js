@@ -218,7 +218,7 @@ var COMPLEXTYPES = [
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
-    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, '), ', ['"en"','"de"'] ,') .\n']],
+    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, '), ', LANGUAGES ,') .\n']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     requiresEmptyLine: true,
 },
@@ -269,18 +269,6 @@ var COMPLEXTYPES = [
 })(function(CodeMirror) {
     "use strict";
 
-
-	var keywordList = ["prefix", "select", "distinct", "where", "order", "limit",
-      "offset", "optional", "by", "as", "having", "not", "textlimit",
-      "contains-entity", "contains-word", "filter", "group", "union",
-      "optional", "has-predicate"
-  ];
-
-  var functionList = ["asc", "desc", "avg", "values", "score", "text",
-      "count", "sample", "min", "max", "average", "concat", "group_concat",
-      "langMatches", "lang", "regex", "sum"
-  ];
-
     CodeMirror.defineMode("sparql", function(config) {
         var indentUnit = config.indentUnit;
         var curPunc;
@@ -293,8 +281,8 @@ var COMPLEXTYPES = [
             return new RegExp("^(?:" + words.join("|") + ")$", "i");
         }
 
-        var keywords = wordRegexp(keywordList);
-        var functions = wordRegexp(functionList);
+        var keywords = wordRegexp(KEYWORDS);
+        var functions = wordRegexp(FUNCTIONS);
 
 		// -----------------------------------------------------
 		// 	   Detect tokens and their types
@@ -475,7 +463,7 @@ var COMPLEXTYPES = [
 
     CodeMirror.defineMIME("application/sparql-query", {
         name: "sparql",
-        keywords: keywordList + functionList,
+        keywords: KEYWORDS + FUNCTIONS,
     });
 
 });
