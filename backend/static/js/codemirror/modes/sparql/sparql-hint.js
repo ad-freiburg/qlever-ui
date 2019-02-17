@@ -288,11 +288,10 @@ function getDynamicSuggestions(context){
     // replace the prefixes
     var replacedRelations = false;
     $.each(prefixesRelation,function(key,value){
-        newWord = word.replace(key+':',value)
-        if(newWord != word){
-            word = '<'+newWord;
+        if(word.startsWith(key+':')){
+            word = '<' + word.replace(key+':',value);
             replacedRelations = true;
-            return true;
+            return false;
         }
     });
 	
