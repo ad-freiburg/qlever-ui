@@ -103,6 +103,11 @@
                                     </a>
                                 </li>
                                 <li>
+	                                <a href="#" onclick="changeTheme();">
+				                        <i class="glyphicon glyphicon-adjust"></i>&nbsp; Switch theme
+				                    </a>
+                                </li>
+                                <li>
                                     <a href="/api/share?cleanup=true">
                                         <i class="glyphicon glyphicon-trash"></i>&nbsp; Clear History
                                     </a>
@@ -122,6 +127,11 @@
                                 <li>
                                     <a href="https://github.com/ad-freiburg/QLever" target="_blank">
                                         <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/jbuerklin/QLeverUI" target="_blank">
+                                        <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLeverUI on GitHub
                                     </a>
                                 </li>
                             <h6 class="dropdown-header">Developer</h6>
@@ -171,14 +181,9 @@
         
             <!-- The theme / help block -->
             <div class="pull-right">
-                <div class="btn-group">
-                    <button class="btn btn-default" onclick="changeTheme();">
-                        <i class="glyphicon glyphicon-adjust"></i> Switch theme
-                    </button>
-                    <button class="btn btn-default" onclick="expandEditor();">
-                        <i class="glyphicon glyphicon-question-sign"></i> Help
-                    </button>
-                </div>
+                <button class="btn btn-default" onclick="expandEditor();">
+                    <i class="glyphicon glyphicon-question-sign"></i> Help
+                </button>
             </div>
         
             <br><br>
@@ -217,10 +222,11 @@
 						<h4>Basic settings</h4>
 						<br>
 						<table class="table">
-							<tr><th>Backend Name</th><td>{{ backend.name }}</td></tr>
-							<tr><th>Backend Slug</th><td>{{ backend.slugify }}</td></tr>
+							<tr><th>Backend name</th><td>{{ backend.name }}</td></tr>
+							<tr><th>Backend slug</th><td>{{ backend.slugify }}</td></tr>
 							<tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
-							<tr><th>Is default:</th><td>{% if backendisDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Is default:</th><td>{% if backend.isDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Fill known prefixes:</th><td>{% if backend.fillPrefixes %}Yes{% else %}No{% endif %}</td></tr>
 							<tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
 							<tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
 							<tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>

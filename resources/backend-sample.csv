@@ -1,6 +1,6 @@
-id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,filteredLanguage,dynamicSuggestions,suggestSubjects,suggestObjects,subjectName,predicateName,objectName,supportedKeywords,supportedFunctions
-1,Wikidata Full,http://qlever.informatik.uni-freiburg.de/api/wikidata-full,,0,1,0,100,"en,de",2,?QLC_SITELINK <http://schema.org/about> ?qleverui_entity,?QLC_SITELINK <http://schema.org/about> ?qleverui_entity,"?qleverui_entity <http://schema.org/name> ?qleverui_name .
-FILTER langMatches(lang(?qleverui_name), ""en"") .","?qleverui_claim <http://wikiba.se/ontology#directClaim> ?qleverui_entity .
+id;name;baseUrl;ntFilePath;ntFileLastChange;isDefault;isImporting;maxDefault;filteredLanguage;dynamicSuggestions;suggestSubjects;suggestObjects;subjectName;predicateName;objectName;supportedKeywords;supportedFunctions;fillPrefixes
+999;Wikidata Full @ Uni Freiburg;http://qlever.informatik.uni-freiburg.de/api/wikidata-full;;0;1;0;100;en,de;2;?QLC_SITELINK <http://schema.org/about> ?qleverui_entity;?QLC_SITELINK <http://schema.org/about> ?qleverui_entity;"?qleverui_entity <http://schema.org/name> ?qleverui_name .
+FILTER langMatches(lang(?qleverui_name), ""en"") .";"?qleverui_claim <http://wikiba.se/ontology#directClaim> ?qleverui_entity .
 { ?qleverui_claim @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name } UNION
-{ ?qleverui_claim @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_name } .","?qleverui_entity <http://schema.org/name> ?qleverui_name .
-FILTER langMatches(lang(?qleverui_name), ""en"") .","prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate","asc, desc, avg, values, score, text, count, sample, min, max, average, concat, group_concat, langMatches, lang, regex, sum"
+{ ?qleverui_claim @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_name } .";"?qleverui_entity <http://schema.org/name> ?qleverui_name .
+FILTER langMatches(lang(?qleverui_name), ""en"") .";prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate;asc, desc, avg, values, score, text, count, sample, min, max, average, concat, group_concat, langMatches, lang, regex, sum;1
