@@ -32,10 +32,12 @@ function cleanLines(cm) {
 			lastLine = line;
 	        line = cm.getLine(i);
 			if(line.trim() == ""){
-				cm.setSelection({line: i, ch: 0},{line: i+1, ch: 0});
+				if(i == 0){ cm.setSelection({line: i, ch: 0},{line: i+1, ch: 0}) } else {
+				cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length}); }
 				cm.replaceSelection('');
 				if(i < cursor.line){
 					cursor.line -= 1;
+					selection.head.line - 1;
 				}
 			}
 			var startingWhitespaces = line.length - line.replace(/^\s+/,"").length;
