@@ -212,7 +212,6 @@ var COMPLEXTYPES = [
     definition: /FILTER \((.*)/g,
     suggestions: [['FILTER (', function(c){ return getVariables(c);},' ']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
-    suggestOnlyWhenMatch: true,
     requiresEmptyLine: true,
 },
 {
