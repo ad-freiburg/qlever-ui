@@ -35,11 +35,11 @@ class BackendAdmin(ImportExportModelAdmin):
         }),
     )
 
-class PrefixAdmin(admin.ModelAdmin):
+class PrefixAdmin(ImportExportModelAdmin):
     list_display = ['name', 'prefix', 'backend', 'occurrences']
 
 
-class ExampleAdmin(admin.ModelAdmin):
+class ExampleAdmin(ImportExportModelAdmin):
     list_display = ['backend', 'name']
 
 class LinkAdmin(admin.ModelAdmin):
