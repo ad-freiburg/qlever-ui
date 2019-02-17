@@ -527,16 +527,24 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 		                }
 		                suggested[result[0]] = true;
 		                // add back the prefixes
+		                var replacePrefix = "";
+		                var prefixName = "";
 		                for (var prefix in prefixesRelation) {
-		                    if (result[0].indexOf(prefixesRelation[prefix]) > 0) {
-		                        result[0] = result[0].replace("<" + prefixesRelation[prefix], prefix + ':').slice(0, -1);
+		                    if (result[0].indexOf(prefixesRelation[prefix]) > 0 && prefixesRelation[prefix].length > replacePrefix.length) {
+				                replacePrefix = prefixesRelation[prefix];
+				                prefixName = prefix;
 		                    }
 		                }
 		                for (var prefix in COLLECTEDPREFIXES) {
-			                if (result[0].indexOf(COLLECTEDPREFIXES[prefix]) > 0) {
-		                        result[0] = result[0].replace("<" + COLLECTEDPREFIXES[prefix], prefix + ':').slice(0, -1);
+			                if (result[0].indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
+		                        replacePrefix = COLLECTEDPREFIXES[prefix];
+		                        prefixName = prefix;
 		                    }
 		                }
+		                if (replacePrefix.length > 0) {
+			                result[0] = result[0].replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
+		                }
+		                
 		                var nameIndex = data.selected.indexOf("?qleverui_name");
 		                var entityName = (nameIndex != -1) ? result[nameIndex] : "";
 		                nameList[result[0]] = entityName;
