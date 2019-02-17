@@ -61,6 +61,7 @@ $(document).ready(function() {
 
 	// Do some custom activities on cursor activity
 	editor.on("cursorActivity", function(instance, event) {
+		$('[data-tooltip=tooltip]').tooltip('hide');
 		cleanLines(instance);
 	});
 	
