@@ -77,7 +77,7 @@ $(document).ready(function() {
     editor.on("keyup", function(instance, event) {
 	    
 		// do not overwrite ENTER inside an completion window
-        if (instance.state.completionActive || event.keyCode == 27) {
+        if (instance.state.completionActive || event.keyCode == 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
             return;
         }
         
