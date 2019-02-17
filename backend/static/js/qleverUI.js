@@ -63,18 +63,19 @@ $(document).ready(function() {
 	editor.on("cursorActivity", function(instance, event) {
 		cleanLines(instance);
 	});
-
-	// Do some custom activities (overwrite codemirror behaviour)
-	editor.on("keydown", function(instance, event) {
-		$('[data-tooltip=tooltip]').tooltip('hide');
-	});
 	
-    editor.on("keyup", function(instance, event) {
-		
-	    // (re)initialize the name hover
+	editor.on("update", function(instance, event) {
+		$('[data-tooltip=tooltip]').tooltip('hide');
+
+		// (re)initialize the name hover
         if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
             $('.cm-entity').hover(showRealName);
         }
+	});
+
+	// Do some custom activities (overwrite codemirror behaviour)
+    editor.on("keyup", function(instance, event) {
+	    
 		// do not overwrite ENTER inside an completion window
         if (instance.state.completionActive || event.keyCode == 27) {
             return;

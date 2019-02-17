@@ -323,7 +323,7 @@ var COMPLEXTYPES = [
                 return "string string-language";
             } else  {
 	            before = getBefore(stream, /:/);
-                var match = stream.match(/[_\w\d\.-]*(:(\s*))?/);
+                var match = stream.match(/[_\w\d\.\/-]*(:(\s*))?/);
                 var word = stream.current();
                 if (match && match[2] !== undefined) {
 	                if (match[2].length > 0) {
@@ -341,8 +341,6 @@ var COMPLEXTYPES = [
 		            return "entity prefixed-entity entity-name"
 	            } else if (word.match(/[\d]+/)) {
 	            	return "literal";
-	            } else if (before.length > 0) {
-		            return "entity prefixed-entity entity-name"
 	            }
 	            // console.warn("Could not tokenize word: " + word);
                 return "other";
