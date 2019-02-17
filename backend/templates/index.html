@@ -26,6 +26,7 @@
           var LANGUAGES = {% autoescape off %}{{ backend.languages }}{% endautoescape %};
           var KEYWORDS = {% autoescape off %}{{ backend.keywords }}{% endautoescape %};
           var FUNCTIONS = {% autoescape off %}{{ backend.functions }}{% endautoescape %};
+          var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);

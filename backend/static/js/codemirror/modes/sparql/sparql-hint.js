@@ -535,11 +535,13 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 				                prefixName = prefix;
 		                    }
 		                }
-		                for (var prefix in COLLECTEDPREFIXES) {
-			                if (result[0].indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
-		                        replacePrefix = COLLECTEDPREFIXES[prefix];
-		                        prefixName = prefix;
-		                    }
+		                if (FILLPREFIXES) {
+			                for (var prefix in COLLECTEDPREFIXES) {
+				                if (result[0].indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
+			                        replacePrefix = COLLECTEDPREFIXES[prefix];
+			                        prefixName = prefix;
+			                    }
+			                }
 		                }
 		                if (replacePrefix.length > 0) {
 			                result[0] = result[0].replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
