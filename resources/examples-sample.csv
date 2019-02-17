@@ -1,0 +1,266 @@
+id;backend;name;query
+719;999;Astronauts and their predicates;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+SELECT ?pred ?predLabel ?count WHERE {
+  {
+    SELECT ?pred (COUNT(?pred) AS ?count) WHERE {
+      ?astronaut wdt:P106 wd:Q11631 .
+      ?astronaut ql:has-predicate ?pred .
+    }
+    GROUP BY ?pred
+    ORDER BY DESC(?count) .
+  }
+  OPTIONAL {
+    {
+      ?pred rdfs:label ?predLabel .
+      FILTER langMatches(lang(?predLabel), ""en"")
+    } UNION {
+      { ?claim wikibase:directClaim ?pred } UNION { ?claim wikibase:claim ?pred }
+      ?claim rdfs:label ?predLabel .
+      FILTER langMatches(lang(?predLabel), ""en"")
+    }
+  }
+}"
+718;999;Astronauts who walked on the moon;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?astronautLabel ?time_in_space TEXT(?t) SCORE(?t) WHERE {
+  ?t ql:contains-entity ?astronaut .
+  ?t ql:contains-word ""walk* moon"" .
+  ?astronaut wdt:P106 wd:Q11631 .
+  ?astronaut wdt:P2873 ?time_in_space .
+  ?astronaut rdfs:label ?astronautLabel .
+  FILTER langMatches(lang(?astronautLabel), ""en"") .
+}
+ORDER BY DESC(SCORE(?t)) DESC(?time_in_space)"
+717;999;German Astronauts with Date of Birth;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?dateOfBirth ?astronautLabel WHERE {
+  ?astronaut wdt:P106 wd:Q11631 .
+  ?astronaut wdt:P27 wd:Q183 .
+  ?astronaut wdt:P569 ?dateOfBirth .
+  ?astronaut rdfs:label ?astronautLabel .
+  FILTER langMatches(lang(?astronautLabel), ""en"") .
+}
+ORDER BY ASC(?dateOfBirth)"
+716;999;All persons with their name in description in @en, ordered by sitelinks;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+SELECT ?person ?person_name ?description ?sitelinks WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person rdfs:label ?person_name .
+  ?person schema:description ?description .
+  ?person_node schema:about ?person .
+  ?person_node wikibase:sitelinks ?sitelinks .
+  FILTER langMatches(lang(?person_name), ""en"") .
+  FILTER langMatches(lang(?description), ""en"")
+}
+ORDER BY DESC(?sitelinks)"
+715;999;Average height by occupation and gender, ordered by count;"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?occupation ?gender (AVG(?height) AS ?average_height) (COUNT(?height) AS ?count) WHERE {
+  ?x wdt:P31 wd:Q5 .
+  ?x p:P2048 ?statement .
+  ?x wdt:P21 ?gender_id .
+  ?gender_id rdfs:label ?gender .
+  FILTER langMatches(lang(?gender), ""en"") .
+  ?statement psv:P2048 ?value .
+  ?value wikibase:quantityNormalized ?quantity .
+  ?quantity wikibase:quantityUnit wd:Q11573 .
+  ?quantity wikibase:quantityAmount ?height .
+  ?x wdt:P106 ?occupation_id .
+  ?occupation_id rdfs:label ?occupation .
+  FILTER langMatches(lang(?occupation), ""en"") .
+  FILTER (?height < 3)
+}
+GROUP BY ?occupation ?gender
+HAVING (?count > 100)
+ORDER BY DESC(?average_height)"
+714;999;Douglas Adams marriage-related triples;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?statement ?predicate ?object WHERE {
+  wd:Q42 p:P26 ?statement .
+  ?statement ?predicate ?object
+}"
+713;999;All movies with their description, ordered by sitelinks;"PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?person ?description ?sitelinks WHERE {
+  ?person_id wdt:P31 wd:Q11424 .
+  ?person_id rdfs:label ?person .
+  ?person_id schema:description ?description .
+  ?person_node schema:about ?person_id .
+  ?person_node wikibase:sitelinks ?sitelinks .
+  FILTER langMatches(lang(?person), ""en"") . 
+  FILTER langMatches(lang(?description), ""en"")
+}
+ORDER BY DESC(?sitelinks)"
+712;999;All persons with their description, ordered by sitelinks;"PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?person ?description ?sitelinks WHERE {
+  ?person_id wdt:P31 wd:Q5 .
+  ?person_id rdfs:label ?person .
+  ?person_id schema:description ?description .
+  ?person_node schema:about ?person_id .
+  ?person_node wikibase:sitelinks ?sitelinks .
+  FILTER langMatches(lang(?person), ""en"") . 
+  FILTER langMatches(lang(?description), ""en"")
+}
+ORDER BY DESC(?sitelinks)"
+711;999;Astronauts ordered by number of sitelinks;"PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?astronaut_name ?sitelinks WHERE {
+  ?astronaut wdt:P106 wd:Q11631 .
+  ?astronaut rdfs:label ?astronaut_name .
+  ?astronaut_node schema:about ?astronaut .
+  ?astronaut_node wikibase:sitelinks ?sitelinks .
+  FILTER langMatches(lang(?astronaut_name), ""en"")
+}
+ORDER BY DESC(?sitelinks)"
+710;999;"Persons and their birthdate if it has precision ""9""";"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?person_id ?date_of_birth_statement ?date_of_birth_value ?date_of_birth
+WHERE {
+  ?person_id p:P569 ?date_of_birth_statement .
+  ?date_of_birth_statement psv:P569 ?date_of_birth_value .
+  ?date_of_birth_value wikibase:timePrecision ""9""^^xsd:integer .
+  ?date_of_birth_value wikibase:timeValue ?date_of_birth
+}"
+709;999;Astronauts and their time spent in space;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?astronautLabel ?time_in_space WHERE {
+  ?astronaut wdt:P106 wd:Q11631 .
+  ?astronaut wdt:P2873 ?time_in_space .
+  ?astronaut rdfs:label ?astronautLabel .
+  FILTER langMatches(lang(?astronautLabel), ""en"") .
+}
+ORDER BY DESC(?time_in_space)"
+708;999;All scientific papers (ID and Name);"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX sc: <http://schema.org/>
+SELECT ?x ?name WHERE {
+  ?x wdt:P31 wd:Q13442814 .
+  ?x sc:name ?name
+}"
+707;999;All scientific articles with their author;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX sc: <http://schema.org/>
+SELECT ?article
+       (SAMPLE(?author_name) AS ?author_name)
+       (SAMPLE(?article_name) AS ?article_name)
+WHERE {
+  ?article wdt:P31 wd:Q13442814 .
+  ?article sc:name ?article_name .
+  OPTIONAL {
+    ?article wdt:P50 ?author .
+    ?author sc:name ?author_name 
+  }
+}
+GROUP BY ?article"
+706;999;Mountains higher than 8000 meters;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?subj ?label ?coord ?elev WHERE
+{ 
+  ?subj wdt:P31 wd:Q8502 .
+  ?subj p:P2044 ?elev_s .
+  ?elev_s psn:P2044 ?elev_v .
+  ?elev_v wikibase:quantityAmount ?elev .
+  ?subj wdt:P625 ?coord .
+  ?subj rdfs:label ?label .
+  FILTER(?elev > 8000.0) .
+  FILTER langMatches(lang(?label), ""en"") . 
+}
+ORDER BY DESC(?elev)"
+705;999;"All ""shared border with"" statements for Paris (Q90)";"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology-beta#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+SELECT ?o ?p ?oo WHERE {
+  wd:Q90 <http://www.wikidata.org/prop/P47> ?o .
+  ?o ?p ?oo
+}
+ORDER BY ASC(?o)"
+704;999;All predicates of Paris (Q90) with their name and number of triples;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?p (COUNT(?o) as ?count) (SAMPLE(?label) as ?pname) WHERE {
+  wd:Q90 ?p ?o .
+  ?x wikibase:claim ?p .
+  ?x rdfs:label ?label .
+  FILTER langMatches(lang(?label), ""en"")
+}
+GROUP BY ?p
+ORDER BY DESC(?count)
+LIMIT 100"
+703;999;People and their professions;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+SELECT ?person_id ?person (COUNT(?profession_id) as ?count) (GROUP_CONCAT(?profession; separator="", "") as ?professions) WHERE {
+  ?person_id wdt:P31 wd:Q5 .
+  ?person_id wdt:P106 ?profession_id .
+  ?profession_id schema:name ?profession .
+  ?person_id schema:name ?person .
+  FILTER langMatches(lang(?person), ""en"") .
+  FILTER langMatches(lang(?profession), ""en"")
+}
+GROUP BY ?person_id ?person
+ORDER BY DESC(?count)"
+702;999;Regions and mountains;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+SELECT ?region ?rname (SAMPLE(?mname) AS ?sample) (COUNT(?mountain) AS ?count) (MIN(?height) AS ?minh) (MAX(?height) AS ?maxh) (AVG(?height) AS ?avg) WHERE {
+  ?mountain wdt:P31 wd:Q8502 .
+  ?mountain wdt:P361 ?region .
+  ?mountain wdt:P2044 ?height .
+  ?mountain schema:name ?mname .
+  ?region schema:name ?rname .
+  FILTER langMatches(lang(?mname), ""en"") .
+  FILTER langMatches(lang(?rname), ""en"")
+}
+GROUP BY ?region ?rname
+ORDER BY ASC(?rname)"
+701;999;German cities with their German names;"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+SELECT ?name ?population WHERE {
+  ?city wdt:P31 wd:Q515 .
+  ?city wdt:P17 wd:Q183 .
+  ?city wdt:P1082 ?population .
+  ?city schema:name ?name .
+  FILTER langMatches(lang(?name), ""de"")
+}
+ORDER BY DESC(?population)"

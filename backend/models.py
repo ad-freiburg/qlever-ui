@@ -168,10 +168,13 @@ class Prefix(models.Model):
     class Meta:
         verbose_name_plural = "Prefixes"
 
-    name = models.CharField(max_length=30, default="")
-    prefix = models.CharField(max_length=200, default="")
+    name = models.CharField(max_length=30, default="",help_text=
+        "Please chose the short name of this prefix (e.g. scm)",)
+    prefix = models.CharField(max_length=200, default="",help_text=
+        "Insert the original scope with it's path (e.g. &lt;http://schema.org/&gt;).",)
     backend = models.ForeignKey(Backend)
-    occurrences = models.IntegerField(default=1)
+    occurrences = models.IntegerField(default=1,help_text=
+        "Estimated or calculated occurrences of this prefix (used for ordering).",)
 
 
 class Example(models.Model):
