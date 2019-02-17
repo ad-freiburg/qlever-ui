@@ -286,11 +286,9 @@ function getDynamicSuggestions(context){
 	}
 	
     // replace the prefixes
-    var replacedRelations = false;
     $.each(prefixesRelation,function(key,value){
         if(word.startsWith(key+':')){
             word = '<' + word.replace(key+':',value);
-            replacedRelations = true;
             return false;
         }
     });
@@ -472,12 +470,6 @@ function getDynamicSuggestions(context){
 		        for(var variable of variables){
 			        response.push(variable+appendToSuggestions);
 		        }
-			}
-	        
-	        if(replacedRelations == false){
-		        for(var prefix in prefixesRelation){
-			     	response.push(prefix+':');
-				}
 			}
 	        return (!requestExtension) ? response : [];
 			
