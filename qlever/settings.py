@@ -26,10 +26,10 @@ DEBUG = True
 # Application definition
 
 INSTALLED_APPS = [
-    'admin_interface', 'flat_responsive', 'colorfield', 'django.contrib.admin',
+    'django.contrib.admin',
     'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages',
-    'django.contrib.staticfiles', 'backend'
+    'django.contrib.staticfiles', 'backend', 'import_export'
 ]
 
 MIDDLEWARE = [
@@ -47,7 +47,7 @@ ROOT_URLCONF = 'qlever.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['backend/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,3 +130,5 @@ if STATIC_VERSION == "" or STATIC_VERSION == "n.a.":
             "git rev-parse HEAD;", shell=True)).decode("utf-8")[:7]
     except:
         STATIC_VERSION = "n.a."
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True

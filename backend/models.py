@@ -36,48 +36,77 @@ class Backend(models.Model):
         default=0,
         help_text="Check if this should be the default backend for QLever UI",
         verbose_name="Use as default")
+        
     isImporting = models.BooleanField(default=False, editable=False)
+    
     maxDefault = models.IntegerField(
         default=100,
         help_text=
         "The default for how many lines are shown in the first request",
         verbose_name="Default Maximum")
+        
+    filteredLanguage = models.CharField(
+        max_length=2000,
+        default='en',
+        help_text=
+        "Comma separated language codes used for filter suggestions",
+        verbose_name="Filter languages")
+        
     dynamicSuggestions = models.IntegerField(
         default=2,
         choices=MODES,
         help_text=
         "If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
         verbose_name="Default suggestion mode")
+        
     suggestSubjects = models.TextField(
         default='',
         blank=True,
         help_text=
         "Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject (COUNT(?qleverui_subject) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_subject<br>ORDER BY DESC(?qleverui_count)",
         verbose_name="Suggest subjects clause")
+        
     suggestObjects = models.TextField(
         default='',
         blank=True,
         help_text=
         "Clause that tells QLever UI which objects to suggest from (without prefixes). Only needed for suggestion mode 2 (context insensitive suggestions).<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_object: The objects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_object (COUNT(?qleverui_object) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest objects clause</em></b><br>}<br>GROUP BY ?qleverui_object<br>ORDER BY DESC(?qleverui_count)",
         verbose_name="Suggest objects clause")
+        
     subjectName = models.TextField(
         default='',
         blank=True,
         help_text=
         "Clause that tells QLever UI the name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the subject's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_subject; &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
         verbose_name="Subject name clause")
+        
     predicateName = models.TextField(
         default='',
         blank=True,
         help_text=
         "Clause that tells QLever UI the name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_predicate: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the predicate's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_predicate &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
         verbose_name="Predicate name clause")
+        
     objectName = models.TextField(
         default='',
         blank=True,
         help_text=
         "Clause that tells QLever UI the name of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_object: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the object's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_object<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
         verbose_name="Object name clause")
+        
+    supportedKeywords = models.TextField(
+        default='prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate',
+        blank=True,
+        help_text=
+        "Comma separated list of SPARQL keywords supported by the backend. Will be used for keyword highlighting.",
+        verbose_name="Supported keywords")
+        
+    supportedFunctions = models.TextField(
+        default='asc, desc, avg, values, score, text, count, sample, min, max, average, concat, group_concat, langMatches, lang, regex, sum',
+        blank=True,
+        help_text=
+        "Comma separated list of SPARQL functions supported by the backend. Will be used for funciton highlighting.",
+        verbose_name="Supported functions")
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
@@ -95,6 +124,27 @@ class Backend(models.Model):
         return filter(lambda x: ord(x) in range(40, 123),
                       self.name.replace(' ', '_').replace('/', '-').replace(
                           '*', '-'))
+
+    def languages(self):
+        jsArray = "["
+        for val in self.filteredLanguage.split(","):
+            jsArray += '\'"'+val.strip()+'"\','
+        jsArray += "]"
+        return jsArray
+        
+    def keywords(self):
+        jsArray = "["
+        for val in self.supportedKeywords.split(","):
+            jsArray += '"'+val.strip()+'",'
+        jsArray += "]"
+        return jsArray
+        
+    def functions(self):
+        jsArray = "["
+        for val in self.supportedFunctions.split(","):
+            jsArray += '"'+val.strip()+'",'
+        jsArray += "]"
+        return jsArray
 
     def entityNameQueries(self):
         data = {}

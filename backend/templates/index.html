@@ -14,6 +14,24 @@
         <!-- Bootstraps CSS -->
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     
+    <script>
+          var BASEURL = "{{ backend.baseUrl }}";
+          var ENTITYNAMERELATIONS = {% autoescape off %}{{ backend.entityNameQueries }}{% endautoescape %}
+          var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];
+          var PREDICATENAME = ENTITYNAMERELATIONS["PREDICATENAME"];
+          var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
+          var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
+          var SUGGESTOBJECTS = ENTITYNAMERELATIONS["SUGGESTOBJECTS"];
+          var COLLECTEDPREFIXES = {% autoescape off %}{{ prefixes }}{% endautoescape %};
+          var LANGUAGES = {% autoescape off %}{{ backend.languages }}{% endautoescape %};
+          var KEYWORDS = {% autoescape off %}{{ backend.keywords }}{% endautoescape %};
+          var FUNCTIONS = {% autoescape off %}{{ backend.functions }}{% endautoescape %};
+          var examples = [];
+          {% for example in examples %}
+          examples.push(`{{ example.query|safe }}`);
+          {% endfor %}
+        </script>
+    
         <!-- The basic jQuery library & jQuery UI library -->
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -196,6 +214,7 @@
 							<tr><th>Backend Slug</th><td>{{ backend.slugify }}</td></tr>
 							<tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
 							<tr><th>Is default:</th><td>{% if backendisDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
 							<tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
 							<tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
 						</table>
@@ -207,6 +226,8 @@
 	                    	{% if backend.subjectName %}<tr><th><strong>Subject name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.subjectName }}</code></b></small></div></td></tr>{% endif %}
 							{% if backend.predicateName %}<tr><th><strong>Predicate name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.predicateName }}</code></b></small></div></td></tr>{% endif %}
 							{% if backend.objectName %}<tr><th><strong>Object name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.objectName }}</code></b></div></td></tr>{% endif %}
+							<tr><th><strong>Supported Keywords:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedKeywords }}</code></b></div></td></tr>
+							<tr><th><strong>Supported Functions:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedFunctions }}</code></b></div></td></tr>
 						</table>
 	                </div>
                 </div>
@@ -566,36 +587,25 @@
             <div class="container" style="text-align: center;">
                 <span class="text-muted">
                     &copy; 2019 - 
-                    <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf">
+                    <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank">
                         QLever: SPARQL+Text Search
                     </a>
-                     - Chair of algorithms and data definitions - University of Freiburg - 
-                    <a href="https://github.com/ad-freiburg/QLever">
+                     - University of Freiburg - 
+                    <a href="https://github.com/ad-freiburg/QLever" target="_blank">
                         QLever
                     </a>: 
                     H. Bast and B. Buchhold / 
-                    <a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/">
+                    <a href="http://ad-publications.informatik.uni-freiburg.de/student-projects/qlever-ui/" target="_blank">
                         QLever UI
                     </a>: 
-                    J. Bürklin and D. Kemen
+                    J. Bürklin and D. Kemen 
+                    -
+                    <a href="https://github.com/jbuerklin/qleverUI" target="_blank">
+	                    Fork QLeverUI on GitHub
+                    </a>
                </span>
                <br><br>
             </div>
         </footer>
-        
-        <script>
-          var BASEURL = "{{ backend.baseUrl }}";
-          var ENTITYNAMERELATIONS = {% autoescape off %}{{ backend.entityNameQueries }}{% endautoescape %}
-          var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];
-          var PREDICATENAME = ENTITYNAMERELATIONS["PREDICATENAME"];
-          var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
-          var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
-          var SUGGESTOBJECTS = ENTITYNAMERELATIONS["SUGGESTOBJECTS"];
-          var COLLECTEDPREFIXES = {% autoescape off %}{{ prefixes }}{% endautoescape %};
-          var examples = [];
-          {% for example in examples %}
-          examples.push(`{{ example.query|safe }}`);
-          {% endfor %}
-        </script>
     </body>
 </html>
