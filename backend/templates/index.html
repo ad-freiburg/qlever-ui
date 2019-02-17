@@ -216,10 +216,11 @@
 						<h4>Basic settings</h4>
 						<br>
 						<table class="table">
-							<tr><th>Backend Name</th><td>{{ backend.name }}</td></tr>
-							<tr><th>Backend Slug</th><td>{{ backend.slugify }}</td></tr>
+							<tr><th>Backend name</th><td>{{ backend.name }}</td></tr>
+							<tr><th>Backend slug</th><td>{{ backend.slugify }}</td></tr>
 							<tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
-							<tr><th>Is default:</th><td>{% if backendisDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Is default:</th><td>{% if backend.isDefault %}Yes{% else %}No{% endif %}</td></tr>
+							<tr><th>Fill known prefixes:</th><td>{% if backend.fillPrefixes %}Yes{% else %}No{% endif %}</td></tr>
 							<tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
 							<tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
 							<tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
