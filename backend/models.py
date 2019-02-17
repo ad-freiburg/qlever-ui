@@ -117,21 +117,21 @@ class Backend(models.Model):
     def languages(self):
         jsArray = "["
         for val in self.filteredLanguage.split(","):
-            jsArray += '\'"'+val+'"\','
+            jsArray += '\'"'+val.strip()+'"\','
         jsArray += "]"
         return jsArray
         
     def keywords(self):
         jsArray = "["
         for val in self.supportedKeywords.split(","):
-            jsArray += '"'+val+'",'
+            jsArray += '"'+val.strip()+'",'
         jsArray += "]"
         return jsArray
         
     def functions(self):
         jsArray = "["
         for val in self.supportedFunctions.split(","):
-            jsArray += '"'+val+'",'
+            jsArray += '"'+val.strip()+'",'
         jsArray += "]"
         return jsArray
 
