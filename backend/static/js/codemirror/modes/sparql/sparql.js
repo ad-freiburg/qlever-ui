@@ -210,14 +210,15 @@ var COMPLEXTYPES = [
 {
     name: 'FILTER',
     definition: /FILTER \((.*)/g,
-    suggestions: [['FILTER (', function(c){ return getVariables(c);},' ']],
+    suggestions: [['FILTER (', function(c){ return getVariables(c,undefined,undefined,FILTER_TYPES);},' ']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     requiresEmptyLine: true,
+    onlyOncePerVariation: false
 },
 {
     name: 'FILTER LANGUAGE',
     definition: /FILTER langMatches(.*)/g,
-    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c);}, '), ', LANGUAGES ,') .\n']],
+    suggestions: [['FILTER langMatches(lang(', function(c){ return getVariables(c,undefined,undefined,LANGUAGELITERAL);}, '), ', LANGUAGES ,') .\n']],
     availableInContext: ['WhereClause','OptionalClause','UnionClause'],
     requiresEmptyLine: true,
 },

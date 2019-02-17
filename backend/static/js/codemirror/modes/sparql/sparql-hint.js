@@ -350,6 +350,7 @@ function getDynamicSuggestions(context){
 		var appendToSuggestions = "";
 		var nameList;
 		var response = [];
+		var predicateForObject = undefined;
 		if (suggestionMode > 0) {
 			if (words.length == 1) {
 				suggestVariables = "both";
@@ -374,6 +375,7 @@ function getDynamicSuggestions(context){
 			        sparqlLines = lines.join("\n        ");
 			    }
 			} else if (words.length == 3) {
+				predicateForObject = words[1];
 				nameClause = OBJECTNAME;
 				suggestVariables = "normal";
 				appendToSuggestions = ' .';
@@ -462,7 +464,7 @@ function getDynamicSuggestions(context){
 		        "GROUP BY ?qleverui_entity\n" : "") +
 		        "ORDER BY DESC(?qleverui_count)";
 		        
-		        getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList);
+		        getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList, predicateForObject);
 		    }
 
 			if (suggestVariables) {
@@ -480,8 +482,8 @@ function getDynamicSuggestions(context){
 }
 
 
-function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
-	
+function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, predicateForObject){
+
 	try {
         
         // show the loading indicator and badge
@@ -518,6 +520,16 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 			                continue
 		                }
 		                suggested[result[0]] = true;
+		                
+		                if (predicateForObject !== undefined) {
+		                	var resultType = LITERAL;
+			                if (/^<.*>$/.test(result[0])) {
+				                resultType = ENTITY;
+			                } else if (/@[\w-_]+$/.test(result[0])) {
+				                resultType = LANGUAGELITERAL;
+			                }
+			            }
+		                
 		                // add back the prefixes
 		                var replacePrefix = "";
 		                var prefixName = "";
@@ -539,6 +551,14 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList){
 			                result[0] = result[0].replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
 		                }
 		                
+		                if (predicateForObject !== undefined) {
+			                if (predicateResultTypes[predicateForObject] == undefined) {
+				                predicateResultTypes[predicateForObject] = resultType;
+			                } else {
+				                predicateResultTypes[predicateForObject] = Math.max(predicateResultTypes[predicateForObject], resultType);
+			                }
+			            }
+						
 		                var nameIndex = data.selected.indexOf("?qleverui_name");
 		                var entityName = (nameIndex != -1) ? result[nameIndex] : "";
 		                nameList[result[0]] = entityName;
@@ -964,18 +984,23 @@ function getValueOfContext(context){
    @params context - the current context
    @params excludeAggregationVariables - excludes variables that are the result of an aggregation (SUM(?x) as ?aggregate_variable)
    @params variableType - can be "text" for text variables, "normal" for normal variables or "both" for both
+   @params predicateResultType - only return variables of given type or higher
    
    		- Excludes duplicate definitions if told to do so
    		- Add list with all unused variables as one suggestion
     
 **/
-function getVariables(context, excludeAggregationVariables, variableType){
+function getVariables(context, excludeAggregationVariables, variableType, predicateResultType){
     var variables = [];
     var editorContent = editor.getValue();
     
     if (variableType === undefined) {
 	    variableType = "normal";
     }
+    
+    if (predicateResultType === undefined){
+	    predicateResultType = ENTITY;
+	}
     
     filter = '.CodeMirror .cm-variable';
 	if(excludeAggregationVariables){
@@ -990,7 +1015,17 @@ function getVariables(context, excludeAggregationVariables, variableType){
 			if (variableType == "normal" && isTextVariable || variableType == "text" && !isTextVariable) {
 				return "continue";
 			}
-		    variables.push(variable.innerHTML);
+			if (predicateResultType !== ENTITY) {
+				var match = editorContent.match(RegExp("\\S+[^\\S\\n]+(\\S+)[^\\S\\n]+"+cleanedVar+"(\\W|$)"));
+				if (!match) {  // Variable is no object so we don't want it
+					return "continue";
+				}
+				if (predicateResultTypes[match[1]] !== undefined && predicateResultTypes[match[1]] != predicateResultType) {
+					return "continue";
+				}
+			}
+			variables.push(variable.innerHTML);
+			
 		}
     });
 		

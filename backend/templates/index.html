@@ -15,6 +15,11 @@
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     
     <script>
+	    var predicateResultTypes = {};
+		var ENTITY = 0;
+		var LITERAL = 1;
+		var LANGUAGELITERAL = 2;
+	    
           var BASEURL = "{{ backend.baseUrl }}";
           var ENTITYNAMERELATIONS = {% autoescape off %}{{ backend.entityNameQueries }}{% endautoescape %}
           var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];
@@ -27,6 +32,7 @@
           var KEYWORDS = {% autoescape off %}{{ backend.keywords }}{% endautoescape %};
           var FUNCTIONS = {% autoescape off %}{{ backend.functions }}{% endautoescape %};
           var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
+          var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);

@@ -113,6 +113,10 @@ class Backend(models.Model):
         help_text=
         "Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.",
         verbose_name="Fill in known Prefixes")
+    
+    filterEntities = models.BooleanField(
+        default=False,
+        verbose_name="Also suggest FILTER for variables that store entity IDs")
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
