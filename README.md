@@ -4,7 +4,6 @@ QLever UI is a simple user interface for QLever (https://github.com/ad-freiburg/
 ## What is QLever?
 QLever (pronounced "clever") is an efficient SPARQL engine which can handle very large datasets. For example, QLever can index the complete Wikidata (~ 7 billion triples) in less than 12 hours on a standard Linux machine using around 40 GB of RAM, with subsequent query times below 1 second even for relatively complex queries with large result sets. On top of the standard SPARQL functionality, QLever also supports SPARQL+Text search and SPARQL autocompletion; these are described in the next section.
 
-
 # Setup
 
 ## Requirements
@@ -29,7 +28,7 @@ QLever (pronounced "clever") is an efficient SPARQL engine which can handle very
 - If you don't want to go through the process of manually configuring a backend you can also import settings from other instances. We provide a [settings file](resources/backend-sample.csv) for a wiki data instance hosted at the Chair of Algorithms and Data Structures at the University of Freiburg.
 
 ## Authors
-- Julian Bürklin
-- Daniel Kemen
+- Julian Bürklin <buerklij@informatik.uni-freiburg.de>
+- Daniel Kemen <kemend@informatik.uni-freiburg.de>
 
 University of Freiburg
