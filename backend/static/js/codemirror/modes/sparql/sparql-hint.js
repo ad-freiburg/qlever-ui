@@ -261,7 +261,7 @@ function getDynamicSuggestions(context){
     
     // get current line
     var words = line.slice(0,cur.ch).trimLeft().replace('  ', ' ').split(" ");
-	    
+	
 	// collect prefixes (as string and dict)
     var prefixes = "";
     var prefixesRelation = {};
@@ -286,16 +286,14 @@ function getDynamicSuggestions(context){
 	}
 	
     // replace the prefixes
-    var replacedRelations = false;
     $.each(prefixesRelation,function(key,value){
         if(word.startsWith(key+':')){
             word = '<' + word.replace(key+':',value);
-            replacedRelations = true;
             return false;
         }
     });
 	
-    if (words.length < 1) {
+    if (words.length < 1 || words[0].toUpperCase() == "FILTER") {
         
         var response = [];
         var variables = getVariables(context, undefined, "both");
@@ -472,12 +470,6 @@ function getDynamicSuggestions(context){
 		        for(var variable of variables){
 			        response.push(variable+appendToSuggestions);
 		        }
-			}
-	        
-	        if(replacedRelations == false){
-		        for(var prefix in prefixesRelation){
-			     	response.push(prefix+':');
-				}
 			}
 	        return (!requestExtension) ? response : [];
 			

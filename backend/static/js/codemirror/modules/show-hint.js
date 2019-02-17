@@ -123,10 +123,7 @@
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
 
-            if (completion.slice(-2) == "()" ||  completion.slice(-2) == " )") {
-                cursor.ch = cursor.ch - 1;
-                editor.setCursor(cursor);
-            } else if (line.length > cursor.ch && line[cursor.ch] == ")") {
+            if (line.length > cursor.ch && line[cursor.ch] == ")") {
                 if (line.indexOf("SELECT") >= 0) {
                     cursor.ch = cursor.ch + 1;
                     editor.setCursor(cursor);
