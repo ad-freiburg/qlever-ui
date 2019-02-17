@@ -24,6 +24,7 @@ function getQueryString(){
 function cleanLines(cm) {
 	var cursor = cm.getCursor();
 	var selection = cm.listSelections()[0];
+	var position = cm.getScrollInfo();
 	var lastLine = undefined;
 	var line = cm.getLine(0);
 	for (var i = 0; i < cm.lastLine(); i++) {
@@ -42,6 +43,7 @@ function cleanLines(cm) {
 			cm.replaceSelection(line.slice(startingWhitespaces).replace(/\s{2,}/g,' '));
 		}
 	}
+	cm.scrollTo(position.left,position.top);
 	cm.setCursor(cursor);
 	cm.setSelection(selection.anchor,selection.head);
 }
