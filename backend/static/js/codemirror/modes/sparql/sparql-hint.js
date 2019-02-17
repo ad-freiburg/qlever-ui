@@ -1020,7 +1020,7 @@ function getVariables(context, excludeAggregationVariables, variableType, predic
 				if (!match) {  // Variable is no object so we don't want it
 					return "continue";
 				}
-				if (predicateResultTypes[match[1]] !== undefined && predicateResultTypes[match[1]] != predicateResultType) {
+				if (predicateResultTypes[match[1]] !== undefined && predicateResultTypes[match[1]] < predicateResultType) {
 					return "continue";
 				}
 			}
