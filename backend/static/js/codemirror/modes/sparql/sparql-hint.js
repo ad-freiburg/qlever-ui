@@ -458,8 +458,8 @@ function getDynamicSuggestions(context){
 					entityQuery;
 		        }
 		        sparqlQuery +=
-		        "}\n" +
-		        "GROUP BY ?qleverui_entity\n" +
+		        "}\n" + ((nameClause.length > 0) ? 
+		        "GROUP BY ?qleverui_entity\n" : "") +
 		        "ORDER BY DESC(?qleverui_count)";
 		        
 		        getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList);
