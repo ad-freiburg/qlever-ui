@@ -62,7 +62,7 @@ $(document).ready(function() {
     log('Editor initialized.','other');
 
 	// Do some custom activities on cursor activity
-	editor.on("cursorActivity", function(instance, event) {
+	editor.on("cursorActivity", function(instance) {
 		$('[data-tooltip=tooltip]').tooltip('hide');
 		cleanLines(instance);
 	});
@@ -260,7 +260,7 @@ function processQuery(query, showStatus, element) {
                 var j = 0;
                 for (var resultColumn of resultLine) {
                     // GROUP_CONCAT
-                    if ($('#resTable thead tr').children('th')[j + 1].innerHTML.startsWith('(GROUP_CONCAT')) {
+                    /*if ($('#resTable thead tr').children('th')[j + 1].innerHTML.startsWith('(GROUP_CONCAT')) {
                         match = (/separator[\s]?=[\s]?\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j + 1].innerHTML);
                         (match && match[1]) ? sep = match[1] : sep = "";
                         results = resultColumn.split(sep);
@@ -272,7 +272,7 @@ function processQuery(query, showStatus, element) {
                             row += "<a onclick=\"showAllConcats(this,'" + sep + "','" + j + "')\">... and " + (results.length - 5) + " more.</a>";
                         }
                         row += "</span></td>";
-                    } else {
+                    } else {*/
                         if (resultColumn) {
                             row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
                                 htmlEscape(getShortStr(resultColumn, 50, j)) +
@@ -280,7 +280,7 @@ function processQuery(query, showStatus, element) {
                         } else {
                             row += "<td><span>-</span></td>";
                         }
-                    }
+                    //}
                     j++;
                 }
                 row += "</tr>";

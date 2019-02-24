@@ -41,8 +41,11 @@ function cleanLines(cm) {
 				}
 			}
 			var startingWhitespaces = line.length - line.replace(/^\s+/,"").length;
-			cm.setSelection({line: i, ch: startingWhitespaces},{line: i, ch: line.length});
-			cm.replaceSelection(line.slice(startingWhitespaces).replace(/\s{2,}/g,' '));
+			lineContent = line.slice(startingWhitespaces);
+			if(lineContent != lineContent.replace(/\s{2,}/g,' ')){
+				cm.setSelection({line: i, ch: startingWhitespaces},{line: i, ch: line.length});
+				cm.replaceSelection(lineContent.replace(/\s{2,}/g,' '));
+			}
 		}
 	}
 	cm.scrollTo(position.left,position.top);
