@@ -237,8 +237,15 @@ function getShortStr(str, maxLength, column = undefined) {
             columnHTML.html(content + columnHTML.html());
         }
     } else if (cpy.indexOf('http') > 0) {
-        link = cpy.match(/(https?:\/\/[a-zA-Z0-9-./#?]+)/g)[0]
-        str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-link"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
+        link = cpy.match(/(https?:\/\/[a-zA-Z0-9-.:%/#?]+)/g)[0]
+        checkLink = link.toLowerCase()
+		if(checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')){
+	        str = 'LTa href="' + link + '" target="_blank"GTLTimg src="' + link + '" width="50" GTLT/aGT';
+	    } else if(checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
+		    str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-file"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
+	    } else {
+		    str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-link"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
+	    }
     }
 
     return str

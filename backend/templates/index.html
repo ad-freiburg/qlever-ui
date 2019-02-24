@@ -7,7 +7,7 @@
         <!-- The stylesheets for this page -->
         <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
     
-        <!-- Own CSS Code for the UI  -->
+        <!-- CSS Code for the UI  -->
         <link rel="stylesheet" type="text/css" href="/static/css/style.css">
         <link rel="stylesheet" type="text/css" href="/static/css/codemirror.css">
     
@@ -55,6 +55,7 @@
         <script src="/static/js/codemirror/modules/autocomplete.js"></script>
         <script src="/static/js/codemirror/modules/active-line.js"></script>
         <script src="/static/js/codemirror/modules/show-hint.js"></script>
+        <script src="/static/js/codemirror/modules/search.js"></script>
     
         <script src="/static/js/codemirror/modes/sparql/sparql.js"></script>
         <script src="/static/js/codemirror/modes/sparql/sparql-hint.js"></script>
@@ -278,6 +279,14 @@
                                 <tr>
                                     <td><kbd>esc</kbd></td>
                                     <td><em>Close suggestion window</em></td>
+                                </tr>
+                                <tr>
+                                    <td><kbd>ctrl</kbd> + <kbd>f</kbd></td>
+                                    <td><em>Search in editor (supports RegEx)</em></td>
+                                </tr>
+                                <tr>
+                                    <td><kbd>ctrl</kbd> + <kbd>r</kbd></td>
+                                    <td><em>Search and replace in editor</em></td>
                                 </tr>
                                 <tr>
                                     <td><kbd>tab</kbd></td>

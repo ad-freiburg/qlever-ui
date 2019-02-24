@@ -25,11 +25,13 @@ $(document).ready(function() {
             },
             "Tab": function(cm) { switchStates(cm); },
             "Ctrl-Space": "autocomplete",
+            "Ctrl-F": "findPersistent",
+            "Ctrl-R": "replace"
         },
     });
     
     // set the editor size
-    editor.setSize($('#queryBlock').width());
+    editor.setSize($('#queryBlock').width(),350);
 
 	// make the editor resizable
     $('.CodeMirror').resizable({
