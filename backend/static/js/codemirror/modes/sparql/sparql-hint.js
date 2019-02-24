@@ -761,7 +761,7 @@ function buildQueryTree(content,start){
 			var depth = 1;
 			var subStart = i;
 			var subString = "";
-			while(depth != 0){
+			while(depth != 0 && i < 20){
 				i++;
 				if(content[i] == '}'){
 					depth -= 1;

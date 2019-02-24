@@ -116,7 +116,9 @@ class Backend(models.Model):
     
     filterEntities = models.BooleanField(
         default=False,
-        verbose_name="Also suggest FILTER for variables that store entity IDs")
+        help_text=
+        "Also suggest FILTER for variables that store entity IDs. You can use this if you don't have name relations and your entity IDs and names are equal.",
+        verbose_name="Suggest FILTER for entity variables")
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
