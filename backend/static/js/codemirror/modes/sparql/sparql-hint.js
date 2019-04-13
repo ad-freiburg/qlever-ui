@@ -426,14 +426,14 @@ function getDynamicSuggestions(context){
 			
 			if (sendSparql) {
 				// find all entities whose ids match what we typed
-				var entityNameWord = ((word.startsWith("<")) ? "" : "<") + word.replace(/"/g, '\\"');
+				var entityNameWord = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
 	            var entityQuery =
 	            "    {\n" +
 	            "      SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {\n" +
 	            "        " + sparqlLines + "\n" +
 	            "      }\n" +
 	            "      GROUP BY ?qleverui_entity\n" + ((word.length > 0 && word != "<") ?
-	            "      HAVING regex(?qleverui_entity, \"^" + entityNameWord + "\")\n" : "") +
+	            "      HAVING regex(?qleverui_entity, '^" + entityNameWord + "')\n" : "") +
 	            "    }\n" + ((nameClause.length > 0) ?  // get entity names if we know how to query them
 	            "    OPTIONAL {\n" +
 	            "      " + nameClause.replace(/\n/g, "\n      ") + "\n" +
