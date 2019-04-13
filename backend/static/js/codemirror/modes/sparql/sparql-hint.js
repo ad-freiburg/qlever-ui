@@ -387,7 +387,18 @@ function getDynamicSuggestions(context){
 						sendSparql = false;
 					}
 		        } else if (suggestionMode == 2) {
-		            lines.push(words[0] + " " + words[1] + " ?qleverui_entity .");
+			        var predicate = words[1];
+			         // replace the prefixes
+				    $.each(prefixesRelation,function(key,value){
+				        if(predicate.startsWith(key+':')){
+				            predicate = '<' + predicate.replace(key+':',value) + '>';
+				            return false;
+				        }
+				    });
+			        if (REPLACE_PREDICATES[predicate] !== undefined) {
+				        predicate = REPLACE_PREDICATES[predicate];
+			        }
+		            lines.push(words[0] + " " + predicate + " ?qleverui_entity .");
 		            sparqlLines = lines.join("\n        ");
 				}
 				

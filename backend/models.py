@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-import urllib, string, json
+import urllib, string, json, re
 
 
 class Backend(models.Model):
@@ -93,6 +93,19 @@ class Backend(models.Model):
         help_text=
         "Clause that tells QLever UI the name of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the object's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_entity<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
         verbose_name="Object name clause")
+    
+    replacePredicates = models.TextField(
+        default='',
+        blank=True,
+        help_text="""A list of predicates that should be replaced for autocompletion.<br>
+        Each line should consist of a predicate + replacement pair, separated by whitespace.<br>
+        Example:<br>
+        &lt;http://www.w3.org/2000/01/rdf-schema#label&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;<br>
+        &lt;http://schema.org/name&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://schema.org/name&gt<br>
+        &lt;http://wikiba.se/ontology#label&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://wikiba.se/ontology#label&gt;
+        """,
+        verbose_name="Replace predicates in autocompletion context."
+    )
         
     supportedKeywords = models.TextField(
         default='prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate',
@@ -163,6 +176,16 @@ class Backend(models.Model):
         for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects'):
             data[field.upper()] = getattr(self, field)
         return json.dumps(data)
+
+    def replacePredicatesList(self):
+        data = {}
+        for line in self.replacePredicates.split("\n"):
+            match = re.search("([\S]+)[\s]+([\S]+)", line)
+            if match:
+                predicate, replacement = match.groups()
+                data[predicate] = replacement
+        return json.dumps(data)
+    
 
 
 class Link(models.Model):
