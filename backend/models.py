@@ -105,7 +105,7 @@ class Backend(models.Model):
         default='asc, desc, avg, values, score, text, count, sample, min, max, average, concat, group_concat, langMatches, lang, regex, sum',
         blank=True,
         help_text=
-        "Comma separated list of SPARQL functions supported by the backend. Will be used for funciton highlighting.",
+        "Comma separated list of SPARQL functions supported by the backend. Will be used for function highlighting.",
         verbose_name="Supported functions")
     
     fillPrefixes = models.BooleanField(
