@@ -19,7 +19,7 @@
 <http://rdf.freebase.com/ns/m.05b6w>	<http://rdf.freebase.com/ns/people.person.profession>	<http://rdf.freebase.com/ns/spaceflight.astronaut>	.
 <http://rdf.freebase.com/ns/type.object.name>	<http://rdf.freebase.com/ns/type.object.name>	"Name"@en	.
 <http://rdf.freebase.com/ns/type.object.type>	<http://rdf.freebase.com/ns/type.object.name>	"Type"@en	.
-<http://rdf.freebase.com/ns/people.person>	<http://rdf.freebase.com/ns/type.object.name>	"Person"	@en	.
+<http://rdf.freebase.com/ns/people.person>	<http://rdf.freebase.com/ns/type.object.name>	"Person"@en	.
 <http://rdf.freebase.com/ns/m.0vd1>	<http://rdf.freebase.com/ns/type.object.name>	"Alexander Fleming"@en	.
 <http://rdf.freebase.com/ns/m.06q2q>	<http://rdf.freebase.com/ns/type.object.name>	"Scientist"@en	.
 <http://rdf.freebase.com/ns/people.person.profession>	<http://rdf.freebase.com/ns/type.object.name>	"Profession"@en	.
@@ -31,10 +31,10 @@
 <http://rdf.freebase.com/ns/m.03j2ts>	<http://rdf.freebase.com/ns/type.object.name>	"Gold Medal of the Royal Astronomical Society"@en	.
 <http://rdf.freebase.com/ns/m.03w1cz>	<http://rdf.freebase.com/ns/type.object.name>	"Max Planck Medal"@en	.
 <http://rdf.freebase.com/ns/m.06zrp44>	<http://rdf.freebase.com/ns/type.object.name>	"Franklin Medal"@en	.
-<http://rdf.freebase.com/ns/m.0dt39>	<http://rdf.freebase.com/ns/type.object.name>	"Nobel Prize in Physics"	.
+<http://rdf.freebase.com/ns/m.0dt39>	<http://rdf.freebase.com/ns/type.object.name>	"Nobel Prize in Physics"@en	.
 <http://rdf.freebase.com/ns/m.0h5vy3>	<http://rdf.freebase.com/ns/type.object.name>	"Matteucci Medal"@en	.
 <http://rdf.freebase.com/ns/medicine.drug>	<http://rdf.freebase.com/ns/type.object.name>	"Drug"@en	.
-<http://rdf.freebase.com/ns/m.05t37>	<http://rdf.freebase.com/ns/type.object.name>	"Penicilling"	.
-<http://rdf.freebase.com/ns/common.topic.description>	<http://rdf.freebase.com/ns/type.object.name>	"Description"	.
+<http://rdf.freebase.com/ns/m.05t37>	<http://rdf.freebase.com/ns/type.object.name>	"Penicillin"@en	.
+<http://rdf.freebase.com/ns/common.topic.description>	<http://rdf.freebase.com/ns/type.object.name>	"Description"@en	.
 <http://rdf.freebase.com/ns/spaceflight.astronaut>	<http://rdf.freebase.com/ns/type.object.name>	"Astronaut"@en	.
 <http://rdf.freebase.com/ns/m.05b6w>	<http://rdf.freebase.com/ns/type.object.name>	"Neil Armstrong"@en	.

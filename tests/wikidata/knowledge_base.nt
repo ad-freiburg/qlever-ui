@@ -12,9 +12,9 @@
 <http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q1419938>	.
 <http://www.wikidata.org/entity/Q937>	<http://schema.org/name>	"Alberto Einstein"@cliche_it	.
 <http://www.wikidata.org/entity/Q2068918>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q8386>	.
-<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"This is a rather long text. If the index is built with the -l option, it should be externalized into an on-disk vocabulary."	.
-<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"This is a short text."	.
-<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"Another short text."	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"This is a rather long text. If the index is built with the -l option, it should be externalized into an on-disk vocabulary."@en	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"This is a short text."@en	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"Another short text."@en	.
 <http://www.wikidata.org/entity/Q1615>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q5>	.
 <http://www.wikidata.org/entity/Q1615>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q11631>	.
 <http://www.wikidata.org/entity/Q37064>	<http://schema.org/name>	"Alexander Fleming"@en	.
@@ -37,3 +37,4 @@
 <http://www.wikidata.org/entity/P166>	<http://www.w3.org/2000/01/rdf-schema#label>	"award received"@en	.
 <http://www.wikidata.org/entity/P31>	<http://wikiba.se/ontology#directClaim>	<http://www.wikidata.org/prop/direct/P31>	.
 <http://www.wikidata.org/entity/P31>	<http://www.w3.org/2000/01/rdf-schema#label>	"instance of"@en	.
+<http://www.wikidata.org/entity/P31>	<http://www.w3.org/2004/02/skos/core#altLabel> 	"is an"@en	.
