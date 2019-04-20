@@ -15,8 +15,8 @@
 <http://rdf.freebase.com/ns/m.05t37>	<http://rdf.freebase.com/ns/common.topic.description>	"This is a rather long text. If the index is built with the -l option, it should be externalized into an on-disk vocabulary."@en	.
 <http://rdf.freebase.com/ns/m.05t37>	<http://rdf.freebase.com/ns/common.topic.description>	"This is a short text."@en	.
 <http://rdf.freebase.com/ns/m.05t37>	<http://rdf.freebase.com/ns/common.topic.description>	"Another short text."@en		.
-<http://rdf.freebase.com/ns/m.05b6w>	<http://rdf.freebase.com/ns/type.object.name>	<http://rdf.freebase.com/ns/people.person>	.
-<http://rdf.freebase.com/ns/m.05b6w>	<http://rdf.freebase.com/ns/type.object.name>	<http://rdf.freebase.com/ns/spaceflight.astronaut>.
+<http://rdf.freebase.com/ns/m.05b6w>	<http://rdf.freebase.com/ns/type.object.type>	<http://rdf.freebase.com/ns/people.person>	.
+<http://rdf.freebase.com/ns/m.05b6w>	<http://rdf.freebase.com/ns/people.person.profession>	<http://rdf.freebase.com/ns/spaceflight.astronaut>	.
 <http://rdf.freebase.com/ns/type.object.name>	<http://rdf.freebase.com/ns/type.object.name>	"Name"@en	.
 <http://rdf.freebase.com/ns/type.object.type>	<http://rdf.freebase.com/ns/type.object.name>	"Type"@en	.
 <http://rdf.freebase.com/ns/people.person>	<http://rdf.freebase.com/ns/type.object.name>	"Person"	@en	.
