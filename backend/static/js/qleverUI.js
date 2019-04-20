@@ -78,23 +78,33 @@ $(document).ready(function() {
 
 	// Do some custom activities (overwrite codemirror behaviour)
     editor.on("keyup", function(instance, event) {
-	    
-		// do not overwrite ENTER inside an completion window
-        if (instance.state.completionActive || event.keyCode == 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
-            return;
-        }
-        
-        // TODO: find a general function to gather this information
+
         var cur = instance.getCursor();
         var line = instance.getLine(cur.line);
         var token = instance.getTokenAt(cur);
         var string = '';
+	    
+		// do not overwrite ENTER inside an completion window
+		// esc - 27
+		// arrow left - 37
+		// arrow up - 38
+		// arrow right - 39
+		// arrow down - 40
+        if (instance.state.completionActive || event.keyCode == 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
+	        
+	        // for for autocompletions opened unintented
+	        if(line[cur.ch] == "}" || line[cur.ch+1] == "}" || line[cur.ch-1] == "}") {
+		        instance.state.completionActive.close();
+	        }
+            return;
+        }
 
         if (token.string.match(/^[.`\w?<@]\w*$/)) {
             string = token.string;
         }
         // do not suggest anything inside a word
-        if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}") {
+
+        if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}" && line[cur.ch+1] != "}" && line[cur.ch-1] != "}") {
 			// invoke autocompletion after a very short delay
             window.setTimeout(function() {
                 if (example == 1) { example = 0; } else {

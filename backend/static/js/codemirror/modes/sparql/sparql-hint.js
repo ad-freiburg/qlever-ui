@@ -171,7 +171,7 @@ var suggestions;
 	    }
     
         var cur = editor.getCursor(); // current cursor position
-        var absolutePosition = getAbsolutePosition(cur); // absolute cursor position in text
+        var absolutePosition = editor.indexFromPos((cur)); // absolute cursor position in text
         var context = getCurrentContext(absolutePosition); // get current context
 		suggestions = [];
 		
@@ -699,28 +699,6 @@ function getTypeSuggestions(type, context){
 
 /**
    
-   Returns absolute cursor position inside editor.getValue()
-   
-   @params cur - position object of current position
-    
-**/
-function getAbsolutePosition(cur){
-    var absolutePosition = 0;
-    $('.CodeMirror-line').each(function(i) {
-        if (i < cur.line) {
-            // count line breaks as chars
-            absolutePosition += $(this).text().length+1;
-        } else {
-            absolutePosition += cur.ch;
-            return false;
-        }
-    });
-    return absolutePosition;
-}
-
-
-/**
-   
    Build a query tree
   
 **/    
@@ -755,13 +733,33 @@ function buildQueryTree(content,start){
 			
 			tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i+start }
 		
+		} else if(tempString.endsWith('OPTIONAL {')){
+			
+			// shorten the end of the select clause by what we needed to add to match WHERE {
+			tempElement['content'] = tempString.slice(0,tempString.length-7);
+			tempElement['end'] = i+start-8;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'OptionalClause', suggestInSameLine: true, start: i+start }
+		
+		} else if(tempString.endsWith('UNION {')){
+			
+			// shorten the end of the select clause by what we needed to add to match WHERE {
+			tempElement['content'] = tempString.slice(0,tempString.length-7);
+			tempElement['end'] = i+start-6;
+			tree.push(tempElement);
+			tempString = "";
+			
+			tempElement = { w3name: 'UnionClause', suggestInSameLine: true, start: i+start }
+		
 		} else if(tempString.endsWith('{')){
 			
 			// fast forward recursion
 			var depth = 1;
 			var subStart = i;
 			var subString = "";
-			while(depth != 0 && i < 20){
+			while(depth != 0 && i <= content.length){
 				i++;
 				if(content[i] == '}'){
 					depth -= 1;
@@ -774,7 +772,11 @@ function buildQueryTree(content,start){
 				}
 			}
 			
-			tempElement['children'] = buildQueryTree(subString,subStart);
+			if(tempElement['children']){
+				tempElement['children'] = tempElement['children'].concat(buildQueryTree(subString,subStart));
+			} else {
+				tempElement['children'] = buildQueryTree(subString,subStart);
+			}
 			
 		} else if(tempString.endsWith('}') || ((tempElement.w3name == "OrderCondition" || tempElement.w3name == "GroupCondition") && tempString.endsWith('\n'))){
 			
@@ -796,7 +798,11 @@ function buildQueryTree(content,start){
 	tree.push(tempElement);
 	
 	for(var element of tree){
-		if(element.w3name == "SolutionModifier"){
+		if(element.w3name == "OptionalClause" || element.w3name == "UnionClause"){
+			if(element['children']){
+				element['children'][0].w3name = "WhereClause";
+			}
+		} else if(element.w3name == "SolutionModifier"){
 			
 			var j = 0;
 			var tempSubString = "";
@@ -870,6 +876,19 @@ function getCurrentContext(absPosition){
     var tree = buildQueryTree(editor.getValue(),0);
 	log("\n"+printQueryTree(tree,absPosition,""),'parsing');
     return searchTree(tree,absPosition);
+}
+
+function getNextContext(absPosition){ 
+    var tree = buildQueryTree(editor.getValue(),0);
+    var current = searchTree(tree,absPosition);
+    for(var i = absPosition; i < editor.getValue().length+1; i++){
+	    var found = searchTree(tree,i);
+	    if(current != found && found != undefined){
+		    console.log('Found '+found.w3name);
+		    return found;
+	    }
+    }
+    return false;
 }
 
 function searchTree(tree,absPosition){

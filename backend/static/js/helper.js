@@ -32,9 +32,13 @@ function cleanLines(cm) {
 			lastLine = line;
 	        line = cm.getLine(i);
 			if(line.trim() == ""){
-				if(i == 0){ cm.setSelection({line: i, ch: 0},{line: i+1, ch: 0}) } else {
-				cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length}); }
+				if(i == 0){ 
+					cm.setSelection({line: i, ch: 0},{line: i+1, ch: 0}) 
+				} else {
+					cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length}); 
+				}
 				cm.replaceSelection('');
+				
 				if(i < cursor.line){
 					cursor.line -= 1;
 					selection.head.line - 1;
@@ -54,56 +58,142 @@ function cleanLines(cm) {
 }
 
 function switchStates(cm) {
-	log('Switching between placeholders...','other');	
-    if (activeState == 0) {
-        // move to end of select clause
-        for (var i = 0; i < cm.lastLine(); i++) {
-            line = cm.getLine(i);
-            if (line.trim().startsWith('SELECT')) {
-                cm.setCursor(i, (line.length - 8));
-                if(line[line.length - 9] != " "){
-	                // add empty whitespace in select if not present
-	                cm.setSelection({ 'line': i, 'ch': line.length - 8},{ 'line': i, 'ch': line.length - 7 });
-	                cm.replaceSelection('  ');
-					cm.setCursor(i, (line.length - 7));
-                }
-                break;
-            }
+	
+	var cur = editor.getCursor(); // current cursor position
+    var absolutePosition = editor.indexFromPos({'line':cur.line,'ch':cur.ch+1}); // absolute cursor position in text
+
+	var content = cm.getValue();
+	
+	var gaps = [];
+	
+	var gap1 = /WHERE/g
+	while ((match = gap1.exec(content)) != null){
+		gaps.push(match.index+match[0].length-5);
+	}
+	
+	var gap2 = /(\s)*\}/g
+	while ((match = gap2.exec(content)) != null){
+		gaps.push(match.index-1);
+	}
+	
+	gaps.push(content.length-1);
+	
+	gaps = Array.from(new Set(gaps));
+	gaps.sort(function(a, b){return a - b});
+	
+	var found = false;
+	for(gap of gaps){
+		if(gap > absolutePosition) {
+			found = gap;
+			break;
+		}
+	}
+	
+	if(found == false && gaps.length > 0){
+		found = gaps[0];
+	}
+	
+	if(found == false){
+		return;
+	}
+	
+	var newCursor = editor.posFromIndex(found);
+	editor.setCursor(newCursor);
+	var line = cm.getLine(newCursor.line);
+	
+	if(line.slice(newCursor.ch,newCursor.ch+5) == "WHERE"){
+		// add empty whitespace in select if not present
+		log("Found SELECT-Placeholder on postion "+found,'other');
+		cm.setSelection({ 'line': newCursor.line, 'ch': line.length - 8},{ 'line': newCursor.line, 'ch': line.length - 7 });
+		
+		// TODO: calculate indentation correctly
+		//var partContent = editor.getValue().slice(0,absolutePosition);
+		//var lines = partContent.split('\n');
+		//var count = (partContent.split("{").length - 1) - (partContent.split("}").length - 1) - (line.split("{").length - 1);
+		//var indentWhitespaces = "";
+		//if (count > 0){
+		//	indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
+		//}
+		
+		cm.replaceSelection("  ");
+		cm.setCursor(newCursor.line, (line.length - 7));
+    } else if(found >= content.length-1){
+		log("Found MODIFIER-Placeholder on postion "+found,'other');
+		if(editor.getLine(newCursor.line+1) == undefined || editor.getLine(newCursor.line+1) != ""){
+			log("Adding a line at the end of the input",'other');
+			cm.setSelection({ 'line': newCursor.line, 'ch': line.length },{ 'line': newCursor.line, 'ch': line.length });
+			cm.replaceSelection('\n');
+	    }
+	    cm.setCursor(newCursor.line+1, 0);
+    } else {
+		log("Found WHERE-Placeholder on postion "+found,'other');
+	    cm.setSelection({ 'line': newCursor.line, 'ch': 9999999 },{ 'line': newCursor.line, 'ch': 9999999 });
+        cm.replaceSelection('\n  ');
+        cm.setCursor(newCursor.line+1, 2);
+		
+    }
+	
+	/*var position = cm.indexFromPos(cm.getCursor());
+	var nextContext = getNextContext(position);
+	var i = 0;
+	
+	while(nextContext.w3name != "SelectClause" && nextContext.w3name != "WhereClause" && nextContext.w3name != "SolutionModifier" && i < 20){
+		i++;
+		nextContext = getNextContext(nextContext.start);
+		if(nextContext == false){
+			nextContext = getNextContext(0);
+		}
+	}
+	
+	if(nextContext == undefined || nextContext == false){
+		log('Tried to move to next placeholder but none found','other');	
+		return;
+	}
+	log('Next placeholder is '+nextContext.w3name+' from '+nextContext.start+' to '+nextContext.end,'other');	
+	
+	if(nextContext.w3name == "SelectClause"){
+		
+		var newPos = cm.posFromIndex(nextContext.start);
+		var line = cm.getLine(newPos.line);
+		
+        cm.setCursor(newPos.line, (line.length - 8));
+        if(line[line.length - 9] != " "){
+            // add empty whitespace in select if not present
+            cm.setSelection({ 'line': newPos.line, 'ch': line.length - 8},{ 'line': newPos.line, 'ch': line.length - 7 });
+            cm.replaceSelection('  ');
+			cm.setCursor(newPos.line, (line.length - 7));
         }
         activeState = 1;
-    } else if (activeState == 1) {
-        // move to end of query
-        line = undefined;
-        for (var i = 0; i <= cm.lastLine(); i++) {
-            last = line
-            line = cm.getLine(i);
-            if (line.trim().startsWith('}')) {
-                if (last.trim() != "") {
-	                // add a new line at the end if not present
-                    cm.setSelection({ 'line': i - 1, 'ch': last.length });
-                    cm.replaceSelection('\n  ');
-                    cm.setCursor(i, 2);
-                } else {
-	                // jump to the new line at the end
-                    cm.setCursor(i - 1, 2);
-                }
-                break;
-            }
-        }
-        activeState = 2;
-    } else if (activeState == 2) {
-        // move to "values"
-        last = cm.lastLine();
-        line = editor.getLine(last);
+    
+    } else if(nextContext.w3name == "WhereClause"){
+        
+        var newPos = cm.posFromIndex(nextContext.end);
+		var line = cm.getLine(newPos.line);
+
+        // add a new line at the end if not present
+        cm.setSelection({ 'line': newPos.line, 'ch': line.length });
+        cm.replaceSelection('\n  ');
+        cm.setCursor(newPos.line+1, 2);
+        
+		activeState = 2;
+        
+    } else if(nextContext.w3name == "SolutionModifier"){
+	            
+		var newPos = cm.posFromIndex(nextContext.end);
+		var line = cm.getLine(newPos.line);
+		
         if (line.trim() != "") {
-            cm.setSelection({ 'line': last, 'ch': line.length });
+            cm.setSelection({ 'line': newPos.line, 'ch': line.length });
             cm.replaceSelection('\n')
-            cm.setCursor(last + 1, 0);
+            cm.setCursor(newPos.line+1, 0);
         } else {
-            cm.setCursor(last, 0);
+            cm.setCursor(newPos.line, 0);
         }
         activeState = 0;
-    }
+    
+    
+    }*/
+    
     window.setTimeout(function() {
         CodeMirror.commands.autocomplete(editor);
     }, 100);

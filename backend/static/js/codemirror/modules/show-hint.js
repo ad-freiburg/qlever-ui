@@ -95,7 +95,7 @@
             var cursor = editor.getCursor();
             var line = editor.getLine(cursor.line);
             
-            var absPosition = getAbsolutePosition(cursor);
+            var absPosition = editor.indexFromPos(cursor);
             var content = editor.getValue().slice(0,absPosition);
             var lines = content.split('\n');
             var count = (content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1);
@@ -104,9 +104,11 @@
 	            indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
             }
             
+	        log('Added '+indentWhitespaces.length+' whitespaces','other');
+	        completion = completion.split('\n').join("\n"+indentWhitespaces);
+	        
             if(lines[lines.length-1].replace(/\s?/g, "") == ""){
-	            log('Added '+indentWhitespaces.length+' whitespaces','other');
-	            completion = indentWhitespaces+completion.split('\n').join("\n"+indentWhitespaces);
+	            completion = indentWhitespaces+completion;
 	            data.from['ch'] = 0;
             }
             
@@ -115,11 +117,10 @@
 		            editor.setSelection({line:cursor.line, ch:cursor.ch}, {line:cursor.line, ch:99999});
 		            editor.replaceSelection("");
 		        }
-		        log('Added linebreak','other');
-				completion = completion + "\n"+indentWhitespaces
-	            
-	            
+		        log('Added linebreak due to point at the end of the completion','other');
+				completion = completion + "\n"+indentWhitespaces   
             }
+            
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
 
@@ -167,6 +168,16 @@
 				    }
 	            }
             }
+            
+            if (completion.replace(/\s?/g, "").slice(-1) == "}") {
+		        log('Moved one line ahead due to } at the end of the completion','other');
+	            cursor.line = cursor.line + 1;
+	            cursor.ch = 9999999;
+	            editor.setSelection({line:cursor.line, ch:cursor.ch}, {line:cursor.line, ch:cursor.ch});
+	            editor.replaceSelection(indentWhitespaces);
+	            editor.setCursor(cursor);
+            }
+            
             CodeMirror.signal(data, "pick", completion);
             this.close();
         },
