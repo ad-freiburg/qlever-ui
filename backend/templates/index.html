@@ -33,6 +33,7 @@
           var FUNCTIONS = {% autoescape off %}{{ backend.functions }}{% endautoescape %};
           var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
           var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
+          var REPLACE_PREDICATES = {% autoescape off %}{{ backend.replacePredicatesList }}{% endautoescape %};
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);

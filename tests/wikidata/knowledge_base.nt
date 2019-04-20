@@ -1,0 +1,39 @@
+<http://www.wikidata.org/entity/Q37064>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q5>	.
+<http://www.wikidata.org/entity/Q37064>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q901>	.
+<http://www.wikidata.org/entity/Q37064>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q80061>	.
+<http://www.wikidata.org/entity/Q37064>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q4710826>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q5>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q901>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q38104>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q28003>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q753072>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q3141777>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q317038>	.
+<http://www.wikidata.org/entity/Q937>	<http://www.wikidata.org/prop/direct/P166>	<http://www.wikidata.org/entity/Q1419938>	.
+<http://www.wikidata.org/entity/Q937>	<http://schema.org/name>	"Alberto Einstein"@cliche_it	.
+<http://www.wikidata.org/entity/Q2068918>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q8386>	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"This is a rather long text. If the index is built with the -l option, it should be externalized into an on-disk vocabulary."	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"This is a short text."	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/description>	"Another short text."	.
+<http://www.wikidata.org/entity/Q1615>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q5>	.
+<http://www.wikidata.org/entity/Q1615>	<http://www.wikidata.org/prop/direct/P31>	<http://www.wikidata.org/entity/Q11631>	.
+<http://www.wikidata.org/entity/Q37064>	<http://schema.org/name>	"Alexander Fleming"@en	.
+<http://www.wikidata.org/entity/Q2068918>	<http://schema.org/name>	"Penicillin"@en	.
+<http://www.wikidata.org/entity/Q937>	<http://schema.org/name>	"Albert Einstein"@en	.
+<http://www.wikidata.org/entity/Q1615>	<http://schema.org/name>	"Neil Armstrong"@en	.
+<http://www.wikidata.org/entity/Q11631>	<http://schema.org/name>	"astronaut"@en	.
+<http://www.wikidata.org/entity/Q5>	<http://schema.org/name>	"human"@en	.
+<http://www.wikidata.org/entity/Q901>	<http://schema.org/name>	"scientist"@en	.
+<http://www.wikidata.org/entity/Q80061>	<http://schema.org/name>	"Nobel Prize in Physiology or Medicine"@en	.
+<http://www.wikidata.org/entity/Q4710826>	<http://schema.org/name>	"Albert Medal"@en	.
+<http://www.wikidata.org/entity/Q38104>	<http://schema.org/name>	"Nobel Prize in Physics"@en	.
+<http://www.wikidata.org/entity/Q28003>	<http://schema.org/name>	"Copley Medal"@en	.
+<http://www.wikidata.org/entity/Q753072>	<http://schema.org/name>	"Gold Medal of the Royal Astronomical Society"@en	.
+<http://www.wikidata.org/entity/Q3141777>	<http://schema.org/name>	"Franklin Medal"@en	.
+<http://www.wikidata.org/entity/Q317038>	<http://schema.org/name>	"Max Planck Medal"@en	.
+<http://www.wikidata.org/entity/Q1419938>	<http://schema.org/name>	"Matteucci Medal"@en	.
+<http://www.wikidata.org/entity/Q8386>	<http://schema.org/name>	"drug"@en	.
+<http://www.wikidata.org/entity/P166>	<http://wikiba.se/ontology#directClaim>	<http://www.wikidata.org/prop/direct/P166>	.
+<http://www.wikidata.org/entity/P166>	<http://www.w3.org/2000/01/rdf-schema#label>	"award received"@en	.
+<http://www.wikidata.org/entity/P31>	<http://wikiba.se/ontology#directClaim>	<http://www.wikidata.org/prop/direct/P31>	.
+<http://www.wikidata.org/entity/P31>	<http://www.w3.org/2000/01/rdf-schema#label>	"instance of"@en	.
