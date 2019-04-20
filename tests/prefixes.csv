@@ -1,0 +1,6 @@
+id,name,prefix,backend,occurrences
+1009,fb,<http://rdf.freebase.com/ns/>,1005,1
+1008,wd,<http://www.wikidata.org/entity/>,1004,1
+1007,schema,<http://schema.org/>,1004,1
+1006,rdfs,<http://www.w3.org/2000/01/rdf-schema#>,1004,1
+1005,wdt,<http://www.wikidata.org/prop/direct/>,1004,2
