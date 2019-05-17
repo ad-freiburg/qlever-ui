@@ -325,7 +325,11 @@ function handleStatsDisplay() {
 
     $.getJSON(BASEURL + "?cmd=stats", function(result) {
         log('Evaluating and displaying stats...','other');
-        $("#kbname").html(tsep(result.kbindex));
+        if(result.kbindex){
+	        $("#kbname").html(tsep(result.kbindex));
+	    } else {
+	        $("#kbname").html("<em>not provided</em>");
+	    }
         $("#textname").html(tsep(result.textindex));
         $("#ntriples").html(tsep(result.noftriples));
         $("#nrecords").html(tsep(result.nofrecords));
@@ -340,7 +344,7 @@ function handleStatsDisplay() {
                 "Number of objects: <b>" + tsep(result.nofobjects) + "</b>");
         }
         $('#statsButton').removeAttr('disabled');
-        $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Toggle backend information');
+        $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Index Information');
     }).fail(function() {
         $('#statsButton').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
     });
