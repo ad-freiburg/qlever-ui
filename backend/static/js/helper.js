@@ -41,7 +41,7 @@ function cleanLines(cm) {
 				
 				if(i < cursor.line){
 					cursor.line -= 1;
-					selection.head.line - 1;
+					selection.anchor = selection.head
 				}
 			}
 			var startingWhitespaces = line.length - line.replace(/^\s+/,"").length;
@@ -132,68 +132,9 @@ function switchStates(cm) {
         cm.setCursor(newCursor.line+1, 2);
 		
     }
-	
-	/*var position = cm.indexFromPos(cm.getCursor());
-	var nextContext = getNextContext(position);
-	var i = 0;
-	
-	while(nextContext.w3name != "SelectClause" && nextContext.w3name != "WhereClause" && nextContext.w3name != "SolutionModifier" && i < 20){
-		i++;
-		nextContext = getNextContext(nextContext.start);
-		if(nextContext == false){
-			nextContext = getNextContext(0);
-		}
-	}
-	
-	if(nextContext == undefined || nextContext == false){
-		log('Tried to move to next placeholder but none found','other');	
-		return;
-	}
-	log('Next placeholder is '+nextContext.w3name+' from '+nextContext.start+' to '+nextContext.end,'other');	
-	
-	if(nextContext.w3name == "SelectClause"){
-		
-		var newPos = cm.posFromIndex(nextContext.start);
-		var line = cm.getLine(newPos.line);
-		
-        cm.setCursor(newPos.line, (line.length - 8));
-        if(line[line.length - 9] != " "){
-            // add empty whitespace in select if not present
-            cm.setSelection({ 'line': newPos.line, 'ch': line.length - 8},{ 'line': newPos.line, 'ch': line.length - 7 });
-            cm.replaceSelection('  ');
-			cm.setCursor(newPos.line, (line.length - 7));
-        }
-        activeState = 1;
     
-    } else if(nextContext.w3name == "WhereClause"){
-        
-        var newPos = cm.posFromIndex(nextContext.end);
-		var line = cm.getLine(newPos.line);
-
-        // add a new line at the end if not present
-        cm.setSelection({ 'line': newPos.line, 'ch': line.length });
-        cm.replaceSelection('\n  ');
-        cm.setCursor(newPos.line+1, 2);
-        
-		activeState = 2;
-        
-    } else if(nextContext.w3name == "SolutionModifier"){
-	            
-		var newPos = cm.posFromIndex(nextContext.end);
-		var line = cm.getLine(newPos.line);
-		
-        if (line.trim() != "") {
-            cm.setSelection({ 'line': newPos.line, 'ch': line.length });
-            cm.replaceSelection('\n')
-            cm.setCursor(newPos.line+1, 0);
-        } else {
-            cm.setCursor(newPos.line, 0);
-        }
-        activeState = 0;
-    
-    
-    }*/
-    
+    cm.setSelection(cm.getCursor(),cm.getCursor()); 
+   
     window.setTimeout(function() {
         CodeMirror.commands.autocomplete(editor);
     }, 100);
