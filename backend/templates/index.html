@@ -156,7 +156,7 @@
             <!-- The backends block -->
                 <div class="btn-group" role="group">
                     <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                        {% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}
+                        <i class="glyphicon glyphicon-flash"></i> {% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">

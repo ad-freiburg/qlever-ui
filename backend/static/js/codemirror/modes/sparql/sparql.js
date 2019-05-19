@@ -101,49 +101,49 @@ var COMPLEXTYPES = [
 {
     name: 'MIN',
     definition: /\(MIN\((.*)\) as (.*)\)/g,
-    suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
+    suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
     availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'MAX',
     definition: /\(MAX\((.*)\) as (.*)\)/g,
-    suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
+    suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
     availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'SUM',
     definition: /\(SUM\((.*)\) as (.*)\)/g,
-    suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
+    suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
     availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'AVG',
     definition: /\(AVG\((.*)\) as (.*)\)/g,
-    suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
+    suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
     availableInContext: ['SelectClause','OrderCondition'],
     
 },
 {
     name: 'SAMPLE',
     definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
-    suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample_{[0]}) ']],
+    suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample_{[0]}) ']],
     availableInContext: ['SelectClause'],
     
 },
 {
     name: 'COUNT',
     definition: /\(COUNT\((.*)\) as (.*)\)/g,
-    suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count_{[1]}) ']],
+    suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count_{[1]}) ']],
     availableInContext: ['SelectClause'],
     
 },
 {
     name: 'GROUP_CONCAT',
     definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
-    suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat_{[1]}) ']],
+    suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat_{[1]}) ']],
     availableInContext: ['SelectClause'],
     
 },
