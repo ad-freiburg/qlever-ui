@@ -261,8 +261,30 @@ function getDynamicSuggestions(context){
     
     // get current line
     var words = line.slice(0,cur.ch).trimLeft().replace('  ', ' ').split(" ");
+
+	// Find words that are separated by whitespace but seem to be belong together
+	var whiteSpaceWord = "";
+	for (var i = words.length-1; i >= 0; i--){
+		var prevWord = words[i]
+		if (!(prevWord.startsWith("?") || prevWord.startsWith("<") || prevWord.endsWith(">") || prevWord.indexOf(":") != -1)) {
+			if (i == words.length-1) {
+				whiteSpaceWord = prevWord;
+			} else {
+				whiteSpaceWord = (prevWord + " " + whiteSpaceWord);
+			}
+			words.splice(i, 2, whiteSpaceWord);
+		} else {
+			break;
+		}
+	}
+	word = words[words.length-1];
+	var wordIndex = line.slice(0,cur.ch).lastIndexOf(word);
+	if (wordIndex != -1 && word.length > 0) {
+		sparqlFrom = CodeMirror.Pos(cur.line, wordIndex);
+		sparqlTo = CodeMirror.Pos(cur.line, cur.ch);
+	}
 	
-	// collect prefixes (as string and dict)
+	// collect prefixes (as string and dict)>
     var prefixes = "";
     var prefixesRelation = {};
     var lines = getPrefixLines();
