@@ -326,11 +326,11 @@ function handleStatsDisplay() {
     $.getJSON(BASEURL + "?cmd=stats", function(result) {
         log('Evaluating and displaying stats...','other');
         if(result.kbindex){
-	        $("#kbname").html(tsep(result.kbindex));
+	        $("#kbname").html(result.kbindex);
 	    } else {
 	        $("#kbname").html("<em>not provided</em>");
 	    }
-        $("#textname").html(tsep(result.textindex));
+        $("#textname").html(result.textindex);
         $("#ntriples").html(tsep(result.noftriples));
         $("#nrecords").html(tsep(result.nofrecords));
         $("#nwo").html(tsep(result.nofwordpostings));
