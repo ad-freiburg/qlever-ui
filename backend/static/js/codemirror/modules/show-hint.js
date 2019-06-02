@@ -389,8 +389,8 @@
 	        if (cur.name) {
 		        var name = document.createElement("span");
 		        name.className = "hint-name";
-		        if(cur.altName && cur.altName != cur.name && cur.name.indexOf(data.word) == -1){
-			        name += " / "+cur.altname
+		        if(cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1){
+			        cur.name += " / "+cur.altname
 		        }
 		        
 		        name.appendChild(document.createTextNode(" "+cur.name));
