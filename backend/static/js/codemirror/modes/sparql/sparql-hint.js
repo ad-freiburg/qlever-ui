@@ -215,7 +215,7 @@ var suggestions;
 		sparqlCallback({
             list: suggestions,
             from: sparqlFrom,
-            to: sparqlTo
+            to: sparqlTo,
         });
         
         return false;
@@ -497,7 +497,7 @@ function getDynamicSuggestions(context){
 		        "GROUP BY ?qleverui_entity\n" : "") +
 		        "ORDER BY DESC(?qleverui_count)";
 		        
-		        getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList, predicateForObject);
+		        getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList, predicateForObject, word);
 		    }
 
 			if (suggestVariables) {
@@ -515,7 +515,7 @@ function getDynamicSuggestions(context){
 }
 
 
-function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, predicateForObject){
+function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, predicateForObject, word){
 
 	try {
         
@@ -593,9 +593,11 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, p
 			            }
 						
 		                var nameIndex = data.selected.indexOf("?qleverui_name");
+		                var altNameIndex = data.selected.indexOf("?qleverui_altname");
 		                var entityName = (nameIndex != -1) ? result[nameIndex] : "";
+		                var altEntityName = (altNameIndex != -1) ? result[altNameIndex] : "";
 		                nameList[result[0]] = entityName;
-		                dynamicSuggestions.push({displayText: result[0]+appendix, completion: result[0]+appendix, name: entityName});
+		                dynamicSuggestions.push({displayText: result[0]+appendix, completion: result[0]+appendix, name: entityName, altname: altEntityName});
 		            }
 		            
 		        } else {
@@ -615,7 +617,8 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, p
 		        sparqlCallback({
 		            list: suggestions.concat(dynamicSuggestions),
 		            from: sparqlFrom,
-		            to: sparqlTo
+		            to: sparqlTo,
+					word: word
 		        });
 		        
 		        return []

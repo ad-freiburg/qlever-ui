@@ -350,7 +350,7 @@
                             if (cur != undefined && cur.className != null) className = cur.className + " " + className;
                             elt.className = className;
                             if (cur != undefined && cur.render) cur.render(elt, data, cur);
-                            else if (cur != undefined) addQLeverHint(elt, cur);
+                            else if (cur != undefined) addQLeverHint(elt, cur, this);
                             else elt.appendChild(document.createTextNode(getText(cur)));
                             elt.hintId = lastSize + i;
                         }
@@ -375,20 +375,24 @@
 	            cur.render(elt, data, cur);
 	        } else if (cur != undefined) {
 		        // our qlever hints seem to always end in this case
-		        addQLeverHint(elt, cur);
+		        addQLeverHint(elt, cur, this);
 		    } else {
 			    elt.appendChild(document.createTextNode(getText(cur)));
 			}
             elt.hintId = i;
         }
         
-        function addQLeverHint(elt, cur) {
+        function addQLeverHint(elt, cur, widget) {
 	        var text = document.createElement('div');
 	        var displayText = tokenizeHints(cur.displayText || getText(cur))
 	        text.appendChild(displayText);
 	        if (cur.name) {
 		        var name = document.createElement("span");
 		        name.className = "hint-name";
+		        if(cur.altName && cur.altName != cur.name && cur.name.indexOf(data.word) == -1){
+			        name += " / "+cur.altname
+		        }
+		        
 		        name.appendChild(document.createTextNode(" "+cur.name));
 		        text.appendChild(name);
 	        }
