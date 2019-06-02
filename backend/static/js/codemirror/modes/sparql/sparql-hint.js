@@ -380,12 +380,14 @@ function getDynamicSuggestions(context){
 				if (SUGGESTSUBJECTS.length > 0 && word.length > 0 && word != "<") {
 					sparqlLines = SUGGESTSUBJECTS.replace(/\n/g, "\n        ").trim() + ' .';
 					nameClause = SUBJECTNAME;
+					altNameClause = ALTERNATIVESUBJECTNAME;
 					nameList = subjectNames;
 				} else {
 					sendSparql = false;
 				}
 			} else if (words.length == 2) {
 				nameClause = PREDICATENAME;
+				altNameClause = ALTERNATIVEPREDICATENAME;
 				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";
 				nameList = predicateNames;
@@ -399,6 +401,7 @@ function getDynamicSuggestions(context){
 			} else if (words.length == 3) {
 				predicateForObject = words[1];
 				nameClause = OBJECTNAME;
+				altNameClause = ALTERNATIVEOBJECTNAME;
 				suggestVariables = "normal";
 				appendToSuggestions = ' .';
 				nameList = objectNames;
@@ -459,12 +462,21 @@ function getDynamicSuggestions(context){
 	            "    }\n" + ((nameClause.length > 0) ?  // get entity names if we know how to query them
 	            "    OPTIONAL {\n" +
 	            "      " + nameClause.replace(/\n/g, "\n      ") + "\n" +
+	            "    }\n" : "" ) + ((altNameClause.length > 0) ?
+	            "    OPTIONAL {\n" +
+	            "      " + altNameClause.replace(/\n/g, "\n      ") + "\n" +
 	            "    }\n" : "" );
 
 				sparqlQuery = prefixes;
 				if (nameClause.length > 0) {
-					sparqlQuery +=
-					"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {\n";
+					if (altNameClause.length > 0 && word.length > 0) {
+						sparqlQuery +=
+						"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_altname) as ?qleverui_altname) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {\n" +
+						"  {\n";
+					} else {
+						sparqlQuery +=
+						"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {\n";
+					}
 					if (word.length > 0) {
 						// find all entities whose names match what we typed and UNION it with entityQuery
 						sparqlQuery +=
@@ -482,6 +494,24 @@ function getDynamicSuggestions(context){
 			            "    " + nameClause.replace(/\n/g, "\n    ") + "\n" +
 			            "    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
 			            "  }\n";
+
+			            if (altNameClause.length > 0) {
+				            sparqlQuery += "  }\n" +
+			            "  UNION\n" +
+			            "  {\n" +
+					    "    {\n" +
+			            "      SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {\n" +
+			            "        " + sparqlLines + "\n" +
+			            "      }\n" +
+			            "      GROUP BY ?qleverui_entity\n" +
+			            "    }\n" +
+			            "    " + altNameClause.replace(/\n/g, "\n    ") + "\n" +
+			            "    FILTER regex(?qleverui_altname, '^\"" + word + "')\n" +
+			            "    OPTIONAL {\n" + 
+			            "      " + nameClause.replace(/\n/g, "\n    ") + "\n" +
+			            "    }\n" +
+			            "  }\n";
+			            }
 			        } else {
 				    	// There was no input that we can search for -> just do entityQuery
 				        sparqlQuery += entityQuery;
