@@ -3,6 +3,7 @@
     <head>
         <title>QLever UI - SPARQL+Text Engine</title>
         <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
     
         <!-- The stylesheets for this page -->
         <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
@@ -159,7 +160,7 @@
             <!-- The backends block -->
                 <div class="btn-group" role="group">
                     <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                        <i class="glyphicon glyphicon-flash"></i> {% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}
+                        <i class="glyphicon glyphicon-flash"></i> <span class="d">{% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}</span>
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
@@ -183,13 +184,13 @@
             <div class="pull-right">
                 <div class="btn-group" role="group" >
 	                <button onclick="$('#stats').slideToggle();$('#bStats').hide();" class="btn btn-default" id="statsButton">
-	                    <i class="glyphicon glyphicon-stats"></i> Loading information...
+	                    <i class="glyphicon glyphicon-stats"></i> <span class="d">Loading information...</span>
 	                </button>
-	                <button onclick="$('#bStats').slideToggle();$('#stats').hide();" class="btn btn-default" id="statsButton">
-	                    <i class="glyphicon glyphicon-cog"></i> Backend Information
+	                <button onclick="$('#bStats').slideToggle();$('#stats').hide();" class="btn btn-default">
+	                    <i class="glyphicon glyphicon-cog"></i> <span class="d">Backend Information</span>
 	                </button>
-	                <button class="btn btn-default" onclick="expandEditor();">
-	                    <i class="glyphicon glyphicon-question-sign"></i> Shortcuts / Help
+	                <button class="btn btn-default" onclick="expandEditor();" id="helpButton">
+	                    <i class="glyphicon glyphicon-question-sign"></i> <span class="d">Shortcuts / Help</span>
 	                </button>
                 </div>
             </div>
@@ -405,16 +406,16 @@
                 <h3 class="pull-left">Query results:</h3>
                 <div class="btn-group pull-right" role="group">
                     <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-list"></i> <span id="resultSize"></span> lines found
+                        <i class="glyphicon glyphicon-list"></i> <span id="resultSize"></span> <span class="d">lines found</span>
                     </button>
                     <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-time"></i> <span id="totalTime"></span> in total
+                        <i class="glyphicon glyphicon-time"></i> <span id="totalTime"></span> <span class="d">in total</span>
                     </button>
                     <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-cog"></i> <span id="computationTime"></span> for computation
+                        <i class="glyphicon glyphicon-cog"></i> <span id="computationTime"></span> <span class="d">for computation</span>
                     </button>
                     <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-transfer"></i> <span id="jsonTime"></span> for resolving and sending
+                        <i class="glyphicon glyphicon-transfer"></i> <span id="jsonTime"></span> <span class="d">for resolving and sending</span>
                     </button>
                 </div>
                 <br><br><br>

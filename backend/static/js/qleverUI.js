@@ -8,6 +8,10 @@ var subjectNames = {}
 var predicateNames = {}
 var objectNames = {}
 
+$(window).resize(function(){
+	editor.setSize($('#queryBlock').width(),350);
+});
+
 $(document).ready(function() {
 
 	// initialize code mirror
@@ -243,7 +247,7 @@ function processQuery(query, showStatus, element) {
                 parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
             
             if (nofRows < parseInt(result.resultsize)) {
-                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Output limited to "+nofRows+" results.</button>  <a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
+                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Limited to "+nofRows+" results.</button>  <a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
             }
             var selection = /SELECT(?: DISTINCT)?([^]*)WHERE/.exec(decodeURIComponent(result.query.replace(/\+/g, '%20')))[1];
 
@@ -320,7 +324,7 @@ function processQuery(query, showStatus, element) {
 
 function handleStatsDisplay() {
     log('Loading backend statistics...','other');
-    $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Loading information...');
+    $('#statsButton span').html('Loading information...');
     $('#statsButton').attr('disabled', 'disabled');
 
     $.getJSON(BASEURL + "?cmd=stats", function(result) {
@@ -344,8 +348,8 @@ function handleStatsDisplay() {
                 "Number of objects: <b>" + tsep(result.nofobjects) + "</b>");
         }
         $('#statsButton').removeAttr('disabled');
-        $('#statsButton').html('<i class="glyphicon glyphicon-stats"></i> Index Information');
+        $('#statsButton span').html('Index Information');
     }).fail(function() {
-        $('#statsButton').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
+        $('#statsButton span').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
     });
 }

@@ -78,6 +78,28 @@ th { color: #82B36F; white-space: nowrap; }
 	color: #82B36F !important;
 }
 
+.d,
+#help,
+#helpButton { 
+	display: none;
+}
+
+#dynamicSuggestions {
+	margin-top: 10px;
+}
+
+@media (min-width: 990px) {
+	.d,
+	#help,
+	#helpButton {
+		display: inline;
+	}
+		
+	#dynamicSuggestions {
+		margin-top: 0px;
+	}
+}
+
 /**
 	
 	CodeMirror Styles
