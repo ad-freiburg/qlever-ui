@@ -4,6 +4,7 @@
  */
 var example = 0;
 var activeState = 1;
+var runtime_info;
 var subjectNames = {}
 var predicateNames = {}
 var objectNames = {}
@@ -247,7 +248,7 @@ function processQuery(query, showStatus, element) {
                 parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
             
             if (nofRows < parseInt(result.resultsize)) {
-                res += "<div class=\"pull-right\"><button class=\"btn btn-default\" disabled><i class=\"glyphicon glyphicon-eye-close\"></i> Limited to "+nofRows+" results.</button>  <a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Show all " + result.resultsize + " results</a></div><br><br><br>";
+                res += "<div class=\"pull-right\"><a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Limited to "+nofRows+" results. Show all " + result.resultsize + " results.</a></div><br><br><br>";
             }
             var selection = /SELECT(?: DISTINCT)?([^]*)WHERE/.exec(decodeURIComponent(result.query.replace(/\+/g, '%20')))[1];
 
@@ -308,6 +309,8 @@ function processQuery(query, showStatus, element) {
             $("html, body").animate({
                 scrollTop: $("#resTable").scrollTop() + 500
             }, 500);
+           
+			runtime_info = result.runtimeInformation;
 
         }
     }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -352,4 +355,63 @@ function handleStatsDisplay() {
     }).fail(function() {
         $('#statsButton span').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
     });
+}
+
+function runtimeInfoForTreant(runtime_info, parent_cached = false) {
+
+  // Create text child with the information we want to see in the tree.
+  if (runtime_info["text"] == undefined) {
+    var text = {};
+    if (runtime_info["column_names"] == undefined) { runtime_info["column_names"] = ["not yet available"]; }
+    text["name"] = runtime_info["description"]
+                    .replace(/<.*[#\/\.](.*)>/, "<$1>")
+                    .replace(/qlc_/g, "")
+                    .replace(/\?[A-Z_]*/g, function(match) { return match.toLowerCase(); })
+                    .replace(/([a-z])([A-Z])/g, "$1-$2")
+                    .replace(/^([a-zA-Z-])*/, function(match) { return match.toUpperCase(); })
+                    .replace(/([A-Z])-([A-Z])/g, "$1 $2")
+                    .replace(/AVAILABLE /, "").replace(/a all/, "all");
+    text["size"] = format(runtime_info["result_rows"]) + " x " + format(runtime_info["result_cols"]);
+    text["cols"] = runtime_info["column_names"].join(", ")
+                    .replace(/qlc_/g, "")
+                    .replace(/\?[A-Z_]*/g, function(match) { return match.toLowerCase(); });
+    text["time"] = runtime_info["was_cached"]
+                    ? runtime_info["details"]["original_operation_time"]
+                    : runtime_info["operation_time"];
+    text["total"] = text["time"];
+    text["cached"] = parent_cached == true ? true : runtime_info["was_cached"];
+    // Save the original was_cached flag, before it's deleted, for use below.
+    for (var key in runtime_info) { if (key != "children") { delete runtime_info[key]; } }
+    runtime_info["text"] = text;
+    runtime_info["stackChildren"] = true;
+
+    // Recurse over all children, propagating the was_cached flag from the
+    // original runtime_info to all nodes in the subtree.
+    runtime_info["children"].map(child => runtimeInfoForTreant(child, text["cached"]));
+    // If result is cached, subtract time from children, to get the original
+    // operation time (instead of the original time for the whole subtree).
+    if (text["cached"]) {
+      runtime_info["children"].forEach(function(child) {
+        // text["time"] -= child["text"]["total"];
+      })
+    }
+  }
+}
+
+function format(number) {
+  return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+}
+
+function visualise(){
+	$('#visualisation').modal('show');
+	runtimeInfoForTreant(runtime_info);
+	var treant_tree = {
+	    chart: {
+	      container: "#result-tree",
+	      rootOrientation: "NORTH",
+	      connectors: { type: "step" },
+	    },
+	    nodeStructure: runtime_info
+	}
+    var treant_chart = new Treant(treant_tree);
 }

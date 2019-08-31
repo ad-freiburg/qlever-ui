@@ -392,6 +392,8 @@ function getDynamicSuggestions(context){
 				appendToSuggestions = " ";
 				nameList = predicateNames;
 				response = ['ql:contains-entity ', 'ql:contains-word '];
+				// add single prefixes to suggestions
+				response = response.concat(getPrefixNameSuggestions());
 				if (suggestionMode == 1) {
 					sparqlLines = "?qleverui_subject ql:has-predicate ?qleverui_entity .";
 		        } else if (suggestionMode == 2) {
@@ -559,8 +561,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, p
         // do the limits for the scrolling feature
         sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
-        log('Getting suggestions from QLever:','requests');
-        log(sparqlQuery,'requests');
+        log('Getting suggestions from QLever:\n'+sparqlQuery,'requests');
         
         lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
         var dynamicSuggestions = [];
@@ -574,7 +575,7 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, p
 		        } catch(err) {}
 		        
 			    log("Got suggestions from QLever.",'other');
-				log("Query took " + data.time.total + ".",'requests');
+				log("Query took " + data.time.total + " and found "+data.resultsize+" lines",'requests');
 		        
 		        if(data.res){
 			        var suggested = {};
@@ -1152,6 +1153,15 @@ function getPrefixSuggestions(context){
 			continue;
 	    }
 	    prefixes.push(prefix);
+    }
+    return prefixes;   
+}
+
+function getPrefixNameSuggestions(){
+	var prefixes = []
+
+    for (var key in COLLECTEDPREFIXES) {
+	    prefixes.push(key+":");
     }
     return prefixes;   
 }

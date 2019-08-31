@@ -53,6 +53,8 @@
     
         <!-- Our own JavaScript code for this demo -->
         <script src="/static/js/helper.js"></script>
+        <script src="/static/js/raphael.js"></script>
+        <script src="/static/js/treant.js"></script>
         <script src="/static/js/qleverUI.js"></script>
     
         <!-- CodeMirror and it's modules and language mode -->
@@ -339,7 +341,9 @@
                             <button class="btn btn-default" onclick="processQuery(BASEURL+'?cmd=clearcache',false,this);">
                                 <i class="glyphicon glyphicon-refresh"></i> Clear cache
                             </button>
-                            
+                            <button class="btn btn-default" onclick="visualise();">
+                                <i class="glyphicon glyphicon-object-align-vertical"></i> Visualise
+                            </button>
                             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                                 <i class="glyphicon glyphicon-align-left"></i> Examples
                                 <span class="caret"></span>
@@ -611,6 +615,22 @@
 		  </div>
 		</div>
         </form>
+        
+        <div class="modal" tabindex="-1" role="dialog" id="visualisation">
+		  <div class="modal-dialog" role="document" style="width: 90%;">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title">Query Visualisation</h5>
+		      </div>
+		      <div class="modal-body">
+			      <div id="result-tree"></div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
         
         <br>
         <footer class="footer">

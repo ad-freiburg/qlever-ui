@@ -237,3 +237,44 @@ li.CodeMirror-hint-active {
 .CodeMirror-placeholder {
 	color: #9a9a9a !important;
 }
+
+
+/* required LIB STYLES */
+/* .Treant se automatski dodaje na svaki chart conatiner */
+.Treant { position: relative; overflow: hidden; padding: 0 !important; }
+.Treant > .node,
+.Treant > .pseudo { position: absolute; display: block; visibility: hidden; }
+.Treant.Treant-loaded .node,
+.Treant.Treant-loaded .pseudo { visibility: visible; }
+.Treant > .pseudo { width: 0; height: 0; border: none; padding: 0; }
+.Treant .collapse-switch { width: 3px; height: 3px; display: block; border: 1px solid black; position: absolute; top: 1px; right: 1px; cursor: pointer; }
+.Treant .collapsed .collapse-switch { background-color: #868DEE; }
+.Treant > .node img {	border: none; float: left; }
+
+
+#result-tree .node {
+  padding: 3px;
+  border-radius: 3px;
+  background-color: #FEFEFE;
+  border: 1px solid #000;
+  min-width: 20em;
+  max-width: 30em;
+  font-size: 80%;
+  color: black;
+}
+
+#result-tree .node > p { margin: 0; }
+#result-tree .node-name { font-weight: bold; }
+#result-tree .node-size:before { content: "Size: "; }
+#result-tree .node-cols:before { content: "Cols: "; }
+#result-tree .node-size:before { content: "Size: "; }
+#result-tree .node-time:before { content: "Time: "; }
+#result-tree .node-time:after { content: "ms"; }
+#result-tree div.cached .node-time:after { content: "ms (cached -> 0ms)"; }
+#result-tree .node-total { display: none; }
+#result-tree .node-cached { display: none; }
+#result-tree .node.cached { color: grey; border: 1px solid grey; }
+#result-tree .node.high { background-color: #FFF7F7; }
+#result-tree .node.veryhigh { background-color: #FFEEEE; }
+#result-tree .node.high.cached { background-color: #FFFFF7; }
+#result-tree .node.veryhigh.cached { background-color: #FFFFEE; }
