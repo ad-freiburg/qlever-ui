@@ -306,11 +306,11 @@
                             
                         </div>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-9">
                         
                         <!-- The run button -->
                         <button id="runbtn" class="btn btn-success">
-                            <i class="glyphicon glyphicon-refresh"></i> Show results
+                            <i class="glyphicon glyphicon-refresh"></i> Execute
                         </button>
                         
                         <!-- The download buttons -->
@@ -378,16 +378,16 @@
                         </div>
                         
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select class="form-control" id="dynamicSuggestions">
                             <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
-                                1. SPARQL syntax & keywords only
+                                1. Syntax & keywords only
                             </option>
                             <option value="1" {% if backend.dynamicSuggestions == 1 %}selected="selected"{% endif %}>
-                                2. SPARQL & context insensitive entities
+                                2. Context insensitive suggestions
                             </option>
                             <option value="2" {% if backend.dynamicSuggestions == 2 %}selected="selected"{% endif %}>
-                                3. SPARQL & context sensitive entities
+                                3. Context sensitive suggestions
                             </option>
                         </select>
                         <div class="checkbox">
