@@ -574,9 +574,18 @@ function getQleverSuggestions(sparqlQuery,prefixesRelation,appendix, nameList, p
 		        	data = $.parseJSON(data);
 		        } catch(err) {}
 		        
+		        if($('#logRequests').is(':checked')){
+			        runtime_log[runtime_log.length] = data.runtimeInformation;
+			        query_log[query_log.length] = data.query;
+					if(runtime_log.length-10 >= 0){
+						runtime_log[runtime_log.length-10] = null;
+						query_log[query_log.length-10] = null;
+					}
+				}
+				
 			    log("Got suggestions from QLever.",'other');
-				log("Query took " + data.time.total + " and found "+data.resultsize+" lines",'requests');
-		        
+				log("Query took " + data.time.total + " and found "+data.resultsize+" lines\nRuntime info is saved as [" + (query_log.length) + "]",'requests');
+				
 		        if(data.res){
 			        var suggested = {};
 		            for (var result of data.res) {

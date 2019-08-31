@@ -31,7 +31,7 @@ Custom Elements
 	margin-top: 0px;
 }
 
-.glyphicon, .well h2, .well h3, .well h4, .well h5 { color: #82B36F; }
+.glyphicon, .well h2, .well h3, .well h4, .well h5, #lastQueries a { color: #82B36F; }
 .btn-success .glyphicon { color: white; }
 .glyphicon-spin {
     -webkit-animation: spin 1000ms infinite linear;

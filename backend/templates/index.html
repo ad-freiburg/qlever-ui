@@ -617,15 +617,20 @@
         </form>
         
         <div class="modal" tabindex="-1" role="dialog" id="visualisation">
-		  <div class="modal-dialog" role="document" style="width: 90%;">
+		  <div class="modal-dialog" role="document" style="width: 80%;">
 		    <div class="modal-content">
 		      <div class="modal-header">
-		        <h5 class="modal-title">Query Visualisation</h5>
+		        <h5 class="modal-title pull-left">Query Visualisation</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
 		      </div>
 		      <div class="modal-body">
-			      <div id="result-tree"></div>
+			      <div id="result-query"></div>
+			      <div id="result-tree"><br><strong style="color: red;">Please execute your query first.</strong><br><br></div>
 		      </div>
 		      <div class="modal-footer">
+		        <div id="lastQueries" class="pull-left" style="margin: -25px 0px;"></div>
 		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 		      </div>
 		    </div>

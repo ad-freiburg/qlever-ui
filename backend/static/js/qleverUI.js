@@ -5,9 +5,13 @@
 var example = 0;
 var activeState = 1;
 var runtime_info;
-var subjectNames = {}
-var predicateNames = {}
-var objectNames = {}
+var subjectNames = {};
+var predicateNames = {};
+var objectNames = {};
+var high_query_time_ms = 100;
+var very_high_query_time_ms = 1000;
+var runtime_log = [];
+var query_log = [];
 
 $(window).resize(function(){
 	editor.setSize($('#queryBlock').width(),350);
@@ -310,8 +314,12 @@ function processQuery(query, showStatus, element) {
                 scrollTop: $("#resTable").scrollTop() + 500
             }, 500);
            
-			runtime_info = result.runtimeInformation;
-
+			runtime_log[runtime_log.length] = result.runtimeInformation;
+			query_log[query_log.length] = result.query;
+			if(runtime_log.length-10 >= 0){
+				runtime_log[runtime_log.length-10] = null;
+				query_log[query_log.length-10] = null;
+			}
         }
     }).fail(function(jqXHR, textStatus, errorThrown) {
         var disp = "Connection problem...";
@@ -402,9 +410,17 @@ function format(number) {
   return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
-function visualise(){
+function visualise(number){
 	$('#visualisation').modal('show');
-	runtimeInfoForTreant(runtime_info);
+	if(number){
+		runtimeInfoForTreant(runtime_log[number-1]);
+		$('#result-query').html('<pre>'+query_log[number-1]+'</pre>');
+		runtime_info = runtime_log[number-1];
+	} else {
+		runtimeInfoForTreant(runtime_log[runtime_log.length-1]);
+		runtime_info = runtime_log[runtime_log.length-1];
+		$('#result-query').html('<pre>'+query_log[query_log.length-1]+'</pre>');
+	}
 	var treant_tree = {
 	    chart: {
 	      container: "#result-tree",
@@ -414,4 +430,22 @@ function visualise(){
 	    nodeStructure: runtime_info
 	}
     var treant_chart = new Treant(treant_tree);
+    $("p.node-time").
+	    filter(function(){ return $(this).html() >= high_query_time_ms }).
+	    parent().addClass("high");
+	$("p.node-time").
+	    filter(function(){ return $(this).html() >= very_high_query_time_ms }).
+	    parent().addClass("veryhigh");
+	$("p.node-cached").
+	    filter(function(){ return $(this).html() == "true" }).
+	    parent().addClass("cached");
+	    
+	if($('#logRequests').is(':checked')){
+		select = "";
+		for(var i = runtime_log.length; i > runtime_log.length-10 && i > 0; i--) {
+			select = '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="visualise('+i+')">['+i+']</a></li>'+select;
+		}
+		select = '<ul class="pagination">'+select+'</ul>';
+		$('#lastQueries').html(select);
+	}
 }
