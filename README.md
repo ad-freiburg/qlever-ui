@@ -40,6 +40,6 @@ QLever (pronounced "clever") is an efficient SPARQL engine which can handle very
 - Julian Bürklin <buerklij@informatik.uni-freiburg.de>
 - Daniel Kemen <kemend@informatik.uni-freiburg.de>
 
-University of Freiburg
-Department of Computer Science
+University of Freiburg / 
+Department of Computer Science / 
 Chair of algorithms and data structures
