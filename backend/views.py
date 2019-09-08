@@ -60,7 +60,8 @@ def index(request, backend=None, short=None):
         # find a default backend
         else:
             backend = Backend.objects.order_by('isDefault').first()
-            return redirect('/' + backend.slugify())
+            if backend:
+                return redirect('/' + backend.slugify())
 
     if activeBackend:
     
