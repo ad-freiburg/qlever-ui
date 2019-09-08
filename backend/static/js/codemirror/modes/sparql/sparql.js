@@ -307,7 +307,7 @@ var COMPLEXTYPES = [
             } else if (/[{}\(\)\[\]]/.test(ch)) {
                 curPunc = ch;
                 return "bracket";
-            } else if (/[,;]/.test(ch)) {
+            } else if (/[,;\/]/.test(ch)) {
                 curPunc = ch;
                 return "control";
             } else if (ch == "<") {
@@ -323,7 +323,7 @@ var COMPLEXTYPES = [
                 return "string string-language";
             } else  {
 	            before = getBefore(stream, /:/);
-                var match = stream.match(/[_\w\d\.\/-]*(:(\s*))?/);
+                var match = stream.match(/[_\w\d\.-]*(:(\s*))?/);
                 var word = stream.current();
                 if (match && match[2] !== undefined) {
 	                if (match[2].length > 0) {

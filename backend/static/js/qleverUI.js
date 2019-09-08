@@ -161,7 +161,7 @@ $(document).ready(function() {
 
         if (index == 0) {
             addNameHover(element,domElement,subjectNames,SUBJECTNAME,prefixes);
-        } else if (index == 1) {
+        } else if (index == 1 || index == -1 && values.length > 1 && values[1].indexOf(element) != -1) {  // entity in property path
             addNameHover(element,domElement,predicateNames,PREDICATENAME,prefixes);
         } else if (index == 2) {
 	        addNameHover(element,domElement,objectNames,OBJECTNAME,prefixes);
