@@ -299,11 +299,25 @@ function getDynamicSuggestions(context){
         }
     }
 	
+	// Get editor lines and remove current line
 	var lines = context['content'].split('\n');
 	for(var i = 0; i < lines.length; i++){
 		if(lines[i] == line){
 			lines.splice(i,1);
-			break
+			
+			// watch for property paths and insert temporary lines
+			if (words.length == 2 && !word.startsWith("<") && word.indexOf("/") != -1) {
+				// Found a property path!
+				console.log("found property path");
+				var properties = word.split("/");
+				for (var j = 0; j < properties.length-1; j++) {
+					lines.splice(i+j, 0, words[0] + " " + properties[j] + " ?temp_" + j + " .");
+					words[0] = "?temp_"+j;
+				}
+				word = properties[properties.length-1];
+				sparqlFrom = CodeMirror.Pos(sparqlTo.line, sparqlTo.ch-word.length);
+			}
+			break;
 		}	
 	}
 	
