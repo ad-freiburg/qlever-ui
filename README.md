@@ -21,7 +21,7 @@ QLever (pronounced "clever") is an efficient SPARQL engine which can handle very
 - Run ```python manage.py createsuperuser``` and follow the instructions
 - Run ```python manage.py runserver localhost:8042``` to start a development server
 - Open http://localhost:8042/ in your browser and see if it works
-- Go to http://localhost:8042/admin/login/ and login with our credentials
+- Go to http://localhost:8042/admin/login/ and login with your credentials
 - Go to 'Backends' -> 'Add Backend' and add the details of your QLever instance
 - You will find hints and help below each configuration field
 
