@@ -407,7 +407,7 @@ function getDynamicSuggestions(context){
 				nameList = predicateNames;
 				response = ['ql:contains-entity ', 'ql:contains-word '];
 				// add single prefixes to suggestions
-				response = response.concat(getPrefixNameSuggestions());
+				response = response.concat(getPrefixNameSuggestions(word));
 				if (suggestionMode == 1) {
 					sparqlLines = "?qleverui_subject ql:has-predicate ?qleverui_entity .";
 		        } else if (suggestionMode == 2) {
@@ -1184,7 +1184,9 @@ function getPrefixNameSuggestions(){
 	var prefixes = []
 
     for (var key in COLLECTEDPREFIXES) {
-	    prefixes.push(key+":");
+		if (word) {
+			prefixes.push(key+":");
+		}
     }
     return prefixes;   
 }
