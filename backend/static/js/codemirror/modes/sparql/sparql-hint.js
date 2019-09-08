@@ -304,11 +304,9 @@ function getDynamicSuggestions(context){
 	for(var i = 0; i < lines.length; i++){
 		if(lines[i] == line){
 			lines.splice(i,1);
-			
 			// watch for property paths and insert temporary lines
 			if (words.length == 2 && !word.startsWith("<") && word.indexOf("/") != -1) {
 				// Found a property path!
-				console.log("found property path");
 				var properties = word.split("/");
 				for (var j = 0; j < properties.length-1; j++) {
 					lines.splice(i+j, 0, words[0] + " " + properties[j] + " ?temp_" + j + " .");
@@ -345,7 +343,7 @@ function getDynamicSuggestions(context){
 		variable = line.match(variableRegex);
 		if(variable){
 			// at first we know only the variable in our current line
-			var seenVariables = [variable];
+			var seenVariables = variableRegex.exec(line);
 			// and do not use any other lines
 			var linesTaken = [];
 			// for each line
