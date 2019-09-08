@@ -443,7 +443,13 @@ function getDynamicSuggestions(context){
 		            sparqlLines = lines.join("\n        ");
 				}
 				
-				var lastWord = (predicateNames[words[1]] != "" && predicateNames[words[1]] != undefined) ? predicateNames[words[1]] : words[1];
+				var lastWord = words[1];
+				if (!lastWord.startsWith("<") && lastWord.indexOf("/") != -1) {
+					// property path detected. Get last predicate as lastWord
+					var properties = lastWord.split("/");
+					lastWord = properties[properties.length-1];
+				}
+				lastWord = (predicateNames[lastWord] != "" && predicateNames[lastWord] != undefined) ? predicateNames[lastWord] : words[1];
 				if (typeof(lastWord) == "object") {
 					lastWord = String(lastWord);
 				}
