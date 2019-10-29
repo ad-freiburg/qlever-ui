@@ -1,4 +1,4 @@
-django==1.11
+django==1.11.23
 requests==2.4.3
 gunicorn==19.7.1
 django-import-export
