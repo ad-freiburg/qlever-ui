@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models
 import urllib, string, json, re
 
@@ -164,13 +161,13 @@ class Backend(models.Model):
         if self.isDefault == True:
             Backend.objects.exclude(pk=self.pk).update(isDefault=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def slugify(self):
-        return filter(lambda x: ord(x) in range(40, 123),
+        return "".join(filter(lambda x: ord(x) in range(40, 123),
                       self.name.replace(' ', '_').replace('/', '-').replace(
-                          '*', '-'))
+                          '*', '-')))
 
     def languages(self):
         jsArray = "["
@@ -223,16 +220,16 @@ class Prefix(models.Model):
         "Please chose the short name of this prefix (e.g. scm)",)
     prefix = models.CharField(max_length=200, default="",help_text=
         "Insert the original scope with it's path (e.g. &lt;http://schema.org/&gt;).")
-    backend = models.ForeignKey(Backend)
-    occurrences = models.IntegerField(default=1,help_text=
+    backend = models.ForeignKey(Backend, on_delete=models.CASCADE)
+    occurrences = models.IntegerField(default=1, help_text=
         "Estimated or calculated occurrences of this prefix (used for ordering).")
 
 
 class Example(models.Model):
-    backend = models.ForeignKey(Backend)
+    backend = models.ForeignKey(Backend, on_delete=models.CASCADE)
     name = models.CharField(max_length=100,help_text=
         "Name of this example to show in the user interface")
     query = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name

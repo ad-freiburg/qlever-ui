@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from __future__ import print_function
-
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseServerError, JsonResponse
@@ -32,11 +28,11 @@ def index(request, backend=None, short=None):
     prefill = None
 
     if request.POST.get('whitespaces',False):
-		request.session['logParsing'] = request.POST.get('logParsing',False)
-		request.session['logRequests'] = request.POST.get('logRequests',False)
-		request.session['logSuggestions'] = request.POST.get('logSuggestions',False)
-		request.session['logOther'] = request.POST.get('logOther',False)
-		request.session['whitespaces'] = request.POST['whitespaces']
+        request.session['logParsing'] = request.POST.get('logParsing',False)
+        request.session['logRequests'] = request.POST.get('logRequests',False)
+        request.session['logSuggestions'] = request.POST.get('logSuggestions',False)
+        request.session['logOther'] = request.POST.get('logOther',False)
+        request.session['whitespaces'] = request.POST['whitespaces']
 
     # if a backend is given try to activate it
     if backend:
