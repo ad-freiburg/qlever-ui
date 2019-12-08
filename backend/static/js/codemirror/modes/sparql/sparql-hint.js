@@ -250,6 +250,26 @@ function getAvailableTypes(context){
 	return types;
 }
 
+function detectPropertyPath(predicate) {
+	var propertyPath = [];
+	var property = "";
+	var bracketCounter = 0;
+	for (var ch of predicate) {
+		if (ch == "/" && bracketCounter === 0) {
+			propertyPath.push(property);
+			property = "";
+			continue;
+		} else if (ch == "<") {
+			bracketCounter++;
+		} else if (ch == ">") {
+			bracketCounter--;
+		}
+		property += ch;
+	}
+	propertyPath.push(property);
+
+	return propertyPath;
+}
 
 function getDynamicSuggestions(context){
 	var cur = editor.getCursor();
@@ -305,15 +325,19 @@ function getDynamicSuggestions(context){
 		if(lines[i] == line){
 			lines.splice(i,1);
 			// watch for property paths and insert temporary lines
-			if (words.length == 2 && !word.startsWith("<") && word.indexOf("/") != -1) {
-				// Found a property path!
-				var properties = word.split("/");
-				for (var j = 0; j < properties.length-1; j++) {
-					lines.splice(i+j, 0, words[0] + " " + properties[j] + " ?temp_" + j + " .");
-					words[0] = "?temp_"+j;
+			if (words.length == 2) {
+				var propertyPath = detectPropertyPath(word);
+
+				if (propertyPath.length > 1) {
+					// Found a property path!
+					for (var j = 0; j < propertyPath.length-1; j++) {
+						lines.splice(i+j, 0, words[0] + " " + propertyPath[j] + " ?temp_" + j + " .");
+						words[0] = "?temp_"+j;
+					}
+					word = propertyPath[propertyPath.length-1];
+					sparqlFrom = CodeMirror.Pos(sparqlTo.line, sparqlTo.ch-word.length);
 				}
-				word = properties[properties.length-1];
-				sparqlFrom = CodeMirror.Pos(sparqlTo.line, sparqlTo.ch-word.length);
+				
 			}
 			break;
 		}	
@@ -426,17 +450,26 @@ function getDynamicSuggestions(context){
 						sendSparql = false;
 					}
 		        } else if (suggestionMode == 2) {
-			        var predicate = words[1];
-			         // replace the prefixes
-				    $.each(prefixesRelation,function(key,value){
-				        if(predicate.startsWith(key+':')){
-				            predicate = '<' + predicate.replace(key+':',value) + '>';
-				            return false;
-				        }
-				    });
-			        if (REPLACE_PREDICATES[predicate] !== undefined) {
-				        predicate = REPLACE_PREDICATES[predicate];
-			        }
+					// replace the prefixes
+					var propertyPath = detectPropertyPath(words[1]);
+
+					for (var i in propertyPath) {
+						var property = propertyPath[i];
+						$.each(prefixesRelation,function(key,value){
+							if(property.startsWith(key+':')){
+								property = '<' + property.replace(key+':',value) + '>';
+	
+								if (REPLACE_PREDICATES[predicate] !== undefined) {
+									property = REPLACE_PREDICATES[property];
+								}
+								propertyPath[i] = property;
+								return false;
+							}
+						});
+					}
+				    
+					var predicate = propertyPath.join("/");
+			        
 		            lines.push(words[0] + " " + predicate + " ?qleverui_entity .");
 		            sparqlLines = lines.join("\n        ");
 				}
