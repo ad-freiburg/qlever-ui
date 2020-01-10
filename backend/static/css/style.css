@@ -137,6 +137,10 @@ th { color: #82B36F; white-space: nowrap; }
 	font-weight: 600;
 }
 
+.cm-comment {
+	color: #00a500 !important;
+}
+
 /*
 
     Name:       Railscasts

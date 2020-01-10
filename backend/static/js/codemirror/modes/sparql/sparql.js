@@ -321,6 +321,9 @@ var COMPLEXTYPES = [
             }  else if (ch == "@") {
                 stream.match(/[\w-]*@/);
                 return "string string-language";
+            }  else if (ch == "#") {
+                stream.match(/.*/);
+                return "comment";
             } else  {
 	            before = getBefore(stream, /:/);
                 var match = stream.match(/[_\w\d\.-]*(:(\s*))?/);
