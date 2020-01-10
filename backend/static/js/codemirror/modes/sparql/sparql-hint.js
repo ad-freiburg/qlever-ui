@@ -840,7 +840,7 @@ function buildQueryTree(content,start){
 	while(i < content.length){
 		tempString += content[i];
 		
-		if(tempString.endsWith('SELECT ')){
+		if(/SELECT $/i.test(tempString)){
 			
 			// shorten the end of prefix decl by what we needed to add to match SELECT 
 			tempElement['content'] = tempString.slice(0,tempString.length-7);
@@ -850,7 +850,7 @@ function buildQueryTree(content,start){
 			
 			tempElement = { w3name: 'SelectClause', suggestInSameLine: true, start: i+start }
 		
-		} else if(tempString.endsWith('WHERE {')){
+		} else if(/WHERE \{$/i.test(tempString)){
 			
 			// shorten the end of the select clause by what we needed to add to match WHERE {
 			tempElement['content'] = tempString.slice(0,tempString.length-7);
@@ -860,7 +860,7 @@ function buildQueryTree(content,start){
 			
 			tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i+start }
 		
-		} else if(tempString.endsWith('OPTIONAL {')){
+		} else if(/OPTIONAL \{$/i.test(tempString)){
 			
 			// shorten the end of the select clause by what we needed to add to match WHERE {
 			tempElement['content'] = tempString.slice(0,tempString.length-7);
@@ -870,7 +870,7 @@ function buildQueryTree(content,start){
 			
 			tempElement = { w3name: 'OptionalClause', suggestInSameLine: true, start: i+start }
 		
-		} else if(tempString.endsWith('UNION {')){
+		} else if(/UNION \{$/i.test(tempString)){
 			
 			// shorten the end of the select clause by what we needed to add to match WHERE {
 			tempElement['content'] = tempString.slice(0,tempString.length-7);
@@ -937,7 +937,7 @@ function buildQueryTree(content,start){
 			while(j < element.content.length){
 				
 		        tempSubString += element.content[j];
-			    if(tempSubString.endsWith('ORDER BY ')){
+			    if(/ORDER BY $/i.test(tempSubString)){
 					
 					var elementContent = "";
 					while(j < element.content.length && !elementContent.endsWith('\n')){
@@ -953,7 +953,7 @@ function buildQueryTree(content,start){
 					tempSubString = "";
 				
 				} 
-				if(tempSubString.endsWith('GROUP BY ')){
+				if(/GROUP BY $/i.test(tempSubString)){
 					
 					var elementContent = "";
 					var start = element.start + j;

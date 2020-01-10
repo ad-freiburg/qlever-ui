@@ -9,12 +9,12 @@
 var CONTEXTS = [
     {
         w3name: 'PrefixDecl',
-        definition: /^([\s\S]*?)SELECT/g,
+        definition: /^([\s\S]*?)SELECT/gi,
     },
     {
         w3name: 'SelectClause',
         startAfter: "SELECT ",
-        definition: /SELECT ([\S\s]*?)WHERE/g,
+        definition: /SELECT ([\S\s]*?)WHERE/gi,
         suggestInSameLine: true,
     },
     {
@@ -28,26 +28,26 @@ var CONTEXTS = [
     },
     {
         w3name: 'WhereClause',
-        definition: /WHERE \{([\s\S]*)\}/g,
+        definition: /WHERE \{([\s\S]*)\}/gi,
         suggestInSameLine: true,
     },
     {
         w3name: 'UnionClause',
-        definition: /UNION \{([\s\S]*)\}/g,
+        definition: /UNION \{([\s\S]*)\}/gi,
     },
     {
         w3name: 'OptionalClause',
-        definition: /OPTIONAL \{([\s\S]*)\}/g,
+        definition: /OPTIONAL \{([\s\S]*)\}/gi,
     },
     {
         w3name: 'OrderCondition',
-        definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/g,
+        definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/gi,
         suggestInSameLine: true,
         forceLineBreak: true,
     },
     {
         w3name: 'GroupCondition',
-        definition: /GROUP BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/g,
+        definition: /GROUP BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/gi,
         suggestInSameLine: true,
         forceLineBreak: true,
     },
