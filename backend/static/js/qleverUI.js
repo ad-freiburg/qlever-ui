@@ -254,12 +254,7 @@ function processQuery(query, showStatus, element) {
             if (nofRows < parseInt(result.resultsize)) {
                 res += "<div class=\"pull-right\"><a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Limited to "+nofRows+" results. Show all " + result.resultsize + " results.</a></div><br><br><br>";
             }
-            var selection = /SELECT(?: DISTINCT)?([^]*)WHERE/.exec(decodeURIComponent(result.query.replace(/\+/g, '%20')))[1];
 
-            selection = decodeURIComponent(selection.trim())
-
-            indentation = 0;
-            remainder = "";
             columns = result.selected;
 
             var tableHead = $('#resTable thead');
