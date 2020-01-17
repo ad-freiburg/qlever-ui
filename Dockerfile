@@ -11,7 +11,8 @@ RUN set -ex \
         | sort -u \
         | xargs -r apk info --installed \
         | sort -u)" \
-    && apk add --virtual rundeps $runDeps
+    && apk add --virtual rundeps $runDeps \
+    && apk add bash
 
 ADD . /app
 WORKDIR /app
