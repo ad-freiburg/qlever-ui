@@ -4,4 +4,4 @@
 SECRET_KEY = '!!super_secret!!'
 
 # https://docs.djangoproject.com/en/3.0/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['.localhost']
+ALLOWED_HOSTS = ['*']
