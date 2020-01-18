@@ -7,9 +7,9 @@ QLever (pronounced "clever") is an efficient SPARQL engine which can handle very
 For more information on QLever, visit their [GitHub Repo](https://github.com/ad-freiburg/QLever).
 
 # Overview
-* [Building the QLeverUI Docker Image](#-building-the-qleverui-docker-container)
-* [Setting up the database](#-setting-up-the-database)
-* [Running QLeverUI from the Docker Container](#-running-qleverui-from-the-docker-container)
+* [Building the QLeverUI Docker Image](#building-the-qleverui-docker-container)
+* [Setting up the database](#setting-up-the-database)
+* [Running QLeverUI from the Docker Container](#running-qleverui-from-the-docker-container)
 
 
 # Building the QLeverUI Docker Container
