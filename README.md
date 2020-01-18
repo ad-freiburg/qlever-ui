@@ -9,10 +9,10 @@ For more information on QLever, visit their [GitHub Repo](https://github.com/ad-
 # Overview
 * [Building the QLeverUI Docker Image](#building-the-qleverui-docker-container)
 * [Setting up the database](#setting-up-the-database)
-* [Running QLeverUI from the Docker Container](#running-qleverui-from-the-docker-container)
+* [Running a QLeverUI Docker container](#running-a-qleverui-docker-container)
 
 
-# Building the QLeverUI Docker Container
+# Building the QLeverUI Docker image
 Clone the QLeverUI repo
 ```
 git clone https://github.com/jbuerklin/qleverUI.git qleverui
@@ -49,7 +49,7 @@ python manage.py createsuperuser
 and following the instructions in your terminal.  
 You can now exit the container as QLeverUI is finally ready to run.
 
-# Running QLeverUI from the Docker Container
+# Running a QLeverUI Docker container
 To run a QLeverUI container use the following command.
 ```
 docker run -it -p 8000:8000 \
