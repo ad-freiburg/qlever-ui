@@ -7,11 +7,20 @@ from django.db.models import Max
 
 from .models import *
 
-import re, json, os, subprocess, requests, codecs, urllib, random, string
+import re
+import json
+import os
+import subprocess
+import requests
+import codecs
+import urllib
+import random
+import string
 from collections import Counter
 from django.shortcuts import redirect
 
-import datetime, time
+import datetime
+import time
 
 
 def index(request, backend=None, short=None):
@@ -27,11 +36,12 @@ def index(request, backend=None, short=None):
     prefixes = {}
     prefill = None
 
-    if request.POST.get('whitespaces',False):
-        request.session['logParsing'] = request.POST.get('logParsing',False)
-        request.session['logRequests'] = request.POST.get('logRequests',False)
-        request.session['logSuggestions'] = request.POST.get('logSuggestions',False)
-        request.session['logOther'] = request.POST.get('logOther',False)
+    if request.POST.get('whitespaces', False):
+        request.session['logParsing'] = request.POST.get('logParsing', False)
+        request.session['logRequests'] = request.POST.get('logRequests', False)
+        request.session['logSuggestions'] = request.POST.get(
+            'logSuggestions', False)
+        request.session['logOther'] = request.POST.get('logOther', False)
         request.session['whitespaces'] = request.POST['whitespaces']
 
     # if a backend is given try to activate it
@@ -47,7 +57,7 @@ def index(request, backend=None, short=None):
     # if no backend is given activate the last one
     else:
         # go to the last active backend if set
-        if request.session.get('backend',False):
+        if request.session.get('backend', False):
             backend = Backend.objects.filter(
                 pk=request.session['backend']).first()
             # and if still available
@@ -60,16 +70,17 @@ def index(request, backend=None, short=None):
                 return redirect('/' + backend.slugify())
 
     if activeBackend:
-    
+
         # safe to session
         request.session['backend'] = activeBackend.pk
 
         # get examples
         examples = Example.objects.filter(backend=activeBackend)
-        
+
         # get prefixes
-        prefs = list(Prefix.objects.filter(backend=activeBackend).order_by('-occurrences'))
-    
+        prefs = list(Prefix.objects.filter(
+            backend=activeBackend).order_by('-occurrences'))
+
         for prefix in prefs:
             prefixes[prefix.name] = prefix.prefix.strip('<>')
 
@@ -87,6 +98,7 @@ def index(request, backend=None, short=None):
             'examples': examples,
             'prefill': prefill
         })
+
 
 @csrf_exempt
 def shareLink(request):
@@ -135,11 +147,11 @@ def collectPrefixes(backend, output=print):
     """
 
     if not backend or not backend.ntFilePath:
-        raise StandardError(
+        raise Exception(
             'There was no nt-source specified for this backend.')
 
     if not os.path.isfile(backend.ntFilePath):
-        raise StandardError('Error opening file "%s"' % backend.ntFilePath)
+        raise Exception('Error opening file "%s"' % backend.ntFilePath)
 
     if backend.isImporting == False:
         try:
@@ -188,7 +200,7 @@ def collectPrefixes(backend, output=print):
             backend.save()
             raise
     else:
-        raise StandardError(
+        raise Exception(
             "Index collection for this backend already running")
 
 

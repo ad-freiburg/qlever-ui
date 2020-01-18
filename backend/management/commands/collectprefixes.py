@@ -3,6 +3,7 @@ from backend.models import Backend
 from backend.views import collectPrefixes
 import sys
 
+
 class Command(BaseCommand):
     help = 'Collects prefixes for the specified Backend'
 

@@ -1,5 +1,6 @@
 from django.conf import settings
 
+
 def additional_context(request):
     my_dict = {
         'DEBUG': settings.DEBUG,

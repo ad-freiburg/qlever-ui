@@ -15,25 +15,26 @@ admin.site.site_title = "QLever UI Administration"
 
 class BackendAdmin(ImportExportModelAdmin):
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'140'})},
+        models.CharField: {'widget': TextInput(attrs={'size': '140'})},
     }
     fieldsets = (
         ("General", {
-           'fields': ('name', 'baseUrl', 'isDefault')
+            'fields': ('name', 'baseUrl', 'isDefault')
         }),
         ('Preprocessing', {
             'fields': ('ntFilePath',),
         }),
         ('UI Suggestions', {
-            'fields': ('maxDefault','fillPrefixes','filterEntities','filteredLanguage','supportedKeywords','supportedFunctions', ),
+            'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', ),
         }),
         ('Backend Suggestions', {
-            'fields': ('suggestSubjects','suggestObjects','dynamicSuggestions', 'replacePredicates'),
+            'fields': ('suggestSubjects', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
         }),
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
         }),
     )
+
 
 class PrefixAdmin(ImportExportModelAdmin):
     list_display = ['name', 'prefix', 'backend', 'occurrences']
@@ -42,8 +43,10 @@ class PrefixAdmin(ImportExportModelAdmin):
 class ExampleAdmin(ImportExportModelAdmin):
     list_display = ['backend', 'name']
 
+
 class LinkAdmin(admin.ModelAdmin):
     list_display = ['identifier', 'content']
+
 
 admin.site.unregister(Group)
 
