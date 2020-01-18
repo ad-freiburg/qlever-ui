@@ -364,7 +364,7 @@
                                 {% if request.user.is_authenticated %}
                                     <li class="divider"></li>
                                     <li>
-                                        <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURI(editor.getValue()),'_blank');">
+                                        <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
                                             <i class="glyphicon glyphicon-check"></i> Add current query as example
                                         </a>
                                     </li>
