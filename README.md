@@ -1,45 +1,66 @@
 # What is QLeverUI?
-QLever UI is a simple interactive user interface for QLever (https://github.com/ad-freiburg/QLever) that helps you to discover the scopes of very large knowledge bases by providing context sensitive suggestions.
+QLeverUI is a simple interactive user interface for QLever that helps you discover the scopes of very large knowledge bases by providing context sensitive suggestions and auto-completions.
 
 ## What is QLever?
-QLever (pronounced "clever") is an efficient SPARQL engine which can handle very large datasets. For example, QLever can index the complete Wikidata (~ 7 billion triples) in less than 12 hours on a standard Linux machine using around 40 GB of RAM, with subsequent query times below 1 second even for relatively complex queries with large result sets. On top of the standard SPARQL functionality, QLever also supports SPARQL+Text search and SPARQL autocompletion; these are described in the next section.
+QLever (pronounced "clever") is an efficient SPARQL engine which can handle very large datasets. For example, QLever can index the complete Wikidata (~ 7 billion triples) in less than 12 hours on a standard Linux machine using around 40 GB of RAM, with subsequent query times below 1 second even for relatively complex queries with large result sets. On top of the standard SPARQL functionality, QLever also supports SPARQL+Text search and SPARQL autocompletion.  
 
-# Setup
+For more information on QLever, visit their [GitHub Repo](https://github.com/ad-freiburg/QLever).
 
-## Requirements
-- You will need access to a running QLever instance in order to use QLever UI.
-- You should have Python 2.7 installed on your machine
-- We recommend to use a virtual environment tool like virtualenv
- 
-## Installation
+# Overview
+* [Building the QLeverUI Docker Image](#-building-the-qleverui-docker-container)
+* [Setting up the database](#-setting-up-the-database)
+* [Running QLeverUI from the Docker Container](#-running-qleverui-from-the-docker-container)
 
-- Clone or download this GitHub repository
-- Create a virtual environment or install pip (2.7)
-- Run ```pip install -r requirements.txt``` in the project root directory
-- Move "settings_secret_template.py" to "settings_secret.py" and fill in the gaps
-- Run ```python manage.py migrate``` to create the databbse
-- Run ```python manage.py createsuperuser``` and follow the instructions
-- Run ```python manage.py runserver localhost:8042``` to start a development server
-- Open http://localhost:8042/ in your browser and see if it works
-- Go to http://localhost:8042/admin/login/ and login with your credentials
-- Go to 'Backends' -> 'Add Backend' and add the details of your QLever instance
-- You will find hints and help below each configuration field
 
-#### Notes
-- Feel free to change hostname (localhost) or port (8042) if needed
-- When using in productive environments see the deployment information below
+# Building the QLeverUI Docker Container
+Clone the QLeverUI repo
+```
+git clone https://github.com/jbuerklin/qleverUI.git qleverui
+cd qleverui
+```
+Before building the Docker Image, move `settings_secret_template.py` to `settings_secret.py` and edit it to fit your needs.
+```
+mv qlever/settings_secret_template.py qlever/settings_secret.py
+```
+Then build the Docker Image
+```
+docker build -t qleverui .
+```
+You have now created a Docker Image that contains everything you need to run QLeverUI.
 
-#### Further reading
-- [How to deploy a django instance](https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/)
-- [Change the database backend](https://docs.djangoproject.com/en/1.11/ref/databases/)
+# Setting up the database
+__You can skip this step if you already have a database file.__  
+To setup the database, first run a bash inside the QLeverUI container as follows.
+```
+docker run -it --rm \
+           -v "$(pwd)/db:/app/db" \
+           --entrypoint "bash" qleverui
+```
+Where `$(pwd)/db` is the path where QLeverUI will store it's database. If you want to use a separate path, make sure to  change this part in all subsequent `docker` commands.
 
-## Predefined backends
-- If you don't want to go through the process of manually configuring a backend you can also import settings from other instances. We provide a [settings file](resources/backend-sample.csv) for a wiki data instance hosted at the Chair of Algorithms and Data Structures at the University of Freiburg.
+Create the empty database file with the following command.
+```
+python manage.py migrate
+```
+Then create a superuser for your database by entering
+```
+python manage.py createsuperuser
+```
+and following the instructions in your terminal.  
+You can now exit the container as QLeverUI is finally ready to run.
 
-## Authors
-- Julian Bürklin <buerklij@informatik.uni-freiburg.de>
-- Daniel Kemen <kemend@informatik.uni-freiburg.de>
+# Running QLeverUI from the Docker Container
+To run a QLeverUI container use the following command.
+```
+docker run -it -p 8000:8000 \
+           -v "$(pwd)/db:/app/db" \
+           --name qleverui \
+           qleverui
+``` 
+__Note:__ If you already have a QLeverUI database file `qleverui.sqlite3` you want to use, make sure it is located in the specified path or provide the correct path to it.  
+If you want the container to run in the background and restart automatically replace `-it` with `-d --restart=unless-stopped`  
+You should now be able to connect to QLeverUI via <http://localhost:8000>.  
+The first thing you should now do is head over to <http://localhost:8000/admin/> and setup your first QLever backend.  
 
-University of Freiburg / 
-Department of Computer Science / 
-Chair of algorithms and data structures
+If you don't have a QLever instance readily available to key in or just want to get up and running as fast as possible, you can use our [example settings](resources/) that use a QLever instance with Wikidata KB hosted at the Chair of Algorithms and Data Structures at the University of Freiburg.  
+Just login to <http://localhost:8000/admin/>, click on Backends/Examples/Prefixes and import the respective `*-sample.csv` file.
