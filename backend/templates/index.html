@@ -116,9 +116,11 @@
 				                    </a>
                                 </li>
                                 <li>
+                                    {% if request.user.is_superuser %}
                                     <a href="/api/share?cleanup=true">
-                                        <i class="glyphicon glyphicon-trash"></i>&nbsp; Clear History
+                                        <i class="glyphicon glyphicon-trash"></i>&nbsp; Delete URLs for executed queries
                                     </a>
+                                    {% endif %}
                                 </li>
                                 <li>
                                     <a href="?test=jasmine">
