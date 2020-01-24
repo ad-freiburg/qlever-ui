@@ -117,20 +117,27 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "backend/static/")
 
-STATIC_VERSION = "n.a."
+STATIC_VERSION = ""
 
 try:
-    versionInfo = (subprocess.check_output("svn info -r HEAD;",
-                                           shell=True)).decode("utf-8")
-    STATIC_VERSION = re.search("Revision: (\d+)", versionInfo).group(1)
-except:
-    STATIC_VERSION = "n.a."
+    # Get git info from files in .git
+    with open(".git/HEAD", "r") as headFile:
+        GIT_HEAD = headFile.read().strip()
+    with open(".git/{}".format(GIT_HEAD.split(" ")[-1]), "r") as hashFile:
+        GIT_HASH = hashFile.read()[:7]
+    STATIC_VERSION = "Git commit {} on {}".format(
+        GIT_HASH, GIT_HEAD.split("/")[-1])
+except Exception as e:
+    print(e)
+    pass
 
-if STATIC_VERSION == "" or STATIC_VERSION == "n.a.":
+if not STATIC_VERSION:
+    # get svn version info if git was not successful
     try:
-        STATIC_VERSION = (subprocess.check_output(
-            "git rev-parse HEAD;", shell=True)).decode("utf-8")[:7]
+        versionInfo = (subprocess.check_output("svn info -r HEAD;",
+                                               shell=True)).decode("utf-8")
+        STATIC_VERSION = re.search(r"(Revision: \d+)", versionInfo).group(1)
     except:
-        STATIC_VERSION = "n.a."
+        pass
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True

@@ -146,7 +146,7 @@
                                 </li>
                             <h6 class="dropdown-header">Developer</h6>
                                 <li><a data-toggle="modal" data-target="#settingsModal">UI Settings</a></li>
-                                <li><a href="" style="color: #b1b1b1;">Revision {{ STATIC_VERSION }}</a></li>
+                                {% if STATIC_VERSION %}<li><a href="" style="color: #b1b1b1;">{{ STATIC_VERSION }}</a></li>{% endif %}
                             
                           </ul>
                         </li>

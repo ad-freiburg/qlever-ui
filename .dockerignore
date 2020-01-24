@@ -6,3 +6,5 @@
 !requirements.txt
 !LICENSE
 !README.md
+!.git/HEAD
+!.git/refs/heads
