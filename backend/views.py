@@ -30,7 +30,6 @@ def index(request, backend=None, short=None):
         If no preferred backend is set this view choses the default from the database
 
     """
-
     activeBackend = None
     examples = []
     prefixes = {}
@@ -89,6 +88,8 @@ def index(request, backend=None, short=None):
         link = Link.objects.filter(identifier=short).first()
         if link:
             prefill = link.content
+    elif request.GET.get("query"):
+        prefill = request.GET["query"]
 
     return render(
         request, 'index.html', {
@@ -107,26 +108,26 @@ def shareLink(request):
     """
 
     if request.GET.get('cleanup', False) == False:
-
-        existing = Link.objects.filter(content=request.POST.get('content'))
-        if existing.exists():
-            return JsonResponse({'link': existing.first().identifier})
-
-        # space for 56.800.235.584 unique queries in history
-        # asuming that one query is about 500 Bytes these are ~ 28 TB of history data
-        # asuming that one query is about 1000 Bytes these are ~ 56 TB of history data
-        identifier = ''.join(
-            random.choice(string.ascii_lowercase + string.ascii_uppercase +
-                          string.digits) for _ in range(6))
-        while Link.objects.filter(identifier=identifier).exists():
+        content = request.POST.get('content')
+        link = Link.objects.filter(content=content).first()
+        if not link:
+            # space for 56.800.235.584 unique queries in history
+            # asuming that one query is about 500 Bytes these are ~ 28 TB of history data
+            # asuming that one query is about 1000 Bytes these are ~ 56 TB of history data
             identifier = ''.join(
                 random.choice(string.ascii_lowercase + string.ascii_uppercase +
                               string.digits) for _ in range(6))
+            while Link.objects.filter(identifier=identifier).exists():
+                identifier = ''.join(
+                    random.choice(string.ascii_lowercase + string.ascii_uppercase +
+                                  string.digits) for _ in range(6))
 
-        Link.objects.create(
-            identifier=identifier, content=request.POST.get('content'))
+            link = Link.objects.create(
+                identifier=identifier, content=content)
 
-        return JsonResponse({'link': identifier})
+        queryString = urllib.parse.urlencode({"query": content})
+
+        return JsonResponse({'link': link.identifier, "queryString": queryString})
 
     else:
 
