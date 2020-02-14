@@ -262,12 +262,12 @@
             <!-- The query block -->
             <div class="well" id="queryBlock">
                 <div class="row">
-                    <div class="col-md-8">
+                    <div id="editorArea" class="col-md-12">
                         <!-- The main editor (code mirror textarea) -->
                         <textarea id="query" class="form-control" placeholder="Start by typing SELECT or PREFIX ...">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
                     </div>
-                     <div class="col-md-4" id="help" style="margin-top: 310px;">
-                        <div id="uiHelp" style="display: none;">
+                     <div class="col-md-4" id="help" style="display:none;">
+                        <div id="uiHelp">
                             
                             <!-- The UI help box -->
                             <h4 style="margin-top: 0px;">QLever UI Shortcuts:</h4>
@@ -308,7 +308,7 @@
                             
                         </div>
                     </div>
-                    <div class="col-md-9">
+                    <div class="col-md-9 buttonFlex">
                         
                         <!-- The run button -->
                         <button id="runbtn" class="btn btn-success">
@@ -341,7 +341,7 @@
                         </button>
                         
                         <!-- The context setting buttons -->
-                        <div class="btn-group pull-right" role="group">
+                        <div class="btn-group" role="group" style="margin-left:auto;">
                             <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
                                 <i class="glyphicon glyphicon-trash"></i> Reset
                             </button>

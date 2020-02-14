@@ -13,8 +13,10 @@ var very_high_query_time_ms = 1000;
 var runtime_log = [];
 var query_log = [];
 
-$(window).resize(function () {
-    editor.setSize($('#queryBlock').width(), 350);
+$(window).resize(function (e) {
+    if (e.target == window) {
+        editor.setSize($('#queryBlock').width());
+    }
 });
 
 $(document).ready(function () {
@@ -46,7 +48,6 @@ $(document).ready(function () {
     $('.CodeMirror').resizable({
         resize: function () {
             // fix the "help"-box position on resize
-            $('#help').css({ 'margin-top': $(this).width() > 740 ? $(this).height() + 10 : 0 });
             editor.setSize($(this).width(), $(this).height());
         }
     });

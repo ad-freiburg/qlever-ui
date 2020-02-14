@@ -162,14 +162,12 @@ function changeTheme(theme = undefined) {
 }
 
 function expandEditor() {
-    if ($('.CodeMirror').width() < 800) {
-        editor.setSize($('#queryBlock').width());
-        $('#help').css({ 'margin-top': $('.CodeMirror').height() + 10 });
-        $('#uiHelp').hide();
+    if ($('#editorArea').hasClass("col-md-8")) {
+        $('#editorArea').removeClass("col-md-8").addClass("col-md-12");
+        $('#help').hide();
     } else {
-        editor.setSize($('.col-md-8').width());
-        $('#help').css({ 'margin-top': 0 });
-        $('#uiHelp').show();
+        $('#editorArea').removeClass("col-md-12").addClass("col-md-8");
+        $('#help').show();
     }
 }
 
