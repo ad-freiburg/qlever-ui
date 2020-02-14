@@ -1,19 +1,19 @@
 // UI helpers
 
-function log(message,kind){
-	if (kind == undefined) {
-		kind = "other";
-	}
-	if((kind == 'parsing' && $('#logParsing').is(':checked')) ||
-	   (kind == 'other' && $('#logOther').is(':checked')) ||
-	   (kind == 'requests' && $('#logRequests').is(':checked')) ||
-	   (kind == 'suggestions' && $('#logSuggestions').is(':checked'))){
-		   console.log('['+kind+']: '+message);
-	} 
+function log(message, kind) {
+    if (kind == undefined) {
+        kind = "other";
+    }
+    if ((kind == 'parsing' && $('#logParsing').is(':checked')) ||
+        (kind == 'other' && $('#logOther').is(':checked')) ||
+        (kind == 'requests' && $('#logRequests').is(':checked')) ||
+        (kind == 'suggestions' && $('#logSuggestions').is(':checked'))) {
+        console.log('[' + kind + ']: ' + message);
+    }
 }
 
-function getQueryString(){
-	var q = encodeURIComponent(editor.getValue());
+function getQueryString() {
+    var q = encodeURIComponent(editor.getValue());
     var queryString = "?query=" + q;
     if ($("#clear").prop('checked')) {
         queryString += "&cmd=clearcache";
@@ -22,127 +22,127 @@ function getQueryString(){
 }
 
 function cleanLines(cm) {
-	var cursor = cm.getCursor();
-	var selection = cm.listSelections()[0];
-	var position = cm.getScrollInfo();
-	var lastLine = undefined;
-	var line = cm.getLine(0);
-	for (var i = 0; i < cm.lastLine(); i++) {
-		if(i != cursor.line && i != cursor.line-1){
-			lastLine = line;
-	        line = cm.getLine(i);
-			if(line.trim() == ""){
-				if(i == 0){ 
-					cm.setSelection({line: i, ch: 0},{line: i+1, ch: 0}) 
-				} else {
-					cm.setSelection({line: i-1, ch: 999999999},{line: i, ch: line.length}); 
-				}
-				cm.replaceSelection('');
-				
-				if(i < cursor.line){
-					cursor.line -= 1;
-					selection.anchor = selection.head
-				}
-			}
-			var startingWhitespaces = line.length - line.replace(/^\s+/,"").length;
-			lineContent = line.slice(startingWhitespaces);
-			if(lineContent != lineContent.replace(/\s{2,}/g,' ')){
-				cm.setSelection({line: i, ch: startingWhitespaces},{line: i, ch: line.length});
-				cm.replaceSelection(lineContent.replace(/\s{2,}/g,' '));
-			}
-		}
-	}
-	cm.scrollTo(position.left,position.top);
-	cm.setCursor(cursor);
-	cm.setSelection(selection.anchor,selection.head);
+    var cursor = cm.getCursor();
+    var selection = cm.listSelections()[0];
+    var position = cm.getScrollInfo();
+    var lastLine = undefined;
+    var line = cm.getLine(0);
+    for (var i = 0; i < cm.lastLine(); i++) {
+        if (i != cursor.line && i != cursor.line - 1) {
+            lastLine = line;
+            line = cm.getLine(i);
+            if (line.trim() == "") {
+                if (i == 0) {
+                    cm.setSelection({ line: i, ch: 0 }, { line: i + 1, ch: 0 })
+                } else {
+                    cm.setSelection({ line: i - 1, ch: 999999999 }, { line: i, ch: line.length });
+                }
+                cm.replaceSelection('');
+
+                if (i < cursor.line) {
+                    cursor.line -= 1;
+                    selection.anchor = selection.head
+                }
+            }
+            var startingWhitespaces = line.length - line.replace(/^\s+/, "").length;
+            lineContent = line.slice(startingWhitespaces);
+            if (lineContent != lineContent.replace(/\s{2,}/g, ' ')) {
+                cm.setSelection({ line: i, ch: startingWhitespaces }, { line: i, ch: line.length });
+                cm.replaceSelection(lineContent.replace(/\s{2,}/g, ' '));
+            }
+        }
+    }
+    cm.scrollTo(position.left, position.top);
+    cm.setCursor(cursor);
+    cm.setSelection(selection.anchor, selection.head);
 }
 
 function switchStates(cm) {
-	
-	var cur = editor.getCursor(); // current cursor position
-    var absolutePosition = editor.indexFromPos({'line':cur.line,'ch':cur.ch+1}); // absolute cursor position in text
 
-	var content = cm.getValue();
-	
-	var gaps = [];
-	
-	var gap1 = /WHERE/g
-	while ((match = gap1.exec(content)) != null){
-		gaps.push(match.index+match[0].length-5);
-	}
-	
-	var gap2 = /(\s)*\}/g
-	while ((match = gap2.exec(content)) != null){
-		gaps.push(match.index-1);
-	}
-	
-	gaps.push(content.length-1);
-	
-	gaps = Array.from(new Set(gaps));
-	gaps.sort(function(a, b){return a - b});
-	
-	var found = false;
-	for(gap of gaps){
-		if(gap > absolutePosition) {
-			found = gap;
-			break;
-		}
-	}
-	
-	if(found == false && gaps.length > 0){
-		found = gaps[0];
-	}
-	
-	if(found == false){
-		return;
-	}
-	
-	var newCursor = editor.posFromIndex(found);
-	editor.setCursor(newCursor);
-	var line = cm.getLine(newCursor.line);
-	
-	if(line.slice(newCursor.ch,newCursor.ch+5) == "WHERE"){
-		// add empty whitespace in select if not present
-		log("Found SELECT-Placeholder on postion "+found,'other');
-		cm.setSelection({ 'line': newCursor.line, 'ch': line.length - 8},{ 'line': newCursor.line, 'ch': line.length - 7 });
-		
-		// TODO: calculate indentation correctly
-		//var partContent = editor.getValue().slice(0,absolutePosition);
-		//var lines = partContent.split('\n');
-		//var count = (partContent.split("{").length - 1) - (partContent.split("}").length - 1) - (line.split("{").length - 1);
-		//var indentWhitespaces = "";
-		//if (count > 0){
-		//	indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
-		//}
-		
-		cm.replaceSelection("  ");
-		cm.setCursor(newCursor.line, (line.length - 7));
-    } else if(found >= content.length-1){
-		log("Found MODIFIER-Placeholder on postion "+found,'other');
-		if(editor.getLine(newCursor.line+1) == undefined || editor.getLine(newCursor.line+1) != ""){
-			log("Adding a line at the end of the input",'other');
-			cm.setSelection({ 'line': newCursor.line, 'ch': line.length },{ 'line': newCursor.line, 'ch': line.length });
-			cm.replaceSelection('\n');
-	    }
-	    cm.setCursor(newCursor.line+1, 0);
-    } else {
-		log("Found WHERE-Placeholder on postion "+found,'other');
-	    cm.setSelection({ 'line': newCursor.line, 'ch': 9999999 },{ 'line': newCursor.line, 'ch': 9999999 });
-        cm.replaceSelection('\n  ');
-        cm.setCursor(newCursor.line+1, 2);
-		
+    var cur = editor.getCursor(); // current cursor position
+    var absolutePosition = editor.indexFromPos({ 'line': cur.line, 'ch': cur.ch + 1 }); // absolute cursor position in text
+
+    var content = cm.getValue();
+
+    var gaps = [];
+
+    var gap1 = /WHERE/g
+    while ((match = gap1.exec(content)) != null) {
+        gaps.push(match.index + match[0].length - 5);
     }
-    
-    cm.setSelection(cm.getCursor(),cm.getCursor()); 
-   
-    window.setTimeout(function() {
+
+    var gap2 = /(\s)*\}/g
+    while ((match = gap2.exec(content)) != null) {
+        gaps.push(match.index - 1);
+    }
+
+    gaps.push(content.length - 1);
+
+    gaps = Array.from(new Set(gaps));
+    gaps.sort(function (a, b) { return a - b });
+
+    var found = false;
+    for (gap of gaps) {
+        if (gap > absolutePosition) {
+            found = gap;
+            break;
+        }
+    }
+
+    if (found == false && gaps.length > 0) {
+        found = gaps[0];
+    }
+
+    if (found == false) {
+        return;
+    }
+
+    var newCursor = editor.posFromIndex(found);
+    editor.setCursor(newCursor);
+    var line = cm.getLine(newCursor.line);
+
+    if (line.slice(newCursor.ch, newCursor.ch + 5) == "WHERE") {
+        // add empty whitespace in select if not present
+        log("Found SELECT-Placeholder on postion " + found, 'other');
+        cm.setSelection({ 'line': newCursor.line, 'ch': line.length - 8 }, { 'line': newCursor.line, 'ch': line.length - 7 });
+
+        // TODO: calculate indentation correctly
+        //var partContent = editor.getValue().slice(0,absolutePosition);
+        //var lines = partContent.split('\n');
+        //var count = (partContent.split("{").length - 1) - (partContent.split("}").length - 1) - (line.split("{").length - 1);
+        //var indentWhitespaces = "";
+        //if (count > 0){
+        //	indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
+        //}
+
+        cm.replaceSelection("  ");
+        cm.setCursor(newCursor.line, (line.length - 7));
+    } else if (found >= content.length - 1) {
+        log("Found MODIFIER-Placeholder on postion " + found, 'other');
+        if (editor.getLine(newCursor.line + 1) == undefined || editor.getLine(newCursor.line + 1) != "") {
+            log("Adding a line at the end of the input", 'other');
+            cm.setSelection({ 'line': newCursor.line, 'ch': line.length }, { 'line': newCursor.line, 'ch': line.length });
+            cm.replaceSelection('\n');
+        }
+        cm.setCursor(newCursor.line + 1, 0);
+    } else {
+        log("Found WHERE-Placeholder on postion " + found, 'other');
+        cm.setSelection({ 'line': newCursor.line, 'ch': 9999999 }, { 'line': newCursor.line, 'ch': 9999999 });
+        cm.replaceSelection('\n  ');
+        cm.setCursor(newCursor.line + 1, 2);
+
+    }
+
+    cm.setSelection(cm.getCursor(), cm.getCursor());
+
+    window.setTimeout(function () {
         CodeMirror.commands.autocomplete(editor);
     }, 100);
 }
 
 function changeTheme(theme = undefined) {
     if (editor.getOption("theme") == 'railscasts' || theme == 'default') {
-		log('Setting theme to default...','other');
+        log('Setting theme to default...', 'other');
         editor.setOption('theme', 'default');
         $('body').css('background', '#FFFFFF');
         $('.well').css('background', '#F6F6F6');
@@ -151,7 +151,7 @@ function changeTheme(theme = undefined) {
         $('.navbar').addClass('navbar-inverse');
         createCookie("theme", "default", 3);
     } else {
-        log('Setting theme to dark...','other');
+        log('Setting theme to dark...', 'other');
         editor.setOption('theme', 'railscasts');
         $('body').css('background', '#313131');
         $('.well,.navbar').css('background', '#D2D2D2');
@@ -164,7 +164,7 @@ function changeTheme(theme = undefined) {
 function expandEditor() {
     if ($('.CodeMirror').width() < 800) {
         editor.setSize($('#queryBlock').width());
-        $('#help').css({ 'margin-top': $('.CodeMirror').height() + 10});
+        $('#help').css({ 'margin-top': $('.CodeMirror').height() + 10 });
         $('#uiHelp').hide();
     } else {
         editor.setSize($('.col-md-8').width());
@@ -264,26 +264,28 @@ function getShortStr(str, maxLength, column = undefined) {
     }
     pos = cpy.lastIndexOf("^^")
     if (pos > 0) {
-        link = cpy.substring(pos).match(/(https?:\/\/[a-zA-Z0-9-./#?]+)/g)[0];
+        cpy = cpy.replace(/ /g, '_');
+        link = cpy.substring(pos).match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
         columnHTML = $($('#resTable').find('th')[column + 1]);
         content = '<a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-list-alt" data-toggle="tooltip" title="' + link + '"></i></a> ';
         if (columnHTML.html().indexOf(content) < 0) {
             columnHTML.html(content + columnHTML.html());
         }
     } else if (cpy.indexOf('http') > 0) {
-        link = cpy.match(/(https?:\/\/[a-zA-Z0-9-.:%/#?]+)/g)[0]
-        checkLink = link.toLowerCase()
-		if(checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')){
-	        str = 'LTa href="' + link + '" target="_blank"GTLTimg src="' + link + '" width="50" GTLT/aGT';
-	    } else if(checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
-		    str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-file"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
-	    } else {
-		    str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-link"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
-	    }
+        cpy = cpy.replace(/ /g, '_');
+        link = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
+        checkLink = link.toLowerCase();
+        if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
+            str = 'LTa href="' + link + '" target="_blank"GTLTimg src="' + link + '" width="50" GTLT/aGT';
+        } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
+            str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-file"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
+        } else {
+            str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-link"GTLT/iGTLT/aGTNBSP' + str + 'LT/spanGT';
+        }
     }
 
     return str
-        // old code
+    // old code
     str = str.replace(/\"/g, '\\"')
     str = str.replace(/%/g, '%25')
     return decodeURIComponent(JSON.parse('"' + str + '"'));
@@ -291,7 +293,7 @@ function getShortStr(str, maxLength, column = undefined) {
 
 
 // Cookie helpers
-var createCookie = function(name, value, days) {
+var createCookie = function (name, value, days) {
     var expires = "";
     if (days) {
         var date = new Date();
@@ -317,7 +319,7 @@ function getCookie(c_name) {
 }
 
 // Compatibility helpers
-String.prototype.trimLeft = String.prototype.trimLeft || function() {
+String.prototype.trimLeft = String.prototype.trimLeft || function () {
     var start = -1;
     while (this.charCodeAt(++start) < 33);
     return this.slice(start, this.length);
