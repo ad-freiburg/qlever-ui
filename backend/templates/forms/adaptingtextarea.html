@@ -1,0 +1,3 @@
+{% load qleverui_template_tags %}
+<textarea name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}{% if widget.attrs.rows == False %}{% with rows=widget.value|split|length|add:1 %} rows="{{ rows|minimum:10 }}"{% endwith %}{% endif %}>
+{% if widget.value %}{{ widget.value }}{% endif %}</textarea>
