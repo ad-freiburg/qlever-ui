@@ -54,19 +54,19 @@ class Backend(models.Model):
     suggestSubjects = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from. Leave blank if you don't want subject suggestions.</div>",
         verbose_name="Suggest subjects clause")
 
     suggestPredicates = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestPredicates').slideToggle();\">Need help?</a><div class=\"helpSuggestPredicates\" style=\"display: none;\">Clause that tells QLever UI which predicates to suggest from.</div>",
         verbose_name="Suggest predicates clause")
 
     suggestObjects = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestObjects').slideToggle();\">Need help?</a><div class=\"helpSuggestObjects\" style=\"display: none;\">Clause that tells QLever UI which objects to suggest from (without prefixes). Only needed for suggestion mode 2 (context insensitive suggestions).<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The objects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest objects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestObjects').slideToggle();\">Need help?</a><div class=\"helpSuggestObjects\" style=\"display: none;\">Clause that tells QLever UI which objects to suggest from.</div>",
         verbose_name="Suggest objects clause")
 
     subjectName = models.TextField(
