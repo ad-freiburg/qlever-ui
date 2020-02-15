@@ -457,23 +457,23 @@ function getDynamicSuggestions(context) {
 									property = property.slice(0, property.length - 1);
 									addAsterisk = true;
 								}
-								property = '<' + property.replace(key + ':', value) + '>';
+								let noPrefixProperty = '<' + property.replace(key + ':', value) + '>';
+
+								if (REPLACE_PREDICATES[noPrefixProperty] !== undefined) {
+									property = REPLACE_PREDICATES[noPrefixProperty];
+								}
+
 								if (addAsterisk) {
 									property += "*";
 								}
 
-								if (REPLACE_PREDICATES[predicate] !== undefined) {
-									property = REPLACE_PREDICATES[property];
-								}
 								propertyPath[i] = property;
 								return false;
 							}
 						});
 					}
 
-					var predicate = propertyPath.join("/");
-
-					lines.push(words[0] + " " + predicate + " ?qleverui_entity .");
+					words[1] = propertyPath.join("/");
 				}
 
 				var lastWord = words[1];
