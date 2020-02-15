@@ -443,6 +443,8 @@ function getDynamicSuggestions(context) {
 						sendSparql = false;
 					}
 				} else if (suggestionMode == 2) {
+					completionQuery = SUGGESTOBJECTS;
+
 					// replace the prefixes
 					var propertyPath = detectPropertyPath(words[1]);
 
