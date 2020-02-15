@@ -57,6 +57,12 @@ class Backend(models.Model):
         help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
         verbose_name="Suggest subjects clause")
 
+    suggestPredicates = models.TextField(
+        default='',
+        blank=True,
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
+        verbose_name="Suggest subjects clause")
+
     suggestObjects = models.TextField(
         default='',
         blank=True,
@@ -137,7 +143,7 @@ class Backend(models.Model):
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
-        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
+        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
             setattr(self, field, str(getattr(self, field)).replace(
                 "\r\n", "\n").replace("\r", "\n"))
         super(Backend, self).save(*args, **kwargs)
@@ -176,7 +182,7 @@ class Backend(models.Model):
 
     def entityNameQueries(self):
         data = {}
-        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
+        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
             data[field.upper()] = getattr(self, field)
         return json.dumps(data)
 
