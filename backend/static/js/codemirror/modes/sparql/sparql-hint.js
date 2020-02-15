@@ -433,8 +433,6 @@ function getDynamicSuggestions(context) {
 				}
 			} else if (words.length == 3) {
 				predicateForObject = words[1];
-				nameClause = OBJECTNAME;
-				altNameClause = ALTERNATIVEOBJECTNAME;
 				suggestVariables = "normal";
 				appendToSuggestions = ' .';
 				nameList = objectNames;
@@ -474,7 +472,6 @@ function getDynamicSuggestions(context) {
 					var predicate = propertyPath.join("/");
 
 					lines.push(words[0] + " " + predicate + " ?qleverui_entity .");
-					sparqlLines = lines.join("\n        ");
 				}
 
 				var lastWord = words[1];
@@ -538,6 +535,9 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 
 	if (words.length > 0) {
 		sparqlLines = sparqlLines.replace(/%CURRENT_SUBJECT%/g, words[0]);
+	}
+	if (words.length > 1) {
+		sparqlLines = sparqlLines.replace(/%CURRENT_PREDICATE%/g, words[1]);
 	}
 
 	if (word.length == 0) {
