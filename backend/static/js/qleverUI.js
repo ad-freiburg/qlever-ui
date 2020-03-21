@@ -267,7 +267,7 @@ function processQuery(query, showStatus, element) {
         if (showStatus != false) {
 
             if (result.status == "ERROR") { displayError(result); return; }
-            var res = '<div id="res"><div id="time"></div>';
+            var res = '<div id="res">';
             var nofRows = result.res.length;
             $('#resultSize').html(result.resultsize);
             $('#totalTime').html(result.time.total);
@@ -275,11 +275,22 @@ function processQuery(query, showStatus, element) {
             $('#jsonTime').html((parseInt(result.time.total.replace(/ms/, "")) -
                 parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
 
+            const columns = result.selected;
+
+            let showAllButton = '';
+            let mapViewButton = '';
+            if (/wktLiteral/.test(result.res[0][columns.length - 1])) {
+                let mapViewUrl = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
+                let params = $.param({ query: editor.getValue(), backend: BASEURL });
+                mapViewButton = `<a class="btn btn-default" href="${mapViewUrl}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+            }
             if (nofRows < parseInt(result.resultsize)) {
-                res += "<div class=\"pull-right\"><a class=\"btn btn-default\" onclick=\"processQuery(getQueryString(), true, $('#runbtn'))\"><i class=\"glyphicon glyphicon-sort-by-attributes\"></i> Limited to " + nofRows + " results. Show all " + result.resultsize + " results.</a></div><br><br><br>";
+                showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${result.resultsize} results.</a>`;
             }
 
-            columns = result.selected;
+            if (showAllButton || mapViewButton) {
+                res += `<div class="pull-right">${showAllButton} ${mapViewButton}</div><br><br><br>`;
+            }
 
             var tableHead = $('#resTable thead');
             var head = "<tr><th></th>";
@@ -287,8 +298,7 @@ function processQuery(query, showStatus, element) {
                 if (column) { head += "<th>" + column + "</th>"; }
             }
             head += "</tr>";
-            tableHead.html(head)
-                ;
+            tableHead.html(head);
             var tableBody = $('#resTable tbody');
             tableBody.html("");
             var i = 0;
