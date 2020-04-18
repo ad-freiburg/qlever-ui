@@ -124,21 +124,6 @@
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
 
-            if (line.length > cursor.ch && line[cursor.ch] == ")") {
-                if (line.indexOf("SELECT") >= 0) {
-                    cursor.ch = cursor.ch + 1;
-                    editor.setCursor(cursor);
-                } else {
-                    editor.setSelection({
-                        'line': cursor.line,
-                        'ch': line.length
-                    });
-                    editor.replaceSelection('\n' + whitespaces);
-                    cursor.ch = 0;
-                    cursor.line = cursor.line + 1;
-                    editor.setCursor(cursor);
-                }
-            }
             if (getText(completion).match(/SELECT  WHERE/g)) {
                 switchStates(editor);
             }
