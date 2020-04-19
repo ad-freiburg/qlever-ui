@@ -1,19 +1,19 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
-(function(mod) {
+(function (mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
         mod(require("../../lib/codemirror"));
     else if (typeof define == "function" && define.amd) // AMD
         define(["../../lib/codemirror"], mod);
     else // Plain browser env
         mod(CodeMirror);
-})(function(CodeMirror) {
+})(function (CodeMirror) {
     "use strict";
 
     var HINT_ELEMENT_CLASS = "CodeMirror-hint";
     var ACTIVE_HINT_ELEMENT_CLASS = "CodeMirror-hint-active";
 
-    CodeMirror.showHint = function(cm, getHints, options) {
+    CodeMirror.showHint = function (cm, getHints, options) {
         if (!getHints) return cm.showHint(options);
         if (options && options.async) getHints.async = true;
         var newOpts = {
@@ -24,7 +24,7 @@
         return cm.showHint(newOpts);
     };
 
-    CodeMirror.defineExtension("showHint", function(options) {
+    CodeMirror.defineExtension("showHint", function (options) {
         options = parseOptions(this, this.getCursor("start"), options);
         var selections = this.listSelections();
         if (selections.length > 1) return;
@@ -65,18 +65,18 @@
         }
 
         var self = this;
-        cm.on("cursorActivity", this.activityFunc = function() {
+        cm.on("cursorActivity", this.activityFunc = function () {
             self.cursorActivity();
         });
     }
 
-    var requestAnimationFrame = window.requestAnimationFrame || function(fn) {
+    var requestAnimationFrame = window.requestAnimationFrame || function (fn) {
         return setTimeout(fn, 1000 / 60);
     };
     var cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
     Completion.prototype = {
-        close: function() {
+        close: function () {
             if (!this.active()) return;
             this.cm.state.completionActive = null;
             this.tick = null;
@@ -86,103 +86,88 @@
             if (this.widget) this.widget.close();
         },
 
-        active: function() {
+        active: function () {
             return this.cm.state.completionActive == this;
         },
 
-        pick: function(data, i) {
+        pick: function (data, i) {
             var completion = (typeof data.list[i] == "string") ? data.list[i] : data.list[i].completion;
             var cursor = editor.getCursor();
             var line = editor.getLine(cursor.line);
-            
+
             var absPosition = editor.indexFromPos(cursor);
-            var content = editor.getValue().slice(0,absPosition);
+            var content = editor.getValue().slice(0, absPosition);
             var lines = content.split('\n');
             var count = (content.split("{").length - 1) - (content.split("}").length - 1) - (line.split("{").length - 1);
             var indentWhitespaces = "";
-            if (count > 0){
-	            indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
+            if (count > 0) {
+                indentWhitespaces = (" ".repeat($('#whitespaces').val())).repeat(count);
             }
-            
-	        log('Added '+indentWhitespaces.length+' whitespaces','other');
-	        completion = completion.split('\n').join("\n"+indentWhitespaces);
-	        
-            if(lines[lines.length-1].replace(/\s?/g, "") == ""){
-	            completion = indentWhitespaces+completion;
-	            data.from['ch'] = 0;
+
+            log('Added ' + indentWhitespaces.length + ' whitespaces', 'other');
+            completion = completion.split('\n').join("\n" + indentWhitespaces);
+
+            if (lines[lines.length - 1].replace(/\s?/g, "") == "") {
+                completion = indentWhitespaces + completion;
+                data.from['ch'] = 0;
             }
-            
+
             if (completion.slice(-1) == ".") {
-	            if (line.endsWith(".")) {
-		            editor.setSelection({line:cursor.line, ch:cursor.ch}, {line:cursor.line, ch:99999});
-		            editor.replaceSelection("");
-		        }
-		        log('Added linebreak due to point at the end of the completion','other');
-				completion = completion + "\n"+indentWhitespaces   
+                if (line.endsWith(".")) {
+                    editor.setSelection({ line: cursor.line, ch: cursor.ch }, { line: cursor.line, ch: 99999 });
+                    editor.replaceSelection("");
+                }
+                log('Added linebreak due to point at the end of the completion', 'other');
+                completion = completion + "\n" + indentWhitespaces
             }
-            
+
             if (completion.hint) completion.hint(this.cm, data, completion);
             else this.cm.replaceRange(getText(completion), completion.from || data.from, completion.to || data.to, "complete");
 
-            if (line.length > cursor.ch && line[cursor.ch] == ")") {
-                if (line.indexOf("SELECT") >= 0) {
-                    cursor.ch = cursor.ch + 1;
-                    editor.setCursor(cursor);
-                } else {
-                    editor.setSelection({
-                        'line': cursor.line,
-                        'ch': line.length
-                    });
-                    editor.replaceSelection('\n'+whitespaces);
-                    cursor.ch = 0;
-                    cursor.line = cursor.line + 1;
-                    editor.setCursor(cursor);
-                }
-            }
             if (getText(completion).match(/SELECT  WHERE/g)) {
                 switchStates(editor);
             }
             // Add prefixes if not yet declared
             var prefixLines = getPrefixLines();
             for (var prefix in COLLECTEDPREFIXES) {
-	            if (completion.startsWith(prefix+':')) {
-		            var prefixAvailable = false;
-				    for (var line of prefixLines) {
-				        if (line.trim().startsWith("PREFIX "+prefix+':')) {
-				            prefixAvailable = true;
-				            break;
-				        }
-				    }
-				    if (!prefixAvailable) {
-					     editor.setSelection({
-	                        'line': 0,
-	                        'ch': 0
-	                    });
-	                    editor.replaceSelection('PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>\n');
-		                cursor.ch = cursor.ch + completion.length;
-	                    cursor.line = cursor.line + 1;
-	                    if (completion.indexOf("\n") != -1) {
-		                    cursor.line = cursor.line + 1;
-	                    }
-	                    editor.setCursor(cursor);
-				    }
-	            }
+                if (completion.startsWith(prefix + ':')) {
+                    var prefixAvailable = false;
+                    for (var line of prefixLines) {
+                        if (line.trim().startsWith("PREFIX " + prefix + ':')) {
+                            prefixAvailable = true;
+                            break;
+                        }
+                    }
+                    if (!prefixAvailable) {
+                        editor.setSelection({
+                            'line': 0,
+                            'ch': 0
+                        });
+                        editor.replaceSelection('PREFIX ' + prefix + ': <' + COLLECTEDPREFIXES[prefix] + '>\n');
+                        cursor.ch = cursor.ch + completion.length;
+                        cursor.line = cursor.line + 1;
+                        if (completion.indexOf("\n") != -1) {
+                            cursor.line = cursor.line + 1;
+                        }
+                        editor.setCursor(cursor);
+                    }
+                }
             }
-            
+
             if (completion.replace(/\s?/g, "").slice(-1) == "}") {
-		        log('Moved one line ahead due to } at the end of the completion','other');
-	            cursor.line = cursor.line + 1;
-	            cursor.ch = 9999999;
-	            editor.setSelection({line:cursor.line, ch:cursor.ch}, {line:cursor.line, ch:cursor.ch});
-	            editor.replaceSelection(indentWhitespaces);
-	            editor.setCursor(cursor);
+                log('Moved one line ahead due to } at the end of the completion', 'other');
+                cursor.line = cursor.line + 1;
+                cursor.ch = 9999999;
+                editor.setSelection({ line: cursor.line, ch: cursor.ch }, { line: cursor.line, ch: cursor.ch });
+                editor.replaceSelection(indentWhitespaces);
+                editor.setCursor(cursor);
             }
-            
+
             CodeMirror.signal(data, "pick", completion);
             this.close();
         },
 
-        cursorActivity: function() {
+        cursorActivity: function () {
             if (this.debounce) {
                 cancelAnimationFrame(this.debounce);
                 this.debounce = 0;
@@ -196,24 +181,24 @@
                 this.close();
             } else {
                 var self = this;
-                this.debounce = requestAnimationFrame(function() {
+                this.debounce = requestAnimationFrame(function () {
                     self.update();
                 });
                 if (this.widget) this.widget.disable();
             }
         },
 
-        update: function(first) {
+        update: function (first) {
             if (this.tick == null) return
             var self = this,
                 myTick = ++this.tick
 
-            fetchHints(this.options.hint, this.cm, this.options, function(data) {
+            fetchHints(this.options.hint, this.cm, this.options, function (data) {
                 if (self.tick == myTick) self.finishUpdate(data, first)
             });
         },
 
-        finishUpdate: function(data, first) {
+        finishUpdate: function (data, first) {
             if (this.data) CodeMirror.signal(this.data, "update");
 
             var picked = (this.widget && this.widget.picked) || (first && this.options.completeSingle);
@@ -260,22 +245,22 @@
 
     function buildKeyMap(completion, handle) {
         var baseMap = {
-            Up: function() {
+            Up: function () {
                 handle.moveFocus(-1);
             },
-            Down: function() {
+            Down: function () {
                 handle.moveFocus(1);
             },
-            PageUp: function() {
+            PageUp: function () {
                 handle.moveFocus(-handle.menuSize() + 1, true);
             },
-            PageDown: function() {
+            PageDown: function () {
                 handle.moveFocus(handle.menuSize() - 1, true);
             },
-            Home: function() {
+            Home: function () {
                 handle.setFocus(0);
             },
-            End: function() {
+            End: function () {
                 handle.setFocus(handle.length - 1);
             },
             Enter: handle.pick,
@@ -287,7 +272,7 @@
         function addBinding(key, val) {
             var bound;
             if (typeof val != "string")
-                bound = function(cm) {
+                bound = function (cm) {
                     return val(cm, handle);
                 };
             // This mechanism is deprecated
@@ -326,14 +311,14 @@
 
         var hints = this.hints = document.createElement("ul");
         lastWidget = this;
-        hints.onscroll = function(el) {
+        hints.onscroll = function (el) {
             var percentage = el.target.scrollTop / (el.target.scrollHeight - el.target.clientHeight);
             if (percentage >= 0.7 && requestExtension == false && resultSize - 10 > lastWidget.data.list.length) {
                 lastSize = size;
                 size = 2 * size;
                 requestExtension = true;
 
-                fetchHints(lastWidget.completion.options.hint, lastWidget.cm, lastWidget.completion.options, function(data) {
+                fetchHints(lastWidget.completion.options.hint, lastWidget.cm, lastWidget.completion.options, function (data) {
                     if (data != null) {
 
                         var lastSize = lastWidget.data.list.length;
@@ -355,7 +340,7 @@
                             elt.hintId = lastSize + i;
                         }
                         requestExtension = false;
-                        
+
                     }
                 });
             }
@@ -372,57 +357,57 @@
             if (cur != undefined && cur.className != null) className = cur.className + " " + className;
             elt.className = className;
             if (cur != undefined && cur.render) {
-	            cur.render(elt, data, cur);
-	        } else if (cur != undefined) {
-		        // our qlever hints seem to always end in this case
-		        addQLeverHint(elt, cur, this);
-		    } else {
-			    elt.appendChild(document.createTextNode(getText(cur)));
-			}
+                cur.render(elt, data, cur);
+            } else if (cur != undefined) {
+                // our qlever hints seem to always end in this case
+                addQLeverHint(elt, cur, this);
+            } else {
+                elt.appendChild(document.createTextNode(getText(cur)));
+            }
             elt.hintId = i;
         }
-        
-        function addQLeverHint(elt, cur, widget) {
-	        var text = document.createElement('div');
-	        var displayText = tokenizeHints(cur.displayText || getText(cur))
-	        text.appendChild(displayText);
-	        if (cur.name) {
-		        var name = document.createElement("span");
-		        name.className = "hint-name";
-		        if(cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1){
-			        cur.name += " / "+cur.altname
-		        }
-		        
-		        name.appendChild(document.createTextNode(" "+cur.name));
-		        text.appendChild(name);
-	        }
-	        elt.appendChild(text);
-        }
-        
-        function tokenizeHints(text) {
-  			var stream = new StringStream(text.trim(), 0, undefined);
-  			// get tokenizer from sparql mode
-  			var state = CodeMirror.modes["sparql"]({indeuntUnit:undefined}).startState();
-  			var tokenize = state.tokenize;
-  			var displayText = document.createElement('span');
 
-  			while (!stream.eol()) {
-	  			if (stream.eatSpace()) {
-		  			// Don't tokenize white spaces - skip them
-		  			displayText.appendChild(document.createTextNode(stream.current()));
-		  			stream.start = stream.pos;
-	  			}
-	  			var classNames = "";
-	  			for (var className of tokenize(stream, state).split(" ")) {
-		  			classNames += ((classNames.length > 0) ? " " : "") + "cm-" + className;	
-		  		}
-	  			var token = document.createElement("span");
-	  			token.className = classNames;
-	  			token.appendChild(document.createTextNode(stream.current()));
-	  			displayText.appendChild(token);
-	  			stream.start = stream.pos;
-  			}
-  			return displayText;
+        function addQLeverHint(elt, cur, widget) {
+            var text = document.createElement('div');
+            var displayText = tokenizeHints(cur.displayText || getText(cur))
+            text.appendChild(displayText);
+            if (cur.name) {
+                var name = document.createElement("span");
+                name.className = "hint-name";
+                if (cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1) {
+                    cur.name += " / " + cur.altname
+                }
+
+                name.appendChild(document.createTextNode(" " + cur.name));
+                text.appendChild(name);
+            }
+            elt.appendChild(text);
+        }
+
+        function tokenizeHints(text) {
+            var stream = new StringStream(text.trim(), 0, undefined);
+            // get tokenizer from sparql mode
+            var state = CodeMirror.modes["sparql"]({ indeuntUnit: undefined }).startState();
+            var tokenize = state.tokenize;
+            var displayText = document.createElement('span');
+
+            while (!stream.eol()) {
+                if (stream.eatSpace()) {
+                    // Don't tokenize white spaces - skip them
+                    displayText.appendChild(document.createTextNode(stream.current()));
+                    stream.start = stream.pos;
+                }
+                var classNames = "";
+                for (var className of tokenize(stream, state).split(" ")) {
+                    classNames += ((classNames.length > 0) ? " " : "") + "cm-" + className;
+                }
+                var token = document.createElement("span");
+                token.className = classNames;
+                token.appendChild(document.createTextNode(stream.current()));
+                displayText.appendChild(token);
+                stream.start = stream.pos;
+            }
+            return displayText;
         }
 
         var pos = cm.cursorCoords(completion.options.alignWithWord ? data.from : null);
@@ -457,13 +442,13 @@
                 }
             }
         }
-        
+
         // dirty workaround to get real width
         var oldLeft = parseInt(hints.style.left);
         hints.style.left = 0 + 'px';
         var width = parseInt(hints.offsetWidth);
         hints.style.left = oldLeft + 'px';
-        
+
         var overlapX = box.left + width - winW;
         if (overlapX > 0) {
             if (box.right - box.left > winW) {
@@ -474,20 +459,20 @@
         }
 
         cm.addKeyMap(this.keyMap = buildKeyMap(completion, {
-            moveFocus: function(n, avoidWrap) {
+            moveFocus: function (n, avoidWrap) {
                 widget.changeActive(widget.selectedHint + n, avoidWrap);
             },
-            setFocus: function(n) {
+            setFocus: function (n) {
                 widget.changeActive(n);
             },
-            menuSize: function() {
+            menuSize: function () {
                 return widget.screenAmount();
             },
             length: completions.length,
-            close: function() {
+            close: function () {
                 completion.close();
             },
-            pick: function() {
+            pick: function () {
                 widget.pick();
             },
             data: data
@@ -495,17 +480,17 @@
 
         if (completion.options.closeOnUnfocus) {
             var closingOnBlur;
-            cm.on("blur", this.onBlur = function() {
-                closingOnBlur = setTimeout(function() {
+            cm.on("blur", this.onBlur = function () {
+                closingOnBlur = setTimeout(function () {
                     completion.close();
                 }, 100);
             });
-            cm.on("focus", this.onFocus = function() {
+            cm.on("focus", this.onFocus = function () {
                 clearTimeout(closingOnBlur);
             });
         }
 
-        cm.on("scroll", this.onScroll = function() {
+        cm.on("scroll", this.onScroll = function () {
             var curScroll = cm.getScrollInfo(),
                 editor = cm.getWrapperElement().getBoundingClientRect();
             var newTop = top + startScroll.top - curScroll.top;
@@ -516,7 +501,7 @@
             hints.style.left = (left + startScroll.left - curScroll.left) + "px";
         });
 
-        CodeMirror.on(hints, "dblclick", function(e) {
+        CodeMirror.on(hints, "dblclick", function (e) {
             var t = getHintElement(hints, e.target || e.srcElement);
             if (t && t.hintId != null) {
                 widget.changeActive(t.hintId);
@@ -524,7 +509,7 @@
             }
         });
 
-        CodeMirror.on(hints, "click", function(e) {
+        CodeMirror.on(hints, "click", function (e) {
             var t = getHintElement(hints, e.target || e.srcElement);
             if (t && t.hintId != null) {
                 widget.changeActive(t.hintId);
@@ -533,8 +518,8 @@
             CodeMirror.commands.autocomplete(editor);
         });
 
-        CodeMirror.on(hints, "mousedown", function() {
-            setTimeout(function() {
+        CodeMirror.on(hints, "mousedown", function () {
+            setTimeout(function () {
                 cm.focus();
             }, 20);
         });
@@ -544,7 +529,7 @@
     }
 
     Widget.prototype = {
-        close: function() {
+        close: function () {
             if (this.completion.widget != this) return;
             this.completion.widget = null;
             this.hints.parentNode.removeChild(this.hints);
@@ -558,22 +543,22 @@
             cm.off("scroll", this.onScroll);
         },
 
-        disable: function() {
+        disable: function () {
             this.completion.cm.removeKeyMap(this.keyMap);
             var widget = this;
             this.keyMap = {
-                Enter: function() {
+                Enter: function () {
                     widget.picked = true;
                 }
             };
             this.completion.cm.addKeyMap(this.keyMap);
         },
 
-        pick: function() {
+        pick: function () {
             this.completion.pick(this.data, this.selectedHint);
         },
 
-        changeActive: function(i, avoidWrap) {
+        changeActive: function (i, avoidWrap) {
             avoidWrap = true;
             if (i >= this.data.list.length)
                 i = avoidWrap ? this.data.list.length - 1 : 0;
@@ -594,7 +579,7 @@
 
         },
 
-        screenAmount: function() {
+        screenAmount: function () {
             return Math.floor(this.hints.clientHeight / this.hints.firstChild.offsetHeight) || 1;
         }
     };
@@ -621,12 +606,12 @@
         var helpers = cm.getHelpers(pos, "hint"),
             words
         if (helpers.length) {
-            var resolved = function(cm, callback, options) {
+            var resolved = function (cm, callback, options) {
                 var app = applicableHelpers(cm, helpers);
 
                 function run(i) {
                     if (i == app.length) return callback(null)
-                    fetchHints(app[i], cm, options, function(result) {
+                    fetchHints(app[i], cm, options, function (result) {
                         // Catch error
                         if (result.list) {
                             if (result && result.list.length > 0) callback(result)
@@ -640,17 +625,17 @@
             resolved.supportsSelection = true
             return resolved
         } else if (words = cm.getHelper(cm.getCursor(), "hintWords")) {
-            return function(cm) {
+            return function (cm) {
                 return CodeMirror.hint.fromList(cm, {
                     words: words
                 })
             }
         } else if (CodeMirror.hint.anyword) {
-            return function(cm, options) {
+            return function (cm, options) {
                 return CodeMirror.hint.anyword(cm, options)
             }
         } else {
-            return function() {}
+            return function () { }
         }
     }
 
@@ -658,7 +643,7 @@
         resolve: resolveAutoHints
     });
 
-    CodeMirror.registerHelper("hint", "fromList", function(cm, options) {
+    CodeMirror.registerHelper("hint", "fromList", function (cm, options) {
         var cur = cm.getCursor(),
             token = cm.getTokenAt(cur);
         var to = CodeMirror.Pos(cur.line, token.end);

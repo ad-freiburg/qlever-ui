@@ -396,7 +396,12 @@ function getDynamicSuggestions(context) {
 			}
 			lines = [];
 			for (var line of linesTaken) {
-				lines.push(line.trim());
+				let trimmed = line.trim();
+				if (!(/^FILTER/i.test(trimmed)) && !(/\.$/.test(trimmed))) {
+					// Add dots to lines without dots.
+					trimmed += " .";
+				}
+				lines.push(trimmed);
 			}
 		}
 

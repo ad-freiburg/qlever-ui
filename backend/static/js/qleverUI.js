@@ -279,7 +279,7 @@ function processQuery(query, showStatus, element) {
 
             let showAllButton = '';
             let mapViewButton = '';
-            if (/wktLiteral/.test(result.res[0][columns.length - 1])) {
+            if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
                 let mapViewUrl = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
                 let params = $.param({ query: editor.getValue(), backend: BASEURL });
                 mapViewButton = `<a class="btn btn-default" href="${mapViewUrl}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
