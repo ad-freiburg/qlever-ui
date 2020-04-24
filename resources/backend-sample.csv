@@ -58,7 +58,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
 # ENDIF #
     {
       SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {
-        %CONNECTED_LINES%
+        %CONNECTED_TRIPLES%
         %CURRENT_SUBJECT% ql:has-predicate ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
@@ -92,7 +92,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
   {
     {
       SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {
-        %CONNECTED_LINES%
+        %CONNECTED_TRIPLES%
         %CURRENT_SUBJECT% ql:has-predicate ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
@@ -112,7 +112,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
   {
     {
       SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {
-        %CONNECTED_LINES%
+        %CONNECTED_TRIPLES%
         %CURRENT_SUBJECT% ql:has-predicate ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
@@ -148,7 +148,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
 # ENDIF #
     {
       SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {
-        %CONNECTED_LINES%
+        %CONNECTED_TRIPLES%
         %CURRENT_SUBJECT% %CURRENT_PREDICATE% ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
@@ -168,7 +168,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
   {
     {
       SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {
-        %CONNECTED_LINES%
+        %CONNECTED_TRIPLES%
         %CURRENT_SUBJECT% %CURRENT_PREDICATE% ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
@@ -181,7 +181,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
   {
     {
       SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {
-        %CONNECTED_LINES%
+        %CONNECTED_TRIPLES%
         %CURRENT_SUBJECT% %CURRENT_PREDICATE% ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity

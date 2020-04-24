@@ -533,10 +533,10 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 	sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
 
 
-	var linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_LINES%/);
+	var linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_TRIPLES%/);
 	while (linePlaceholder != null) {
-		sparqlLines = sparqlLines.replace(/%CONNECTED_LINES%/g, lines.join(linePlaceholder[1]));
-		linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_LINES%/);
+		sparqlLines = sparqlLines.replace(/%CONNECTED_TRIPLES%/g, lines.join(linePlaceholder[1]));
+		linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_TRIPLES%/);
 	}
 
 	if (words.length > 0) {
