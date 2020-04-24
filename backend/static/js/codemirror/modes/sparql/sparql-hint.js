@@ -604,6 +604,12 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 	let conditionSatisfied = false;
 	if (condition == "CURRENT_WORD_EMPTY") {
 		conditionSatisfied = (word.length == 0);
+	} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
+		conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
+	} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
+		conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
+	} else if (condition == "CONNECTED_LINES_EMPTY") {
+		conditionSatisfied = (lines.length == 0);
 	} else {
 		console.error(`Invalid condition in IF statement: '${condition}'`);
 	}
