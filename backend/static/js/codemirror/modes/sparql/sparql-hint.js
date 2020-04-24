@@ -363,40 +363,44 @@ function getDynamicSuggestions(context) {
 	} else {
 
 		// find connected lines in given select clause
-		variableRegex = /(\?.+?)\s/g
-		variable = line.match(variableRegex);
-		if (variable) {
-			// at first we know only the variable in our current line
-			var seenVariables = variableRegex.exec(line);
-			// and do not use any other lines
-			var linesTaken = [];
-			// for each line
-			for (var i = 0; i < lines.length; i++) {
-				// check for each already seen variable
-				for (var j = 0; j < seenVariables.length; j++) {
-					// if the variable occurs in this line and the line is not taken alread
-					if (linesTaken.indexOf(lines[i]) == -1 && lines[i].indexOf(seenVariables[j]) != -1) {
-						linesTaken.push(lines[i]);
-						var allLineVariables = variableRegex.exec(lines[i]);
-						// search for variables
-						while (allLineVariables != null) {
-							for (var k = 0; k < allLineVariables.length; k++) {
-								// if not take all new variables to the list
-								if (seenVariables.indexOf(allLineVariables[1]) == -1) {
-									// take the variable and the line because they are connected
-									seenVariables.push(allLineVariables[1]);
-									// restart because the seen variable list changed
-									i = 0;
+		const variableRegex = /\?\w+\b/g;
+		let seenVariables = line.match(variableRegex);
+		if (seenVariables) {
+			// at first we know only the variable in our current line and do not use any other lines
+			let linesTaken = [];
+			let foundNewVariables = true;
+			while (foundNewVariables) {
+				foundNewVariables = false;
+				for (const curLine of lines) {
+					if (curLine == "" || linesTaken.indexOf(curLine) != -1) {
+						continue;
+					}
+					// check for each already seen variable
+					for (const seenVariable of seenVariables) {
+						if (RegExp('\\' + seenVariable + "\\b").test(curLine)) {
+							linesTaken.push(curLine);
+							// search for variables
+							for (const lineVariable of curLine.match(variableRegex)) {
+								if (seenVariables.indexOf(lineVariable) == -1) {
+									seenVariables.push(lineVariable);
+									// do another iteration because there are new variables
+									foundNewVariables = true;
 								}
 							}
-							allLineVariables = variableRegex.exec(lines[i]);
+							break;
 						}
 					}
 				}
 			}
+
 			lines = [];
 			for (var line of linesTaken) {
-				lines.push(line.trim());
+				let trimmed = line.trim();
+				if (!(/^FILTER/i.test(trimmed)) && !(/\.$/.test(trimmed))) {
+					// Add dots to lines without dots.
+					trimmed += " .";
+				}
+				lines.push(trimmed);
 			}
 		}
 
@@ -423,7 +427,7 @@ function getDynamicSuggestions(context) {
 				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";
 				nameList = predicateNames;
-				response = ['ql:contains-entity ', 'ql:contains-word '];
+				response = PREDICATESUGGESTIONS;
 				// add single prefixes to suggestions
 				response = response.concat(getPrefixNameSuggestions(word));
 				if (suggestionMode == 1) {
