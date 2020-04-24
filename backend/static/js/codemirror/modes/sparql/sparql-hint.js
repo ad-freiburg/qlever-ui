@@ -431,7 +431,7 @@ function getDynamicSuggestions(context) {
 				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";
 				nameList = predicateNames;
-				response = ['ql:contains-entity ', 'ql:contains-word '];
+				response = PREDICATESUGGESTIONS;
 				// add single prefixes to suggestions
 				response = response.concat(getPrefixNameSuggestions(word));
 				if (suggestionMode == 1) {
