@@ -546,33 +546,72 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 		sparqlLines = sparqlLines.replace(/%CURRENT_PREDICATE%/g, words[1]);
 	}
 
-	if (word.length == 0) {
-		var match = sparqlLines.match(/#\sIF CURRENT_WORD\s#/);
-		var if_declarations = [];
-		var substrIdx = 0;
-		while (match != null) {
-			var index = match.index;
-			var len = match[0].length;
-			substrIdx += index + len;
-			if_declarations.push(substrIdx - len);
-			var substr = sparqlLines.slice(substrIdx);
-			match = substr.match(/#\sIF CURRENT_WORD\s#/);
-		}
-
-		for (var start of if_declarations.reverse()) {
-			var match = sparqlLines.slice(start).match(/#\sENDIF\s#/);
-			if (match == null) {
-				continue;
-			}
-			var index = start + match.index;
-			var len = match[0].length;
-			sparqlLines = sparqlLines.slice(0, start) + sparqlLines.slice(index + len);
-		}
-	} else {
-		sparqlLines = sparqlLines.replace(/#\sIF CURRENT_WORD\s#/g, "").replace(/#\sENDIF\s#/g, "");
-	}
+	sparqlLines = evaluateIfStatements(sparqlLines, word, lines, words)
 
 	return sparqlLines;
+}
+
+function evaluateIfStatements(completionQuery, word, lines, words) {
+	// find all IF statements
+	let if_statements = [];
+	const ifRegex = /#\sIF (!?[A-Z_]+)\s#/;
+	let match = completionQuery.match(ifRegex);
+	let substrIdx = 0;
+	while (match != null) {
+		// find all IF declarations
+		const index = match.index;
+		const len = match[0].length;
+		substrIdx += index + len;
+		if_statements.push({ 'IF': { 'index': substrIdx - len, 'len': len }, 'condition': match[1] });
+		const substr = completionQuery.slice(substrIdx);
+		match = substr.match(ifRegex);
+	}
+
+	if_statements = if_statements.reverse();
+	for (const i in if_statements) {
+		// find matching ENDIFs
+		const start = if_statements[i]['IF']['index'];
+		const match = completionQuery.slice(start).match(/#\sENDIF\s#/);
+		if (match == null) {
+			continue;
+		}
+		const index = start + match.index;
+		const len = match[0].length;
+		if_statements[i]['ENDIF'] = { 'index': index, 'len': len }
+	}
+
+	for (const statement of if_statements) {
+		let conditionSatisfied = parseAndEvaluateCondition(statement.condition, word, lines, words);
+
+		if (conditionSatisfied) {
+			completionQuery = completionQuery.slice(0, statement['IF']['index'])
+				+ completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index'])
+				+ completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len'])
+		} else {
+			completionQuery = completionQuery.slice(0, statement['IF']['index']) + completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		}
+	}
+
+	return completionQuery
+}
+
+function parseAndEvaluateCondition(condition, word, lines, words) {
+	const negated = condition.startsWith("!");
+	if (negated) {
+		condition = condition.slice(1);
+	}
+
+	let conditionSatisfied = false;
+	if (condition == "CURRENT_WORD_EMPTY") {
+		conditionSatisfied = (word.length == 0);
+	} else {
+		console.error(`Invalid condition in IF statement: '${condition}'`);
+	}
+
+	if (negated) {
+		conditionSatisfied = !conditionSatisfied;
+	}
+	return conditionSatisfied;
 }
 
 function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList, predicateForObject, word) {

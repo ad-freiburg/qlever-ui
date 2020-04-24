@@ -1,6 +1,6 @@
 id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,filteredLanguage,dynamicSuggestions,suggestSubjects,suggestPredicates,suggestObjects,subjectName,alternativeSubjectName,predicateName,alternativePredicateName,objectName,alternativeObjectName,replacePredicates,supportedKeywords,supportedFunctions,fillPrefixes,filterEntities
 9999,Wikidata Full @ Uni Freiburg,http://qlever.informatik.uni-freiburg.de/api/wikidata-full,,0,1,0,100,en,2,"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_altname) as ?qleverui_altname) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
   {
   {
 # ENDIF #
@@ -9,7 +9,7 @@ id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,fil
         ?qleverui_sitelink <http://schema.org/about> ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
       HAVING regex(?qleverui_entity, '^%<CURRENT_WORD%')
 # ENDIF #
     }
@@ -20,7 +20,7 @@ id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,fil
       ?qleverui_entity @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname .
     }
   }
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
   UNION
   {
     {
@@ -52,7 +52,7 @@ id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,fil
 GROUP BY ?qleverui_entity
 ORDER BY DESC(?qleverui_count)","%PREFIXES%
 SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_altname) as ?qleverui_altname) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
   {
   {
 # ENDIF #
@@ -62,7 +62,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
         %CURRENT_SUBJECT% ql:has-predicate ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
       HAVING regex(?qleverui_entity, '^%<CURRENT_WORD%')
 # ENDIF #
     }
@@ -87,7 +87,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
       ?qleverui_claim @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname } .
     }
   }
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
   UNION
   {
     {
@@ -142,7 +142,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
 GROUP BY ?qleverui_entity
 ORDER BY DESC(?qleverui_count)","%PREFIXES%
 SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_altname) as ?qleverui_altname) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
   {
   {
 # ENDIF #
@@ -152,7 +152,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
         %CURRENT_SUBJECT% %CURRENT_PREDICATE% ?qleverui_entity .
       }
       GROUP BY ?qleverui_entity
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
       HAVING regex(?qleverui_entity, '^%<CURRENT_WORD%')
 # ENDIF #
     }
@@ -163,7 +163,7 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
       ?qleverui_entity @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname .
     }
   }
-# IF CURRENT_WORD #
+# IF !CURRENT_WORD_EMPTY #
   UNION
   {
     {
