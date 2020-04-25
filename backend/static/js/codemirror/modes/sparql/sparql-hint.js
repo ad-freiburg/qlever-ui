@@ -429,7 +429,9 @@ function getDynamicSuggestions(context) {
 				nameList = predicateNames;
 				response = PREDICATESUGGESTIONS;
 				// add single prefixes to suggestions
-				response = response.concat(getPrefixNameSuggestions(word));
+				if (SUGGEST_PREFIXNAMES_FOR_PREDICATES) {
+					response = response.concat(getPrefixNameSuggestions(word));
+				}
 				if (suggestionMode == 1) {
 					sparqlLines = "?qleverui_subject ql:has-predicate ?qleverui_entity .";
 				} else if (suggestionMode == 2) {
@@ -554,7 +556,7 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 function evaluateIfStatements(completionQuery, word, lines, words) {
 	// find all IF statements
 	let if_statements = [];
-	const ifRegex = /#\sIF (!?[A-Z_]+)\s#/;
+	const ifRegex = /#\sIF\s+([!A-Z_\s]+)\s+#/;
 	let match = completionQuery.match(ifRegex);
 	let substrIdx = 0;
 	while (match != null) {
@@ -568,55 +570,77 @@ function evaluateIfStatements(completionQuery, word, lines, words) {
 	}
 
 	if_statements = if_statements.reverse();
-	for (const i in if_statements) {
-		// find matching ENDIFs
-		const start = if_statements[i]['IF']['index'];
-		const match = completionQuery.slice(start).match(/#\sENDIF\s#/);
-		if (match == null) {
-			continue;
-		}
-		const index = start + match.index;
-		const len = match[0].length;
-		if_statements[i]['ENDIF'] = { 'index': index, 'len': len }
-	}
+	for (let statement of if_statements) {
+		// find matching ELSE and ENDIFs
+		const start = statement['IF']['index'];
+		const endifMatch = completionQuery.slice(start).match(/#\sENDIF\s#/);
+		const elseMatch = completionQuery.slice(start).match(/#\sELSE\s#/);
 
-	for (const statement of if_statements) {
+		if (elseMatch != null && elseMatch.index < endifMatch.index) {
+			const index = start + elseMatch.index;
+			const len = elseMatch[0].length;
+			statement['ELSE'] = { 'index': index, 'len': len };
+		}
+
+		if (endifMatch == null) {
+			console.error("Number of # IF # and # ENDIF # does not match!");
+		}
+		const index = start + endifMatch.index;
+		const len = endifMatch[0].length;
+		statement['ENDIF'] = { 'index': index, 'len': len }
+
 		let conditionSatisfied = parseAndEvaluateCondition(statement.condition, word, lines, words);
 
-		if (conditionSatisfied) {
-			completionQuery = completionQuery.slice(0, statement['IF']['index'])
-				+ completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index'])
-				+ completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len'])
-		} else {
-			completionQuery = completionQuery.slice(0, statement['IF']['index']) + completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		let result = completionQuery.slice(0, statement['IF']['index']);
+
+		if (conditionSatisfied && statement["ELSE"] == undefined) {
+			// Add content between IF and ENDIF
+			result += completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index']);
+		} else if (conditionSatisfied && statement["ELSE"] != undefined) {
+			// Add content between IF and ELSE
+			result += completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ELSE']['index']);
+		} else if (!conditionSatisfied && statement["ELSE"] != undefined) {
+			// Add content between ELSE and ENDIF
+			result += completionQuery.slice(statement['ELSE']['index'] + statement['ELSE']['len'], statement['ENDIF']['index']);
 		}
+
+		result += completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		completionQuery = result;
 	}
 
 	return completionQuery
 }
 
 function parseAndEvaluateCondition(condition, word, lines, words) {
+	// split condition by AND and OR
+	const logicalOperator = condition.match(/(.*)\s+(OR)\s+(.*)/) || condition.match(/(.*)\s(AND)\s+(.*)/);
 	const negated = condition.startsWith("!");
-	if (negated) {
-		condition = condition.slice(1);
-	}
-
 	let conditionSatisfied = false;
-	if (condition == "CURRENT_WORD_EMPTY") {
-		conditionSatisfied = (word.length == 0);
-	} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
-		conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
-	} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
-		conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
-	} else if (condition == "CONNECTED_LINES_EMPTY") {
-		conditionSatisfied = (lines.length == 0);
-	} else {
-		console.error(`Invalid condition in IF statement: '${condition}'`);
-	}
+	if (logicalOperator != null) {
+		const lhs = parseAndEvaluateCondition(logicalOperator[1], word, lines, words);
+		const rhs = parseAndEvaluateCondition(logicalOperator[3], word, lines, words);
 
-	if (negated) {
-		conditionSatisfied = !conditionSatisfied;
+		if (logicalOperator[2] == "OR") {
+			conditionSatisfied = lhs || rhs;
+		} else {
+			conditionSatisfied = lhs && rhs;
+		}
+	} else if (negated) {
+		conditionSatisfied = !parseAndEvaluateCondition(condition.slice(1), word, lines, words);
+	} else {
+		if (condition == "CURRENT_WORD_EMPTY") {
+			conditionSatisfied = (word.length == 0);
+		} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
+			conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
+		} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
+			conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
+		} else if (condition == "CONNECTED_TRIPLES_EMPTY") {
+			conditionSatisfied = (lines.length == 0);
+		} else {
+			console.error(`Invalid condition in IF statement: '${condition}'`);
+		}
 	}
+	log(`Evaluating condition: "${condition}", word="${word}", lines=${lines.length}, words=${words}\n  result: ${conditionSatisfied}`, 'other');
 	return conditionSatisfied;
 }
 
