@@ -556,7 +556,7 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 function evaluateIfStatements(completionQuery, word, lines, words) {
 	// find all IF statements
 	let if_statements = [];
-	const ifRegex = /#\sIF (!?[A-Z_]+)\s#/;
+	const ifRegex = /#\sIF\s+([!A-Z_\s]+)\s+#/;
 	let match = completionQuery.match(ifRegex);
 	let substrIdx = 0;
 	while (match != null) {
@@ -598,27 +598,35 @@ function evaluateIfStatements(completionQuery, word, lines, words) {
 }
 
 function parseAndEvaluateCondition(condition, word, lines, words) {
+	// split condition by AND and OR
+	const logicalOperator = condition.match(/(.*)\s+(OR)\s+(.*)/) || condition.match(/(.*)\s(AND)\s+(.*)/);
 	const negated = condition.startsWith("!");
-	if (negated) {
-		condition = condition.slice(1);
-	}
-
 	let conditionSatisfied = false;
-	if (condition == "CURRENT_WORD_EMPTY") {
-		conditionSatisfied = (word.length == 0);
-	} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
-		conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
-	} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
-		conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
-	} else if (condition == "CONNECTED_LINES_EMPTY") {
-		conditionSatisfied = (lines.length == 0);
-	} else {
-		console.error(`Invalid condition in IF statement: '${condition}'`);
-	}
+	if (logicalOperator != null) {
+		const lhs = parseAndEvaluateCondition(logicalOperator[1], word, lines, words);
+		const rhs = parseAndEvaluateCondition(logicalOperator[3], word, lines, words);
 
-	if (negated) {
-		conditionSatisfied = !conditionSatisfied;
+		if (logicalOperator[2] == "OR") {
+			conditionSatisfied = lhs || rhs;
+		} else {
+			conditionSatisfied = lhs && rhs;
+		}
+	} else if (negated) {
+		conditionSatisfied = !parseAndEvaluateCondition(condition.slice(1), word, lines, words);
+	} else {
+		if (condition == "CURRENT_WORD_EMPTY") {
+			conditionSatisfied = (word.length == 0);
+		} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
+			conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
+		} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
+			conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
+		} else if (condition == "CONNECTED_LINES_EMPTY") {
+			conditionSatisfied = (lines.length == 0);
+		} else {
+			console.error(`Invalid condition in IF statement: '${condition}'`);
+		}
 	}
+	log(`Evaluating condition: "${condition}", word="${word}", lines=${lines.length}, words=${words}\n  result: ${conditionSatisfied}`, 'other');
 	return conditionSatisfied;
 }
 
