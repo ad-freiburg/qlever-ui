@@ -570,28 +570,42 @@ function evaluateIfStatements(completionQuery, word, lines, words) {
 	}
 
 	if_statements = if_statements.reverse();
-	for (const i in if_statements) {
-		// find matching ENDIFs
-		const start = if_statements[i]['IF']['index'];
-		const match = completionQuery.slice(start).match(/#\sENDIF\s#/);
-		if (match == null) {
-			continue;
-		}
-		const index = start + match.index;
-		const len = match[0].length;
-		if_statements[i]['ENDIF'] = { 'index': index, 'len': len }
-	}
+	for (let statement of if_statements) {
+		// find matching ELSE and ENDIFs
+		const start = statement['IF']['index'];
+		const endifMatch = completionQuery.slice(start).match(/#\sENDIF\s#/);
+		const elseMatch = completionQuery.slice(start).match(/#\sELSE\s#/);
 
-	for (const statement of if_statements) {
+		if (elseMatch != null && elseMatch.index < endifMatch.index) {
+			const index = start + elseMatch.index;
+			const len = elseMatch[0].length;
+			statement['ELSE'] = { 'index': index, 'len': len };
+		}
+
+		if (endifMatch == null) {
+			console.error("Number of # IF # and # ENDIF # does not match!");
+		}
+		const index = start + endifMatch.index;
+		const len = endifMatch[0].length;
+		statement['ENDIF'] = { 'index': index, 'len': len }
+
 		let conditionSatisfied = parseAndEvaluateCondition(statement.condition, word, lines, words);
 
-		if (conditionSatisfied) {
-			completionQuery = completionQuery.slice(0, statement['IF']['index'])
-				+ completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index'])
-				+ completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len'])
-		} else {
-			completionQuery = completionQuery.slice(0, statement['IF']['index']) + completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		let result = completionQuery.slice(0, statement['IF']['index']);
+
+		if (conditionSatisfied && statement["ELSE"] == undefined) {
+			// Add content between IF and ENDIF
+			result += completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index']);
+		} else if (conditionSatisfied && statement["ELSE"] != undefined) {
+			// Add content between IF and ELSE
+			result += completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ELSE']['index']);
+		} else if (!conditionSatisfied && statement["ELSE"] != undefined) {
+			// Add content between ELSE and ENDIF
+			result += completionQuery.slice(statement['ELSE']['index'] + statement['ELSE']['len'], statement['ENDIF']['index']);
 		}
+
+		result += completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		completionQuery = result;
 	}
 
 	return completionQuery
