@@ -429,7 +429,9 @@ function getDynamicSuggestions(context) {
 				nameList = predicateNames;
 				response = PREDICATESUGGESTIONS;
 				// add single prefixes to suggestions
-				response = response.concat(getPrefixNameSuggestions(word));
+				if (SUGGEST_PREFIXNAMES_FOR_PREDICATES) {
+					response = response.concat(getPrefixNameSuggestions(word));
+				}
 				if (suggestionMode == 1) {
 					sparqlLines = "?qleverui_subject ql:has-predicate ?qleverui_entity .";
 				} else if (suggestionMode == 2) {
