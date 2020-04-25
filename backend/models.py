@@ -131,6 +131,12 @@ class Backend(models.Model):
         help_text="Comma separated list of SPARQL functions supported by the backend. Will be used for function highlighting.",
         verbose_name="Supported functions")
 
+    supportedPredicateSuggestions = models.TextField(
+        default='ql:contains-word, ql:contains-entity',
+        blank=True,
+        help_text="Comma separated list of predicate suggestions that should always be shown.",
+        verbose_name="Predicate suggestions")
+
     fillPrefixes = models.BooleanField(
         default=True,
         help_text="Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.",
@@ -177,6 +183,14 @@ class Backend(models.Model):
         jsArray = "["
         for val in self.supportedFunctions.split(","):
             jsArray += '"'+val.strip()+'",'
+        jsArray += "]"
+        return jsArray
+
+    def predicateSuggestions(self):
+        jsArray = "["
+        for val in self.supportedPredicateSuggestions.split(","):
+            if val:
+                jsArray += '"'+val.strip()+'",'
         jsArray += "]"
         return jsArray
 

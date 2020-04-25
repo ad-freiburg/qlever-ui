@@ -363,37 +363,36 @@ function getDynamicSuggestions(context) {
 	} else {
 
 		// find connected lines in given select clause
-		variableRegex = /(\?.+?)\s/g
-		variable = line.match(variableRegex);
-		if (variable) {
-			// at first we know only the variable in our current line
-			var seenVariables = variableRegex.exec(line);
-			// and do not use any other lines
-			var linesTaken = [];
-			// for each line
-			for (var i = 0; i < lines.length; i++) {
-				// check for each already seen variable
-				for (var j = 0; j < seenVariables.length; j++) {
-					// if the variable occurs in this line and the line is not taken alread
-					if (linesTaken.indexOf(lines[i]) == -1 && lines[i].indexOf(seenVariables[j]) != -1) {
-						linesTaken.push(lines[i]);
-						var allLineVariables = variableRegex.exec(lines[i]);
-						// search for variables
-						while (allLineVariables != null) {
-							for (var k = 0; k < allLineVariables.length; k++) {
-								// if not take all new variables to the list
-								if (seenVariables.indexOf(allLineVariables[1]) == -1) {
-									// take the variable and the line because they are connected
-									seenVariables.push(allLineVariables[1]);
-									// restart because the seen variable list changed
-									i = 0;
+		const variableRegex = /\?\w+\b/g;
+		let seenVariables = line.match(variableRegex);
+		if (seenVariables) {
+			// at first we know only the variable in our current line and do not use any other lines
+			let linesTaken = [];
+			let foundNewVariables = true;
+			while (foundNewVariables) {
+				foundNewVariables = false;
+				for (const curLine of lines) {
+					if (curLine == "" || linesTaken.indexOf(curLine) != -1) {
+						continue;
+					}
+					// check for each already seen variable
+					for (const seenVariable of seenVariables) {
+						if (RegExp('\\' + seenVariable + "\\b").test(curLine)) {
+							linesTaken.push(curLine);
+							// search for variables
+							for (const lineVariable of curLine.match(variableRegex)) {
+								if (seenVariables.indexOf(lineVariable) == -1) {
+									seenVariables.push(lineVariable);
+									// do another iteration because there are new variables
+									foundNewVariables = true;
 								}
 							}
-							allLineVariables = variableRegex.exec(lines[i]);
+							break;
 						}
 					}
 				}
 			}
+
 			lines = [];
 			for (var line of linesTaken) {
 				let trimmed = line.trim();
@@ -428,7 +427,7 @@ function getDynamicSuggestions(context) {
 				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";
 				nameList = predicateNames;
-				response = ['ql:contains-entity ', 'ql:contains-word '];
+				response = PREDICATESUGGESTIONS;
 				// add single prefixes to suggestions
 				response = response.concat(getPrefixNameSuggestions(word));
 				if (suggestionMode == 1) {
@@ -534,10 +533,10 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 	sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
 
 
-	var linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_LINES%/);
+	var linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_TRIPLES%/);
 	while (linePlaceholder != null) {
-		sparqlLines = sparqlLines.replace(/%CONNECTED_LINES%/g, lines.join(linePlaceholder[1]));
-		linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_LINES%/);
+		sparqlLines = sparqlLines.replace(/%CONNECTED_TRIPLES%/g, lines.join(linePlaceholder[1]));
+		linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_TRIPLES%/);
 	}
 
 	if (words.length > 0) {
@@ -547,33 +546,78 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 		sparqlLines = sparqlLines.replace(/%CURRENT_PREDICATE%/g, words[1]);
 	}
 
-	if (word.length == 0) {
-		var match = sparqlLines.match(/#\sIF CURRENT_WORD\s#/);
-		var if_declarations = [];
-		var substrIdx = 0;
-		while (match != null) {
-			var index = match.index;
-			var len = match[0].length;
-			substrIdx += index + len;
-			if_declarations.push(substrIdx - len);
-			var substr = sparqlLines.slice(substrIdx);
-			match = substr.match(/#\sIF CURRENT_WORD\s#/);
-		}
-
-		for (var start of if_declarations.reverse()) {
-			var match = sparqlLines.slice(start).match(/#\sENDIF\s#/);
-			if (match == null) {
-				continue;
-			}
-			var index = start + match.index;
-			var len = match[0].length;
-			sparqlLines = sparqlLines.slice(0, start) + sparqlLines.slice(index + len);
-		}
-	} else {
-		sparqlLines = sparqlLines.replace(/#\sIF CURRENT_WORD\s#/g, "").replace(/#\sENDIF\s#/g, "");
-	}
+	sparqlLines = evaluateIfStatements(sparqlLines, word, lines, words)
 
 	return sparqlLines;
+}
+
+function evaluateIfStatements(completionQuery, word, lines, words) {
+	// find all IF statements
+	let if_statements = [];
+	const ifRegex = /#\sIF (!?[A-Z_]+)\s#/;
+	let match = completionQuery.match(ifRegex);
+	let substrIdx = 0;
+	while (match != null) {
+		// find all IF declarations
+		const index = match.index;
+		const len = match[0].length;
+		substrIdx += index + len;
+		if_statements.push({ 'IF': { 'index': substrIdx - len, 'len': len }, 'condition': match[1] });
+		const substr = completionQuery.slice(substrIdx);
+		match = substr.match(ifRegex);
+	}
+
+	if_statements = if_statements.reverse();
+	for (const i in if_statements) {
+		// find matching ENDIFs
+		const start = if_statements[i]['IF']['index'];
+		const match = completionQuery.slice(start).match(/#\sENDIF\s#/);
+		if (match == null) {
+			continue;
+		}
+		const index = start + match.index;
+		const len = match[0].length;
+		if_statements[i]['ENDIF'] = { 'index': index, 'len': len }
+	}
+
+	for (const statement of if_statements) {
+		let conditionSatisfied = parseAndEvaluateCondition(statement.condition, word, lines, words);
+
+		if (conditionSatisfied) {
+			completionQuery = completionQuery.slice(0, statement['IF']['index'])
+				+ completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index'])
+				+ completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len'])
+		} else {
+			completionQuery = completionQuery.slice(0, statement['IF']['index']) + completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		}
+	}
+
+	return completionQuery
+}
+
+function parseAndEvaluateCondition(condition, word, lines, words) {
+	const negated = condition.startsWith("!");
+	if (negated) {
+		condition = condition.slice(1);
+	}
+
+	let conditionSatisfied = false;
+	if (condition == "CURRENT_WORD_EMPTY") {
+		conditionSatisfied = (word.length == 0);
+	} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
+		conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
+	} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
+		conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
+	} else if (condition == "CONNECTED_LINES_EMPTY") {
+		conditionSatisfied = (lines.length == 0);
+	} else {
+		console.error(`Invalid condition in IF statement: '${condition}'`);
+	}
+
+	if (negated) {
+		conditionSatisfied = !conditionSatisfied;
+	}
+	return conditionSatisfied;
 }
 
 function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList, predicateForObject, word) {
