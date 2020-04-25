@@ -36,6 +36,7 @@
           var KEYWORDS = {% autoescape off %}{{ backend.keywords }}{% endautoescape %};
           var FUNCTIONS = {% autoescape off %}{{ backend.functions }}{% endautoescape %};
           var PREDICATESUGGESTIONS = {% autoescape off %}{{ backend.predicateSuggestions }}{% endautoescape %};
+          var SUGGEST_PREFIXNAMES_FOR_PREDICATES = {{ backend.suggestPrefixnamesForPredicates|lower }};
           var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
           var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
           var REPLACE_PREDICATES = {% autoescape off %}{{ backend.replacePredicatesList }}{% endautoescape %};
