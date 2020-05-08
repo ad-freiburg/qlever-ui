@@ -225,6 +225,11 @@ function htmlEscape(str) {
     // return $("<div/>").text(str).html();
 }
 
+function escapeRegExp(string) {
+    // Escapes strings for use in QLever REGEX filter
+    return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\\\$&'); // $& means the whole matched string
+}
+
 function getShortStr(str, maxLength, column = undefined) {
     str = str.replace(/_/g, ' ');
     var pos;

@@ -530,6 +530,7 @@ function getDynamicSuggestions(context) {
 }
 
 function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words) {
+	word = escapeRegExp(word);
 	var word_with_bracket = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
 	sparqlLines = completionQuery.replace(/%<CURRENT_WORD%/g, word_with_bracket).replace(/%CURRENT_WORD%/g, word);
 	sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
