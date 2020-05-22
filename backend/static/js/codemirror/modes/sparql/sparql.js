@@ -217,10 +217,8 @@ var COMPLEXTYPES = [
     },
     {
         name: 'FILTER LANGUAGE',
-        definition: /FILTER langMatches(.*)/g,
-        suggestions: [['FILTER langMatches(lang(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER langMatches(lang(" + v) == -1) { a.push(v); } }; return a; }, '), ', LANGUAGES, ') .\n']],
-        definition: /FILTER (lang(.*))/g,
-        suggestions: [['FILTER (lang(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER langMatches(lang(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
+        definition: /FILTER (LANG(.*))/g,
+        suggestions: [['FILTER (LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER (LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
         availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
         requiresEmptyLine: true,
     },
