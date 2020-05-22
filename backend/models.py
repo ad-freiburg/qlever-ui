@@ -142,6 +142,11 @@ class Backend(models.Model):
         help_text="Suggest Prefix names without a particular entity when autocompleting predicates.",
         verbose_name="Suggest prefix names for predicates.")
 
+    suggestSubjectsInEmptyLine = models.BooleanField(
+        default=False,
+        help_text="Suggest subjects when no character has been typed yet.",
+        verbose_name="Suggest subjects in empty lines.")
+
     fillPrefixes = models.BooleanField(
         default=True,
         help_text="Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.",

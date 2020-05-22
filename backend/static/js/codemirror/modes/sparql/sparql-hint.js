@@ -417,12 +417,13 @@ function getDynamicSuggestions(context) {
 			if (words.length == 1) {
 				suggestVariables = "both";
 				appendToSuggestions = " ";
-				if (SUGGESTSUBJECTS.length > 0) {
+				if (SUGGESTSUBJECTS.length > 0 && (word.length > 0 || SUGGEST_SUBJECTS_IN_EMPTY_LINE)) {
 					completionQuery = SUGGESTSUBJECTS;
 					nameList = subjectNames;
 				} else {
 					sendSparql = false;
 				}
+
 			} else if (words.length == 2) {
 				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";

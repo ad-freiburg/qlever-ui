@@ -41,6 +41,7 @@
           var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
           var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
           var REPLACE_PREDICATES = {% autoescape off %}{{ backend.replacePredicatesList }}{% endautoescape %};
+          var SUGGEST_SUBJECTS_IN_EMPTY_LINE = {{ backend.suggestSubjectsInEmptyLine|lower }};
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);
