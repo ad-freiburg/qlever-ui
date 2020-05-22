@@ -1,4 +1,4 @@
-id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,filteredLanguage,dynamicSuggestions,suggestSubjects,suggestPredicates,suggestObjects,subjectName,alternativeSubjectName,predicateName,alternativePredicateName,objectName,alternativeObjectName,replacePredicates,supportedKeywords,supportedFunctions,fillPrefixes,filterEntities
+id,name,baseUrl,ntFilePath,ntFileLastChange,isDefault,isImporting,maxDefault,filteredLanguage,dynamicSuggestions,suggestSubjects,suggestPredicates,suggestObjects,subjectName,predicateName,objectName,replacePredicates,supportedKeywords,supportedFunctions,supportedPredicateSuggestions,suggestPrefixnamesForPredicates,suggestSubjectsInEmptyLine,fillPrefixes,filterEntities
 9999,Wikidata Full @ Uni Freiburg,http://qlever.informatik.uni-freiburg.de/api/wikidata-full,,0,1,0,100,en,2,"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_altname) as ?qleverui_altname) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {
 # IF !CURRENT_WORD_EMPTY #
   {
@@ -195,12 +195,9 @@ SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qlev
 }
 # ENDIF #
 GROUP BY ?qleverui_entity
-ORDER BY DESC(?qleverui_count)",?qleverui_entity @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name .,?qleverui_entity @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname .,"{ ?qleverui_claim <http://wikiba.se/ontology#directClaim> ?qleverui_entity .	
+ORDER BY DESC(?qleverui_count)",?qleverui_entity @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name .,"{ ?qleverui_claim <http://wikiba.se/ontology#directClaim> ?qleverui_entity .	
       ?qleverui_claim @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name } UNION	
       { ?qleverui_claim <http://wikiba.se/ontology#claim> ?qleverui_entity .	
-      ?qleverui_claim @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name }  .","{ ?qleverui_claim <http://wikiba.se/ontology#directClaim> ?qleverui_entity .	
-      ?qleverui_claim @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname } UNION	
-      { ?qleverui_claim <http://wikiba.se/ontology#claim> ?qleverui_entity .	
-      ?qleverui_claim @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname }",?qleverui_entity @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name .,?qleverui_entity @en@<http://www.w3.org/2004/02/skos/core#altLabel> ?qleverui_altname .,"<http://www.w3.org/2000/01/rdf-schema#label>       @en@<http://www.w3.org/2000/01/rdf-schema#label>
+      ?qleverui_claim @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name }  .",?qleverui_entity @en@<http://www.w3.org/2000/01/rdf-schema#label> ?qleverui_name .,"<http://www.w3.org/2000/01/rdf-schema#label>       @en@<http://www.w3.org/2000/01/rdf-schema#label>
 <http://schema.org/name>                                              @en@<http://schema.org/name>
-<http://wikiba.se/ontology#label>                                  @en@<http://wikiba.se/ontology#label>","prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate","asc, desc, avg, values, score, text, count, sample, min, max, average, concat, group_concat, langMatches, lang, regex, sum",1,0
+<http://wikiba.se/ontology#label>                                  @en@<http://wikiba.se/ontology#label>","prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate","asc, desc, avg, values, score, text, count, sample, min, max, average, concat, group_concat, langMatches, lang, regex, sum","ql:contains-word, ql:contains-entity",1,0,1,0

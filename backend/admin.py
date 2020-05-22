@@ -33,7 +33,7 @@ class BackendAdmin(ImportExportModelAdmin):
             'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
         }),
         ('Showing names', {
-            'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
+            'fields': ('subjectName', 'predicateName', 'objectName'),
         }),
     )
 
