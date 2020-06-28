@@ -269,7 +269,9 @@ function processQuery(query, showStatus, element) {
             if (result.status == "ERROR") { displayError(result); return; }
             var res = '<div id="res">';
             var nofRows = result.res.length;
-            $('#resultSize').html(result.resultsize);
+
+            let resultSize = tsep(result.resultsize.toString());
+            $('#resultSize').html(resultSize);
             $('#totalTime').html(result.time.total);
             $('#computationTime').html(result.time.computeResult);
             $('#jsonTime').html((parseInt(result.time.total.replace(/ms/, "")) -
@@ -285,7 +287,7 @@ function processQuery(query, showStatus, element) {
                 mapViewButton = `<a class="btn btn-default" href="${mapViewUrl}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
             }
             if (nofRows < parseInt(result.resultsize)) {
-                showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${result.resultsize} results.</a>`;
+                showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${resultSize} results.</a>`;
             }
 
             if (showAllButton || mapViewButton) {
