@@ -324,7 +324,7 @@ function processQuery(query, showStatus, element) {
             tableHead.html(head);
             var tableBody = $('#resTable tbody');
             tableBody.html("");
-            var i = 0;
+            var i = 1;
             for (var resultLine of result.res) {
                 var row = "<tr>";
                 row += "<td>" + i + "</td>";
