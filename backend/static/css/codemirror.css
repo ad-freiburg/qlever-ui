@@ -46,6 +46,14 @@
   border-right: none;
   width: 0;
 }
+
+/* Can style cursor different in overwrite (non-insert) mode */
+.CodeMirror-overwrite .CodeMirror-cursor {
+  width: auto;
+  border: 0 !important;
+  background: rgba(73, 182, 255, 0.329);
+}
+
 /* Shown when moving in bi-directional text */
 .CodeMirror div.CodeMirror-secondarycursor {
   border-left: 1px solid silver;
@@ -82,9 +90,6 @@
   50% { background-color: transparent; }
   100% {}
 }
-
-/* Can style cursor different in overwrite (non-insert) mode */
-.CodeMirror-overwrite .CodeMirror-cursor {}
 
 .cm-tab { display: inline-block; text-decoration: inherit; }
 

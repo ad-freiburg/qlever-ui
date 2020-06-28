@@ -54,195 +54,195 @@ var CONTEXTS = [
 ];
 
 var COMPLEXTYPES = [
-{
-    name: 'PREFIX',
-    definition: /PREFIX (.*)/g,
-    suggestions: [['PREFIX ',function(c){ return getPrefixSuggestions(c); },'\n'],['PREFIX '],['PREFIX p1: <']],
-    availableInContext: ['PrefixDecl','undefined'],
-    
-},
-{
-    name: 'SELECT',
-    definition: /SELECT (.*)/g,
-    suggestions: [['SELECT  WHERE {\n  \n}\n']],
-    availableInContext: ['PrefixDecl','undefined','SubQuery'],
-    onlyOnce: true,
-    
-},
-{
-    name: 'DISTINCT',
-    definition: /DISTINCT|[?\w]+ [?\w]*/g,
-    suggestions: [['DISTINCT ']],
-    availableInContext: ['SelectClause'],
-    onlyOnce: true,
-    onlyOncePerVariation: false,
-},
-{
-    name: 'VARIABLE',
-    definition: /\?([a-zA-Z]*)/g,
-    suggestions: [[function(c){ var a = []; $(getVariables(c,true)).each(function(k,v){ a.push(v+' ')}); return a;}]],
-    availableInContext: ['SelectClause','OrderCondition','GroupCondition'],
-    
-},
-{
-    name: 'TEXT',
-    definition: /TEXT\((.*)\)/g,
-    suggestions: [['TEXT(',function(c){ var a = []; $(getVariables(c,true,"text")).each(function(k,v){ a.push(v)}); return a; },') ']],
-    availableInContext: ['SelectClause'],
-    
-},
-{
-    name: 'SCORE',
-    definition: /SCORE\((.*)\)/g,
-    suggestions: [['SCORE(',function(c){ var a = []; $(getVariables(c,true,"text")).each(function(k,v){ a.push(v)}); return a; },') ']],
-    availableInContext: ['SelectClause','OrderCondition'],
-    
-},
-{
-    name: 'MIN',
-    definition: /\(MIN\((.*)\) as (.*)\)/g,
-    suggestions: [['(MIN(',function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?min_{[0]}) ']],
-    availableInContext: ['SelectClause','OrderCondition'],
-    
-},
-{
-    name: 'MAX',
-    definition: /\(MAX\((.*)\) as (.*)\)/g,
-    suggestions: [['(MAX(',function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?max_{[0]}) ']],
-    availableInContext: ['SelectClause','OrderCondition'],
-    
-},
-{
-    name: 'SUM',
-    definition: /\(SUM\((.*)\) as (.*)\)/g,
-    suggestions: [['(SUM(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sum_{[1]}) ']],
-    availableInContext: ['SelectClause','OrderCondition'],
-    
-},
-{
-    name: 'AVG',
-    definition: /\(AVG\((.*)\) as (.*)\)/g,
-    suggestions: [['(AVG(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?avg_{[1]}) ']],
-    availableInContext: ['SelectClause','OrderCondition'],
-    
-},
-{
-    name: 'SAMPLE',
-    definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
-    suggestions: [['(SAMPLE(',function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?sample_{[0]}) ']],
-    availableInContext: ['SelectClause'],
-    
-},
-{
-    name: 'COUNT',
-    definition: /\(COUNT\((.*)\) as (.*)\)/g,
-    suggestions: [['(COUNT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?count_{[1]}) ']],
-    availableInContext: ['SelectClause'],
-    
-},
-{
-    name: 'GROUP_CONCAT',
-    definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
-    suggestions: [['(GROUP_CONCAT(',['DISTINCT ',''],function(c){ if(getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1){ return getVariables(c,true); } else { return false; } },') as ?concat_{[1]}) ']],
-    availableInContext: ['SelectClause'],
-    
-},
-{
-    name: 'LIMIT',
-    definition: /\bLIMIT ([0-9+])/g,
-    suggestions: [['LIMIT ',[1,10,100,1000],'\n']],
-    availableInContext: ['SolutionModifier'],
-    onlyOnce: true,
-    
-},
-{
-    name: 'TEXTLIMIT',
-    definition: /TEXTLIMIT ([0-9+])/g,
-    suggestions: [['TEXTLIMIT ',[2,5,10],'\n']],
-    availableInContext: ['SolutionModifier'],
-    onlyOnce: true,
-    
-},
-{
-    name: 'ASC',
-    definition: /ASC(\?.*)/g,
-    suggestions: [['ASC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); }; return a; },') ']],
-    availableInContext: ['OrderCondition'],
+    {
+        name: 'PREFIX',
+        definition: /PREFIX (.*)/g,
+        suggestions: [['PREFIX ', function (c) { return getPrefixSuggestions(c); }, '\n'], ['PREFIX '], ['PREFIX p1: <']],
+        availableInContext: ['PrefixDecl', 'undefined'],
 
-},
-{
-    name: 'DESC',
-    definition: /DESC(\?.*)/g,
-    suggestions: [['DESC(',function(c){ var a = getVariables(c); for (var v of getVariables(c,undefined,"text")) { a.push("SCORE("+v+")"); }; return a; },') ']],
-    availableInContext: ['OrderCondition'],
-    
-},
-{
-    name: 'ORDER BY',
-    definition: /ORDER BY .*/g,
-    suggestions: [['ORDER BY ']],
-    availableInContext: ['SolutionModifier'],
-    onlyOnce: true,
-    
-},
-{
-    name: 'GROUP BY',
-    definition: /GROUP BY \?(.+)/g,
-    suggestions: [['GROUP BY ']],
-    availableInContext: ['SolutionModifier'],
-    onlyOnce: true,
-    
-},
-{
-    name: 'HAVING',
-    definition: /HAVING \?(.+)/g,
-    suggestions: [['HAVING (', function(c){ return getVariables(c);},' ']],
-    availableInContext: ['SolutionModifier'],
-    onlyOnce: true,
-    
-},
-{
-    name: 'TRIPLE',
-    suggestions: [[ function(c){ return getDynamicSuggestions(c); }]],
-    availableInContext: ['WhereClause','OptionalClause','UnionClause'],
-    onlyOncePerVariation: false,
-},
-{
-    name: 'FILTER',
-    definition: /FILTER \((.*)/g,
-    suggestions: [['FILTER (', function(c){ return getVariables(c,undefined,undefined,FILTER_TYPES);},' ']],
-    availableInContext: ['WhereClause','OptionalClause','UnionClause'],
-    requiresEmptyLine: true,
-    onlyOncePerVariation: false
-},
-{
-    name: 'FILTER LANGUAGE',
-    definition: /FILTER langMatches(.*)/g,
-    suggestions: [['FILTER langMatches(lang(', function(c){ var a = []; for (var v of getVariables(c,undefined,undefined,LANGUAGELITERAL)) { if(editor.getValue().indexOf("FILTER langMatches(lang("+v) == -1){ a.push(v); } }; return a;  }, '), ', LANGUAGES ,') .\n']],
-    availableInContext: ['WhereClause','OptionalClause','UnionClause'],
-    requiresEmptyLine: true,
-},
-{
-    name: 'SUBQUERY',
-    suggestions: [['{\n\n}']],
-    availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
-    suggestOnlyWhenMatch: true,
-    requiresEmptyLine: true,
-},
-{
-    name: 'OPTIONAL',
-    suggestions: [['OPTIONAL {\n\n}\n']],
-    availableInContext: ['WhereClause'],
-    suggestOnlyWhenMatch: true,
-    requiresEmptyLine: true,
-},
-{
-    name: 'UNION',
-    suggestions: [['UNION {\n\n}\n']],
-    availableInContext: ['WhereClause'],
-    suggestOnlyWhenMatch: true,
-    requiresEmptyLine: true,
-},
+    },
+    {
+        name: 'SELECT',
+        definition: /SELECT (.*)/g,
+        suggestions: [['SELECT  WHERE {\n  \n}\n']],
+        availableInContext: ['PrefixDecl', 'undefined', 'SubQuery'],
+        onlyOnce: true,
+
+    },
+    {
+        name: 'DISTINCT',
+        definition: /DISTINCT|[?\w]+ [?\w]*/g,
+        suggestions: [['DISTINCT ']],
+        availableInContext: ['SelectClause'],
+        onlyOnce: true,
+        onlyOncePerVariation: false,
+    },
+    {
+        name: 'VARIABLE',
+        definition: /\?([a-zA-Z]*)/g,
+        suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' ') }); return a; }]],
+        availableInContext: ['SelectClause', 'OrderCondition', 'GroupCondition'],
+
+    },
+    {
+        name: 'TEXT',
+        definition: /TEXT\((.*)\)/g,
+        suggestions: [['TEXT(', function (c) { var a = []; $(getVariables(c, true, "text")).each(function (k, v) { a.push(v) }); return a; }, ') ']],
+        availableInContext: ['SelectClause'],
+
+    },
+    {
+        name: 'SCORE',
+        definition: /SCORE\((.*)\)/g,
+        suggestions: [['SCORE(', function (c) { var a = []; $(getVariables(c, true, "text")).each(function (k, v) { a.push(v) }); return a; }, ') ']],
+        availableInContext: ['SelectClause', 'OrderCondition'],
+
+    },
+    {
+        name: 'MIN',
+        definition: /\(MIN\((.*)\) as (.*)\)/g,
+        suggestions: [['(MIN(', function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?min_{[0]}) ']],
+        availableInContext: ['SelectClause', 'OrderCondition'],
+
+    },
+    {
+        name: 'MAX',
+        definition: /\(MAX\((.*)\) as (.*)\)/g,
+        suggestions: [['(MAX(', function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?max_{[0]}) ']],
+        availableInContext: ['SelectClause', 'OrderCondition'],
+
+    },
+    {
+        name: 'SUM',
+        definition: /\(SUM\((.*)\) as (.*)\)/g,
+        suggestions: [['(SUM(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?sum_{[1]}) ']],
+        availableInContext: ['SelectClause', 'OrderCondition'],
+
+    },
+    {
+        name: 'AVG',
+        definition: /\(AVG\((.*)\) as (.*)\)/g,
+        suggestions: [['(AVG(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?avg_{[1]}) ']],
+        availableInContext: ['SelectClause', 'OrderCondition'],
+
+    },
+    {
+        name: 'SAMPLE',
+        definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
+        suggestions: [['(SAMPLE(', function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?sample_{[0]}) ']],
+        availableInContext: ['SelectClause'],
+
+    },
+    {
+        name: 'COUNT',
+        definition: /\(COUNT\((.*)\) as (.*)\)/g,
+        suggestions: [['(COUNT(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?count_{[1]}) ']],
+        availableInContext: ['SelectClause'],
+
+    },
+    {
+        name: 'GROUP_CONCAT',
+        definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
+        suggestions: [['(GROUP_CONCAT(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?concat_{[1]}) ']],
+        availableInContext: ['SelectClause'],
+
+    },
+    {
+        name: 'LIMIT',
+        definition: /\bLIMIT ([0-9+])/g,
+        suggestions: [['LIMIT ', [1, 10, 100, 1000], '\n']],
+        availableInContext: ['SolutionModifier'],
+        onlyOnce: true,
+
+    },
+    {
+        name: 'TEXTLIMIT',
+        definition: /TEXTLIMIT ([0-9+])/g,
+        suggestions: [['TEXTLIMIT ', [2, 5, 10], '\n']],
+        availableInContext: ['SolutionModifier'],
+        onlyOnce: true,
+
+    },
+    {
+        name: 'ASC',
+        definition: /ASC(\?.*)/g,
+        suggestions: [['ASC(', function (c) { var a = getVariables(c); for (var v of getVariables(c, undefined, "text")) { a.push("SCORE(" + v + ")"); }; return a; }, ') ']],
+        availableInContext: ['OrderCondition'],
+
+    },
+    {
+        name: 'DESC',
+        definition: /DESC(\?.*)/g,
+        suggestions: [['DESC(', function (c) { var a = getVariables(c); for (var v of getVariables(c, undefined, "text")) { a.push("SCORE(" + v + ")"); }; return a; }, ') ']],
+        availableInContext: ['OrderCondition'],
+
+    },
+    {
+        name: 'ORDER BY',
+        definition: /ORDER BY .*/g,
+        suggestions: [['ORDER BY ']],
+        availableInContext: ['SolutionModifier'],
+        onlyOnce: true,
+
+    },
+    {
+        name: 'GROUP BY',
+        definition: /GROUP BY \?(.+)/g,
+        suggestions: [['GROUP BY ']],
+        availableInContext: ['SolutionModifier'],
+        onlyOnce: true,
+
+    },
+    {
+        name: 'HAVING',
+        definition: /HAVING \?(.+)/g,
+        suggestions: [['HAVING (', function (c) { return getVariables(c); }, ' ']],
+        availableInContext: ['SolutionModifier'],
+        onlyOnce: true,
+
+    },
+    {
+        name: 'TRIPLE',
+        suggestions: [[function (c) { return getDynamicSuggestions(c); }]],
+        availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
+        onlyOncePerVariation: false,
+    },
+    {
+        name: 'FILTER',
+        definition: /FILTER \((.*)/g,
+        suggestions: [['FILTER (', function (c) { return getVariables(c, undefined, undefined, FILTER_TYPES); }, ' ']],
+        availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
+        requiresEmptyLine: true,
+        onlyOncePerVariation: false
+    },
+    {
+        name: 'FILTER LANGUAGE',
+        definition: /FILTER (LANG(.*))/g,
+        suggestions: [['FILTER (LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER (LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
+        availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
+        requiresEmptyLine: true,
+    },
+    {
+        name: 'SUBQUERY',
+        suggestions: [['{\n\n}']],
+        availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
+        suggestOnlyWhenMatch: true,
+        requiresEmptyLine: true,
+    },
+    {
+        name: 'OPTIONAL',
+        suggestions: [['OPTIONAL {\n\n}\n']],
+        availableInContext: ['WhereClause'],
+        suggestOnlyWhenMatch: true,
+        requiresEmptyLine: true,
+    },
+    {
+        name: 'UNION',
+        suggestions: [['UNION {\n\n}\n']],
+        availableInContext: ['WhereClause'],
+        suggestOnlyWhenMatch: true,
+        requiresEmptyLine: true,
+    },
 ];
 
 
@@ -259,46 +259,46 @@ var COMPLEXTYPES = [
 
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
-(function(mod) {
+(function (mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
         mod(require("../../lib/codemirror"));
     else if (typeof define == "function" && define.amd) // AMD
         define(["../../lib/codemirror"], mod);
     else // Plain browser env
         mod(CodeMirror);
-})(function(CodeMirror) {
+})(function (CodeMirror) {
     "use strict";
 
-    CodeMirror.defineMode("sparql", function(config) {
+    CodeMirror.defineMode("sparql", function (config) {
         var indentUnit = config.indentUnit;
         var curPunc;
 
-		// -----------------------------------------------------
-		// 	   List and detect language keywords
-		// -----------------------------------------------------
+        // -----------------------------------------------------
+        // 	   List and detect language keywords
+        // -----------------------------------------------------
 
-		function wordRegexp(words) {
+        function wordRegexp(words) {
             return new RegExp("^(?:" + words.join("|") + ")$", "i");
         }
 
         var keywords = wordRegexp(KEYWORDS);
         var functions = wordRegexp(FUNCTIONS);
 
-		// -----------------------------------------------------
-		// 	   Detect tokens and their types
-		// -----------------------------------------------------
+        // -----------------------------------------------------
+        // 	   Detect tokens and their types
+        // -----------------------------------------------------
         function tokenBase(stream, state) {
             var ch = stream.next();
             var before = "";
-            
+
             curPunc = null;
-            
+
             if (ch == "?") {
-	            before = getBefore(stream, /\s/);
-	            var isAggregate = (before != "" && stream.peekback(before.length+3).match(/\s/) && stream.peekback(before.length+2) == "a" && stream.peekback(before.length+1) == "s");
+                before = getBefore(stream, /\s/);
+                var isAggregate = (before != "" && stream.peekback(before.length + 3).match(/\s/) && stream.peekback(before.length + 2) == "a" && stream.peekback(before.length + 1) == "s");
                 stream.match(/^[\w\d]*/);
                 if (isAggregate) {
-	                return "variable aggregate-variable";	
+                    return "variable aggregate-variable";
                 }
                 return "variable";
             } else if (ch == "\"" || ch == "'") {
@@ -311,28 +311,28 @@ var COMPLEXTYPES = [
                 curPunc = ch;
                 return "control";
             } else if (ch == "<") {
-	            before = getBefore(stream, /[\s:]/);
+                before = getBefore(stream, /[\s:]/);
                 stream.match(/^[\S]*>/);
-                
+
                 if (before.indexOf(":") != -1) {
-	                return "prefix-declaration prefix-value";
+                    return "prefix-declaration prefix-value";
                 }
                 return "entity";
-            }  else if (ch == "@") {
+            } else if (ch == "@") {
                 stream.match(/[\w-]*@/);
                 return "string string-language";
-            }  else if (ch == "#") {
+            } else if (ch == "#") {
                 stream.match(/.*/);
                 return "comment";
-            } else  {
-	            before = getBefore(stream, /:/);
+            } else {
+                before = getBefore(stream, /:/);
                 var match = stream.match(/[_\w\d\.-]*(:(\s*))?/);
                 var word = stream.current();
                 if (match && match[2] !== undefined) {
-	                if (match[2].length > 0) {
-		                stream.backUp(match[2].length);
-		                return "prefix-declaration prefix-name";
-	                }
+                    if (match[2].length > 0) {
+                        stream.backUp(match[2].length);
+                        return "prefix-declaration prefix-name";
+                    }
                     return "entity prefixed-entity prefix-name";
                 } else if (word.match(/^[.|<|>|=]+$/)) {
                     return "control";
@@ -341,44 +341,44 @@ var COMPLEXTYPES = [
                 } else if (functions.test(word)) {
                     return "function";
                 } else if (before.length > 0) {
-		            return "entity prefixed-entity entity-name"
-	            } else if (word.match(/[\d]+/)) {
-	            	return "literal";
-	            }
-	            // console.warn("Could not tokenize word: " + word);
+                    return "entity prefixed-entity entity-name"
+                } else if (word.match(/[\d]+/)) {
+                    return "literal";
+                }
+                // console.warn("Could not tokenize word: " + word);
                 return "other";
             }
         }
 
-		
-		function getBefore(stream, chars) {
-			var before = "";
-			var i = 1;
-			var ch = stream.peekback(i);
-			while (ch != null && ch.match(chars)) {
-				before = ch + before;
-				ch = stream.peekback(++i);
-			}
-			return before;
-		}
 
-		// support escaping inside strings
+        function getBefore(stream, chars) {
+            var before = "";
+            var i = 1;
+            var ch = stream.peekback(i);
+            while (ch != null && ch.match(chars)) {
+                before = ch + before;
+                ch = stream.peekback(++i);
+            }
+            return before;
+        }
+
+        // support escaping inside strings
         function tokenLiteral(quote) {
-            return function(stream, state) {
+            return function (stream, state) {
                 var escaped = false;
                 var ch;
                 while ((ch = stream.next()) != null) {
-	                if (ch == quote && !escaped) {
-	                    state.tokenize = tokenBase;
-	                    break;
-	                }
+                    if (ch == quote && !escaped) {
+                        state.tokenize = tokenBase;
+                        break;
+                    }
                     escaped = !escaped && ch == "\\";
                 }
                 return "string string-value";
             };
         }
 
-		// Go deeper into scope
+        // Go deeper into scope
         function pushContext(state, type, col) {
             state.context = {
                 prev: state.context,
@@ -388,7 +388,7 @@ var COMPLEXTYPES = [
             };
         }
 
-		// Escape from scope
+        // Escape from scope
         function popContext(state) {
             state.indent = state.context.indent;
             state.context = state.context.prev;
@@ -396,7 +396,7 @@ var COMPLEXTYPES = [
 
         return {
 
-            startState: function() {
+            startState: function () {
                 return {
                     tokenize: tokenBase,
                     context: null,
@@ -405,7 +405,7 @@ var COMPLEXTYPES = [
                 };
             },
 
-            token: function(stream, state) {
+            token: function (stream, state) {
                 if (stream.sol()) {
                     if (state.context && state.context.align == null) state.context.align = false;
                     state.indent = stream.indentation();
@@ -440,7 +440,7 @@ var COMPLEXTYPES = [
                 return style;
             },
 
-            indent: function(state, textAfter) {
+            indent: function (state, textAfter) {
                 var firstChar = textAfter && textAfter.charAt(0);
                 var context = state.context;
                 if (/[\]\}]/.test(firstChar))
