@@ -251,6 +251,28 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
     }
 }
 
+
+function getResultTime(resultTimes) {
+    let timeList = [
+        parseFloat(resultTimes.total.replace(/[^\d\.]/g, "")),
+        parseFloat(resultTimes.computeResult.replace(/[^\d\.]/g, ""))
+    ];
+    timeList.push(timeList[0] - timeList[1]);  // time for resolving and sending
+
+    for (const i in timeList) {
+        const time = timeList[i];
+        let timeAmount = Math.round(time);
+        if (!isNaN(timeAmount)) {
+            if (timeAmount == 0) {
+                timeAmount = time.toPrecision(2);
+            }
+            timeAmount = tsep(timeAmount.toString());
+            timeList[i] = `${timeAmount}ms`;
+        }
+    }
+    return timeList;
+}
+
 function processQuery(query, showStatus, element) {
 
     log('Preparing query...', 'other');
@@ -269,11 +291,12 @@ function processQuery(query, showStatus, element) {
             if (result.status == "ERROR") { displayError(result); return; }
             var res = '<div id="res">';
             var nofRows = result.res.length;
-            $('#resultSize').html(result.resultsize);
-            $('#totalTime').html(result.time.total);
-            $('#computationTime').html(result.time.computeResult);
-            $('#jsonTime').html((parseInt(result.time.total.replace(/ms/, "")) -
-                parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
+            const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
+            let resultSize = tsep(result.resultsize.toString());
+            $('#resultSize').html(resultSize);
+            $('#totalTime').html(totalTime);
+            $('#computationTime').html(computeTime);
+            $('#jsonTime').html(resolveTime);
 
             const columns = result.selected;
 
@@ -285,7 +308,7 @@ function processQuery(query, showStatus, element) {
                 mapViewButton = `<a class="btn btn-default" href="${mapViewUrl}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
             }
             if (nofRows < parseInt(result.resultsize)) {
-                showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${result.resultsize} results.</a>`;
+                showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${resultSize} results.</a>`;
             }
 
             if (showAllButton || mapViewButton) {
@@ -301,7 +324,7 @@ function processQuery(query, showStatus, element) {
             tableHead.html(head);
             var tableBody = $('#resTable tbody');
             tableBody.html("");
-            var i = 0;
+            var i = 1;
             for (var resultLine of result.res) {
                 var row = "<tr>";
                 row += "<td>" + i + "</td>";
