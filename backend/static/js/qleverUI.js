@@ -251,6 +251,28 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
     }
 }
 
+
+function getResultTime(resultTimes) {
+    let timeList = [
+        parseFloat(resultTimes.total.replace(/[^\d\.]/g, "")),
+        parseFloat(resultTimes.computeResult.replace(/[^\d\.]/g, ""))
+    ];
+    timeList.push(timeList[0] - timeList[1]);  // time for resolving and sending
+
+    for (const i in timeList) {
+        const time = timeList[i];
+        let timeAmount = Math.round(time);
+        if (!isNaN(timeAmount)) {
+            if (timeAmount == 0) {
+                timeAmount = time.toPrecision(2);
+            }
+            timeAmount = tsep(timeAmount.toString());
+            timeList[i] = `${timeAmount}ms`;
+        }
+    }
+    return timeList;
+}
+
 function processQuery(query, showStatus, element) {
 
     log('Preparing query...', 'other');
@@ -269,13 +291,12 @@ function processQuery(query, showStatus, element) {
             if (result.status == "ERROR") { displayError(result); return; }
             var res = '<div id="res">';
             var nofRows = result.res.length;
-
+            const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
             let resultSize = tsep(result.resultsize.toString());
             $('#resultSize').html(resultSize);
-            $('#totalTime').html(result.time.total);
-            $('#computationTime').html(result.time.computeResult);
-            $('#jsonTime').html((parseInt(result.time.total.replace(/ms/, "")) -
-                parseInt(result.time.computeResult.replace(/ms/, ""))).toString() + 'ms');
+            $('#totalTime').html(totalTime);
+            $('#computationTime').html(computeTime);
+            $('#jsonTime').html(resolveTime);
 
             const columns = result.selected;
 
