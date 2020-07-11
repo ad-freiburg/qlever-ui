@@ -199,7 +199,7 @@ function showAllConcats(element, sep, column) {
     html = "";
     results = data.split(sep);
     for (var k = 0; k < results.length; k++) {
-        html += htmlEscape(getShortStr(results[k], 50, column)) + "<br>";
+        html += getShortStr(results[k], 50, column) + "<br>";
     }
     $(element).parent().html(html);
 }
@@ -219,10 +219,6 @@ function htmlEscape(str) {
     return str.replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/GT/g, ">")
-        .replace(/LT/g, "<")
-        .replace(/NBSP/g, "&nbsp;");
-    // return $("<div/>").text(str).html();
 }
 
 function getShortStr(str, maxLength, column = undefined) {
@@ -261,6 +257,9 @@ function getShortStr(str, maxLength, column = undefined) {
         str = str.slice(1, -1);
     }
     pos = cpy.lastIndexOf("^^")
+    let isLink = false;
+    let linkStart = "";
+    let linkEnd = "";
     if (pos > 0) {
         cpy = cpy.replace(/ /g, '_');
         link = cpy.substring(pos).match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
@@ -270,18 +269,26 @@ function getShortStr(str, maxLength, column = undefined) {
             columnHTML.html(content + columnHTML.html());
         }
     } else if (cpy.indexOf('http') > 0) {
+        isLink = true;
         cpy = cpy.replace(/ /g, '_');
         link = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
         checkLink = link.toLowerCase();
         if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
-            str = 'LTa href="' + link + '" target="_blank"GTLTimg src="' + link + '" width="50" GTLT/aGT';
+            str = "";
+            linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" >';
+            linkEnd = '</a>';
         } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
-            str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-file"GTLT/iGTNBSP' + str + 'LT/aGTLT/spanGT';
+            linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-file"></i>&nbsp;';
+            linkEnd = '</a></span>';
         } else {
-            str = 'LTspan style="white-space: nowrap;"GTLTa href="' + link + '" target="_blank"GTLTi class="glyphicon glyphicon-link"GTLT/iGTNBSP' + str + 'LT/aGTLT/spanGT';
+            linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-link"></i>&nbsp;';
+            linkEnd = '</a></span>';
         }
     }
-
+    str = htmlEscape(str);
+    if (isLink) {
+        str = `${linkStart}${str}${linkEnd}`;
+    }
     return str
     // old code
     str = str.replace(/\"/g, '\\"')

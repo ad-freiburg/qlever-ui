@@ -107,7 +107,7 @@ def shareLink(request):
         Generate a sharing link
     """
 
-    if request.GET.get('cleanup', False) == False:
+    if request.GET.get('cleanup') != 'true':
         content = request.POST.get('content')
         link = Link.objects.filter(content=content).first()
         if not link:
@@ -130,9 +130,8 @@ def shareLink(request):
         return JsonResponse({'link': link.identifier, "queryString": queryString})
 
     else:
-
-        Link.objects.all().delete()
-
+        if request.user.is_superuser:
+            Link.objects.all().delete()
         return redirect('/')
 
 #
