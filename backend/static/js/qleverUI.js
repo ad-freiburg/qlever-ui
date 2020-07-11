@@ -346,7 +346,7 @@ function processQuery(query, showStatus, element) {
                     } else {*/
                     if (resultColumn) {
                         row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
-                            htmlEscape(getShortStr(resultColumn, 50, j)) +
+                            getShortStr(resultColumn, 50, j) +
                             "</span></td>";
                     } else {
                         row += "<td><span>-</span></td>";
