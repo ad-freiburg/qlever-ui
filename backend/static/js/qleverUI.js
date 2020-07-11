@@ -178,7 +178,9 @@ $(document).ready(function () {
         // generate pretty link
         $.post('/api/share', { 'content': editor.getValue() }, function (result) {
             log('Got pretty link from backend', 'other');
-            window.history.pushState("html:index.html", "QLever", window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/' + result.link);
+            if (window.location.search.indexOf(result.queryString) == -1) {
+                window.history.pushState("html:index.html", "QLever", window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/' + result.link);
+            }
         }, 'json');
 
         if (editor.state.completionActive) { editor.state.completionActive.close(); }
