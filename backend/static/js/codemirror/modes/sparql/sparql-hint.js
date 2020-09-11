@@ -407,7 +407,7 @@ function getDynamicSuggestions(context) {
 		sparqlQuery = "";
 		var sendSparql = !(word.startsWith('?'));
 		var sparqlLines = "";
-		var nameClause;
+		var completionQuery = "";
 		var suggestVariables;
 		var appendToSuggestions = "";
 		var nameList;
@@ -417,17 +417,14 @@ function getDynamicSuggestions(context) {
 			if (words.length == 1) {
 				suggestVariables = "both";
 				appendToSuggestions = " ";
-				if (SUGGESTSUBJECTS.length > 0 && word.length > 0 && word != "<") {
-					sparqlLines = SUGGESTSUBJECTS.replace(/\n/g, "\n        ").trim() + ' .';
-					nameClause = SUBJECTNAME;
-					altNameClause = ALTERNATIVESUBJECTNAME;
+				if (SUGGESTSUBJECTS.length > 0 && (word.length > 0 || SUGGEST_SUBJECTS_IN_EMPTY_LINE)) {
+					completionQuery = SUGGESTSUBJECTS;
 					nameList = subjectNames;
 				} else {
 					sendSparql = false;
 				}
+
 			} else if (words.length == 2) {
-				nameClause = PREDICATENAME;
-				altNameClause = ALTERNATIVEPREDICATENAME;
 				suggestVariables = word.startsWith('?') ? "normal" : false;
 				appendToSuggestions = " ";
 				nameList = predicateNames;
@@ -439,13 +436,10 @@ function getDynamicSuggestions(context) {
 				if (suggestionMode == 1) {
 					sparqlLines = "?qleverui_subject ql:has-predicate ?qleverui_entity .";
 				} else if (suggestionMode == 2) {
-					lines.push(words[0] + " ql:has-predicate ?qleverui_entity .");
-					sparqlLines = lines.join("\n        ");
+					completionQuery = SUGGESTPREDICATES;
 				}
 			} else if (words.length == 3) {
 				predicateForObject = words[1];
-				nameClause = OBJECTNAME;
-				altNameClause = ALTERNATIVEOBJECTNAME;
 				suggestVariables = "normal";
 				appendToSuggestions = ' .';
 				nameList = objectNames;
@@ -456,6 +450,8 @@ function getDynamicSuggestions(context) {
 						sendSparql = false;
 					}
 				} else if (suggestionMode == 2) {
+					completionQuery = SUGGESTOBJECTS;
+
 					// replace the prefixes
 					var propertyPath = detectPropertyPath(words[1]);
 
@@ -468,24 +464,23 @@ function getDynamicSuggestions(context) {
 									property = property.slice(0, property.length - 1);
 									addAsterisk = true;
 								}
-								property = '<' + property.replace(key + ':', value) + '>';
+								let noPrefixProperty = '<' + property.replace(key + ':', value) + '>';
+
+								if (REPLACE_PREDICATES[noPrefixProperty] !== undefined) {
+									property = REPLACE_PREDICATES[noPrefixProperty];
+								}
+
 								if (addAsterisk) {
 									property += "*";
 								}
 
-								if (REPLACE_PREDICATES[predicate] !== undefined) {
-									property = REPLACE_PREDICATES[property];
-								}
 								propertyPath[i] = property;
 								return false;
 							}
 						});
 					}
 
-					var predicate = propertyPath.join("/");
-
-					lines.push(words[0] + " " + predicate + " ?qleverui_entity .");
-					sparqlLines = lines.join("\n        ");
+					words[1] = propertyPath.join("/");
 				}
 
 				var lastWord = words[1];
@@ -517,84 +512,8 @@ function getDynamicSuggestions(context) {
 			}
 
 			if (sendSparql) {
-				// find all entities whose ids match what we typed
-				var entityNameWord = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
-				var entityQuery =
-					"    {\n" +
-					"      SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {\n" +
-					"        " + sparqlLines + "\n" +
-					"      }\n" +
-					"      GROUP BY ?qleverui_entity\n" + ((word.length > 0 && word != "<") ?
-						"      HAVING regex(?qleverui_entity, '^" + entityNameWord + "')\n" : "") +
-					"    }\n" + ((nameClause.length > 0) ?  // get entity names if we know how to query them
-						"    OPTIONAL {\n" +
-						"      " + nameClause.replace(/\n/g, "\n      ") + "\n" +
-						"    }\n" : "") + ((altNameClause.length > 0) ?
-							"    OPTIONAL {\n" +
-							"      " + altNameClause.replace(/\n/g, "\n      ") + "\n" +
-							"    }\n" : "");
-
-				sparqlQuery = prefixes;
-				if (nameClause.length > 0) {
-					if (altNameClause.length > 0 && word.length > 0) {
-						sparqlQuery +=
-							"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_altname) as ?qleverui_altname) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {\n" +
-							"  {\n";
-					} else {
-						sparqlQuery +=
-							"SELECT ?qleverui_entity (SAMPLE(?qleverui_name) as ?qleverui_name) (SAMPLE(?qleverui_count) as ?qleverui_count) WHERE {\n";
-					}
-					if (word.length > 0) {
-						// find all entities whose names match what we typed and UNION it with entityQuery
-						sparqlQuery +=
-							"  {\n" +
-							entityQuery +
-							"  }\n" +
-							"  UNION\n" +
-							"  {\n" +
-							"    {\n" +
-							"      SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {\n" +
-							"        " + sparqlLines + "\n" +
-							"      }\n" +
-							"      GROUP BY ?qleverui_entity\n" +
-							"    }\n" +
-							"    " + nameClause.replace(/\n/g, "\n    ") + "\n" +
-							"    FILTER regex(?qleverui_name, '^\"" + word + "')\n" +
-							"  }\n";
-
-						if (altNameClause.length > 0) {
-							sparqlQuery += "  }\n" +
-								"  UNION\n" +
-								"  {\n" +
-								"    {\n" +
-								"      SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {\n" +
-								"        " + sparqlLines + "\n" +
-								"      }\n" +
-								"      GROUP BY ?qleverui_entity\n" +
-								"    }\n" +
-								"    " + altNameClause.replace(/\n/g, "\n    ") + "\n" +
-								"    FILTER regex(?qleverui_altname, '^\"" + word + "')\n" +
-								"    OPTIONAL {\n" +
-								"      " + nameClause.replace(/\n/g, "\n    ") + "\n" +
-								"    }\n" +
-								"  }\n";
-						}
-					} else {
-						// There was no input that we can search for -> just do entityQuery
-						sparqlQuery += entityQuery;
-					}
-				} else {
-					// We don't know how to get entity names -> just do entityQuery
-					sparqlQuery +=
-						"SELECT ?qleverui_entity ?qleverui_count WHERE {\n" +
-						entityQuery;
-				}
-				sparqlQuery +=
-					"}\n" + ((nameClause.length > 0) ?
-						"GROUP BY ?qleverui_entity\n" : "") +
-					"ORDER BY DESC(?qleverui_count)";
-
-				getQleverSuggestions(sparqlQuery, prefixesRelation, appendToSuggestions, nameList, predicateForObject, word);
+				sparqlLines = replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words);
+				getQleverSuggestions(sparqlLines, prefixesRelation, appendToSuggestions, nameList, predicateForObject, word);
 			}
 
 			if (suggestVariables) {
@@ -611,6 +530,121 @@ function getDynamicSuggestions(context) {
 	return [];
 }
 
+function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words) {
+	word = escapeRegExp(word);
+	var word_with_bracket = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
+	sparqlLines = completionQuery.replace(/%<CURRENT_WORD%/g, word_with_bracket).replace(/%CURRENT_WORD%/g, word);
+	sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
+
+
+	var linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_TRIPLES%/);
+	while (linePlaceholder != null) {
+		sparqlLines = sparqlLines.replace(/%CONNECTED_TRIPLES%/g, lines.join(linePlaceholder[1]));
+		linePlaceholder = sparqlLines.match(/(\s*)%CONNECTED_TRIPLES%/);
+	}
+
+	if (words.length > 0) {
+		sparqlLines = sparqlLines.replace(/%CURRENT_SUBJECT%/g, words[0]);
+	}
+	if (words.length > 1) {
+		sparqlLines = sparqlLines.replace(/%CURRENT_PREDICATE%/g, words[1]);
+	}
+
+	sparqlLines = evaluateIfStatements(sparqlLines, word, lines, words)
+
+	return sparqlLines;
+}
+
+function evaluateIfStatements(completionQuery, word, lines, words) {
+	// find all IF statements
+	let if_statements = [];
+	const ifRegex = /#\sIF\s+([!A-Z_\s]+)\s+#/;
+	let match = completionQuery.match(ifRegex);
+	let substrIdx = 0;
+	while (match != null) {
+		// find all IF declarations
+		const index = match.index;
+		const len = match[0].length;
+		substrIdx += index + len;
+		if_statements.push({ 'IF': { 'index': substrIdx - len, 'len': len }, 'condition': match[1] });
+		const substr = completionQuery.slice(substrIdx);
+		match = substr.match(ifRegex);
+	}
+
+	if_statements = if_statements.reverse();
+	for (let statement of if_statements) {
+		// find matching ELSE and ENDIFs
+		const start = statement['IF']['index'];
+		const endifMatch = completionQuery.slice(start).match(/#\sENDIF\s#/);
+		const elseMatch = completionQuery.slice(start).match(/#\sELSE\s#/);
+
+		if (elseMatch != null && elseMatch.index < endifMatch.index) {
+			const index = start + elseMatch.index;
+			const len = elseMatch[0].length;
+			statement['ELSE'] = { 'index': index, 'len': len };
+		}
+
+		if (endifMatch == null) {
+			console.error("Number of # IF # and # ENDIF # does not match!");
+		}
+		const index = start + endifMatch.index;
+		const len = endifMatch[0].length;
+		statement['ENDIF'] = { 'index': index, 'len': len }
+
+		let conditionSatisfied = parseAndEvaluateCondition(statement.condition, word, lines, words);
+
+		let result = completionQuery.slice(0, statement['IF']['index']);
+
+		if (conditionSatisfied && statement["ELSE"] == undefined) {
+			// Add content between IF and ENDIF
+			result += completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ENDIF']['index']);
+		} else if (conditionSatisfied && statement["ELSE"] != undefined) {
+			// Add content between IF and ELSE
+			result += completionQuery.slice(statement['IF']['index'] + statement['IF']['len'], statement['ELSE']['index']);
+		} else if (!conditionSatisfied && statement["ELSE"] != undefined) {
+			// Add content between ELSE and ENDIF
+			result += completionQuery.slice(statement['ELSE']['index'] + statement['ELSE']['len'], statement['ENDIF']['index']);
+		}
+
+		result += completionQuery.slice(statement['ENDIF']['index'] + statement['ENDIF']['len']);
+		completionQuery = result;
+	}
+
+	return completionQuery
+}
+
+function parseAndEvaluateCondition(condition, word, lines, words) {
+	// split condition by AND and OR
+	const logicalOperator = condition.match(/(.*)\s+(OR)\s+(.*)/) || condition.match(/(.*)\s(AND)\s+(.*)/);
+	const negated = condition.startsWith("!");
+	let conditionSatisfied = false;
+	if (logicalOperator != null) {
+		const lhs = parseAndEvaluateCondition(logicalOperator[1], word, lines, words);
+		const rhs = parseAndEvaluateCondition(logicalOperator[3], word, lines, words);
+
+		if (logicalOperator[2] == "OR") {
+			conditionSatisfied = lhs || rhs;
+		} else {
+			conditionSatisfied = lhs && rhs;
+		}
+	} else if (negated) {
+		conditionSatisfied = !parseAndEvaluateCondition(condition.slice(1), word, lines, words);
+	} else {
+		if (condition == "CURRENT_WORD_EMPTY") {
+			conditionSatisfied = (word.length == 0);
+		} else if (condition == "CURRENT_SUBJECT_VARIABLE") {
+			conditionSatisfied = (words.length > 0 && words[0].startsWith("?"));
+		} else if (condition == "CURRENT_PREDICATE_VARIABLE") {
+			conditionSatisfied = (words.length > 1 && words[1].startsWith("?"));
+		} else if (condition == "CONNECTED_TRIPLES_EMPTY") {
+			conditionSatisfied = (lines.length == 0);
+		} else {
+			console.error(`Invalid condition in IF statement: '${condition}'`);
+		}
+	}
+	log(`Evaluating condition: "${condition}", word="${word}", lines=${lines.length}, words=${words}\n  result: ${conditionSatisfied}`, 'other');
+	return conditionSatisfied;
+}
 
 function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList, predicateForObject, word) {
 

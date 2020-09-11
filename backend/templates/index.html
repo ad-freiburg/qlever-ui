@@ -26,10 +26,8 @@
           var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];
           var PREDICATENAME = ENTITYNAMERELATIONS["PREDICATENAME"];
           var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
-          var ALTERNATIVESUBJECTNAME = ENTITYNAMERELATIONS["ALTERNATIVESUBJECTNAME"];
-          var ALTERNATIVEPREDICATENAME = ENTITYNAMERELATIONS["ALTERNATIVEPREDICATENAME"];
-          var ALTERNATIVEOBJECTNAME = ENTITYNAMERELATIONS["ALTERNATIVEOBJECTNAME"];
           var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
+          var SUGGESTPREDICATES = ENTITYNAMERELATIONS["SUGGESTPREDICATES"];
           var SUGGESTOBJECTS = ENTITYNAMERELATIONS["SUGGESTOBJECTS"];
           var COLLECTEDPREFIXES = {% autoescape off %}{{ prefixes }}{% endautoescape %};
           var LANGUAGES = {% autoescape off %}{{ backend.languages }}{% endautoescape %};
@@ -40,6 +38,7 @@
           var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
           var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
           var REPLACE_PREDICATES = {% autoescape off %}{{ backend.replacePredicatesList }}{% endautoescape %};
+          var SUGGEST_SUBJECTS_IN_EMPTY_LINE = {{ backend.suggestSubjectsInEmptyLine|lower }};
           var examples = [];
           {% for example in examples %}
           examples.push(`{{ example.query|safe }}`);

@@ -54,13 +54,19 @@ class Backend(models.Model):
     suggestSubjects = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from (without prefixes). Leave blank if you don't want subject suggestions.<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from. Leave blank if you don't want subject suggestions.</div>",
         verbose_name="Suggest subjects clause")
+
+    suggestPredicates = models.TextField(
+        default='',
+        blank=True,
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestPredicates').slideToggle();\">Need help?</a><div class=\"helpSuggestPredicates\" style=\"display: none;\">Clause that tells QLever UI which predicates to suggest from.</div>",
+        verbose_name="Suggest predicates clause")
 
     suggestObjects = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestObjects').slideToggle();\">Need help?</a><div class=\"helpSuggestObjects\" style=\"display: none;\">Clause that tells QLever UI which objects to suggest from (without prefixes). Only needed for suggestion mode 2 (context insensitive suggestions).<br>Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The objects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_entity (COUNT(?qleverui_entity) AS ?qleverui_count) WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest objects clause</em></b><br>}<br>GROUP BY ?qleverui_entity<br>ORDER BY DESC(?qleverui_count)</div>",
+        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestObjects').slideToggle();\">Need help?</a><div class=\"helpSuggestObjects\" style=\"display: none;\">Clause that tells QLever UI which objects to suggest from.</div>",
         verbose_name="Suggest objects clause")
 
     subjectName = models.TextField(
@@ -69,35 +75,17 @@ class Backend(models.Model):
         help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSubjectName').slideToggle();\">Need help?</a><div class=\"helpSubjectName\" style=\"display: none;\">Clause that tells QLever UI the name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the subject's name<br>Your clause should end in a dot '.' or closing bracket '}'<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_entity &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}</div>",
         verbose_name="Subject name clause")
 
-    alternativeSubjectName = models.TextField(
-        default='',
-        blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpAlternativeSubjectName').slideToggle();\">Need help?</a><div class=\"helpAlternativeSubjectName\" style=\"display: none;\">Clause that tells QLever UI the alternative name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the subject's alternative name<br>Your clause should end in a dot '.' or closing bracket '}'<br>Your clause will be used as following:<br>SELECT ?qleverui_altname WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_entity &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}</div>",
-        verbose_name="Alternative subject name clause")
-
     predicateName = models.TextField(
         default='',
         blank=True,
         help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpPredicateName').slideToggle();\">Need help?</a><div class=\"helpPredicateName\" style=\"display: none;\">Clause that tells QLever UI the name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the predicate's name<br>Your clause should end in a dot '.' or closing bracket '}'<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_entity &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}</div>",
         verbose_name="Predicate name clause")
 
-    alternativePredicateName = models.TextField(
-        default='',
-        blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpAlternativePredicateName').slideToggle();\">Need help?</a><div class=\"helpAlternativePredicateName\" style=\"display: none;\">Clause that tells QLever UI the alternative name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the predicate's alternative name<br>Your clause should end in a dot '.' or closing bracket '}'<br>Your clause will be used as following:<br>SELECT ?qleverui_altname WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_entity &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}</div>",
-        verbose_name="Alternative predicate name clause")
-
     objectName = models.TextField(
         default='',
         blank=True,
         help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpObjectName').slideToggle();\">Need help?</a><div class=\"helpObjectName\" style=\"display: none;\">Clause that tells QLever UI the name of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the object's name<br>Your clause should end in a dot '.' or closing bracket '}'<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_entity<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}</div>",
         verbose_name="Object name clause")
-
-    alternativeObjectName = models.TextField(
-        default='',
-        blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpAlternativeObjectName').slideToggle();\">Need help?</a><div class=\"helpAlternativeObjectName\" style=\"display: none;\">Clause that tells QLever UI the alternativename of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the object's alternative name<br>Your clause should end in a dot '.' or closing bracket '}'<br>Your clause will be used as following:<br>SELECT ?qleverui_altname WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_entity<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}</div>",
-        verbose_name="Alternative object name clause")
 
     replacePredicates = models.TextField(
         default='',
@@ -136,6 +124,11 @@ class Backend(models.Model):
         help_text="Suggest Prefix names without a particular entity when autocompleting predicates.",
         verbose_name="Suggest prefix names for predicates.")
 
+    suggestSubjectsInEmptyLine = models.BooleanField(
+        default=False,
+        help_text="Suggest subjects when no character has been typed yet.",
+        verbose_name="Suggest subjects in empty lines.")
+
     fillPrefixes = models.BooleanField(
         default=True,
         help_text="Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.",
@@ -148,7 +141,7 @@ class Backend(models.Model):
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
-        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
+        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects'):
             setattr(self, field, str(getattr(self, field)).replace(
                 "\r\n", "\n").replace("\r", "\n"))
         super(Backend, self).save(*args, **kwargs)
@@ -195,7 +188,7 @@ class Backend(models.Model):
 
     def entityNameQueries(self):
         data = {}
-        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
+        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects'):
             data[field.upper()] = getattr(self, field)
         return json.dumps(data)
 
