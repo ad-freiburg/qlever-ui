@@ -658,6 +658,12 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
 		// do the limits for the scrolling feature
 		sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
+        // HACK(Hannah 14.08.2020): query rewrite for KEYWORDS from
+        // helper.js also for completion queries.
+        sparqlQuery = sparqlQuery.replace(
+          /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/ig,
+          '?kwm ql:contains-entity $1 . ?kwm ql:contains-word $2 . ');
+
 		log('Getting suggestions from QLever:\n' + sparqlQuery, 'requests');
 
 		lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
@@ -734,7 +740,15 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
 						var entityName = (nameIndex != -1) ? result[nameIndex] : "";
 						var altEntityName = (altNameIndex != -1) ? result[altNameIndex] : "";
 						nameList[result[0]] = entityName;
-						dynamicSuggestions.push({ displayText: result[0] + appendix, completion: result[0] + appendix, name: entityName, altname: altEntityName });
+            // HACK(Hannah 21.08.2020): add ^ if fifth column in result exists
+            // and is 1 (indicating that this is a predicate suggestion, but for
+            // the reversed predicate.
+						var reversedIndex = data.selected.indexOf("?qleverui_reversed");
+            var reversed = (reversedIndex != -1 && result[reversedIndex] == 1);
+            dynamicSuggestions.push({ displayText: (reversed ? "^" : "") + result[0] + appendix,
+                                      completion: (reversed ? "^" : "") + result[0] + appendix,
+                                      name: entityName + (reversed ? " (reversed)" : ""),
+                                      altname: altEntityName });
 					}
 
 				} else {

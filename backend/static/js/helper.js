@@ -13,7 +13,16 @@ function log(message, kind) {
 }
 
 function getQueryString() {
-    var q = encodeURIComponent(editor.getValue());
+
+    // HACK(Hannah 03.05.2020): allow a construct such as FILTER
+    // keywords(?title, "info* retr*")
+    q = editor.getValue().replace(
+         /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i,
+         '?m ql:contains-entity $1 . ?m ql:contains-word $2 . ');
+    log("getQueryString: " + q, 'requests');
+    q = encodeURIComponent(q);
+    // var q = encodeURIComponent(editor.getValue());
+
     var queryString = "?query=" + q;
     if ($("#clear").prop('checked')) {
         queryString += "&cmd=clearcache";

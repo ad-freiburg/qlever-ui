@@ -130,7 +130,10 @@
             // Add prefixes if not yet declared
             var prefixLines = getPrefixLines();
             for (var prefix in COLLECTEDPREFIXES) {
-                if (completion.startsWith(prefix + ':')) {
+                // HACK(Hannah 21.08.2020): consider that some completions start
+                // with ^ because of reversed predicate suggestions.
+                if (completion.startsWith(prefix + ':')
+                     || completion.startsWith("^" + prefix + ':')) {
                     var prefixAvailable = false;
                     for (var line of prefixLines) {
                         if (line.trim().startsWith("PREFIX " + prefix + ':')) {
