@@ -9,7 +9,7 @@
  *
  * Requires:
  *   - jQuery (tested with 1.3.x and 1.4.x)
- *   - jquery.a-tools >= 1.4.1 (http://plugins.jquery.com/project/a-tools)
+ *   - jquery.a-tools >= 1.4.1 (https://plugins.jquery.com/project/a-tools)
  */
 
 /*globals jQuery,document */
