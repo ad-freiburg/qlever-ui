@@ -21,7 +21,7 @@ class BackendAdmin(ImportExportModelAdmin):
     }
     fieldsets = (
         ("General", {
-            'fields': ('name', 'baseUrl', 'isDefault')
+            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault')
         }),
         ('Preprocessing', {
             'fields': ('ntFilePath',),

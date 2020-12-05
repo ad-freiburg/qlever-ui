@@ -171,10 +171,12 @@
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
-                        {% for b in backends %}
+                        {% for b in backends|dictsort:"sortKey" %}
+                        {% if b.sortKey != "0" %}
                         <li>
                             <a href="/{{ b.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a>
                         </li>
+                        {% endif %}
                         {% endfor %}
                         {% if request.user.is_authenticated %}
                         <li class="divider"></li>

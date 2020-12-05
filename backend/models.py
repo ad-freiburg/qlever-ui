@@ -13,6 +13,16 @@ class Backend(models.Model):
         help_text="Choose a name for the backend that helps you to distinguish between multiple backends",
         verbose_name="Name",
         unique=True)
+    slug = models.CharField(
+        max_length=100,
+        default="Empty",
+        help_text="Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)",
+        verbose_name="Slug")
+    sortKey = models.CharField(
+        max_length=10,
+        default="0",
+        help_text="Sort key, according to which backends are ordered lexicographically; DO NOT SHOW if this value is zero",
+        verbose_name="Sort Key")
     baseUrl = models.CharField(
         max_length=1000,
         help_text="The URL where to find / call the QLever backend (including http://)",
@@ -166,9 +176,10 @@ class Backend(models.Model):
         return self.name
 
     def slugify(self):
-        return "".join(filter(lambda x: ord(x) in range(40, 123),
-                              self.name.replace(' ', '_').replace('/', '-').replace(
-            '*', '-')))
+        return self.slug
+        # return "".join(filter(lambda x: ord(x) in range(40, 123),
+        #                       self.name.replace(' ', '_').replace('/', '-').replace(
+        #     '*', '-')))
 
     def languages(self):
         jsArray = "["
