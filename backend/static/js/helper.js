@@ -24,6 +24,9 @@ function getQueryString() {
     // var q = encodeURIComponent(editor.getValue());
 
     var queryString = "?query=" + q;
+    if ($("#name_service").prop('checked')) {
+        queryString += "&name_service=true";
+    }
     if ($("#clear").prop('checked')) {
         queryString += "&cmd=clearcache";
     }

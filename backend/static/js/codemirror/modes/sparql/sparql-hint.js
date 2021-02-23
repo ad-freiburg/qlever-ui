@@ -545,6 +545,11 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
 		sparqlLines = sparqlLines.replace(/%CURRENT_SUBJECT%/g, words[0]);
 	}
 	if (words.length > 1) {
+                // HACK (Hannah, 23.02.2021): Replace <pred1>/<pred2>* by
+                // <pred1>|<pred2> in object completion.
+                words[1] = words[1].replace(/^([^ \/]+)\/([^ \/]+)\*$/, "$1|$2");
+                console.log("HACK: CURRENT_PREDICATE -> ", words[1]);
+
 		sparqlLines = sparqlLines.replace(/%CURRENT_PREDICATE%/g, words[1]);
 	}
 
