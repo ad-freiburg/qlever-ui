@@ -72,6 +72,19 @@ $(document).ready(function () {
     $('[data-tooltip=tooltip]').tooltip('hide');
     cleanLines(instance);
   });
+
+  editor.on("change", (cm, change) => {
+    if(change.origin === "paste") {
+      value = editor.getValue()
+      for (var prefix in COLLECTEDPREFIXES) {
+        if (value.indexOf(prefix+':') > 0) {
+         value = 'PREFIX '+prefix+': '+COLLECTEDPREFIXES[prefix]+'\n'+value
+        }
+      }
+      editor.setValue(value)
+    }
+  });
+  
   
   editor.on("update", function (instance, event) {
     $('[data-tooltip=tooltip]').tooltip('hide');

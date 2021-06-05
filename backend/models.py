@@ -131,7 +131,7 @@ class Backend(models.Model):
     )
 
     supportedKeywords = models.TextField(
-        default='prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate',
+        default='prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate, minus, values',
         blank=True,
         help_text="Comma separated list of SPARQL keywords supported by the backend. Will be used for keyword highlighting.",
         verbose_name="Supported keywords")

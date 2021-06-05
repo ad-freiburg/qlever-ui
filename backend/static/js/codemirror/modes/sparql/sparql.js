@@ -40,6 +40,10 @@ var CONTEXTS = [
     definition: /OPTIONAL \{([\s\S]*)\}/gi,
   },
   {
+    w3name: 'ValuesClause',
+    definition: /VALUES \{([\s\S]*)\}/gi,
+  },
+  {
     w3name: 'OrderCondition',
     definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/gi,
     suggestInSameLine: true,
@@ -57,7 +61,7 @@ var COMPLEXTYPES = [
   {
     name: 'PREFIX',
     definition: /PREFIX (.*)/g,
-    suggestions: [['PREFIX ', function (c) { return getPrefixSuggestions(c); }, '\n'], ['PREFIX '], ['PREFIX p1: <']],
+    suggestions: [['PREFIX ', function (c) { return getPrefixSuggestions(c); }, '\n']],
     availableInContext: ['PrefixDecl', 'undefined'],
     
   },
@@ -232,6 +236,20 @@ var COMPLEXTYPES = [
   {
     name: 'OPTIONAL',
     suggestions: [['OPTIONAL {\n\n}\n']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+    requiresEmptyLine: true,
+  },
+  {
+    name: 'VALUES',
+    suggestions: [['VALUES {\n\n}']],
+    availableInContext: ['WhereClause'],
+    suggestOnlyWhenMatch: true,
+    requiresEmptyLine: true,
+  },
+  {
+    name: 'MINUS',
+    suggestions: [['MINUS {\n\n}\n']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
     requiresEmptyLine: true,
