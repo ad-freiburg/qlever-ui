@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   {% include 'partials/head.html' %}
-  <body {% if request.GET.exec %}onload="executeQuery()"{% endif %}>
+  <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#runbtn').trigger('click');},500)"{% endif %}>
     {% include 'partials/header.html' %}
       <div id="main" class="container">
         {% if backends %}

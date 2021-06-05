@@ -184,11 +184,24 @@ $(document).ready(function () {
     $.post('/api/share', { 'content': editor.getValue() }, function (result) {
       log('Got pretty link from backend', 'other');
       var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
-      
+      // Query from editor in one line with single whitespace and no
+      // trailing full stops before closing braces.
+      var editorStringCleaned = editor.getValue()
+                                  .replace(/\s+/g, " ")
+                                  .replace(/\s*\.\s*}/g, " }")
+                                  .replace(/"/g, "\\\"")
+                                  .trim();
+
       $(".ok-text").collapse("hide");
       $("#share").modal("show");
       $("#prettyLink").val(baseLocation + result.link);
+      $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
       $("#queryStringLink").val(baseLocation + "?" + result.queryString);
+      $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
+      $("#apiCallCommandLine").val(
+          "curl -Gs " + BASEURL
+            + " --data-urlencode \"query=" + editorStringCleaned + "\""
+            + " --data-urlencode \"action=tsv_export\"");
     }, 'json');
     
     if (editor.state.completionActive) { editor.state.completionActive.close(); }

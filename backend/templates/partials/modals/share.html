@@ -1,45 +1,91 @@
 <div class="modal" tabindex="-1" role="dialog" id="share">
-  <div class="modal-dialog" role="document" style="width: 80%;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title pull-left">Share your query</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <div class="modal-dialog" role="document" style="width: 80%;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title pull-left">Share your query</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div>
-          <label>Short URL</label>
-          <div class="input-group">
-            <input type="text" id="prettyLink" class="form-control" readonly>
-            <span class="input-group-btn">
-              <button class="btn btn-default copy-clipboard-button">
-                <i class="glyphicon glyphicon-copy"></i> Copy
-              </button>
-            </span>                    
-          </div>
-          <div class="ok-text collapse">
+          </button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <label>URL to this query in the QLever UI (short, with query hash)</label>
+            <div class="input-group">
+              <input type="text" id="prettyLink" class="form-control" readonly>
+              <span class="input-group-btn">
+                <button class="btn btn-default copy-clipboard-button">
+                  <i class="glyphicon glyphicon-copy"></i> Copy
+                </button>
+              </span>                    
+            </div>
+            <div class="ok-text collapse">
               <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
+            </div>
+          </div>
+          <br>
+          <div>
+            <label>URL to this query in the QLever UI, directly showing results</label>
+            <div class="input-group">
+              <input type="text" id="prettyLinkExec" class="form-control" readonly>
+              <span class="input-group-btn">
+                <button class="btn btn-default copy-clipboard-button">
+                  <i class="glyphicon glyphicon-copy"></i> Copy
+                </button>
+              </span>                    
+            </div>
+            <div class="ok-text collapse">
+              <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
+            </div>
+          </div>
+          <br>
+          <div>
+            <label>URL to this query in the QLever UI (long, with full query string)</label>
+            <div class="input-group">
+              <input type="text" id="queryStringLink" class="form-control" readonly>
+              <span class="input-group-btn">
+                <button class="btn btn-default copy-clipboard-button">
+                  <i class="glyphicon glyphicon-copy"></i> Copy
+                </button>
+              </span>
+            </div>
+            <div class="ok-text collapse">
+              <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
+            </div>
+          </div>
+          <br>
+          <div>
+            <label>URL for API call (for use in web apps, etc.)</label>
+            <div class="input-group">
+              <input type="text" id="apiCallUrl" class="form-control" readonly>
+              <span class="input-group-btn">
+                <button class="btn btn-default copy-clipboard-button">
+                  <i class="glyphicon glyphicon-copy"></i> Copy
+                </button>
+              </span>
+            </div>
+            <div class="ok-text collapse">
+              <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
+            </div>
+          </div>
+          <br>
+          <div>
+            <label>Command line for API call (using curl)</label>
+            <div class="input-group">
+              <input type="text" id="apiCallCommandLine" class="form-control" readonly>
+              <span class="input-group-btn">
+                <button class="btn btn-default copy-clipboard-button">
+                  <i class="glyphicon glyphicon-copy"></i> Copy
+                </button>
+              </span>
+            </div>
+            <div class="ok-text collapse">
+              <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
+            </div>
           </div>
         </div>
-        <br>
-        <div>
-          <label>As querystring</label>
-          <div class="input-group">
-            <input type="text" id="queryStringLink" class="form-control" readonly>
-            <span class="input-group-btn">
-              <button class="btn btn-default copy-clipboard-button">
-                <i class="glyphicon glyphicon-copy"></i> Copy
-              </button>
-            </span>
-          </div>
-          <div class="ok-text collapse">
-            <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
-          </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
