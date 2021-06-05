@@ -189,9 +189,22 @@ function displayError(result) {
   $('#errorBlock').show();
   $('#answerBlock, #infoBlock').hide();
 }
+
+function displayWarning(result) {
+  console.warn('QLever returned warnings while processing request', result);
+  
+  disp = "<h3>Warning:</h3>";
+  if (result['warning']) {
+    disp += "<small><strong>Warning: </strong><em>";
+    disp += result['warning'];
+    disp += "</em></small>";
+  }
+  $('#warningReason').html(disp);
+  $('#warningBlock').show();
+}
   
 function displayStatus(str) {
-  $("#errorBlock,#answerBlock").hide();
+  $("#errorBlock,#answerBlock,#warningBlock").hide();
   $("#info").html(str);
   $("#infoBlock").show();
 }
