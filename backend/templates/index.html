@@ -229,7 +229,7 @@
                   
               </div>
               <div class="col-md-3">
-                <select class="form-control" id="dynamicSuggestions">
+                <select class="form-control hidden" id="dynamicSuggestions">
                   <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
                     1. Syntax & keywords only
                   </option>
@@ -240,15 +240,17 @@
                     3. Context sensitive suggestions
                   </option>
                 </select>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" id="name_service"> Automatically add names to result
-                  </label>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" id="clear"> Clear the cache before every request
-                  </label>
+                <div style="margin-top: -15px">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" id="name_service"> Automatically add names to result
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" id="clear"> Clear the cache before every request
+                    </label>
+                  </div>
                 </div>
              </div>
             </div>
