@@ -1,7 +1,3 @@
-/**
-* Created by buchholb on 3/31/15.
-* Extended by Daniel Kemen and Julian Bürklin 7/2017
-*/
 var example = 0;
 var activeState = 1;
 var runtime_info;
@@ -171,21 +167,7 @@ $(document).ready(function () {
     return true;
   }
   
-  $("#runbtn").click(function () {
-    log('Start processing', 'other');
-    processQuery(getQueryString() + '&send=' + $('#maxSendOnFirstRequest').html(), true, this);
-    
-    // generate pretty link
-    $.post('/api/share', { 'content': editor.getValue() }, function (result) {
-      log('Got pretty link from backend', 'other');
-      if (window.location.search.indexOf(result.queryString) == -1) {
-        window.history.pushState("html:index.html", "QLever", window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/' + result.link);
-      }
-    }, 'json');
-    
-    if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    $("#runbtn").focus();
-  });
+  $("#runbtn").click(executeQuery);
   
   $("#csvbtn").click(function () {
     log('Download CSV', 'other');
@@ -221,6 +203,22 @@ $(document).ready(function () {
   });
   
 });
+
+function executeQuery(){
+    log('Start processing', 'other');
+    processQuery(getQueryString() + '&send=' + $('#maxSendOnFirstRequest').html(), true, this);
+    
+    // generate pretty link
+    $.post('/api/share', { 'content': editor.getValue() }, function (result) {
+      log('Got pretty link from backend', 'other');
+      if (window.location.search.indexOf(result.queryString) == -1) {
+        window.history.pushState("html:index.html", "QLever", window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/' + result.link);
+      }
+    }, 'json');
+    
+    if (editor.state.completionActive) { editor.state.completionActive.close(); }
+    $("#runbtn").focus();
+}
 
 function addNameHover(element, domElement, list, namepredicate, prefixes) {
   element = element.replace(/^@[a-zA-Z-]+@/, "");

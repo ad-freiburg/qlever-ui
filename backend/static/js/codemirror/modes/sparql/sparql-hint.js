@@ -755,13 +755,16 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
               name: entityName + (reversed ? " (reversed)" : ""),
               altname: altEntityName });
             }
+
+            activeLine.html(activeLineNumber);
             
           } else {
+            activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;" title="'+data.exception+'">');
             console.error(data.exception);
           }
           
           // reset loading indicator
-          activeLine.html(activeLineNumber);
+          
           $('#aBadge').remove();
           
           // add badge
