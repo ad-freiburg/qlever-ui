@@ -1,725 +1,327 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>QLever UI - A Very Fast SPARQL Engine for Very Large Data, with Context-Sensitive Autocompletion</title>
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-        <!-- The stylesheets for this page -->
-        <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
-    
-        <!-- CSS Code for the UI  -->
-        <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-        <link rel="stylesheet" type="text/css" href="/static/css/codemirror.css">
-    
-        <!-- Bootstraps CSS -->
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    
-    <script>
-	    var predicateResultTypes = {};
-		var ENTITY = 0;
-		var LITERAL = 1;
-		var LANGUAGELITERAL = 2;
-	    
-          var BASEURL = "{{ backend.baseUrl }}";
-          var ENTITYNAMERELATIONS = {% autoescape off %}{{ backend.entityNameQueries }}{% endautoescape %}
-          var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];
-          var PREDICATENAME = ENTITYNAMERELATIONS["PREDICATENAME"];
-          var OBJECTNAME = ENTITYNAMERELATIONS["OBJECTNAME"];
-          var ALTERNATIVESUBJECTNAME = ENTITYNAMERELATIONS["ALTERNATIVESUBJECTNAME"];
-          var ALTERNATIVEPREDICATENAME = ENTITYNAMERELATIONS["ALTERNATIVEPREDICATENAME"];
-          var ALTERNATIVEOBJECTNAME = ENTITYNAMERELATIONS["ALTERNATIVEOBJECTNAME"];
-          var SUGGESTSUBJECTS = ENTITYNAMERELATIONS["SUGGESTSUBJECTS"];
-          var SUGGESTPREDICATES = ENTITYNAMERELATIONS["SUGGESTPREDICATES"];
-          var SUGGESTOBJECTS = ENTITYNAMERELATIONS["SUGGESTOBJECTS"];
-          var COLLECTEDPREFIXES = {% autoescape off %}{{ prefixes }}{% endautoescape %};
-          var LANGUAGES = {% autoescape off %}{{ backend.languages }}{% endautoescape %};
-          var KEYWORDS = {% autoescape off %}{{ backend.keywords }}{% endautoescape %};
-          var FUNCTIONS = {% autoescape off %}{{ backend.functions }}{% endautoescape %};
-          var PREDICATESUGGESTIONS = {% autoescape off %}{{ backend.predicateSuggestions }}{% endautoescape %};
-          var SUGGEST_PREFIXNAMES_FOR_PREDICATES = {{ backend.suggestPrefixnamesForPredicates|lower }};
-          var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
-          var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
-          var REPLACE_PREDICATES = {% autoescape off %}{{ backend.replacePredicatesList }}{% endautoescape %};
-          var examples = [];
-          {% for example in examples %}
-          examples.push(`{{ example.query|safe }}`);
-          {% endfor %}
-        </script>
-    
-        <!-- The basic jQuery library & jQuery UI library -->
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    
-        <!-- Bootstraps JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    
-        <!-- Our own JavaScript code for this demo -->
-        <script src="/static/js/helper.js"></script>
-        <script src="/static/js/raphael.js"></script>
-        <script src="/static/js/treant.js"></script>
-        <script src="/static/js/qleverUI.js"></script>
-    
-        <!-- CodeMirror and it's modules and language mode -->
-        <script src="/static/js/codemirror/codemirror.js"></script>
-        <script src="/static/js/codemirror/modules/autocomplete.js"></script>
-        <script src="/static/js/codemirror/modules/active-line.js"></script>
-        <script src="/static/js/codemirror/modules/show-hint.js"></script>
-        <script src="/static/js/codemirror/modules/search.js"></script>
-    
-        <script src="/static/js/codemirror/modes/sparql/sparql.js"></script>
-        <script src="/static/js/codemirror/modes/sparql/sparql-hint.js"></script>
-    
-        {% if request.GET.test %}
-            <!-- Jasemine JS Testing Framework -->
-            <link rel="shortcut icon" type="image/png" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png">
-            <link rel="stylesheet" type="text/css" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.css">
-    
-            <script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.js"></script>
-            <script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js"></script>
-            <script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/boot.js"></script>
-            <script type="text/javascript" src="/static/tests/interface.js"></script>
-        {% endif %}
-    </head>
-
-    <body>
-        <header>
-            <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
-                <div class="container">
-                    
-                    <!-- Navbar header -->
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="/"><i class="glyphicon glyphicon-flash"></i> QLever UI</a>
-                    </div>
-                    
-                    <!-- Navbar -->
-                    <div id="navbar" class="navbar-collapse collapse">
-                      <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                              Resources <span class="caret"></span>
-                          </a>
-                          <ul class="dropdown-menu">
-                             
-                            <h6 class="dropdown-header">QLever UI Components</h6>
-                                <li>
-                                    <a href="/admin/" target="_blank">
-                                        <i class="glyphicon glyphicon-cog"></i>&nbsp; QLever UI Admin
-                                    </a>
-                                </li>
-                                <li>
-	                                <a href="#" onclick="changeTheme();">
-				                        <i class="glyphicon glyphicon-adjust"></i>&nbsp; Switch theme
-				                    </a>
-                                </li>
-                                <li>
-                                    {% if request.user.is_superuser %}
-                                    <a href="/api/share?cleanup=true">
-                                        <i class="glyphicon glyphicon-trash"></i>&nbsp; Delete URLs for executed queries
-                                    </a>
-                                    {% endif %}
-                                </li>
-                                <li>
-                                    <a href="?test=jasmine">
-                                        <i class="glyphicon glyphicon-play"></i>&nbsp; Run UI Tests
-                                    </a>
-                                </li>
-                            
-                            <h6 class="dropdown-header">Other Resources</h6>
-                                <li>
-                                    <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank">
-                                        <i class="glyphicon glyphicon-folder-open"></i>&nbsp; QLever Publication
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/ad-freiburg/QLever" target="_blank">
-                                        <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/jbuerklin/QLeverUI" target="_blank">
-                                        <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLeverUI on GitHub
-                                    </a>
-                                </li>
-                            <h6 class="dropdown-header">Developer</h6>
-                                <li><a data-toggle="modal" data-target="#settingsModal">UI Settings</a></li>
-                                {% if STATIC_VERSION %}<li><a href="" style="color: #b1b1b1;">{{ STATIC_VERSION }}</a></li>{% endif %}
-                            
-                          </ul>
-                        </li>
-                      </ul>
-                    </div>
-                </div>
-            </nav>
-        </header>
-        
-        <!-- Main container -->
-        <div id="main" class="container">
-            
+  {% include 'partials/head.html' %}
+  <body>
+    {% include 'partials/header.html' %}
+      <div id="main" class="container">
         {% if backends %}
-        
-            <!-- The backends block -->
+          <div class="btn-group" role="group">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+              <i class="glyphicon glyphicon-flash"></i>
+              <span class="d">
+                {% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}
+              </span>
+              <span class="caret"></span>
+            </button>
+              <ul class="dropdown-menu">
+                  {% for b in backends|dictsort:"sortKey" %}
+                  {% if b.sortKey != "0" %}
+                  <li>
+                      <a href="/{{ b.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a>
+                  </li>
+                  {% endif %}
+                  {% endfor %}
+                  {% if request.user.is_authenticated %}
+                  <li class="divider"></li>
+                  <li>
+                      <a href="/admin/backend/backend/add/" target="_blank">
+                          <i class="glyphicon glyphicon-edit"></i> Add new backend
+                      </a>
+                  </li>
+                  {% endif %}
+              </ul>
+          </div>
+            
+          <!-- The theme / help block -->
+          <div class="pull-right">
+              <div class="btn-group" role="group" >
+                  <button onclick="$('#stats').slideToggle();$('#bStats').hide();" class="btn btn-default" id="statsButton">
+                      <i class="glyphicon glyphicon-stats"></i> <span class="d">Loading information...</span>
+                  </button>
+                  <button onclick="$('#bStats').slideToggle();$('#stats').hide();" class="btn btn-default">
+                      <i class="glyphicon glyphicon-cog"></i> <span class="d">Backend Information</span>
+                  </button>
+                  <button class="btn btn-default" onclick="expandEditor();" id="helpButton">
+                      <i class="glyphicon glyphicon-question-sign"></i> <span class="d">Shortcuts / Help</span>
+                  </button>
+              </div>
+          </div>
+      
+          <br><br>
+                
+          <!-- The backend statistics block -->
+          <div id="stats" class="well">
+            <br>
+            <div class="row">
+              <div class="col-md-6">
+                <h4>Knowledge base index</h4>
+                <br>
+                <table class="table">
+                  <tr><th>Index name:</th><td><b><span id="kbname"></span></b></td></tr>
+                  <tr><th>Dataset</th><td>Number of triples: <b><span id="ntriples"></span></b><br><div id="kbstats"></div></td></tr>
+                </table>
+              </div>
+              <div class="col-md-6">
+                <h4>Fulltext index</h4>
+                <br>
+                <table class="table">
+                  <tr><th>Index name:</th><td><b><span id="textname"></span></b></td></tr>
+                  <tr><th>Dataset</th><td>
+                    Number of distinct text records: <b><span id="nrecords"></span></b><br>
+                    Number of distinct word occurrences: <b><span id="nwo"></span></b><br>
+                    Number of distinct entity occurrences: <b><span id="neo"></span></b>
+                  </td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div id="bStats" class="well" style="display: none;">
+            {% if request.user.is_authenticated %}<a href="/admin/backend/backend/{{ backend.pk }}/change/" class="btn btn-default pull-right" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit this backend</a>{% endif %}
+            <br>
+            <div class="row">
+              <div class="col-md-6">
+                <h4>Basic settings</h4>
+                <br>
+                <table class="table">
+                    <tr><th>Backend name</th><td>{{ backend.name }}</td></tr>
+                    <tr><th>Backend slug</th><td>{{ backend.slugify }}</td></tr>
+                    <tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
+                    <tr><th>Is default:</th><td>{% if backend.isDefault %}Yes{% else %}No{% endif %}</td></tr>
+                    <tr><th>Fill known prefixes:</th><td>{% if backend.fillPrefixes %}Yes{% else %}No{% endif %}</td></tr>
+                    <tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
+                    <tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
+                    <tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
+                </table>
+              </div>
+              <div class="col-md-6" style="word-break: break-all;">
+                <h4>Features</h4>
+                <br>
+                <table class="table">
+                  <tr><th><strong>Supported Keywords:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedKeywords }}</code></b></div></td></tr>
+                  <tr><th><strong>Supported Functions:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedFunctions }}</code></b></div></td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+                
+          <!-- The query block -->
+          <div class="well" id="queryBlock">
+            <div class="row">
+              <div id="editorArea" class="col-md-12">
+                <!-- The main editor (code mirror textarea) -->
+                <textarea id="query" class="form-control" placeholder="Start by typing SELECT or PREFIX ...">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
+              </div>
+              <div class="col-md-4" id="help" style="display:none;">
+                <div id="uiHelp">  
+                  <!-- The UI help box -->
+                  <h4 style="margin-top: 0px;">QLever UI Shortcuts:</h4>
+                  <table class="table" style="margin-bottom: 9px;">
+                    <tr>
+                      <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
+                      <td><em>Send query to backend</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd>tab</kbd></td>
+                      <td><em>Jump to the next placeholder</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
+                      <td><em>Invoke auto suggestions</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
+                      <td><em>Move through suggestions</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd onclick="$()">enter</kbd></td>
+                      <td><em>Choose the selected suggestion</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd>esc</kbd></td>
+                      <td><em>Close suggestion window</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd>ctrl</kbd> + <kbd>f</kbd></td>
+                      <td><em>Search in editor (supports RegEx)</em></td>
+                    </tr>
+                    <tr>
+                      <td><kbd>ctrl</kbd> + <kbd>r</kbd></td>
+                      <td><em>Search and replace in editor</em></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="col-md-9 buttonFlex">
+                  
+                <!-- The run button -->
+                <button id="runbtn" class="btn btn-success">
+                  <i class="glyphicon glyphicon-refresh"></i> Execute
+                </button>
+                
+                <!-- The download buttons -->
                 <div class="btn-group" role="group">
-                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                        <i class="glyphicon glyphicon-flash"></i> <span class="d">{% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}</span>
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        {% for b in backends|dictsort:"sortKey" %}
-                        {% if b.sortKey != "0" %}
-                        <li>
-                            <a href="/{{ b.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a>
-                        </li>
-                        {% endif %}
-                        {% endfor %}
-                        {% if request.user.is_authenticated %}
-                        <li class="divider"></li>
-                        <li>
-                            <a href="/admin/backend/backend/add/" target="_blank">
-                                <i class="glyphicon glyphicon-edit"></i> Add new backend
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
+                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                      <i class="glyphicon glyphicon-download"></i> Download
+                      <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a class="dropdown-item" id="csvbtn" href="#csv">
+                        <i class="glyphicon glyphicon-file"></i> Download results as CSV
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" id="tsvbtn" href="#tsv">
+                        <i class="glyphicon glyphicon-file"></i> Download results as TSV
+                      </a>
+                    </li>
+                  </ul>
                 </div>
-        
-            <!-- The theme / help block -->
-            <div class="pull-right">
-                <div class="btn-group" role="group" >
-	                <button onclick="$('#stats').slideToggle();$('#bStats').hide();" class="btn btn-default" id="statsButton">
-	                    <i class="glyphicon glyphicon-stats"></i> <span class="d">Loading information...</span>
-	                </button>
-	                <button onclick="$('#bStats').slideToggle();$('#stats').hide();" class="btn btn-default">
-	                    <i class="glyphicon glyphicon-cog"></i> <span class="d">Backend Information</span>
-	                </button>
-	                <button class="btn btn-default" onclick="expandEditor();" id="helpButton">
-	                    <i class="glyphicon glyphicon-question-sign"></i> <span class="d">Shortcuts / Help</span>
-	                </button>
-                </div>
-            </div>
-        
-            <br><br>
-            
-            <!-- The backend statistics block -->
-            <div id="stats" class="well">
-	            <br>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4>Knowledge base index</h4>
-                        <br>
-                        <table class="table">
-                        	<tr><th>Index name:</th><td><b><span id="kbname"></span></b></td></tr>
-							<tr><th>Dataset</th><td>Number of triples: <b><span id="ntriples"></span></b><br><div id="kbstats"></div></td></tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h4>Fulltext index</h4>
-                        <br>
-                        <table class="table">
-                            <tr><th>Index name:</th><td><b><span id="textname"></span></b></td></tr>
-                            <tr><th>Dataset</th><td>
-	                            Number of distinct text records: <b><span id="nrecords"></span></b><br>
-								Number of distinct word occurrences: <b><span id="nwo"></span></b><br>
-								Number of distinct entity occurrences: <b><span id="neo"></span></b>
-                            </td></tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div id="bStats" class="well" style="display: none;">
-	            {% if request.user.is_authenticated %}<a href="/admin/backend/backend/{{ backend.pk }}/change/" class="btn btn-default pull-right" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit this backend</a>{% endif %}
-                <br>
-                <div class="row">
-	                <div class="col-md-6">
-						<h4>Basic settings</h4>
-						<br>
-						<table class="table">
-							<tr><th>Backend name</th><td>{{ backend.name }}</td></tr>
-							<tr><th>Backend slug</th><td>{{ backend.slugify }}</td></tr>
-							<tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
-							<tr><th>Is default:</th><td>{% if backend.isDefault %}Yes{% else %}No{% endif %}</td></tr>
-							<tr><th>Fill known prefixes:</th><td>{% if backend.fillPrefixes %}Yes{% else %}No{% endif %}</td></tr>
-							<tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
-							<tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
-							<tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
-						</table>
-	                </div>
-					<div class="col-md-6" style="word-break: break-all;">
-		                <h4>Name relations</h4>
-						<br>
-						<table class="table">
-	                    	{% if backend.subjectName %}<tr><th><strong>Subject name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.subjectName }}</code></b></small></div></td></tr>{% endif %}
-							{% if backend.predicateName %}<tr><th><strong>Predicate name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.predicateName }}</code></b></small></div></td></tr>{% endif %}
-							{% if backend.objectName %}<tr><th><strong>Object name relation:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.objectName }}</code></b></div></td></tr>{% endif %}
-							<tr><th><strong>Supported Keywords:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedKeywords }}</code></b></div></td></tr>
-							<tr><th><strong>Supported Functions:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedFunctions }}</code></b></div></td></tr>
-						</table>
-	                </div>
-                </div>
-            </div>
-            
-            <!-- The query block -->
-            <div class="well" id="queryBlock">
-                <div class="row">
-                    <div id="editorArea" class="col-md-12">
-                        <!-- The main editor (code mirror textarea) -->
-                        <textarea id="query" class="form-control" placeholder="Start by typing SELECT or PREFIX ...">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
-                    </div>
-                     <div class="col-md-4" id="help" style="display:none;">
-                        <div id="uiHelp">
-                            
-                            <!-- The UI help box -->
-                            <h4 style="margin-top: 0px;">QLever UI Shortcuts:</h4>
-                            <table class="table" style="margin-bottom: 9px;">
-                                <tr>
-                                    <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
-                                    <td><em>Send query to backend</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>tab</kbd></td>
-                                    <td><em>Jump to the next placeholder</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
-                                    <td><em>Invoke auto suggestions</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
-                                    <td><em>Move through suggestions</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd onclick="$()">enter</kbd></td>
-                                    <td><em>Choose the selected suggestion</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>esc</kbd></td>
-                                    <td><em>Close suggestion window</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>ctrl</kbd> + <kbd>f</kbd></td>
-                                    <td><em>Search in editor (supports RegEx)</em></td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>ctrl</kbd> + <kbd>r</kbd></td>
-                                    <td><em>Search and replace in editor</em></td>
-                                </tr>
-                            </table>
-                            
-                        </div>
-                    </div>
-                    <div class="col-md-9 buttonFlex">
-                        
-                        <!-- The run button -->
-                        <button id="runbtn" class="btn btn-success">
-                            <i class="glyphicon glyphicon-refresh"></i> Execute
-                        </button>
-                        
-                        <!-- The download buttons -->
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                                <i class="glyphicon glyphicon-download"></i> Download
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" id="csvbtn" href="#csv">
-                                        <i class="glyphicon glyphicon-file"></i> Download results as CSV
-                                       </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" id="tsvbtn" href="#tsv">
-                                        <i class="glyphicon glyphicon-file"></i> Download results as TSV
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
 
-                        <!-- The share button -->
-                        <button id="sharebtn" class="btn btn-default">
-                            <i class="glyphicon glyphicon-share-alt"></i> Share
-                        </button>
-                        
-                        <!-- The context setting buttons -->
-                        <div class="btn-group" role="group" style="margin-left:auto;">
-                            <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
-                                <i class="glyphicon glyphicon-trash"></i> Reset
-                            </button>
-                            <button class="btn btn-default" onclick="processQuery(BASEURL+'?cmd=clearcache',false,this);">
-                                <i class="glyphicon glyphicon-refresh"></i> Clear cache
-                            </button>
-                            <button class="btn btn-default" onclick="visualise();">
-                                <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
-                            </button>
-                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                                <i class="glyphicon glyphicon-align-left"></i> Examples
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                {% for example in examples %}
-                                    <li>
-                                        <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);">
-                                            {{ example.name }}
-                                            {% if request.user.is_authenticated %} &nbsp; 
-                                            <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
-                                                <i class="glyphicon glyphicon-pencil"></i>
-                                            </span>
-                                            {% endif %}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                                {% if request.user.is_authenticated %}
-                                    <li class="divider"></li>
-                                    <li>
-                                        <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
-                                            <i class="glyphicon glyphicon-check"></i> Add current query as example
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="/admin/backend/example/add/?backend={{ backend.pk }}" target="_blank">
-                                            <i class="glyphicon glyphicon-edit"></i> Add new example
-                                        </a>
-                                    </li>
-                                  {% endif %}
-                            </ul>
-                        </div>
-                        
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-control" id="dynamicSuggestions">
-                            <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
-                                1. Syntax & keywords only
-                            </option>
-                            <option value="1" {% if backend.dynamicSuggestions == 1 %}selected="selected"{% endif %}>
-                                2. Context insensitive suggestions
-                            </option>
-                            <option value="2" {% if backend.dynamicSuggestions == 2 %}selected="selected"{% endif %}>
-                                3. Context sensitive suggestions
-                            </option>
-                        </select>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="name_service"> Automatically add names to result
-                            </label>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="clear"> Clear the cache before every request
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <!-- The info block -->
-            <div class="alert alert-success" id="infoBlock" style="display: none; text-align: center;">
-                <img src="/static/img/loader.gif"><br><br>
-                <h4 id="info"></h4>
-            </div>
-        
-            <!-- The answer block -->
-            <div class="well" id="answerBlock" style="display: none">
-                <h3 class="pull-left">Query results:</h3>
-                <div class="btn-group pull-right" role="group">
-                    <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-list"></i> <span id="resultSize"></span> <span class="d">lines found</span>
-                    </button>
-                    <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-time"></i> <span id="totalTime"></span> <span class="d">in total</span>
-                    </button>
-                    <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-cog"></i> <span id="computationTime"></span> <span class="d">for computation</span>
-                    </button>
-                    <button class="btn btn-default disabled">
-                        <i class="glyphicon glyphicon-transfer"></i> <span id="jsonTime"></span> <span class="d">for resolving and sending</span>
-                    </button>
-                </div>
-                <br><br><br>
+                <!-- The share button -->
+                <button id="sharebtn" class="btn btn-default">
+                  <i class="glyphicon glyphicon-share-alt"></i> Share
+                </button>
                 
-                <!-- The main answer table -->
-                <div id="answer"></div>
-                <div style="overflow-x: scroll; margin-top: 2em;">
-                    <table id="resTable" class="table table-striped">
-                        <thead class="thead-dark"></thead>
-                        <tbody></tbody>
-                    </table>
+                <!-- The context setting buttons -->
+                <div class="btn-group" role="group" style="margin-left:auto;">
+                  <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
+                    <i class="glyphicon glyphicon-trash"></i> Reset
+                  </button>
+                  <button class="btn btn-default" onclick="processQuery(BASEURL+'?cmd=clearcache',false,this);">
+                    <i class="glyphicon glyphicon-refresh"></i> Clear cache
+                  </button>
+                  <button class="btn btn-default" onclick="visualise();">
+                    <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
+                  </button>
+                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    <i class="glyphicon glyphicon-align-left"></i> Examples
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {% for example in examples %}
+                      <li>
+                        <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);">
+                          {{ example.name }}
+                          {% if request.user.is_authenticated %} &nbsp; 
+                          <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
+                            <i class="glyphicon glyphicon-pencil"></i>
+                          </span>
+                          {% endif %}
+                        </a>
+                      </li>
+                    {% endfor %}
+                    {% if request.user.is_authenticated %}
+                      <li class="divider"></li>
+                      <li>
+                        <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
+                          <i class="glyphicon glyphicon-check"></i> Add current query as example
+                        </a>
+                      </li>
+                      <li>
+                        <a href="/admin/backend/example/add/?backend={{ backend.pk }}" target="_blank">
+                          <i class="glyphicon glyphicon-edit"></i> Add new example
+                        </a>
+                      </li>
+                    {% endif %}
+                  </ul>
                 </div>
-                
-            </div>
-        
-            <!-- The error block -->
-            <div class="alert alert-danger" id="errorBlock" style="display: none">
-                <div id="errorReason"><h3>Error:</h3></div>
-            </div>
-        
-            <!-- The cheat sheet block -->
-            <!--div class="well">
-                <i class="glyphicon glyphicon-minus pull-right" onclick="$('#cheatsheet').slideToggle()" style="font-size: 1.5em;" data-toggle="tooltip" title="Slide in / slide out"></i>
-                <h3>Cheatsheet:</h3>
-                <div id="cheatsheet">
-                    <br>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <ul class="nav nav-pills nav-stacked" role="tablist">
-                                <li role="presentation" class="active">
-                                    <a href="#template" aria-controls="template" role="tab" data-toggle="tab">
-                                        Basic template
-                                    </a>
-                                </li>
-                                <li role="presentation">
-                                    <a href="#suggestion" aria-controls="suggestion" role="tab" data-toggle="tab">
-                                        Autosuggestions
-                                    </a>
-                                </li>
-                                <li role="presentation">
-                                    <a href="#placeholder" aria-controls="placeholder" role="tab" data-toggle="tab">
-                                        Placeholders
-                                    </a>
-                                </li>
-                                <li role="presentation">
-                                    <a href="#fulltext" aria-controls="fulltext" role="tab" data-toggle="tab">
-                                        Full-Text-Search
-                                    </a>
-                                </li>
-                                <li role="presentation">
-                                    <a href="#limitations" aria-controls="limitations" role="tab" data-toggle="tab">
-                                        Features & Limitations
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="tab-content">
-                                
-                                
-                                <div role="tabpanel" class="tab-pane active" id="template">
-                                    The basic template of a SPARQL query as suggested by the UI initially looks like this:
-                                    <br><br>
-                                    <pre>SELECT [DISTINCT] [variables] WHERE {
-              [subject] [predicate] [object] .
-              [subject] [predicate] [object] .
-            }
-            LIMIT [LIMIT]
-            ORDER BY [ASC|DESC]</pre>
-                                    <strong>Please note the following hints:</strong>
-                                    <ul>
-                                        <li>You may need to add a prefix depending on your data set. If prefixes are available in your source they will be suggested by our UI automatically.</li>
-                                        <li>You should end lines in where clause with dots - otherwise QLever does not know that you want to connect those two lines with an AND operation.</li>
-                                        <li>DISTINCT, LIMIT and ORDER BY are optional - you don't need to add them to your query if not necessary.</li>
-                                    </ul>
-                                </div>
-                                
-                                
-                                <div role="tabpanel" class="tab-pane" id="suggestion">
-                                    Autosuggestions are made based on your position inside the query and the input you currently type. QLever UI evaluates the query you wrote in order to make context sensitive suggestions
-                                    which leads to less but more relevant suggestions. Suggestions are usually ordered by their occurrence frequency. A small badge on the current lines indicates the amount of records that matches.
-                                    <br><br>
-                                    <strong>If you get no suggestions that might have different reasons:</strong>
-                                    <ul>
-                                        <li>There are no keywords or data points that match the word your are currently typing</li>
-                                        <li>The evaluation of your existing query indicates that there will be no matches</li>
-                                        <li>You have a syntax error in you query (e.g. miss a dot at the end of a line)</li>
-                                        <li>Your QLever backend or your internet connection has gone away and does not respond anymore. This is usually indicated by a red cross on the line.</li>
-                                    </ul>
-                                </div>
-                                
-                                
-                                <div role="tabpanel" class="tab-pane" id="placeholder">
-                                    As soon as your query contains at least a standard template (as suggested by the UI) you can easily switch through placeholder positions by using the TAB key.
-                                    <br><br>
-                                    <pre>SELECT [PLACEHOLDER 1] WHERE {
-              [PLACEHOLDER 2]
-            }
-            [PLACEHOLDER 3]</pre>
-                                This will help you to easily navigate through your code and add lines, variables and limits / ordering without navigating with your mouse or your arrow pane.
-                                </div>
-                                
-                                
-                                <div role="tabpanel" class="tab-pane" id="fulltext">
-                                    When your backend contains fulltext data (you can check in the statistics pane) you can use the fulltext search features of QLever. You can make use of them by writing a query like this:<br><br>
-                                    <pre>SELECT ?person TEXT(?c) SCORE(?c) WHERE {
-              ?c ql:contains-entity ?person .
-              ?c ql:contains-word "land* moon"
-            }
-            TEXTLIMIT 2
-            ORDER BY DESC(SCORE(?c))</pre>
-                                    In this example <em>?person</em> represents the entity (subject) you filter for and <em>?c</em> represents the text pattern.
-                                    <br><br>
-                                    <strong>Note the following features:</strong>
-                                    <ul>
-                                        <li>A star * can be used to search for a prefix as done in the keyword walk*. Note that there is a min prefix size depending on settings at index build-time.</li>
-                                        <li>SCORE can be used to obtain the score of a text match. This is important to achieve a good ordering in the result. The typical way would be to ORDER BY DESC(SCORE(?c)).</li>
-                                        <li>Where ?c just matches a text record Id, TEXT(?c) can be used to extract a snippet.</li>
-                                        <li>TEXTLIMIT can be used to control the number of result lines per text match. The default is 1.</li>
-                                    </ul>
-                                </div>
-                                
-                                
-                                <div role="tabpanel" class="tab-pane" id="limitations">
-                                    Be aware that there are some limitations when using QLever / QLever UI because we do not support the full SPARQL specification <a href="https://www.w3.org/TR/sparql11-query/">as published by the W3C</a> at the moment. Anyway there are plenty of features available already:
-                                    <br><br>
-                                    <strong>Features you may use:</strong>
-                                    <ul>
-                                        <li>PREFIX</li>
-                                        <li>SELECT [DISTINCT] ... WHERE</li>
-                                        <li>ORDER BY [ASC|DESC]</li>
-                                        <li>GROUP BY</li>
-                                        <li>LIMIT</li>
-                                        <li>FILTER REGEX(?x, "[pattern]", "i")</li>
-                                        <li>(COUNT(?x) AS ?count) ... </li>
-                                        <li>for SAMPLE, MIN, MAX, AVG, GROUP_CONCAT(separator=", ")</li>
-                                    </ul>
-                                    <br>
-                                    <strong>Full-text search features added by QLever:</strong>
-                                    <ul>
-                                        <li>ql:contains-[entity|word]</li>
-                                        <li>TEXTLIMIT</li>
-                                        <li>TEXT()</li>
-                                        <li>SCORE()</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  
+              </div>
+              <div class="col-md-3">
+                <select class="form-control" id="dynamicSuggestions">
+                  <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
+                    1. Syntax & keywords only
+                  </option>
+                  <option value="1" {% if backend.dynamicSuggestions == 1 %}selected="selected"{% endif %}>
+                    2. Context insensitive suggestions
+                  </option>
+                  <option value="2" {% if backend.dynamicSuggestions == 2 %}selected="selected"{% endif %}>
+                    3. Context sensitive suggestions
+                  </option>
+                </select>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="name_service"> Automatically add names to result
+                  </label>
                 </div>
-            </div-->
-            {% else %}
-    
-            <!-- The error page when no backend is avialable -->
-            <br><br><br>
-            <div style="text-align: center">
-                <i class="glyphicon glyphicon glyphicon-exclamation-sign" style="font-size: 7em;"></i>
-                <br><br><br>
-                <strong>You need to <a href="/admin/">configure</a> a QLever backend first.</strong>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="clear"> Clear the cache before every request
+                  </label>
+                </div>
+             </div>
+            </div>
+          </div>
+      
+          <!-- The loading block -->
+          <div class="alert alert-success" id="infoBlock" style="display: none; text-align: center;">
+            <img src="/static/img/loader.gif"><br><br>
+            <h4 id="info"></h4>
+          </div>
+      
+          <!-- The answer block -->
+          <div class="well" id="answerBlock" style="display: none">
+            <h3 class="pull-left">Query results:</h3>
+            <div class="btn-group pull-right" role="group">
+              <button class="btn btn-default disabled">
+                <i class="glyphicon glyphicon-list"></i> <span id="resultSize"></span> <span class="d">lines found</span>
+              </button>
+              <button class="btn btn-default disabled">
+                <i class="glyphicon glyphicon-time"></i> <span id="totalTime"></span> <span class="d">in total</span>
+              </button>
+              <button class="btn btn-default disabled">
+                <i class="glyphicon glyphicon-cog"></i> <span id="computationTime"></span> <span class="d">for computation</span>
+              </button>
+              <button class="btn btn-default disabled">
+                <i class="glyphicon glyphicon-transfer"></i> <span id="jsonTime"></span> <span class="d">for resolving and sending</span>
+              </button>
             </div>
             <br><br><br>
-    
-            {% endif %}
+            
+            <!-- The main answer table -->
+            <div id="answer"></div>
+            <div style="overflow-x: scroll; margin-top: 2em;">
+              <table id="resTable" class="table table-striped">
+                <thead class="thead-dark"></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+              
+          </div>
+      
+          <div class="alert alert-danger" id="errorBlock" style="display: none">
+            <div id="errorReason"><h3>Error:</h3></div>
+          </div>
+
+          <div class="alert alert-warning" id="warningBlock" style="display: none">
+            <div id="warningReason"><h3>Warning:</h3></div>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+      
+          {% comment %}
+              Comment this in in to re-enable the cheat sheet, disabled 2019
+              {% include 'partials/help.html' %}
+          {% endcomment %}
+
+      {% else %}
+  
+        {% comment %}
+            The error page when no backend is available
+        {% endcomment %}
+        <br><br><br>
+        <div style="text-align: center">
+          <i class="glyphicon glyphicon glyphicon-exclamation-sign" style="font-size: 7em;"></i>
+          <br><br><br>
+          <strong>You need to <a href="/admin/">configure</a> a QLever backend first.</strong>
         </div>
-        
-        <form method="POST">
-	    {% csrf_token %}
-        <div class="modal" tabindex="-1" role="dialog" id="settingsModal">
-		  <div class="modal-dialog" role="document">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h5 class="modal-title">UI Settings</h5>
-		      </div>
-		      <div class="modal-body">
-		        <h4>Developer Logging</h4>
-		        <p>Logs are generated and written in the default developer console of your browser.</p>
-		        <div class="checkbox"><label><input name="logParsing" id="logParsing" type="checkbox" {% if request.session.logParsing == "on" %}checked="checked"{% endif %}> Log parsing</label></div>
-				<div class="checkbox"><label><input name="logRequests" id="logRequests" type="checkbox" {% if request.session.logRequests == "on"  %}checked="checked"{% endif %}> Log requests</label></div>
-                <div class="checkbox"><label><input name="logSuggestions" id="logSuggestions" type="checkbox" {% if request.session.logSuggestions == "on"  %}checked="checked"{% endif %}> Log suggestions</label></div>
-                <div class="checkbox"><label><input name="logOther" id="logOther" type="checkbox" {% if request.session.logOther == "on"  %}checked="checked"{% endif %}> Log UI events</label></div>
-				<br>
-				<h4>Editor settings</h4>
-				<div class="form-group">
-				    <label for="whitespaces" style="font-weight: normal;">Forced amount of whitespaces per scope</label>
-				    <input type="number" class="form-control" name="whitespaces" id="whitespaces" value="{% if request.session.whitespaces %}{{ request.session.whitespaces }}{% else %}2{% endif %}" style="width: 200px;" min="0">
-				</div>
-		      </div>
-		      <div class="modal-footer">
-		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-		        <input class="btn btn-success" type="submit" value="Save changes">
-		      </div>
-		    </div>
-		  </div>
-		</div>
-        </form>
-        
-        <div class="modal" tabindex="-1" role="dialog" id="visualisation">
-		  <div class="modal-dialog" role="document" style="width: 80%;">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h5 class="modal-title pull-left">Query Analysis</h5>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		          <span aria-hidden="true">&times;</span>
-		        </button>
-		      </div>
-		      <div class="modal-body">
-			      <div id="result-query"></div>
-			      <div id="result-tree"><br><strong style="color: red;">Please execute your query first.</strong><br><br></div>
-		      </div>
-		      <div class="modal-footer">
-		        <div id="lastQueries" class="pull-left" style="margin: -25px 0px;"></div>
-		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-		      </div>
-		    </div>
-		  </div>
-		</div>
+        <br><br><br>
 
-        <div class="modal" tabindex="-1" role="dialog" id="share">
-		  <div class="modal-dialog" role="document" style="width: 80%;">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h4 class="modal-title pull-left">Share your query</h4>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		          <span aria-hidden="true">&times;</span>
-		        </button>
-		      </div>
-		      <div class="modal-body">
-                <div>
-                    <label>Short URL</label>
-                    <div class="input-group">
-                        <input type="text" id="prettyLink" class="form-control" readonly>
-                        <span class="input-group-btn">
-                            <button class="btn btn-default copy-clipboard-button">
-                                <i class="glyphicon glyphicon-copy"></i> Copy
-                            </button>
-                        </span>                    
-                    </div>
-                    <div class="ok-text collapse">
-                        <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
-                    </div>
-                </div>
-                <br>
-                <div>
-                    <label>As querystring</label>
-                    <div class="input-group">
-                        <input type="text" id="queryStringLink" class="form-control" readonly>
-                        <span class="input-group-btn">
-                            <button class="btn btn-default copy-clipboard-button">
-                                <i class="glyphicon glyphicon-copy"></i> Copy
-                            </button>
-                        </span>
-                    </div>
-                    <div class="ok-text collapse">
-                        <i class="glyphicon glyphicon-ok"></i> Copied link to clipboard
-                    </div>
-                </div>
-		      </div>
-		      <div class="modal-footer">
-		        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-		      </div>
-		    </div>
-		  </div>
-		</div>
-        
-        <br>
-        <footer class="footer">
-            <div class="container" style="text-align: center;">
-                <span class="text-muted">
-                    &copy; 2016 - 2021 University of Freiburg,
-                     <a href="https://ad.cs.uni-freiburg.de" target="_blank">Chair for Algorithms and Data Structures</a>
-                     </br>GitHub:
-                     <a href="https://github.com/ad-freiburg/QLever" target="_blank">The QLever SPARQL Engine</a>, 
-                     <a href="https://github.com/ad-freiburg/qleverUI" target="_blank">QLever UI</a>,
-                     <a href="https://github.com/ad-freiburg/qlever-mapui" target="_blank">QLever Map UI</a>,
-                     <a href="https://github.com/ad-freiburg/qlever-evaluation" target="_blank">QLever evaluation</a>
-                     &ndash; Publications:
-                     <a
-                       href="https://ad-publications.cs.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank">SPARQL+Text</a>,
-                     <a href="https://ad-publications.cs.uni-freiburg.de/student-projects/qlever-ui" target="_blank">QLever UI</a>,
-                     <a href="https://ad-publications.cs.uni-freiburg.de/ARXIV_sparql_autocompletion_BKKKS_2021.pdf" target="_blank">SPARQL Autocompletion</a>
-               </span>
-               <br><br>
-            </div>
-        </footer>
-    </body>
+      {% endif %}
+    </div>
+    {% include 'partials/modals.html' %}
+    {% include 'partials/footer.html' %}
+  </body>
 </html>

@@ -1,0 +1,119 @@
+<div class="well">
+  <i class="glyphicon glyphicon-minus pull-right" onclick="$('#cheatsheet').slideToggle()" style="font-size: 1.5em;" data-toggle="tooltip" title="Slide in / slide out"></i>
+  <h3>Cheatsheet:</h3>
+  <div id="cheatsheet">
+    <br>
+      <div class="row">
+        <div class="col-md-4">
+          <ul class="nav nav-pills nav-stacked" role="tablist">
+            <li role="presentation" class="active">
+              <a href="#template" aria-controls="template" role="tab" data-toggle="tab">
+                Basic template
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#suggestion" aria-controls="suggestion" role="tab" data-toggle="tab">
+                Autosuggestions
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#placeholder" aria-controls="placeholder" role="tab" data-toggle="tab">
+                Placeholders
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#fulltext" aria-controls="fulltext" role="tab" data-toggle="tab">
+                Full-Text-Search
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#limitations" aria-controls="limitations" role="tab" data-toggle="tab">
+                Features & Limitations
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-8">
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="template">
+              The basic template of a SPARQL query as suggested by the UI initially looks like this:<br><br>
+              <pre>SELECT [DISTINCT] [variables] WHERE {
+  [subject] [predicate] [object] .
+  [subject] [predicate] [object] .
+}
+LIMIT [LIMIT]
+ORDER BY [ASC|DESC]</pre>
+              <strong>Please note the following hints:</strong>
+              <ul>
+                  <li>You may need to add a prefix depending on your data set. If prefixes are available in your source they will be suggested by our UI automatically.</li>
+                  <li>You should end lines in where clause with dots - otherwise QLever does not know that you want to connect those two lines with an AND operation.</li>
+                  <li>DISTINCT, LIMIT and ORDER BY are optional - you don't need to add them to your query if not necessary.</li>
+              </ul>
+          </div>
+          <div role="tabpanel" class="tab-pane" id="suggestion">
+              Autosuggestions are made based on your position inside the query and the input you currently type. QLever UI evaluates the query you wrote in order to make context sensitive suggestions
+              which leads to less but more relevant suggestions. Suggestions are usually ordered by their occurrence frequency. A small badge on the current lines indicates the amount of records that matches.
+              <br><br>
+              <strong>If you get no suggestions that might have different reasons:</strong>
+              <ul>
+                  <li>There are no keywords or data points that match the word your are currently typing</li>
+                  <li>The evaluation of your existing query indicates that there will be no matches</li>
+                  <li>You have a syntax error in you query (e.g. miss a dot at the end of a line)</li>
+                  <li>Your QLever backend or your internet connection has gone away and does not respond anymore. This is usually indicated by a red cross on the line.</li>
+              </ul>
+          </div>
+           <div role="tabpanel" class="tab-pane" id="placeholder">
+              As soon as your query contains at least a standard template (as suggested by the UI) you can easily switch through placeholder positions by using the TAB key.
+              <br><br>
+              <pre>SELECT [PLACEHOLDER 1] WHERE {
+  [PLACEHOLDER 2]
+}
+[PLACEHOLDER 3]</pre>
+              This will help you to easily navigate through your code and add lines, variables and limits / ordering without navigating with your mouse or your arrow pane.
+            </div>
+            <div role="tabpanel" class="tab-pane" id="fulltext">
+              When your backend contains fulltext data (you can check in the statistics pane) you can use the fulltext search features of QLever. You can make use of them by writing a query like this:<br><br>
+              <pre>SELECT ?person TEXT(?c) SCORE(?c) WHERE {
+  ?c ql:contains-entity ?person .
+  ?c ql:contains-word "land* moon"
+}
+TEXTLIMIT 2
+ORDER BY DESC(SCORE(?c))</pre>
+              In this example <em>?person</em> represents the entity (subject) you filter for and <em>?c</em> represents the text pattern.
+              <br><br>
+              <strong>Note the following features:</strong>
+              <ul>
+                <li>A star * can be used to search for a prefix as done in the keyword walk*. Note that there is a min prefix size depending on settings at index build-time.</li>
+                <li>SCORE can be used to obtain the score of a text match. This is important to achieve a good ordering in the result. The typical way would be to ORDER BY DESC(SCORE(?c)).</li>
+                <li>Where ?c just matches a text record Id, TEXT(?c) can be used to extract a snippet.</li>
+                <li>TEXTLIMIT can be used to control the number of result lines per text match. The default is 1.</li>
+              </ul>
+            </div>   
+            <div role="tabpanel" class="tab-pane" id="limitations">
+              Be aware that there are some limitations when using QLever / QLever UI because we do not support the full SPARQL specification <a href="https://www.w3.org/TR/sparql11-query/">as published by the W3C</a> at the moment. Anyway there are plenty of features available already:
+              <br><br>
+              <strong>Features you may use:</strong>
+              <ul>
+                <li>PREFIX</li>
+                <li>SELECT [DISTINCT] ... WHERE</li>
+                <li>ORDER BY [ASC|DESC]</li>
+                <li>GROUP BY</li>
+                <li>LIMIT</li>
+                <li>FILTER REGEX(?x, "[pattern]", "i")</li>
+                <li>(COUNT(?x) AS ?count) ... </li>
+                <li>for SAMPLE, MIN, MAX, AVG, GROUP_CONCAT(separator=", ")</li>
+              </ul>
+              <br>
+              <strong>Full-text search features added by QLever:</strong>
+              <ul>
+                <li>ql:contains-[entity|word]</li>
+                <li>TEXTLIMIT</li>
+                <li>TEXT()</li>
+                <li>SCORE()</li>
+              </ul>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

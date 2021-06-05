@@ -1,0 +1,74 @@
+<header>
+  <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+    <div class="container">
+        
+      <!-- Navbar header -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/"><i class="glyphicon glyphicon-flash"></i> QLever UI</a>
+      </div>
+      
+      <!-- Navbar -->
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+              Resources <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <h6 class="dropdown-header">QLever UI Components</h6>
+                <li>
+                  <a href="/admin/" target="_blank">
+                    <i class="glyphicon glyphicon-cog"></i>&nbsp; QLever UI Admin
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onclick="changeTheme();">
+                    <i class="glyphicon glyphicon-adjust"></i>&nbsp; Switch theme
+                  </a>
+                </li>
+                <li>
+                  {% if request.user.is_superuser %}
+                    <a href="/api/share?cleanup=true">
+                      <i class="glyphicon glyphicon-trash"></i>&nbsp; Delete URLs for executed queries
+                    </a>
+                  {% endif %}
+                </li>
+                <li>
+                  <a href="?test=jasmine">
+                    <i class="glyphicon glyphicon-play"></i>&nbsp; Run UI Tests
+                  </a>
+                </li>
+              <h6 class="dropdown-header">Other Resources</h6>
+                <li>
+                  <a href="http://ad-publications.informatik.uni-freiburg.de/CIKM_qlever_BB_2017.pdf" target="_blank">
+                    <i class="glyphicon glyphicon-folder-open"></i>&nbsp; QLever Publication
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/ad-freiburg/QLever" target="_blank">
+                    <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLever on GitHub
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/jbuerklin/QLeverUI" target="_blank">
+                    <i class="glyphicon glyphicon-download-alt"></i>&nbsp; QLeverUI on GitHub
+                  </a>
+                </li>
+              <h6 class="dropdown-header">Developer</h6>
+                <li>
+                  <a data-toggle="modal" data-target="#settingsModal">UI Settings</a>
+                </li>
+                {% if STATIC_VERSION %}<li><a href="" style="color: #b1b1b1;">{{ STATIC_VERSION }}</a></li>{% endif %}
+              </ul>
+          </li>
+          </ul>
+      </div>
+    </div>
+  </nav>
+</header>
