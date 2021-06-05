@@ -243,6 +243,9 @@ li.CodeMirror-hint-active {
 .CodeMirror-hint .hint-name {
 	float: right;
 	color: grey;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .CodeMirror-placeholder {

@@ -374,15 +374,23 @@
             var text = document.createElement('div');
             var displayText = tokenizeHints(cur.displayText || getText(cur))
             text.appendChild(displayText);
-            if (cur.name) {
-                var name = document.createElement("span");
-                name.className = "hint-name";
-                if (cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1) {
-                    cur.name += " / " + cur.altname
+            // replace placeholders in suggestions names
+            if(cur.name){
+                for (var prefix in COLLECTEDPREFIXES) {
+                    if (cur.name.indexOf(COLLECTEDPREFIXES[prefix]) > 0) {
+                        cur.name = cur.name.replace(COLLECTEDPREFIXES[prefix],prefix+':')
+                    }
                 }
+                if (displayText != cur.name) {
+                    var name = document.createElement("span");
+                    name.className = "hint-name";
+                    if (cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1) {
+                        cur.name += " / " + cur.altname
+                    }
 
-                name.appendChild(document.createTextNode(" " + cur.name));
-                text.appendChild(name);
+                    name.appendChild(document.createTextNode(" " + cur.name));
+                    text.appendChild(name);
+                 }
             }
             elt.appendChild(text);
         }
