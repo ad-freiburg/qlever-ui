@@ -23,9 +23,6 @@ class BackendAdmin(ImportExportModelAdmin):
         ("General", {
             'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault')
         }),
-        ('Preprocessing', {
-            'fields': ('ntFilePath',),
-        }),
         ('UI Suggestions', {
             'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', 'suggestPrefixnamesForPredicates', 'supportedPredicateSuggestions', 'suggestedPrefixes'),
         }),
@@ -36,10 +33,6 @@ class BackendAdmin(ImportExportModelAdmin):
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
         }),
     )
-
-
-class PrefixAdmin(ImportExportModelAdmin):
-    list_display = ['name', 'prefix', 'backend', 'occurrences']
 
 
 class ExampleAdmin(ImportExportModelAdmin):
@@ -53,6 +46,5 @@ class LinkAdmin(admin.ModelAdmin):
 admin.site.unregister(Group)
 
 admin.site.register(Backend, BackendAdmin)
-admin.site.register(Prefix, PrefixAdmin)
 admin.site.register(Example, ExampleAdmin)
 #admin.site.register(Link, LinkAdmin)

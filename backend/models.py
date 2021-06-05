@@ -29,12 +29,6 @@ class Backend(models.Model):
         help_text="The URL where to find / call the QLever backend (including http://)",
         verbose_name="Base URL")
 
-    ntFilePath = models.CharField(
-        max_length=2000,
-        default='',
-        blank=True,
-        help_text="Local (absolute or relative) path to the source .nt file QLever uses",
-        verbose_name="Source Path")
     ntFileLastChange = models.CharField(
         max_length=100, default='0', blank=True, editable=False)
 
@@ -42,8 +36,6 @@ class Backend(models.Model):
         default=0,
         help_text="Check if this should be the default backend for QLever UI",
         verbose_name="Use as default")
-
-    isImporting = models.BooleanField(default=False, editable=False)
 
     maxDefault = models.IntegerField(
         default=100,
@@ -243,19 +235,6 @@ class Backend(models.Model):
 class Link(models.Model):
     identifier = models.CharField(max_length=256)
     content = models.TextField()
-
-
-class Prefix(models.Model):
-    class Meta:
-        verbose_name_plural = "Prefixes"
-
-    name = models.CharField(max_length=30, default="",
-                            help_text="Please chose the short name of this prefix (e.g. scm)",)
-    prefix = models.CharField(max_length=200, default="",
-                              help_text="Insert the original scope with it's path (e.g. &lt;http://schema.org/&gt;).")
-    backend = models.ForeignKey(Backend, on_delete=models.CASCADE)
-    occurrences = models.IntegerField(
-        default=1, help_text="Estimated or calculated occurrences of this prefix (used for ordering).")
 
 
 class Example(models.Model):
