@@ -94,7 +94,7 @@ def index(request, backend=None, short=None):
     return render(
         request, 'index.html', {
             'backend': activeBackend,
-            'prefixes': json.dumps(prefixes),
+            'prefixes': json.dumps(activeBackend.availablePrefixes),
             'backends': Backend.objects.all(),
             'examples': examples,
             'prefill': prefill

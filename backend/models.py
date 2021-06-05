@@ -163,6 +163,12 @@ class Backend(models.Model):
         help_text="Also suggest FILTER for variables that store entity IDs. You can use this if you don't have name relations and your entity IDs and names are equal.",
         verbose_name="Suggest FILTER for entity variables")
 
+    suggestedPrefixes = models.TextField(
+        default='',
+        blank=True,
+        help_text="A list of prefixes that should be suggested. Prefixes can have either of these forms:<ul><li>@prefix schema: &lt;https://www.schema.org/&gt; .</li><li>Prefix schema: &lt;http://schema.org/&gt;</li></ul>",
+        verbose_name="Predicate suggestions")
+
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
         for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
@@ -225,6 +231,13 @@ class Backend(models.Model):
                 predicate, replacement = match.groups()
                 data[predicate] = replacement
         return json.dumps(data)
+
+    @property
+    def availablePrefixes(self):
+        prefixes = {}
+        for match in re.findall(r"prefix\s+(\S+):\s+(\S+)", self.suggestedPrefixes, re.IGNORECASE):
+            prefixes[match[0]] = match[1].strip('<>')
+        return prefixes
 
 
 class Link(models.Model):
