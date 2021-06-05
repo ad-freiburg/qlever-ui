@@ -1,5 +1,3 @@
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
 var lastUrl; // remark url for autocomplete call
 var requestExtension = false; // append autocompletion or create new widget
 var lastSize = 0; // size of last auto completion call (increases over the time)

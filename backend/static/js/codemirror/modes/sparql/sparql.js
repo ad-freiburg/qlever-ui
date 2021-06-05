@@ -6,7 +6,7 @@ LANGUAGE DEFINITIONS
 
 **********************************************************/
 
-var CONTEXTS = [
+const CONTEXTS = [
   {
     w3name: 'PrefixDecl',
     definition: /^([\s\S]*?)SELECT/gi,
@@ -57,7 +57,7 @@ var CONTEXTS = [
   },
 ];
 
-var COMPLEXTYPES = [
+const COMPLEXTYPES = [
   {
     name: 'PREFIX',
     definition: /PREFIX (.*)/g,
