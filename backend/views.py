@@ -32,7 +32,6 @@ def index(request, backend=None, short=None):
     """
     activeBackend = None
     examples = []
-    prefixes = {}
     prefill = None
 
     if request.POST.get('whitespaces', False):
@@ -76,13 +75,6 @@ def index(request, backend=None, short=None):
         # get examples
         examples = Example.objects.filter(backend=activeBackend)
 
-        # get prefixes
-        prefs = list(Prefix.objects.filter(
-            backend=activeBackend).order_by('-occurrences'))
-
-        for prefix in prefs:
-            prefixes[prefix.name] = prefix.prefix.strip('<>')
-
     # collect shortlink data
     if short:
         link = Link.objects.filter(identifier=short).first()
@@ -94,7 +86,7 @@ def index(request, backend=None, short=None):
     return render(
         request, 'index.html', {
             'backend': activeBackend,
-            'prefixes': json.dumps(prefixes),
+            'prefixes': json.dumps(activeBackend.availablePrefixes),
             'backends': Backend.objects.all(),
             'examples': examples,
             'prefill': prefill
@@ -137,71 +129,6 @@ def shareLink(request):
 #
 # Helpers
 #
-
-
-def collectPrefixes(backend, output=print):
-    """
-
-        Computes the Indexes from the nt file
-
-    """
-
-    if not backend or not backend.ntFilePath:
-        raise Exception(
-            'There was no nt-source specified for this backend.')
-
-    if not os.path.isfile(backend.ntFilePath):
-        raise Exception('Error opening file "%s"' % backend.ntFilePath)
-
-    if backend.isImporting == False:
-        try:
-            backend.isImporting = True
-            backend.save()
-            backendId = str(backend.pk)
-
-            prefixes = {}
-            prefixRegex = re.compile("<(http://(?:[a-zA-Z0-9_/-]*?)[/|#])")
-            with open(backend.ntFilePath, 'r') as ntFile:
-                i = 0
-                for line in ntFile:
-                    for prefix in prefixRegex.findall(line):
-                        if prefix in prefixes:
-                            prefixes[prefix] += 1
-                        else:
-                            prefixes[prefix] = 1
-                    i += 1
-                    if i % 10000000 == 0:
-                        log("%d lines processed" % i, output=output)
-
-            log("Found %d prefixes." % len(prefixes), output=output)
-            if len(prefixes) > 20:
-                log("Storing the 20 most common.", output=output)
-            sortedPrefixList = sorted(
-                [(k, prefixes[k]) for k in prefixes], key=lambda x: x[1])[:20]
-            for prefix in sortedPrefixList:
-                name = "".join([
-                    s[0] for s in prefix[0][7:].replace("www.", "").split("/-")
-                    if s
-                ])
-                instance, created = Prefix.objects.get_or_create(
-                    backend=backend, prefix=prefix[0])
-                instance.occurrences = prefix[1]
-                if created:
-                    instance.name = name
-                    prefix.save()
-
-            backend.ntFileLastChange = os.path.getmtime(backend.ntFilePath)
-            backend.isImporting = False
-            backend.save()
-
-            log("Done.", output=output)
-        except Exception as e:
-            backend.isImporting = False
-            backend.save()
-            raise
-    else:
-        raise Exception(
-            "Index collection for this backend already running")
 
 
 def log(msg, output=print):
