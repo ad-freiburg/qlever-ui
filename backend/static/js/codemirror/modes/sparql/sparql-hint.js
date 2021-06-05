@@ -695,18 +695,20 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
 
         if (data.res) {
+          var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
           var suggested = {};
           for (var result of data.res) {
-            if (suggested[result[0]]) {
+            if (suggested[entity]) {
               continue
             }
-            suggested[result[0]] = true;
+            var entity = result[entityIndex];
+            suggested[entity] = true;
 
             if (predicateForObject !== undefined) {
               var resultType = LITERAL;
-              if (/^<.*>$/.test(result[0])) {
+              if (/^<.*>$/.test(entity)) {
                 resultType = ENTITY;
-              } else if (/@[\w-_]+$/.test(result[0])) {
+              } else if (/@[\w-_]+$/.test(entity)) {
                 resultType = LANGUAGELITERAL;
               }
             }
@@ -715,21 +717,21 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
             var replacePrefix = "";
             var prefixName = "";
             for (var prefix in prefixesRelation) {
-              if (result[0].indexOf(prefixesRelation[prefix]) > 0 && prefixesRelation[prefix].length > replacePrefix.length) {
+              if (entity.indexOf(prefixesRelation[prefix]) > 0 && prefixesRelation[prefix].length > replacePrefix.length) {
                 replacePrefix = prefixesRelation[prefix];
                 prefixName = prefix;
               }
             }
             if (FILLPREFIXES) {
               for (var prefix in COLLECTEDPREFIXES) {
-                if (result[0].indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
+                if (entity.indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
                   replacePrefix = COLLECTEDPREFIXES[prefix];
                   prefixName = prefix;
                 }
               }
             }
             if (replacePrefix.length > 0) {
-              result[0] = result[0].replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
+              entity = entity.replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
             }
 
             if (predicateForObject !== undefined) {
@@ -740,19 +742,19 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
               }
             }
 
-            var nameIndex = data.selected.indexOf("?qleverui_name");
-            var altNameIndex = data.selected.indexOf("?qleverui_altname");
+            var nameIndex = data.selected.indexOf(SUGGESTIONNAMEVARIABLE);
+            var altNameIndex = data.selected.indexOf(SUGGESTIONALTNAMEVARIABLE);
             var entityName = (nameIndex != -1) ? result[nameIndex] : "";
             var altEntityName = (altNameIndex != -1) ? result[altNameIndex] : "";
-            nameList[result[0]] = entityName;
-            // HACK(Hannah 21.08.2020): add ^ if fifth column in result exists
+            nameList[entity] = entityName;
+            // add ^ if the reversed column exists
             // and is 1 (indicating that this is a predicate suggestion, but for
             // the reversed predicate.
-            var reversedIndex = data.selected.indexOf("?qleverui_reversed");
+            var reversedIndex = data.selected.indexOf(SUGGESTIONREVERSEDVARIABLE);
             var reversed = (reversedIndex != -1 && result[reversedIndex] == 1);
             dynamicSuggestions.push({
-              displayText: (reversed ? "^" : "") + result[0] + appendix,
-              completion: (reversed ? "^" : "") + result[0] + appendix,
+              displayText: (reversed ? "^" : "") + entity + appendix,
+              completion: (reversed ? "^" : "") + entity + appendix,
               name: entityName + (reversed ? " (reversed)" : ""),
               altname: altEntityName
             });

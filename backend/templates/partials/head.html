@@ -43,6 +43,10 @@
   var FILLPREFIXES = {{ backend.fillPrefixes|lower }};
   var FILTER_TYPES = {% if backend.filterEntities %}ENTITY{% else %}LITERAL{% endif %};
   var REPLACE_PREDICATES = {% autoescape off %}{{ backend.replacePredicatesList }}{% endautoescape %};
+  var SUGGESTIONENTITYVARIABLE = "{{ backend.suggestionEntityVariable}}";
+  var SUGGESTIONNAMEVARIABLE = "{{ backend.suggestionNameVariable}}";
+  var SUGGESTIONALTNAMEVARIABLE = "{{ backend.suggestionAltNameVariable}}";
+  var SUGGESTIONREVERSEDVARIABLE = "{{ backend.suggestionReversedVariable}}";
   var examples = [];
   {% for example in examples %}
   examples.push(`{{ example.query|safe }}`);

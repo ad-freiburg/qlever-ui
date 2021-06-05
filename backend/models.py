@@ -161,6 +161,30 @@ class Backend(models.Model):
         help_text="A list of prefixes that should be suggested. Prefixes can have either of these forms:<ul><li>@prefix schema: &lt;https://www.schema.org/&gt; .</li><li>Prefix schema: &lt;http://schema.org/&gt;</li></ul>",
         verbose_name="Predicate suggestions")
 
+    suggestionEntityVariable = models.CharField(
+        max_length=100,
+        default='?qleverui_entity',
+        help_text="The variable that stores the suggested entity in the following queries.",
+        verbose_name="Variable for suggested entity")
+
+    suggestionNameVariable = models.CharField(
+        max_length=100,
+        default='?qleverui_name',
+        help_text="The variable that stores the name of the suggestion in the following queries.",
+        verbose_name="Variable for suggestion name")
+
+    suggestionAltNameVariable = models.CharField(
+        max_length=100,
+        default='?qleverui_altname',
+        help_text="The variable that stores the alternative name of the suggestion in the following queries.",
+        verbose_name="Variable for alternative suggestion name")
+
+    suggestionReversedVariable = models.CharField(
+        max_length=100,
+        default='?qleverui_reversed',
+        help_text="The variable that stores wether a suggestion is reversed.",
+        verbose_name="Variable for reversed suggestion")
+
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
         for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):

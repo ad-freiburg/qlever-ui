@@ -27,7 +27,7 @@ class BackendAdmin(ImportExportModelAdmin):
             'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', 'suggestPrefixnamesForPredicates', 'supportedPredicateSuggestions', 'suggestedPrefixes'),
         }),
         ('Backend Suggestions', {
-            'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
+            'fields': ('suggestionEntityVariable', 'suggestionNameVariable', 'suggestionAltNameVariable', 'suggestionReversedVariable', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
         }),
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
