@@ -208,7 +208,7 @@ var COMPLEXTYPES = [
   {
     name: 'TRIPLE',
     suggestions: [[function (c) { return getDynamicSuggestions(c); }]],
-    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
+    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause', 'ValuesClause'],
     onlyOncePerVariation: false,
   },
   {

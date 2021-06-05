@@ -938,6 +938,16 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         
         tempElement = { w3name: 'OptionalClause', suggestInSameLine: true, start: i + start }
         
+      } else if (/VALUES \{$/i.test(tempString)) {
+        
+        // shorten the end of the select clause by what we needed to add to match WHERE {
+        tempElement['content'] = tempString.slice(0, tempString.length - 7);
+        tempElement['end'] = i + start - 8;
+        tree.push(tempElement);
+        tempString = "";
+        
+        tempElement = { w3name: 'ValuesClause', suggestInSameLine: true, start: i + start }
+        
       } else if (/UNION \{$/i.test(tempString)) {
         
         // shorten the end of the select clause by what we needed to add to match WHERE {
