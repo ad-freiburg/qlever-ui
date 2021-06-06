@@ -44,6 +44,10 @@ const CONTEXTS = [
     definition: /VALUES \{([\s\S]*)\}/gi,
   },
   {
+    w3name: 'DataBlock',
+    definition: /VALUES \{([\s\S]*)\}/gi,
+  },
+  {
     w3name: 'OrderCondition',
     definition: /ORDER BY([a-zA-Z0-9\(\)\? \r\t\v\f_]*)/gi,
     suggestInSameLine: true,
@@ -86,6 +90,13 @@ const COMPLEXTYPES = [
     definition: /\?([a-zA-Z]*)/g,
     suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' ') }); return a; }]],
     availableInContext: ['SelectClause', 'OrderCondition', 'GroupCondition'],
+    
+  },
+  {
+    name: 'VALUES',
+    definition: /\?([a-zA-Z]*)/g,
+    suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' {  }') }); return a; }]],
+    availableInContext: ['ValuesClause'],
     
   },
   {
@@ -208,7 +219,7 @@ const COMPLEXTYPES = [
   {
     name: 'TRIPLE',
     suggestions: [[function (c) { return getDynamicSuggestions(c); }]],
-    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause', 'ValuesClause'],
+    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
     onlyOncePerVariation: false,
   },
   {
@@ -242,7 +253,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'VALUES',
-    suggestions: [['VALUES {\n\n}']],
+    suggestions: [['VALUES ']],
     availableInContext: ['WhereClause'],
     suggestOnlyWhenMatch: true,
     requiresEmptyLine: true,

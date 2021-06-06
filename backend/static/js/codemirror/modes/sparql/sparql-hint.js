@@ -935,27 +935,37 @@ function buildQueryTree(content, start) {
 
     } else if (/OPTIONAL \{$/i.test(tempString)) {
 
-      // shorten the end of the select clause by what we needed to add to match WHERE {
+      // shorten the end of the previous clause by what we needed to add to match OPTIONAL {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
-      tempElement['end'] = i + start - 8;
+      tempElement['end'] = i + start - 3;
       tree.push(tempElement);
       tempString = "";
 
       tempElement = { w3name: 'OptionalClause', suggestInSameLine: true, start: i + start }
 
-    } else if (/VALUES \{$/i.test(tempString)) {
+    } else if (/VALUES $/i.test(tempString)) {
 
-      // shorten the end of the select clause by what we needed to add to match WHERE {
+      // shorten the end of the previous clause by what we needed to add to match VALUES {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
-      tempElement['end'] = i + start - 8;
+      tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
 
       tempElement = { w3name: 'ValuesClause', suggestInSameLine: true, start: i + start }
 
+    } else if (tempElement.w3name == 'ValuesClause' && /{$/i.test(tempString)) {
+
+      // shorten the end of the previous clause by what we needed to add to match VALUES {
+      tempElement['content'] = tempString.slice(0, tempString.length - 7);
+      tempElement['end'] = i + start;
+      tree.push(tempElement);
+      tempString = "";
+
+      tempElement = { w3name: 'DataBlock', suggestInSameLine: true, start: i + start }
+
     } else if (/UNION \{$/i.test(tempString)) {
 
-      // shorten the end of the select clause by what we needed to add to match WHERE {
+      // shorten the end of the previous clause by what we needed to add to match UNION {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
       tree.push(tempElement);

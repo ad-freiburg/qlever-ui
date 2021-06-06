@@ -121,7 +121,9 @@ $(document).ready(function () {
       
       // for for autocompletions opened unintented
       if (line[cur.ch] == "}" || line[cur.ch + 1] == "}" || line[cur.ch - 1] == "}") {
-        instance.state.completionActive.close();
+        if(instance && instance.state && instance.state.completionActive){
+          instance.state.completionActive.close();
+        }
       }
       return;
     }

@@ -156,8 +156,12 @@
                     }
                 }
             }
-
-            if (completion.replace(/\s?/g, "").slice(-1) == "}") {
+            
+            if (completion.slice(-4) == "{  }") {
+                log('Moved two characters back due to {} } at the end of the completion', 'other');
+                cursor.ch = cursor.ch + completion.length - 2;
+                editor.setCursor(cursor);
+            } else if (completion.replace(/\s?/g, "").slice(-1) == "}") {
                 log('Moved one line ahead due to } at the end of the completion', 'other');
                 cursor.line = cursor.line + 1;
                 cursor.ch = 9999999;
