@@ -317,7 +317,7 @@ function processQuery(query, showStatus, element) {
     if (showStatus != false) {
       
       if (result.status == "ERROR") { displayError(result); return; }
-      if (result['warnings']) { displayWarning(result); }
+      if (result['warnings'].length > 0) { displayWarning(result); }
       var res = '<div id="res">';
       var nofRows = result.res.length;
       const [totalTime, computeTime, resolveTime] = getResultTime(result.time);

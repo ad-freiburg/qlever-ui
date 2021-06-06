@@ -261,6 +261,13 @@
             <img src="/static/img/loader.gif"><br><br>
             <h4 id="info"></h4>
           </div>
+
+          <div class="alert alert-warning" id="warningBlock" style="display: none">
+            <button type="button" class="close" onclick="$('#warningBlock').hide()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div id="warningReason"><h3>Warning:</h3></div>
+          </div>
       
           <!-- The answer block -->
           <div class="well" id="answerBlock" style="display: none">
@@ -280,7 +287,7 @@
               </button>
             </div>
             <br><br><br>
-            
+
             <!-- The main answer table -->
             <div id="answer"></div>
             <div style="overflow-x: scroll; margin-top: 2em;">
@@ -294,13 +301,6 @@
       
           <div class="alert alert-danger" id="errorBlock" style="display: none">
             <div id="errorReason"><h3>Error:</h3></div>
-          </div>
-
-          <div class="alert alert-warning" id="warningBlock" style="display: none">
-            <div id="warningReason"><h3>Warning:</h3></div>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
           </div>
       
           {% comment %}
