@@ -375,7 +375,7 @@ function getDynamicSuggestions(context) {
           }
           // check for each already seen variable
           for (const seenVariable of seenVariables) {
-            if (RegExp('\\' + seenVariable + "\\b").test(curLine)) {
+            if (RegExp('\\' + seenVariable + "\\b").test(curLine) && curLine.indexOf('{') == -1) {
               linesTaken.push(curLine);
               // search for variables
               for (const lineVariable of curLine.match(variableRegex)) {
