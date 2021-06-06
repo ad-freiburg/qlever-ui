@@ -74,14 +74,16 @@ $(document).ready(function () {
   });
 
   editor.on("change", (cm, change) => {
-    if(change.origin === "paste") {
-      value = editor.getValue()
-      for (var prefix in COLLECTEDPREFIXES) {
-        if (value.indexOf(prefix+':') > 0) {
-         value = 'PREFIX '+prefix+': '+COLLECTEDPREFIXES[prefix]+'\n'+value
+    if (FILLPREFIXES) {
+      if(change.origin === "paste") {
+        value = editor.getValue()
+        for (var prefix in COLLECTEDPREFIXES) {
+          if (value.indexOf(prefix+':') > 0) {
+          value = 'PREFIX '+prefix+': '+COLLECTEDPREFIXES[prefix]+'\n'+value
+          }
         }
+        editor.setValue(value)
       }
-      editor.setValue(value)
     }
   });
   
