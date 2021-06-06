@@ -77,12 +77,18 @@ $(document).ready(function () {
     if (FILLPREFIXES) {
       if(change.origin === "paste") {
         value = editor.getValue()
+        lines = 0
+        newCursor = editor.getCursor();
         for (var prefix in COLLECTEDPREFIXES) {
-          if (value.indexOf(prefix+':') > 0) {
-          value = 'PREFIX '+prefix+': '+COLLECTEDPREFIXES[prefix]+'\n'+value
+          fullPrefix = 'PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>'
+          if (value.indexOf(prefix+':') > 0 && value.indexOf(fullPrefix) == -1) {
+            value = fullPrefix+'\n'+value
+            lines += 1
           }
         }
         editor.setValue(value)
+        newCursor.line += lines
+        editor.setCursor(newCursor);
       }
     }
   });
