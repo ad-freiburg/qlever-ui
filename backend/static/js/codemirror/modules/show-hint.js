@@ -372,7 +372,8 @@
 
         function addQLeverHint(elt, cur, widget) {
             var text = document.createElement('div');
-            var displayText = tokenizeHints(cur.displayText || getText(cur))
+            var rawDisplayText = cur.displayText || getText(cur)
+            var displayText = tokenizeHints(rawDisplayText)
             text.appendChild(displayText);
             // replace placeholders in suggestions names
             if(cur.name){
@@ -381,7 +382,9 @@
                         cur.name = cur.name.replace(COLLECTEDPREFIXES[prefix],prefix+':')
                     }
                 }
-                if (displayText != cur.name) {
+
+                cur.name = cur.name.replace('>','').replace('<','')
+                if (rawDisplayText.trim() != cur.name.trim()) {
                     var name = document.createElement("span");
                     name.className = "hint-name";
                     if (cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1) {
@@ -390,7 +393,7 @@
 
                     name.appendChild(document.createTextNode(" " + cur.name));
                     text.appendChild(name);
-                 }
+                }
             }
             elt.appendChild(text);
         }
