@@ -657,6 +657,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
     activeLineNumber = activeLine.html();
     activeLine.html('<img src="/static/img/ajax-loader.gif">');
     $('#aBadge').remove();
+    $('#suggestionErrorBlock').hide()
 
     // do the limits for the scrolling feature
     sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
@@ -761,7 +762,9 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           activeLine.html(activeLineNumber);
 
         } else {
-          activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;" title="' + data.exception + '">');
+          activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;"></i>');
+          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br>'+data.exception)
+          $('#suggestionErrorBlock').show()
           console.error(data.exception);
         }
 
