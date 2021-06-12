@@ -156,8 +156,12 @@
                     }
                 }
             }
-
-            if (completion.replace(/\s?/g, "").slice(-1) == "}") {
+            
+            if (completion.slice(-4) == "{  }") {
+                log('Moved two characters back due to {} } at the end of the completion', 'other');
+                cursor.ch = cursor.ch + completion.length - 2;
+                editor.setCursor(cursor);
+            } else if (completion.replace(/\s?/g, "").slice(-1) == "}") {
                 log('Moved one line ahead due to } at the end of the completion', 'other');
                 cursor.line = cursor.line + 1;
                 cursor.ch = 9999999;
@@ -372,7 +376,8 @@
 
         function addQLeverHint(elt, cur, widget) {
             var text = document.createElement('div');
-            var displayText = tokenizeHints(cur.displayText || getText(cur))
+            var rawDisplayText = cur.displayText || getText(cur)
+            var displayText = tokenizeHints(rawDisplayText)
             text.appendChild(displayText);
             // replace placeholders in suggestions names
             if(cur.name){
@@ -381,7 +386,9 @@
                         cur.name = cur.name.replace(COLLECTEDPREFIXES[prefix],prefix+':')
                     }
                 }
-                if (displayText != cur.name) {
+
+                cur.name = cur.name.replace('>','').replace('<','')
+                if (rawDisplayText.trim() != cur.name.trim()) {
                     var name = document.createElement("span");
                     name.className = "hint-name";
                     if (cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1) {
@@ -390,7 +397,7 @@
 
                     name.appendChild(document.createTextNode(" " + cur.name));
                     text.appendChild(name);
-                 }
+                }
             }
             elt.appendChild(text);
         }

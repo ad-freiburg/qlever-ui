@@ -193,13 +193,11 @@ function displayError(result) {
 function displayWarning(result) {
   console.warn('QLever returned warnings while processing request', result);
   
-  disp = "<h3>Warning:</h3>";
-  if (result['warning']) {
-    disp += "<small><strong>Warning: </strong><em>";
-    disp += result['warning'];
-    disp += "</em></small>";
-  }
-  $('#warningReason').html(disp);
+  disp = "<h3>Warnings:</h3><ul>";
+  $(result['warnings']).each((el) => {
+    disp += '<li>'+result['warnings'][el]+'</li>';
+  })
+  $('#warningReason').html(disp+'</ul>');
   $('#warningBlock').show();
 }
   

@@ -375,7 +375,7 @@ function getDynamicSuggestions(context) {
           }
           // check for each already seen variable
           for (const seenVariable of seenVariables) {
-            if (RegExp('\\' + seenVariable + "\\b").test(curLine)) {
+            if (RegExp('\\' + seenVariable + "\\b").test(curLine) && curLine.indexOf('{') == -1) {
               linesTaken.push(curLine);
               // search for variables
               for (const lineVariable of curLine.match(variableRegex)) {
@@ -657,6 +657,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
     activeLineNumber = activeLine.html();
     activeLine.html('<img src="/static/img/ajax-loader.gif">');
     $('#aBadge').remove();
+    $('#suggestionErrorBlock').hide()
 
     // do the limits for the scrolling feature
     sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
@@ -761,7 +762,9 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           activeLine.html(activeLineNumber);
 
         } else {
-          activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;" title="' + data.exception + '">');
+          activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;"></i>');
+          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br>'+data.exception)
+          $('#suggestionErrorBlock').show()
           console.error(data.exception);
         }
 
@@ -932,27 +935,37 @@ function buildQueryTree(content, start) {
 
     } else if (/OPTIONAL \{$/i.test(tempString)) {
 
-      // shorten the end of the select clause by what we needed to add to match WHERE {
+      // shorten the end of the previous clause by what we needed to add to match OPTIONAL {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
-      tempElement['end'] = i + start - 8;
+      tempElement['end'] = i + start - 3;
       tree.push(tempElement);
       tempString = "";
 
       tempElement = { w3name: 'OptionalClause', suggestInSameLine: true, start: i + start }
 
-    } else if (/VALUES \{$/i.test(tempString)) {
+    } else if (/VALUES $/i.test(tempString)) {
 
-      // shorten the end of the select clause by what we needed to add to match WHERE {
+      // shorten the end of the previous clause by what we needed to add to match VALUES {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
-      tempElement['end'] = i + start - 8;
+      tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
 
       tempElement = { w3name: 'ValuesClause', suggestInSameLine: true, start: i + start }
 
+    } else if (tempElement.w3name == 'ValuesClause' && /{$/i.test(tempString)) {
+
+      // shorten the end of the previous clause by what we needed to add to match VALUES {
+      tempElement['content'] = tempString.slice(0, tempString.length - 7);
+      tempElement['end'] = i + start;
+      tree.push(tempElement);
+      tempString = "";
+
+      tempElement = { w3name: 'DataBlock', suggestInSameLine: true, start: i + start }
+
     } else if (/UNION \{$/i.test(tempString)) {
 
-      // shorten the end of the select clause by what we needed to add to match WHERE {
+      // shorten the end of the previous clause by what we needed to add to match UNION {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
       tree.push(tempElement);

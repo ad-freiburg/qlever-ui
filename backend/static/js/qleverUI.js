@@ -74,14 +74,22 @@ $(document).ready(function () {
   });
 
   editor.on("change", (cm, change) => {
-    if(change.origin === "paste") {
-      value = editor.getValue()
-      for (var prefix in COLLECTEDPREFIXES) {
-        if (value.indexOf(prefix+':') > 0) {
-         value = 'PREFIX '+prefix+': '+COLLECTEDPREFIXES[prefix]+'\n'+value
+    if (FILLPREFIXES) {
+      if(change.origin === "paste") {
+        value = editor.getValue()
+        lines = 0
+        newCursor = editor.getCursor();
+        for (var prefix in COLLECTEDPREFIXES) {
+          fullPrefix = 'PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>'
+          if (value.indexOf(prefix+':') > 0 && value.indexOf(fullPrefix) == -1) {
+            value = fullPrefix+'\n'+value
+            lines += 1
+          }
         }
+        editor.setValue(value)
+        newCursor.line += lines
+        editor.setCursor(newCursor);
       }
-      editor.setValue(value)
     }
   });
   
@@ -113,7 +121,9 @@ $(document).ready(function () {
       
       // for for autocompletions opened unintented
       if (line[cur.ch] == "}" || line[cur.ch + 1] == "}" || line[cur.ch - 1] == "}") {
-        instance.state.completionActive.close();
+        if(instance && instance.state && instance.state.completionActive){
+          instance.state.completionActive.close();
+        }
       }
       return;
     }
@@ -315,7 +325,7 @@ function processQuery(query, showStatus, element) {
     if (showStatus != false) {
       
       if (result.status == "ERROR") { displayError(result); return; }
-      if (result['warnings']) { displayWarning(result); }
+      if (result['warnings'].length > 0) { displayWarning(result); }
       var res = '<div id="res">';
       var nofRows = result.res.length;
       const [totalTime, computeTime, resolveTime] = getResultTime(result.time);

@@ -86,7 +86,7 @@ def index(request, backend=None, short=None):
     return render(
         request, 'index.html', {
             'backend': activeBackend,
-            'prefixes': json.dumps(activeBackend.availablePrefixes),
+            'prefixes': json.dumps(activeBackend.availablePrefixes) if activeBackend else '{}',
             'backends': Backend.objects.all(),
             'examples': examples,
             'prefill': prefill
