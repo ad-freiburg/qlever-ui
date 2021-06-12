@@ -1,12 +1,15 @@
+from functools import cached_property
 import json
 import re
 from django.db import models
+import datetime
 
 
 class Backend(models.Model):
     MODES = ((2, '3. SPARQL & context sensitive entities'),
              (1, '2. SPARQL & context insensitive entities'),
              (0, '1. SPARQL syntax & keywords only'))
+    useBackendDefaults = True
 
     name = models.CharField(
         max_length=500,
@@ -163,25 +166,29 @@ class Backend(models.Model):
 
     suggestionEntityVariable = models.CharField(
         max_length=100,
-        default='?qleverui_entity',
+        default='',
+        blank=True,
         help_text="The variable that stores the suggested entity in the following queries.",
         verbose_name="Variable for suggested entity")
 
     suggestionNameVariable = models.CharField(
         max_length=100,
-        default='?qleverui_name',
+        default='',
+        blank=True,
         help_text="The variable that stores the name of the suggestion in the following queries.",
         verbose_name="Variable for suggestion name")
 
     suggestionAltNameVariable = models.CharField(
         max_length=100,
-        default='?qleverui_altname',
+        default='',
+        blank=True,
         help_text="The variable that stores the alternative name of the suggestion in the following queries.",
         verbose_name="Variable for alternative suggestion name")
 
     suggestionReversedVariable = models.CharField(
         max_length=100,
-        default='?qleverui_reversed',
+        default='',
+        blank=True,
         help_text="The variable that stores wether a suggestion is reversed.",
         verbose_name="Variable for reversed suggestion")
 
@@ -254,6 +261,37 @@ class Backend(models.Model):
         for match in re.findall(r"prefix\s+(\S+):\s+(\S+)", self.suggestedPrefixes, re.IGNORECASE):
             prefixes[match[0]] = match[1].strip('<>')
         return prefixes
+
+    @cached_property
+    def backendDefaults(self):
+        return BackendDefaults.objects.first()
+
+    def __getattribute__(self, name, forceUseDefault=False):
+        value = super().__getattribute__(name)
+        useDefault = forceUseDefault or super().__getattribute__("useBackendDefaults")
+        if useDefault and not value and super().__getattribute__("backendDefaults") and name in BackendDefaults.AVAILABLE_DEFAULTS:
+            value = getattr(self.backendDefaults, name)
+
+        return value
+
+
+class BackendDefaults(Backend):
+    # every field name listed in AVAILABLE_DEFAULTS will automatically appear in the Backend Defaults admin
+    # And will automatically used as default for every Backend
+    AVAILABLE_DEFAULTS = ("suggestionEntityVariable", "suggestionNameVariable", "suggestionAltNameVariable",
+                          "suggestionReversedVariable", "suggestSubjects", "suggestPredicates", "suggestObjects")
+
+    class Meta:
+        verbose_name_plural = "Backend defaults"
+
+    def save(self, *args, **kwargs):
+        self.name = "Global defaults for all Backends"
+        self.slug = "globaldefaults_" + \
+            str(datetime.datetime.now().timestamp())
+        self.sortKey = "0"
+        self.baseUrl = ""
+        self.isDefault = False
+        super(BackendDefaults, self).save(*args, kwargs)
 
 
 class Link(models.Model):
