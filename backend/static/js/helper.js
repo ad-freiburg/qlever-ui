@@ -5,34 +5,34 @@ function log(message, kind) {
     kind = "other";
   }
   if ((kind == 'parsing' && $('#logParsing').is(':checked')) ||
-  (kind == 'other' && $('#logOther').is(':checked')) ||
-  (kind == 'requests' && $('#logRequests').is(':checked')) ||
-  (kind == 'suggestions' && $('#logSuggestions').is(':checked'))) {
+    (kind == 'other' && $('#logOther').is(':checked')) ||
+    (kind == 'requests' && $('#logRequests').is(':checked')) ||
+    (kind == 'suggestions' && $('#logSuggestions').is(':checked'))) {
     console.log('[' + kind + ']: ' + message.replaceAll(/^\s*$[\n\r]{1,}/gm, ""));
   }
 }
 
 function getQueryString() {
-  
+
   // HACK(Hannah 03.05.2020): allow a construct such as FILTER
   // keywords(?title, "info* retr*")
   q = editor.getValue().replace(
     /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i,
     '?m ql:contains-entity $1 . ?m ql:contains-word $2 . ');
-    log("getQueryString: " + q, 'requests');
-    q = encodeURIComponent(q);
-    // var q = encodeURIComponent(editor.getValue());
-    
-    var queryString = "?query=" + q;
-    if ($("#name_service").prop('checked')) {
-      queryString += "&name_service=true";
-    }
-    if ($("#clear").prop('checked')) {
-      queryString += "&cmd=clearcache";
-    }
-    return BASEURL + queryString
+  log("getQueryString: " + q, 'requests');
+  q = encodeURIComponent(q);
+  // var q = encodeURIComponent(editor.getValue());
+
+  var queryString = "?query=" + q;
+  if ($("#name_service").prop('checked')) {
+    queryString += "&name_service=true";
+  }
+  if ($("#clear").prop('checked')) {
+    queryString += "&cmd=clearcache";
+  }
+  return BASEURL + queryString
 }
-  
+
 function cleanLines(cm) {
   var cursor = cm.getCursor();
   var selection = cm.listSelections()[0];
@@ -50,7 +50,7 @@ function cleanLines(cm) {
           cm.setSelection({ line: i - 1, ch: 999999999 }, { line: i, ch: line.length });
         }
         cm.replaceSelection('');
-        
+
         if (i < cursor.line) {
           cursor.line -= 1;
           selection.anchor = selection.head
@@ -68,31 +68,31 @@ function cleanLines(cm) {
   cm.setCursor(cursor);
   cm.setSelection(selection.anchor, selection.head);
 }
-  
+
 function switchStates(cm) {
-  
+
   var cur = editor.getCursor(); // current cursor position
   var absolutePosition = editor.indexFromPos({ 'line': cur.line, 'ch': cur.ch + 1 }); // absolute cursor position in text
-  
+
   var content = cm.getValue();
-  
+
   var gaps = [];
-  
+
   var gap1 = /WHERE/g
   while ((match = gap1.exec(content)) != null) {
     gaps.push(match.index + match[0].length - 5);
   }
-  
+
   var gap2 = /(\s)*\}/g
   while ((match = gap2.exec(content)) != null) {
     gaps.push(match.index - 1);
   }
-  
+
   gaps.push(content.length - 1);
-  
+
   gaps = Array.from(new Set(gaps));
   gaps.sort(function (a, b) { return a - b });
-  
+
   var found = false;
   for (gap of gaps) {
     if (gap > absolutePosition) {
@@ -100,23 +100,23 @@ function switchStates(cm) {
       break;
     }
   }
-  
+
   if (found == false && gaps.length > 0) {
     found = gaps[0];
   }
-  
+
   if (found == false) {
     return;
   }
-  
+
   var newCursor = editor.posFromIndex(found);
   editor.setCursor(newCursor);
   var line = cm.getLine(newCursor.line);
-  
+
   if (line.slice(newCursor.ch, newCursor.ch + 5) == "WHERE") {
     // add empty whitespace in select if not present
     log("Found SELECT-Placeholder on postion " + found, 'other');
-    cm.setSelection({ 'line': newCursor.line, 'ch': line.length - 8 }, { 'line': newCursor.line, 'ch': line.length - 7 });  
+    cm.setSelection({ 'line': newCursor.line, 'ch': line.length - 8 }, { 'line': newCursor.line, 'ch': line.length - 7 });
     cm.replaceSelection("  ");
     cm.setCursor(newCursor.line, (line.length - 7));
   } else if (found >= content.length - 1) {
@@ -132,16 +132,16 @@ function switchStates(cm) {
     cm.setSelection({ 'line': newCursor.line, 'ch': 9999999 }, { 'line': newCursor.line, 'ch': 9999999 });
     cm.replaceSelection('\n  ');
     cm.setCursor(newCursor.line + 1, 2);
-    
+
   }
-  
+
   cm.setSelection(cm.getCursor(), cm.getCursor());
-  
+
   window.setTimeout(function () {
     CodeMirror.commands.autocomplete(editor);
   }, 100);
 }
-  
+
 function changeTheme(theme = undefined) {
   if (editor.getOption("theme") == 'railscasts' || theme == 'default') {
     log('Setting theme to default...', 'other');
@@ -162,7 +162,7 @@ function changeTheme(theme = undefined) {
     createCookie("theme", "railscasts", 3);
   }
 }
-  
+
 function expandEditor() {
   if ($('#editorArea').hasClass("col-md-8")) {
     $('#editorArea').removeClass("col-md-8").addClass("col-md-12");
@@ -172,7 +172,7 @@ function expandEditor() {
     $('#help').show();
   }
 }
-  
+
 function displayError(result) {
   console.error('QLever returned an error while processing request', result);
   if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
@@ -192,21 +192,21 @@ function displayError(result) {
 
 function displayWarning(result) {
   console.warn('QLever returned warnings while processing request', result);
-  
+
   disp = "<h3>Warnings:</h3><ul>";
   $(result['warnings']).each((el) => {
-    disp += '<li>'+result['warnings'][el]+'</li>';
+    disp += '<li>' + result['warnings'][el] + '</li>';
   })
-  $('#warningReason').html(disp+'</ul>');
+  $('#warningReason').html(disp + '</ul>');
   $('#warningBlock').show();
 }
-  
+
 function displayStatus(str) {
   $("#errorBlock,#answerBlock,#warningBlock").hide();
   $("#info").html(str);
   $("#infoBlock").show();
 }
-  
+
 function showAllConcats(element, sep, column) {
   data = $(element).parent().data('original-title');
   html = "";
@@ -216,7 +216,7 @@ function showAllConcats(element, sep, column) {
   }
   $(element).parent().html(html);
 }
-  
+
 function tsep(str) {
   var spl = str.split('.');
   var intP = spl[0];
@@ -227,13 +227,13 @@ function tsep(str) {
   }
   return intP + frac;
 }
-  
+
 function htmlEscape(str) {
   return str.replace(/&/g, "&amp;")
-  .replace(/</g, "&lt;")
-  .replace(/>/g, "&gt;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
 }
-  
+
 function getShortStr(str, maxLength, column = undefined) {
   str = str.replace(/_/g, ' ');
   var pos;
@@ -304,7 +304,7 @@ function getShortStr(str, maxLength, column = undefined) {
   }
   return str
 }
-  
+
 // Cookie helpers
 var createCookie = function (name, value, days) {
   var expires = "";
