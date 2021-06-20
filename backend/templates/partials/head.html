@@ -48,6 +48,7 @@
   var SUGGESTIONNAMEVARIABLE = "{{ backend.suggestionNameVariable}}";
   var SUGGESTIONALTNAMEVARIABLE = "{{ backend.suggestionAltNameVariable}}";
   var SUGGESTIONREVERSEDVARIABLE = "{{ backend.suggestionReversedVariable}}";
+  var WARMUP_AC_PLACEHOLDERS = {% autoescape off %}{{ backend.getWarmupAndAcPlaceholders }}{% endautoescape %};
   var examples = [];
   {% for example in examples %}
   examples.push(`{{ example.query|safe }}`);

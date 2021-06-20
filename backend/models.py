@@ -162,7 +162,7 @@ class Backend(models.Model):
         default='',
         blank=True,
         help_text="A list of prefixes that should be suggested. Prefixes can have either of these forms:<ul><li>@prefix schema: &lt;https://www.schema.org/&gt; .</li><li>Prefix schema: &lt;http://schema.org/&gt;</li></ul>",
-        verbose_name="Predicate suggestions")
+        verbose_name="Suggested Prefixes")
 
     suggestionEntityVariable = models.CharField(
         max_length=100,
@@ -191,6 +191,104 @@ class Backend(models.Model):
         blank=True,
         help_text="The variable that stores wether a suggestion is reversed.",
         verbose_name="Variable for reversed suggestion")
+
+    # variables for cache pinning
+    frequentPredicates = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Frequent predicates",
+    )
+
+    frequentPatternsWithoutOrder = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Frequent patterns without order",
+    )
+
+    # warmup query patterns
+    entityNameAndAliasPattern = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Entity name and alias pattern",
+        help_text="Use in warmup and autocomplete queries by typing %ENTITY_NAME_AND_ALIAS_PATTERN%",
+    )
+
+    entityScorePattern = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Entity score pattern",
+        help_text="Use in warmup and autocomplete queries by typing %ENTITY_SCORE_PATTERN%",
+    )
+
+    predicateNameAndAliasPatternWithoutContext = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Predicate name and alias pattern without context",
+        help_text="Use in warmup and autocomplete queries by typing %PREDICATE_NAME_AND_ALIAS_PATTERN_WITHOUT_CONTEXT%",
+    )
+
+    predicateNameAndAliasPatternWithContext = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Predicate name and alias pattern with context",
+        help_text="Use in warmup and autocomplete queries by typing %PREDICATE_NAME_AND_ALIAS_PATTERN_WITH_CONTEXT%",
+    )
+
+    entityNameAndAliasPatternDefault = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Entity name and alias pattern (default)",
+        help_text="Use in warmup and autocomplete queries by typing %ENTITY_NAME_AND_ALIAS_PATTERN_DEFAULT%",
+    )
+
+    predicateNameAndAliasPatternWithoutContextDefault = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Predicate name and alias pattern without context (default)",
+        help_text="Use in warmup and autocomplete queries by typing %PREDICATE_NAME_AND_ALIAS_PATTERN_WITHOUT_CONTEXT_DEFAULT%",
+    )
+
+    predicateNameAndAliasPatternWithContextDefault = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Predicate name and alias pattern with context (default)",
+        help_text="Use in warmup and autocomplete queries by typing %PREDICATE_NAME_AND_ALIAS_PATTERN_WITH_CONTEXT_DEFAULT%",
+    )
+
+    warmupQuery1 = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Warmup query 1",
+        help_text="Use in warmup and autocomplete queries by typing %WARMUP_QUERY_1%",
+    )
+
+    warmupQuery2 = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Warmup query 2",
+        help_text="Use in warmup and autocomplete queries by typing %WARMUP_QUERY_2%",
+    )
+
+    warmupQuery3 = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Warmup query 3",
+        help_text="Use in warmup and autocomplete queries by typing %WARMUP_QUERY_3%",
+    )
+
+    warmupQuery4 = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Warmup query 4",
+        help_text="Use in warmup and autocomplete queries by typing %WARMUP_QUERY_4%",
+    )
+
+    warmupQuery5 = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Warmup query 5",
+        help_text="Use in warmup and autocomplete queries by typing %WARMUP_QUERY_5%",
+    )
 
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
@@ -255,6 +353,23 @@ class Backend(models.Model):
                 data[predicate] = replacement
         return json.dumps(data)
 
+    def getWarmupAndAcPlaceholders(self):
+        data = {
+            "ENTITY_NAME_AND_ALIAS_PATTERN": self.entityNameAndAliasPattern,
+            "ENTITY_SCORE_PATTERN": self.entityScorePattern,
+            "PREDICATE_NAME_AND_ALIAS_PATTERN_WITHOUT_CONTEXT": self.predicateNameAndAliasPatternWithoutContext,
+            "PREDICATE_NAME_AND_ALIAS_PATTERN_WITH_CONTEXT": self.predicateNameAndAliasPatternWithContext,
+            "ENTITY_NAME_AND_ALIAS_PATTERN_DEFAULT": self.entityNameAndAliasPatternDefault,
+            "PREDICATE_NAME_AND_ALIAS_PATTERN_WITHOUT_CONTEXT_DEFAULT": self.predicateNameAndAliasPatternWithoutContextDefault,
+            "PREDICATE_NAME_AND_ALIAS_PATTERN_WITH_CONTEXT_DEFAULT": self.predicateNameAndAliasPatternWithContextDefault,
+            "WARMUP_QUERY_1": self.warmupQuery1,
+            "WARMUP_QUERY_2": self.warmupQuery2,
+            "WARMUP_QUERY_3": self.warmupQuery3,
+            "WARMUP_QUERY_4": self.warmupQuery4,
+            "WARMUP_QUERY_5": self.warmupQuery5
+        }
+        return data
+
     @property
     def availablePrefixes(self):
         prefixes = {}
@@ -277,9 +392,13 @@ class Backend(models.Model):
 
 class BackendDefaults(Backend):
     # every field name listed in AVAILABLE_DEFAULTS will automatically appear in the Backend Defaults admin
-    # And will automatically used as default for every Backend
+    # And will automatically be used as default for every Backend
     AVAILABLE_DEFAULTS = ("suggestionEntityVariable", "suggestionNameVariable", "suggestionAltNameVariable",
-                          "suggestionReversedVariable", "suggestSubjects", "suggestPredicates", "suggestObjects")
+                          "suggestionReversedVariable", "suggestSubjects", "suggestPredicates", "suggestObjects",
+                          "entityNameAndAliasPattern", "entityScorePattern", "predicateNameAndAliasPatternWithoutContext",
+                          "predicateNameAndAliasPatternWithContext", "entityNameAndAliasPatternDefault",
+                          "predicateNameAndAliasPatternWithoutContextDefault", "predicateNameAndAliasPatternWithContextDefault",
+                          "warmupQuery1", "warmupQuery2", "warmupQuery3", "warmupQuery4", "warmupQuery5")
 
     class Meta:
         verbose_name_plural = "Backend defaults"

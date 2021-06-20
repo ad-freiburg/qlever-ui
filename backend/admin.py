@@ -27,8 +27,24 @@ class BackendAdmin(ImportExportModelAdmin):
         ('UI Suggestions', {
             'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', 'suggestPrefixnamesForPredicates', 'supportedPredicateSuggestions', 'suggestedPrefixes'),
         }),
-        ('Backend Suggestions', {
-            'fields': ('suggestionEntityVariable', 'suggestionNameVariable', 'suggestionAltNameVariable', 'suggestionReversedVariable', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
+        ('Variable Names', {
+            'fields': ('suggestionEntityVariable', 'suggestionNameVariable', 'suggestionAltNameVariable', 'suggestionReversedVariable'),
+            'description': 'Define the variable names that are used in the warmup and autocomplete queries below.'
+        }),
+        ('Frequent Predicates', {
+            'fields': ('frequentPredicates', 'frequentPatternsWithoutOrder'),
+            'description': 'Frequent predicates that should be pinned to the cache (can be left empty). Separate by space. You can use all the prefixes from "Suggested Prefixes" (e.g. wdt:P31 if "Suggested Prefixes" defines the prefix for wdt), but you can also write full IRIs.'
+        }),
+        ('Warmup Query Patterns', {
+            'fields': ('entityNameAndAliasPattern', 'entityScorePattern', 'predicateNameAndAliasPatternWithoutContext', 'predicateNameAndAliasPatternWithContext', 'entityNameAndAliasPatternDefault', 'predicateNameAndAliasPatternWithoutContextDefault', 'predicateNameAndAliasPatternWithContextDefault'),
+            'description': 'The patterns used in the warmup queries below. The idea ist that you only have to adapt a few and then the warmup queries and the AC queries just work out of the box.<br><br>The "Name and Alias" patterns are typically defined with KB-specific predicates such as rdfs:label or fb:type.object.name. However usually not all entities in a knowledge base have such names. As a fallback, therefore also names according to the patterns labelled as "... (default)" are used.'
+        }),
+        ('Warmup Queries', {
+            'fields': ('warmupQuery1', 'warmupQuery2', 'warmupQuery3', 'warmupQuery4', 'warmupQuery5'),
+            'description': 'The warmup queries. These warmup queries are written in such a way that for almost all knowledge bases, you have to adapat only the patterns, not these warmup query templates.'
+        }),
+        ('Autocomplete Queries', {
+            'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
         }),
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
@@ -54,8 +70,13 @@ class BackendDefaultsAdmin(ImportExportModelAdmin):
         models.CharField: {'widget': TextInput(attrs={'size': '140'})},
         models.TextField: {'widget': Adaptingtextarea()},
     }
-    # only uses the "Backend Suggestions" part of the BackendAdmin fieldsets
-    fieldsets = (BackendAdmin.fieldsets[2], )
+    # Uses the following sections of the BackendAdmin fieldsets
+    #  - Variable Names
+    #  - Frequent Predicates
+    #  - Warmup Query Patterns
+    #  - Warmup Queries
+    #  - Autocomplete Queries
+    fieldsets = BackendAdmin.fieldsets[2:7]
 
 
 class ExampleAdmin(ImportExportModelAdmin):

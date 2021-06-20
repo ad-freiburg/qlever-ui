@@ -528,8 +528,15 @@ function getDynamicSuggestions(context) {
 }
 
 function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words) {
+  // first, build the complete AC query
+  sparqlLines = substituteCustomPlaceholders(completionQuery)
+
+  for (const prefixName in COLLECTEDPREFIXES) {
+    prefixes += `\nPREFIX ${prefixName}: <${COLLECTEDPREFIXES[prefixName]}>`
+  }
+
   var word_with_bracket = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
-  sparqlLines = completionQuery.replace(/%<CURRENT_WORD%/g, word_with_bracket).replace(/%CURRENT_WORD%/g, word);
+  sparqlLines = sparqlLines.replace(/%<CURRENT_WORD%/g, word_with_bracket).replace(/%CURRENT_WORD%/g, word);
   sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
 
 
@@ -554,6 +561,22 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
   sparqlLines = evaluateIfStatements(sparqlLines, word, lines, words)
 
   return sparqlLines;
+}
+
+function substituteCustomPlaceholders(completionQuery) {
+  substitutionFinished = true;
+  for (const replacement in WARMUP_AC_PLACEHOLDERS) {
+    let sparqlLines = completionQuery.replace(new RegExp(`%${replacement}%`, "g"), WARMUP_AC_PLACEHOLDERS[replacement]);
+    if (sparqlLines !== completionQuery) {
+      substitutionFinished = false;
+      completionQuery = sparqlLines;
+    }
+  }
+  if (substitutionFinished) {
+    return completionQuery;
+  } else {
+    return substituteCustomPlaceholders(completionQuery)
+  }
 }
 
 function evaluateIfStatements(completionQuery, word, lines, words) {
@@ -763,7 +786,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
 
         } else {
           activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;"></i>');
-          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br>'+data.exception)
+          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br>' + data.exception)
           $('#suggestionErrorBlock').show()
           console.error(data.exception);
         }

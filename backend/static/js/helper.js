@@ -8,7 +8,7 @@ function log(message, kind) {
     (kind == 'other' && $('#logOther').is(':checked')) ||
     (kind == 'requests' && $('#logRequests').is(':checked')) ||
     (kind == 'suggestions' && $('#logSuggestions').is(':checked'))) {
-    console.log('[' + kind + ']: ' + message.replaceAll(/^\s*$[\n\r]{1,}/gm, ""));
+    console.log('[' + kind + ']: ' + message.replaceAll(/^\s*$[\n\r]{1,}/gm, "\n"));
   }
 }
 
