@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='backend',
             name='slug',
-            field=models.CharField(default='Empty', help_text='Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)', max_length=100, unique=True, verbose_name='Slug'),
+            field=models.CharField(default='Empty', help_text='Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)', max_length=100, verbose_name='Slug'),
         ),
         migrations.AlterField(
             model_name='backend',
