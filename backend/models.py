@@ -20,8 +20,7 @@ class Backend(models.Model):
         max_length=100,
         default="Empty",
         help_text="Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)",
-        verbose_name="Slug",
-        unique=True)
+        verbose_name="Slug")
     sortKey = models.CharField(
         max_length=10,
         default="0",
