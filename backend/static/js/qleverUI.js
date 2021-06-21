@@ -72,27 +72,6 @@ $(document).ready(function () {
     $('[data-tooltip=tooltip]').tooltip('hide');
     cleanLines(instance);
   });
-
-  editor.on("change", (cm, change) => {
-    if (FILLPREFIXES) {
-      if(change.origin === "paste") {
-        value = editor.getValue()
-        lines = 0
-        newCursor = editor.getCursor();
-        for (var prefix in COLLECTEDPREFIXES) {
-          fullPrefix = 'PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>'
-          if (value.indexOf(prefix+':') > 0 && value.indexOf(fullPrefix) == -1) {
-            value = fullPrefix+'\n'+value
-            lines += 1
-          }
-        }
-        editor.setValue(value)
-        newCursor.line += lines
-        editor.setCursor(newCursor);
-      }
-    }
-  });
-  
   
   editor.on("update", function (instance, event) {
     $('[data-tooltip=tooltip]').tooltip('hide');
@@ -106,6 +85,24 @@ $(document).ready(function () {
   // Do some custom activities (overwrite codemirror behaviour)
   editor.on("keyup", function (instance, event) {
     
+    if (FILLPREFIXES) {
+      value = editor.getValue()
+      lines = 0
+      newCursor = editor.getCursor();
+      for (var prefix in COLLECTEDPREFIXES) {
+        fullPrefix = 'PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>'
+        if (value.indexOf(' '+prefix+':') > 0 && value.indexOf(fullPrefix) == -1) {
+          value = fullPrefix+'\n'+value
+          lines += 1
+        }
+      }
+      if(lines > 0){
+        editor.setValue(value)
+        newCursor.line += lines
+        editor.setCursor(newCursor);
+      }
+    }
+
     var cur = instance.getCursor();
     var line = instance.getLine(cur.line);
     var token = instance.getTokenAt(cur);

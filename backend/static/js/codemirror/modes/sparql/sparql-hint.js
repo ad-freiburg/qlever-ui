@@ -786,7 +786,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
 
         } else {
           activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;"></i>');
-          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br>' + data.exception)
+          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br><pre>' + data.exception + '</pre>')
           $('#suggestionErrorBlock').show()
           console.error(data.exception);
         }
