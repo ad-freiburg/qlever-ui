@@ -415,11 +415,12 @@ function getDynamicSuggestions(context) {
       if (words.length == 1) {
         suggestVariables = "both";
         appendToSuggestions = " ";
-        if (SUGGESTSUBJECTS.length > 0) {
-          completionQuery = SUGGESTSUBJECTS;
+        if (suggestionMode == 1 && SUGGESTSUBJECTS_CONTEXT_INSENSITIVE.length > 0) {
+          completionQuery = SUGGESTSUBJECTS_CONTEXT_INSENSITIVE;
           nameList = subjectNames;
-        } else {
-          sendSparql = false;
+        } else if (suggestionMode == 2 && SUGGESTSUBJECTS.length > 0) {
+          completionQuery = SUGGESTSUBJECTS
+          nameList = subjectNames;
         }
       } else if (words.length == 2) {
         suggestVariables = word.startsWith('?') ? "normal" : false;
@@ -431,7 +432,7 @@ function getDynamicSuggestions(context) {
           response = response.concat(getPrefixNameSuggestions(word));
         }
         if (suggestionMode == 1) {
-          sparqlLines = "?qleverui_subject ql:has-predicate ?qleverui_entity .";
+          completionQuery = SUGGESTPREDICATES_CONTEXT_INSENSITIVE;
         } else if (suggestionMode == 2) {
           completionQuery = SUGGESTPREDICATES;
         }
@@ -441,44 +442,39 @@ function getDynamicSuggestions(context) {
         appendToSuggestions = ' .';
         nameList = objectNames;
         if (suggestionMode == 1) {
-          if (SUGGESTOBJECTS.length > 0) {
-            sparqlLines = SUGGESTOBJECTS.replace(/\n/g, "\n        ").trim() + ' .';
-          } else {
-            sendSparql = false;
-          }
+          completionQuery = SUGGESTOBJECTS_CONTEXT_INSENSITIVE;
         } else if (suggestionMode == 2) {
           completionQuery = SUGGESTOBJECTS;
-
-          // replace the prefixes
-          var propertyPath = detectPropertyPath(words[1]);
-
-          for (var i in propertyPath) {
-            var property = propertyPath[i];
-            $.each(prefixesRelation, function (key, value) {
-              if (property.startsWith(key + ':')) {
-                var addAsterisk = false;
-                if (property.endsWith('*')) {
-                  property = property.slice(0, property.length - 1);
-                  addAsterisk = true;
-                }
-                let noPrefixProperty = '<' + property.replace(key + ':', value) + '>';
-
-                if (REPLACE_PREDICATES[noPrefixProperty] !== undefined) {
-                  property = REPLACE_PREDICATES[noPrefixProperty];
-                }
-
-                if (addAsterisk) {
-                  property += "*";
-                }
-
-                propertyPath[i] = property;
-                return false;
-              }
-            });
-          }
-
-          words[1] = propertyPath.join("/");
         }
+        // replace the prefixes
+        var propertyPath = detectPropertyPath(words[1]);
+
+        for (var i in propertyPath) {
+          var property = propertyPath[i];
+          $.each(prefixesRelation, function (key, value) {
+            if (property.startsWith(key + ':')) {
+              var addAsterisk = false;
+              if (property.endsWith('*')) {
+                property = property.slice(0, property.length - 1);
+                addAsterisk = true;
+              }
+              let noPrefixProperty = '<' + property.replace(key + ':', value) + '>';
+
+              if (REPLACE_PREDICATES[noPrefixProperty] !== undefined) {
+                property = REPLACE_PREDICATES[noPrefixProperty];
+              }
+
+              if (addAsterisk) {
+                property += "*";
+              }
+
+              propertyPath[i] = property;
+              return false;
+            }
+          });
+        }
+
+        words[1] = propertyPath.join("/");
 
         var lastWord = words[1];
         if (!lastWord.startsWith("<") && lastWord.indexOf("/") != -1) {
@@ -508,7 +504,7 @@ function getDynamicSuggestions(context) {
         return [];
       }
 
-      if (sendSparql) {
+      if (sendSparql && completionQuery.length > 0) {
         sparqlLines = replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words);
         getQleverSuggestions(sparqlLines, prefixesRelation, appendToSuggestions, nameList, predicateForObject, word);
       }

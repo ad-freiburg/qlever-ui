@@ -43,8 +43,14 @@ class BackendAdmin(ImportExportModelAdmin):
             'fields': ('warmupQuery1', 'warmupQuery2', 'warmupQuery3', 'warmupQuery4', 'warmupQuery5'),
             'description': 'The warmup queries. These warmup queries are written in such a way that for almost all knowledge bases, you have to adapat only the patterns, not these warmup query templates.'
         }),
-        ('Autocomplete Queries', {
-            'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects', 'dynamicSuggestions', 'replacePredicates'),
+        ('Autocomplete Settings', {
+            'fields': ('dynamicSuggestions', 'replacePredicates'),
+        }),
+        ('Autocomplete Queries (context-sensitive)', {
+            'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects'),
+        }),
+        ('Autocomplete Queries (context-insensitive)', {
+            'fields': ('suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive',),
         }),
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
@@ -75,8 +81,10 @@ class BackendDefaultsAdmin(ImportExportModelAdmin):
     #  - Frequent Predicates
     #  - Warmup Query Patterns
     #  - Warmup Queries
-    #  - Autocomplete Queries
-    fieldsets = BackendAdmin.fieldsets[2:7]
+    #  - Autocomplete Settings
+    #  - Autocomplete Queries (context-sensitive)
+    #  - Autocomplete Queries (context-insensitive)
+    fieldsets = BackendAdmin.fieldsets[2:9]
 
 
 class ExampleAdmin(ImportExportModelAdmin):

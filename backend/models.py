@@ -59,20 +59,20 @@ class Backend(models.Model):
     suggestSubjects = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestSubjects').slideToggle();\">Need help?</a><div class=\"helpSuggestSubjects\" style=\"display: none;\">Clause that tells QLever UI which subjects to suggest from. Leave blank if you don't want subject suggestions.</div>",
-        verbose_name="Suggest subjects clause")
+        help_text="The query for <em>context-sensitive</em> subject autocompletion. Leave blank if you don't want subject suggestions.",
+        verbose_name="Subject autocompletion query")
 
     suggestPredicates = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestPredicates').slideToggle();\">Need help?</a><div class=\"helpSuggestPredicates\" style=\"display: none;\">Clause that tells QLever UI which predicates to suggest from.</div>",
-        verbose_name="Suggest predicates clause")
+        help_text="The query for <em>context-sensitive</em> predicate autocompletion",
+        verbose_name="Predicate autocompletion query")
 
     suggestObjects = models.TextField(
         default='',
         blank=True,
-        help_text="<a href=\"javascript:void(0)\" onclick=\"django.jQuery('.helpSuggestObjects').slideToggle();\">Need help?</a><div class=\"helpSuggestObjects\" style=\"display: none;\">Clause that tells QLever UI which objects to suggest from.</div>",
-        verbose_name="Suggest objects clause")
+        help_text="The query for <em>context-sensitive</em> object autocompletion",
+        verbose_name="Object autocompletion query")
 
     subjectName = models.TextField(
         default='',
@@ -289,9 +289,31 @@ class Backend(models.Model):
         help_text="Use in warmup and autocomplete queries by typing %WARMUP_QUERY_5%",
     )
 
+    suggestSubjectsContextInsensitive = models.TextField(
+        default='',
+        blank=True,
+        help_text="The query for <em>context-insensitive<em> subject autocompletion. Leave blank if you don't want subject suggestions.",
+        verbose_name="Context-insensitive subject autocompletion query")
+
+    suggestPredicatesContextInsensitive = models.TextField(
+        default='',
+        blank=True,
+        help_text="The query for <em>context-insensitive</em> predicate autocompletion",
+        verbose_name="Context-insensitive predicate autocompletion query")
+
+    suggestObjectsContextInsensitive = models.TextField(
+        default='',
+        blank=True,
+        help_text="The query for <em>context-insensitive</em> object autocompletion",
+        verbose_name="Context-insensitive object autocompletion query")
+
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
-        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
+        for field in (
+            'subjectName', 'predicateName', 'objectName',
+            'suggestSubjects', 'suggestPredicates', 'suggestObjects',
+            'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName',
+            'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive'):
             setattr(self, field, str(getattr(self, field)).replace(
                 "\r\n", "\n").replace("\r", "\n"))
         super(Backend, self).save(*args, **kwargs)
@@ -339,7 +361,11 @@ class Backend(models.Model):
 
     def entityNameQueries(self):
         data = {}
-        for field in ('subjectName', 'predicateName', 'objectName', 'suggestSubjects', 'suggestPredicates', 'suggestObjects', 'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName'):
+        for field in (
+            'subjectName', 'predicateName', 'objectName',
+            'suggestSubjects', 'suggestPredicates', 'suggestObjects',
+            'alternativeSubjectName', 'alternativePredicateName', 'alternativeObjectName',
+            'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive'):
             data[field.upper()] = getattr(self, field)
         return json.dumps(data)
 
@@ -365,7 +391,7 @@ class Backend(models.Model):
             "WARMUP_QUERY_2": self.warmupQuery2,
             "WARMUP_QUERY_3": self.warmupQuery3,
             "WARMUP_QUERY_4": self.warmupQuery4,
-            "WARMUP_QUERY_5": self.warmupQuery5
+            "WARMUP_QUERY_5": self.warmupQuery5,
         }
         return data
 
@@ -397,7 +423,8 @@ class BackendDefaults(Backend):
                           "entityNameAndAliasPattern", "entityScorePattern", "predicateNameAndAliasPatternWithoutContext",
                           "predicateNameAndAliasPatternWithContext", "entityNameAndAliasPatternDefault",
                           "predicateNameAndAliasPatternWithoutContextDefault", "predicateNameAndAliasPatternWithContextDefault",
-                          "warmupQuery1", "warmupQuery2", "warmupQuery3", "warmupQuery4", "warmupQuery5")
+                          "warmupQuery1", "warmupQuery2", "warmupQuery3", "warmupQuery4", "warmupQuery5",
+                          'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive')
 
     class Meta:
         verbose_name_plural = "Backend defaults"
