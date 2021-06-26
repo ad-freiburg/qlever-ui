@@ -411,6 +411,9 @@ class BackendDefaults(Backend):
         self.isDefault = False
         super(BackendDefaults, self).save(*args, kwargs)
 
+    def __getattribute__(self, name, forceUseDefault=False):
+        return super(models.Model, self).__getattribute__(name)
+
 
 class Link(models.Model):
     identifier = models.CharField(max_length=256)
