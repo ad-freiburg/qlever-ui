@@ -39,16 +39,14 @@
         }
 
         if (this.state.completionActive) this.state.completionActive.close();
+
+        resultSize = 0
         var completion = this.state.completionActive = new Completion(this, options);
         if (!completion.options.hint) return;
 
         CodeMirror.signal(this, "startCompletion", this);
         completion.update(true);
     });
-
-
-    // This is the old interface, kept around for now to stay
-    // backwards-compatible.
     function Completion(cm, options) {
         this.cm = cm;
         this.options = options;

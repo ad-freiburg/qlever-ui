@@ -207,7 +207,6 @@ var suggestions;
         allTypeSuggestions.push({ word: suggestion, type: i });
       }
     }
-
     addMatches(suggestions, allTypeSuggestions, context);
 
     sparqlCallback({
@@ -716,10 +715,11 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
           var suggested = {};
           for (var result of data.res) {
+            var entity = result[entityIndex];
+
             if (suggested[entity]) {
               continue
             }
-            var entity = result[entityIndex];
             suggested[entity] = true;
 
             if (predicateForObject !== undefined) {
@@ -786,7 +786,6 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           $('#suggestionErrorBlock').show()
           console.error(data.exception);
         }
-
         // reset loading indicator
 
         $('#aBadge').remove();
