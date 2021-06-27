@@ -32,7 +32,7 @@ For more information on QLever, visit the corresponding [GitHub Repo](https://gi
 # Building the QLeverUI Docker image
 Clone the QLeverUI repo
 ```
-git clone https://github.com/jbuerklin/qleverUI.git qleverui
+git clone https://github.com/ad-freiburg/qlever-ui.git qlever-ui
 cd qleverui
 ```
 Before building the Docker Image, move `settings_secret_template.py` to `settings_secret.py` and edit it to fit your needs.
