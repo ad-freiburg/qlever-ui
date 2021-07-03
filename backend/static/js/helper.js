@@ -69,6 +69,7 @@ function cleanLines(cm) {
   cm.setSelection(selection.anchor, selection.head);
 }
 
+// Triggered when using TAB
 function switchStates(cm) {
 
   var cur = editor.getCursor(); // current cursor position

@@ -20,8 +20,10 @@ For any features that are unrelated to the actual text editor window (results, s
 
 We implemented a `log()` function that accepts a message and a kind (one of 'parsing', 'requests', 'suggestions' and 'other) and logs the given message to the browser console when the corresponding log is enabled in the UI settings of the website. We make active use of this within the code which helps a lot figuring out which values are detected and what decisions are made within the UI. We recommend making active use of this feature which helps a lot while developing QLever UI. 
 
+[spraql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) and [qleverUI.js](/backend/static/js/qleverUI.js) also provide functions for displaying errors, switching positions inside a query and helpers that get variables, contexts and more within a query.
+
 ### Extending the Tokenizer
-By default CodeMirror uses a tokenizer in order to separate elements in a code lines to generate an HTML DOM representation of the actual value of the editor. This is intentionally used in order to allow syntax highlighting and QLever UI makes active use on it.
+By default CodeMirror uses a tokenizer in order to separate elements in a code lines to generate an HTML DOM representation of the actual value of the editor. This is intentionally used in order to allow syntax highlighting and QLever UI makes active use of it.
 
 The tokenizer can be found in the [SPARQL mode](/backend/static/js/codemirror/modes/sparql/sparql.js). When there is need to separate more tokens than the ones already present (variable, bracket, prefix-declaration, keyword,...) one can extend the tokenizer to return more values.
 
@@ -38,8 +40,8 @@ Attribute | Type | Required | Content
 --- | --- | --- | --- |
 w3name | string | yes | name of the context, should correspond to the w3 standard
 definition | regex | yes | a regex that matches everything inside the context (if present) |
-suggestInSameLine | boolean | no | false, if the context should only be suggestions on an empty line  
-forceLineBreak | boolean | no | true, if a line break should be added after choosing a suggestion inside this context
+suggestInSameLine | boolean | no | false if the context should only be suggestions on an empty line  
+forceLineBreak | boolean | no | true if a line break should be added after choosing a suggestion inside this context
 
 function buildQueryTree(content, start) {
 Types and their names are used in order to build to query tree (as it is logged by the UI itself when enabling parser logging) and easily get the contents of one context within the query. On can find our more on the tree representation in the `buildQueryTree` function inside [spraql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js). 
@@ -53,16 +55,45 @@ Also there are options to hide suggestions until they match whats currently type
 The following options are taken for a `COMPLEXTTYPE`:
 Attribute | Type | Required | Content 
 --- | --- | --- | --- |
-name | string | yes | name of the construct / 
-definition | regex | yes |
-suggestions | callback / list | yes |
-availableInContext | list | yes |
-onlyOnce | boolean | no |
-onlyOncePerVariation | boolean | no |
-requiresEmptyLine | boolean | no | 
-suggestOnlyWhenMatch | boolean | no |
+name | string | yes | name of the construct / suggestion (for reference)
+definition | regex | yes | a regex that matches this exact suggestion (and all of its variants)
+suggestions | callback / list | yes | a list of suggestions or a callback function that returns this list (see below)
+availableInContext | list | yes | a list of w3names of contexts in which this suggestion might occur
+onlyOnce | boolean | no | true if this suggestion (and all of its variants) might only occur once in a context 
+onlyOncePerVariation | boolean | no | true if this suggestion might only occur once in a context (but variants are allowed)
+requiresEmptyLine | boolean | no | true if this suggestion should require a new line in order to be shown
+suggestOnlyWhenMatch | boolean | no | true if this suggestion should only be shown when it partially matches the users input
 
+As mentioned above a complex type has suggestions (either given as a list or as a callback function). Given this definition all possible combinations and variations of a suggestion are generated. We use list of lists to build all possible combinations.
 
+For example the following definition
+```javascript
+function getVariables(){
+    return ['?a','?b','?c']
+}
+
+let suggestions = [['ORDER BY ', ['ASC(', 'DESC('], getVariables(), ')\n']]
+```
+should lead to this list of suggestions:
+```javascript
+let suggestions = [
+    'ORDER BY ASC(?a)\n',
+    'ORDER BY DESC(?a)\n',
+    'ORDER BY ASC(?b)\n',
+    'ORDER BY DESC(?b)\n',
+    'ORDER BY ASC(?c)\n',
+    'ORDER BY DESC(?c)\n',
+]
+```
+
+The suggestions-callback should always return all available combinations that are valid without limiting any further. In the following already typed letters and the `COMPLEXTTYPE` options mentioned above will be used to limit the list but this logic is intentionally separated from the generation of suggestions.
+
+The programmable API of CodeMirror allows adding a callback on their suggestion feature that is called once 'hints' (suggestions as we call them) are requested by the user / editor. This is where QLever UI hook its logic for collecting the possible suggestions.
+```javascript
+CodeMirror.registerHelper("hint", "sparql", function (editor, callback, options) {}
+```
+
+For triples the "dynamicSuggestions" method is called that gathers the entities that are relevant based on the actual backend settings - more on the dynamic auto-completions can be found in [the next chapter](extending_suggestions.md).
 
 As new types / contexts will be available in QLever one can easily extend the according definition. For un-nested types adding the `COMPLEXTTYPES` is sufficient. If there are other complex types that may occur within brackets or at any other position within the type itself one needs to add a context for the "inside" of this complex type and add `COMPLEXTTYPES` that are allowed within the context. 
 
