@@ -66,7 +66,7 @@ current line: `?c[cursor]`
 `%CURRENT_PREDICATE%` = `[not defined]`  
 `%CURRENT_WORD%` = `?c`
 
-**2. `%<CURRENT_WORD%`**  
+**2. `%CURRENT_WORD%`**  
 Same as `%CURRENT_WORD%`, but prepends a `<` if `%CURRENT_WORD%` doesn't start with `<` or `"`  
 Can be helpful in combination with `HAVING` and KBs such as FreebaseEasy where you don't want to always type the `<` in order for autocompletion to work.
 
