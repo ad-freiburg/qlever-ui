@@ -14,11 +14,11 @@ If everything worked correctly you should see backend details displayed on top r
 
 # Configure the autocompletion queries
 QLever UI offers several settings that can be used to configure the autocompletion. They are separated into five categories:
-- Variable Names
-- Warmup Query Patterns
-- Warmup Queries
-- Autocomplete Queries (context-insensitive)
-- Autocomplete Queries (context-sensitive)
+- [Variable Names](#variable-names)
+- [Warmup Query Patterns](#warmup-query-patterns)
+- [Warmup Queries](#warmup-queries)
+- [Autocomplete Queries (context-insensitive)](#autocomplete-queries-context-insensitive)
+- [Autocomplete Queries (context-sensitive)](#autocomplete-queries-context-sensitive)
 
 ## Variable Names
 In this section you can define the special variable names that are used in the queries below. QLever UI needs this information in order to know which variables to look out for. The variables that can be defined are:
