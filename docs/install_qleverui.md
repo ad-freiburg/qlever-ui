@@ -1,14 +1,14 @@
 # Installing QLever UI
-* [Building the QLeverUI Docker Image](docs/install_qleverui.md#building-the-qleverui-docker-container)
-    * [Setting up the database](docs/install_qleverui.md#setting-up-the-database)
-    * [Running a QLeverUI Docker container](docs/install_qleverui.md#running-a-qleverui-docker-container)
-* [Installing QLever UI without docker](docs/install_qleverui.md#installing-qlever-ui-without-docker)
-    * [Setting up the database manually](docs/install_qleverui.md#setting-up-the-database-manually)
-    * [Running QLever UI without docker](docs/install_qleverui.md#running-qlever-ui-without-docker)
+* [Building the QLeverUI Docker Image](#building-the-qleverui-docker-container)
+    * [Setting up the database](#setting-up-the-database)
+    * [Running a QLeverUI Docker container](#running-a-qleverui-docker-container)
+* [Installing QLever UI without docker](#installing-qlever-ui-without-docker)
+    * [Setting up the database manually](#setting-up-the-database-manually)
+    * [Running QLever UI without docker](#running-qlever-ui-without-docker)
 
 # Building the QLeverUI Docker image
 Clone the QLeverUI repo
-```
+```shell
 git clone https://github.com/ad-freiburg/qlever-ui.git qlever-ui
 cd qleverui
 ```

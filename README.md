@@ -16,16 +16,15 @@
     <img src="docs/screenshot.png" alt="QLever UI">
 </div>
 </p>
-<br>
 
 # What is QLeverUI?
-**QLeverUI** is an easy to use interactive **user interface** for the very fast **SPARQL search engine QLever** that helps you to discover the scopes and information in very large knowledge bases by providing context sensitive suggestions and auto-completions and adding helpful information an views to the various outputs.
+**QLeverUI** is an easy to use interactive **user interface** for the very fast **SPARQL search engine QLever** that helps you to discover the scopes and information in very large knowledge bases by providing **context sensitive suggestions** and **auto-completions** and adding helpful information and views to the various outputs.
 
 QLever UI supports different types of results (e.g. geographical data, named instances, images and more) and is highly customizable to the needs of its users and the structure of the underlying dataset.
 ### What is QLever?
 QLever (pronounced "clever") is an efficient SPARQL engine that can handle very large datasets. For example, QLever can index the complete Wikidata (~ 18 billion triples) in less than 24 hours on a standard Linux machine using around 40 GB of RAM, with subsequent query times below 1 second even for relatively complex queries with large result sets. On top of the standard SPARQL functionality, QLever also supports SPARQL+Text search and SPARQL autocompletion.
 
-For more information on QLever, visit the corresponding [GitHub Repo](https://github.com/ad-freiburg/QLever).
+For more information on QLever, visit the corresponding [QLever GitHub Repo](https://github.com/ad-freiburg/QLever).
 ## Authors & Copyright
 © 2016 - 2021 University of Freiburg, [Chair for Algorithms and Data Structures](https://ad.cs.uni-freiburg.de/)
 
@@ -33,6 +32,10 @@ For more information on QLever, visit the corresponding [GitHub Repo](https://gi
 - @dkemen <dk@software-design.de>
 - @hannahbast <bast@informatik.uni-freiburg.de>
 
+### Publications
+* *J. Bürklin*: ["QLever UI: A context-sensitive user interface for QLever"](https://ad-publications.cs.uni-freiburg.de/)
+* *D. Kemen*: ["QLever UI: Building an interactiveSPARQL editor to explore knowledgebases"](https://ad-publications.cs.uni-freiburg.de/)
+* *H. Bast, J. Kalmbach, T. Klumpp, F. Kramer, and N. Schnelle*: ["Efficient SPARQL Autocompletion via SPARQL"](https://ad-publications.cs.uni-freiburg.de/ARXIV_sparql_autocompletion_BKKKS_2021.pdf)
 ### License
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 # Overview
@@ -46,10 +49,4 @@ Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 * [Extending QLeverUI](#construct-and-theoretical-approach)
     * [Extending the language parser](docs/extending_parser.md)
     * [Extending the suggestions](docs/extending_suggestions.md)
-# Construct and theoretical approach
-All information about the theoretical concept and approach and considerations done are found in the papers of J. Bürklin and D. Kemen on QLever UI (links will follow)
 
-Everything regarding the implementation / extension of the code base can be found in the following.
-
-* [Extending the language parser](docs/extending_parser.md)
-* [Extending the suggestions](docs/extending_suggestions.md)
