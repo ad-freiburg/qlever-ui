@@ -85,3 +85,6 @@ You can either start a development server by simply running
 or prepare a productive environment.
 
 You can start the development instance at any time with this single command and access your instance by opening http://localhost:8042. Feel free to change the port or hostname if needed.
+
+### Configure QLever UI
+[Read more about configuration in the next chapter](docs/configure_qleverui.md)
