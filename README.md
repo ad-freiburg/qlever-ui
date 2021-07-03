@@ -5,13 +5,13 @@
 <h1 align="center">QLever UI</h1>
 <p align="center">
   An easy to use interactive user interface for the very fast SPARQL search engine QLever<br><br />
-    <a href="https://qlever.cs.uni-freiburg.de/wikidata">View Demo</a>
+    <strong><a href="https://qlever.cs.uni-freiburg.de/wikidata">View Demo</a></strong>
     ·
-    <a href="#overview">Read Documentation</a>
+    <strong><a href="#overview">Read Documentation</a></strong>
     ·
-    <a href="https://github.com/ad-freiburg/QLever">QLever Engine</a>
+    <strong><a href="https://github.com/ad-freiburg/QLever">QLever Engine</a></strong>
 </p>
-<br><br>
+<br>
   <div style="text-align: center;">
     <img src="docs/screenshot.png" alt="QLever UI">
 </div>
