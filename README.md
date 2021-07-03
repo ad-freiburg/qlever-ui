@@ -30,7 +30,7 @@ For more information on QLever, visit the corresponding [GitHub Repo](https://gi
 
 # Configure QLever UI
 
-Assuming that you already have a QLever Instance running and super user created you can now configure your existing QLever backend in you new QLever UI instance. 
+Assuming that you already have a QLever Instance running and super user created you can now configure your existing QLever backend in your new QLever UI instance. 
 
 You may access the admin panel by adding `/admin` to the URL you are using for your QLever UI instance and login with the credentials you just created.
 

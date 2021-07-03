@@ -37,7 +37,7 @@ class BackendAdmin(ImportExportModelAdmin):
         }),
         ('Warmup Query Patterns', {
             'fields': ('entityNameAndAliasPattern', 'entityScorePattern', 'predicateNameAndAliasPatternWithoutContext', 'predicateNameAndAliasPatternWithContext', 'entityNameAndAliasPatternDefault', 'predicateNameAndAliasPatternWithoutContextDefault', 'predicateNameAndAliasPatternWithContextDefault'),
-            'description': 'The patterns used in the warmup queries below. The idea ist that you only have to adapt a few and then the warmup queries and the AC queries just work out of the box.<br><br>The "Name and Alias" patterns are typically defined with KB-specific predicates such as rdfs:label or fb:type.object.name. However usually not all entities in a knowledge base have such names. As a fallback, therefore also names according to the patterns labelled as "... (default)" are used.'
+            'description': 'The patterns used in the warmup queries below. The idea is that you only have to adapt a few and then the warmup queries and the AC queries just work out of the box.<br><br>The "Name and Alias" patterns are typically defined with KB-specific predicates such as rdfs:label or fb:type.object.name. However usually not all entities in a knowledge base have such names. As a fallback, therefore also names according to the patterns labelled as "... (default)" are used.'
         }),
         ('Warmup Queries', {
             'fields': ('warmupQuery1', 'warmupQuery2', 'warmupQuery3', 'warmupQuery4', 'warmupQuery5'),
