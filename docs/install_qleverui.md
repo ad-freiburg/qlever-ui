@@ -9,7 +9,6 @@
 <br>
 
 Since QLever UI is built upon Python/Django you may find further information on the details and individual setups in the [django documentation](https://docs.djangoproject.com/en/3.0/ref/settings/).
-
 <br>
 
 # Building the QLeverUI Docker image
@@ -61,7 +60,7 @@ docker run -it -p 8000:8000 \
 ``` 
 __Note:__ If you already have a QLeverUI database file `qleverui.sqlite3` you want to use, make sure it is located in the specified path or provide the correct path to it.  
 If you want the container to run in the background and restart automatically replace `-it` with `-d --restart=unless-stopped`  
-You should now be able to connect to QLeverUI via <http://localhost:8000>. Continue with [configuring QLever UI](#configure-qlever-ui).
+You should now be able to connect to QLeverUI via <http://localhost:8000>. Continue with [configuring QLever UI](./configure_qleverui.md).
 
 
 # Installing QLever UI without docker
@@ -79,7 +78,7 @@ When not using docker there are some additional steps to do. QLever UI is build 
     ```
 
 ## Setting up the database manually
-1. The backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run
+1. The backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:
     ```shell
     python manage.py make migrations —-merge && python manage.py migrate
     ```
@@ -96,4 +95,4 @@ You can either start a development server by simply running
 ```
 or prepare a productive environment.
 
-You can start the development instance at any time with this single command and access your instance by opening http://localhost:8042. Feel free to change the port or hostname if needed. Read more about configuration in the [next chapter](docs/configure_qleverui.md)
+You can start the development instance at any time with this single command and access your instance by opening http://localhost:8042. Feel free to change the port or hostname if needed. Read more about configuration in the [next chapter](./configure_qleverui.md).
