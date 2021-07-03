@@ -28,7 +28,7 @@ By default CodeMirror uses a tokenizer in order to separate elements in a code l
 The tokenizer can be found in the [SPARQL mode](/backend/static/js/codemirror/modes/sparql/sparql.js). When there is need to separate more tokens than the ones already present (variable, bracket, prefix-declaration, keyword,...) one can extend the tokenizer to return more values.
 
 Each mode get its own css class in the rendering which allows to easily style the new tokens. For example the "variable"-token get a class called `cm-variable` that can have custom styling attributes in [codemirror.css](/backend/static/css/codemirror.css).
-#### Extending the Parser
+### Extending the Suggestions
 For making suggestions there is a separate [spraql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) in the language mode folder that actually cares about the context-sensitivity.
 
 According to the SPARQL grammar there are different contexts within a query - for example the *SelectClause*, the *WhereClause* or the *SolutionModifier* - QLever UI also uses these contexts and keeps a definition of available contexts in the [SPARQL language file](/backend/static/js/codemirror/modes/sparql/sparql.js) as a constant variable.
