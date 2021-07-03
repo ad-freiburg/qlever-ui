@@ -17,7 +17,7 @@ We consider [docker to be installed](https://docs.docker.com/get-docker/) on you
 1. To get stated clone the QLeverUI repo on your manchine:
     ```shell
     git clone https://github.com/ad-freiburg/qlever-ui.git qlever-ui
-    cd qleverui
+    cd qlever-ui
     ```
 2. Before building the Docker Image, move [`settings_secret_template.py`](/qlever/settings_secret_template.py) to `settings_secret.py` and edit it to [fit your needs](https://docs.djangoproject.com/en/3.0/ref/settings/).
     ```shell
