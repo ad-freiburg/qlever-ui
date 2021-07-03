@@ -1,9 +1,3 @@
-
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Issues][issues-shield]][issues-url]
-[![Apache 2.0 License][license-shield]][license-url]
-
 <p align="center">
   <br>
   <img src="backend/static/favicon.ico" alt="Logo" width="80" height="80">
