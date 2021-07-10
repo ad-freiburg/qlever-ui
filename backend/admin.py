@@ -44,7 +44,7 @@ class BackendAdmin(ImportExportModelAdmin):
             'description': 'The warmup queries. These warmup queries are written in such a way that for almost all knowledge bases, you have to adapat only the patterns, not these warmup query templates.'
         }),
         ('Autocomplete Settings', {
-            'fields': ('dynamicSuggestions', 'replacePredicates'),
+            'fields': ('dynamicSuggestions', 'mixedModeTimeout', 'replacePredicates'),
         }),
         ('Autocomplete Queries (context-sensitive)', {
             'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects'),

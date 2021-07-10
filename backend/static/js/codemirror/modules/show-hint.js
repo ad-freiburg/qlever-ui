@@ -392,8 +392,12 @@
                     if (cur.altname && cur.altname != cur.name && cur.name.indexOf(data.word) == -1) {
                         cur.name += " / " + cur.altname
                     }
-
-                    name.appendChild(document.createTextNode(" " + cur.name));
+                    const nameNode = document.createElement("div");
+                    nameNode.textContent = " " + cur.name;
+                    if (cur.isMixedModeSuggestion) {
+                        nameNode.classList.add("mixedModeSuggestion")
+                    }
+                    name.appendChild(nameNode);
                     text.appendChild(name);
                 }
             }
