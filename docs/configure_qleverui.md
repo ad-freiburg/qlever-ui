@@ -36,7 +36,7 @@ The warmup queries are used in two different ways.
 1. The queries defined in these settings can be used in the autocomplete queries below, through placeholders.
 2. QLever UI can send the warmup queries to the QLever instance in order to add these queries to the QLever cache.
 
-QLever UI can currently accomodate up to five warmup queries. The number of warmup queries can be extended with little work, though.
+QLever UI can currently accommodate up to five warmup queries. The number of warmup queries can be extended with little work, though.
 
 ## Autocomplete Queries (context-insensitive)
 These are the queries QLever UI will use when searching for autocompletion suggestions. There are independent settings for subject, predicate and object autocompletion queries. The queries labelled _context-insensitive_ will be used when the backend is set to use suggestion mode 2: "SPARQL & context insensitive entities"
