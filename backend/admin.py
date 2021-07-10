@@ -59,11 +59,13 @@ class BackendAdmin(ImportExportModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         t = super().get_form(request, obj, **kwargs)
-        obj.useBackendDefaults = False
-        for fieldName in t.base_fields:
-            if fieldName in BackendDefaults.AVAILABLE_DEFAULTS:
-                t.base_fields[fieldName].widget.attrs["placeholder"] = obj.__getattribute__(
-                    fieldName, forceUseDefault=True)
+        obj = obj or  BackendDefaults.objects.first()
+        if obj:
+            obj.useBackendDefaults = False
+            for fieldName in t.base_fields:
+                if fieldName in BackendDefaults.AVAILABLE_DEFAULTS:
+                    t.base_fields[fieldName].widget.attrs["placeholder"] = obj.__getattribute__(
+                        fieldName, forceUseDefault=True)
         return t
 
     def get_queryset(self, request):
