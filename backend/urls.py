@@ -8,4 +8,5 @@ urlpatterns = [
         views.index,
         name='index'),
     url(r'^api/share$', views.shareLink, name='shareLink'),
+    url(r'^api/warmup/(?P<backend>\d+)/(?P<target>[a-zA-Z0-9_-]+)$', views.warmup, name='warmup'),
 ]

@@ -1,26 +1,20 @@
+from django.core.management.base import CommandError
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseServerError, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
-from django.db import connection, transaction
-from django.db.models import Max
 
 from .models import *
+from backend.management.commands.warmup import Command as WarmupCommand
 
-import re
 import json
-import os
-import subprocess
-import requests
-import codecs
 import urllib
 import random
 import string
-from collections import Counter
 from django.shortcuts import redirect
 
 import datetime
-import time
 
 
 def index(request, backend=None, short=None):
@@ -126,6 +120,15 @@ def shareLink(request):
             Link.objects.all().delete()
         return redirect('/')
 
+@user_passes_test(lambda u: u.is_superuser)
+def warmup(request, backend, target):
+    print(backend, target)
+    command = WarmupCommand()
+    try:
+        log = command.handle(returnLog=True, backend=[backend], target=target)
+    except Exception as e:
+        return JsonResponse({"status":"error", "message": str(e)})
+    return JsonResponse({"status":"ok", "log": log})
 #
 # Helpers
 #

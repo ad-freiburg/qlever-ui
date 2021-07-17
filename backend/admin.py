@@ -11,6 +11,8 @@ from import_export.admin import ImportExportModelAdmin
 from .models import *
 from .forms import Adaptingtextarea
 
+from backend.management.commands import warmup
+
 admin.site.site_header = "QLever UI Administration"
 admin.site.site_title = "QLever UI Administration"
 
@@ -55,6 +57,14 @@ class BackendAdmin(ImportExportModelAdmin):
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
         }),
+    )
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["warmupTargets"] = warmup.Command.Targets.choices
+        extra_context["object_id"] = object_id
+        return super(BackendAdmin, self).change_view(
+            request, object_id, form_url, extra_context=extra_context,
     )
 
     def get_form(self, request, obj=None, **kwargs):
