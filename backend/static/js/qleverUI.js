@@ -239,6 +239,7 @@ $(document).ready(function () {
 
 function executeQuery(){
     log('Start processing', 'other');
+    $('#suggestionErrorBlock').parent().hide();
     processQuery(getQueryString() + '&send=' + $('#maxSendOnFirstRequest').html(), true, this);
     
     // generate pretty link

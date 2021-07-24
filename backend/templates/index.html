@@ -256,7 +256,12 @@
             </div>
           </div>
 
-          <div class="alert alert-danger" id="suggestionErrorBlock" style="display: none"></div>
+          <div class="alert alert-danger" style="display: none">
+            <button type="button" class="close" aria-label="Close" onclick="$(this).parent().hide()" style="margin-top: -10px;">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <div id="suggestionErrorBlock"></div>
+          </div>
       
           <!-- The loading block -->
           <div class="alert alert-success" id="infoBlock" style="display: none; text-align: center;">
