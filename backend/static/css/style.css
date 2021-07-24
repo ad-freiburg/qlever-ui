@@ -248,6 +248,10 @@ li.CodeMirror-hint-active {
   text-overflow: ellipsis;
 }
 
+.CodeMirror-hint .hint-name .mixedModeSuggestion {
+  color: blue;
+}
+
 .CodeMirror-placeholder {
 	color: #9a9a9a !important;
 }

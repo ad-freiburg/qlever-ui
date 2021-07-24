@@ -6,7 +6,8 @@ import datetime
 
 
 class Backend(models.Model):
-    MODES = ((2, '3. SPARQL & context sensitive entities'),
+    MODES = ((3, '4. Mixed mode'),
+             (2, '3. SPARQL & context sensitive entities'),
              (1, '2. SPARQL & context insensitive entities'),
              (0, '1. SPARQL syntax & keywords only'))
     useBackendDefaults = True
@@ -55,6 +56,12 @@ class Backend(models.Model):
         choices=MODES,
         help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
         verbose_name="Default suggestion mode")
+    
+    mixedModeTimeout = models.FloatField(
+        default=1,
+        help_text="The timeout in seconds for the main query in mixed mode.",
+        verbose_name="Mixed mode timeout",
+    )
 
     suggestSubjects = models.TextField(
         default='',

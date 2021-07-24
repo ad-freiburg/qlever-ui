@@ -52,6 +52,7 @@
   var SUGGESTIONALTNAMEVARIABLE = "{{ backend.suggestionAltNameVariable}}";
   var SUGGESTIONREVERSEDVARIABLE = "{{ backend.suggestionReversedVariable}}";
   var WARMUP_AC_PLACEHOLDERS = {% autoescape off %}{{ backend.getWarmupAndAcPlaceholders }}{% endautoescape %};
+  var MIXED_MODE_TIMEOUT = {{ backend.mixedModeTimeout }};
   var examples = [];
   {% for example in examples %}
   examples.push(`{{ example.query|safe }}`);

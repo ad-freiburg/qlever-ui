@@ -229,7 +229,7 @@
                   
               </div>
               <div class="col-md-3">
-                <select class="form-control hidden" id="dynamicSuggestions">
+                <select class="form-control" id="dynamicSuggestions">
                   <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
                     1. Syntax & keywords only
                   </option>
@@ -239,8 +239,11 @@
                   <option value="2" {% if backend.dynamicSuggestions == 2 %}selected="selected"{% endif %}>
                     3. Context sensitive suggestions
                   </option>
+                  <option value="3" {% if backend.dynamicSuggestions == 3 %}selected="selected"{% endif %}>
+                    4. Mixed mode
+                  </option>
                 </select>
-                <div style="margin-top: -15px">
+                <div>
                   <div class="checkbox">
                     <label>
                       <input type="checkbox" id="name_service"> Automatically add names to result

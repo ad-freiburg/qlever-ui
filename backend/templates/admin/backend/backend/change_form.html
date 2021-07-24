@@ -5,7 +5,6 @@
 {{ block.super }}
 <script>
 django.jQuery("input, textarea").each(function () {
-  console.log(`"${this.placeholder}" and not "${this.value}"`)
   if (this.placeholder && !this.value) {
     this.insertAdjacentHTML("afterend", `<div class="help"><button type="button" class="editPlaceholderButton" data-id="${this.id}">Edit</button></div>`)
   }
@@ -18,5 +17,46 @@ django.jQuery(".editPlaceholderButton").click(function() {
     django.jQuery(input).focus();
   }
 });
+
+django.jQuery("input.warmupTarget").click(e => {
+  e.preventDefault();
+  callWarmupTarget(e.currentTarget.name)
+});
 </script>
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<script>
+async function callWarmupTarget(target) {
+  const output = django.jQuery("#warmupOutput")
+  output.append(`Executing ${target}...\n`).show()
+
+  const response = await fetch(`/api/warmup/{{ object_id }}/${target}`);
+  const json = await response.json()
+  console.log(json)
+  if (json?.status === "ok") {
+    for(const msg of json.log) {
+      output.append(msg+"\n")
+    }
+  } else {
+    output.append(`<span style="color: red">${JSON.stringify(json)}</span>\n`)
+  }
+  output.append("\n")
+  output[0].scrollTop = output[0].scrollHeight;
+}
+</script>
+{% endblock  %}
+
+{% block field_sets  %}
+  {% if change %}
+    <div class="submit-row" style="text-align: left;">
+      {% for value, label in warmupTargets %}
+        <input type="submit" class="warmupTarget" value="{{ label }}" name="{{ value }}">
+      {% endfor %}
+      <br>
+      <pre id="warmupOutput" style="max-height: 40em; border: 1px solid grey; border-radius: 5px; background: white; display: none; margin: 5px; padding: 1em; font-size: 1em;"></pre>
+    </div>
+
+  {% endif %}
+  {{ block.super }}
 {% endblock %}

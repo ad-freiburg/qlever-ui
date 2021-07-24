@@ -11,6 +11,8 @@ from import_export.admin import ImportExportModelAdmin
 from .models import *
 from .forms import Adaptingtextarea
 
+from backend.management.commands import warmup
+
 admin.site.site_header = "QLever UI Administration"
 admin.site.site_title = "QLever UI Administration"
 
@@ -44,7 +46,7 @@ class BackendAdmin(ImportExportModelAdmin):
             'description': 'The warmup queries. These warmup queries are written in such a way that for almost all knowledge bases, you have to adapat only the patterns, not these warmup query templates.'
         }),
         ('Autocomplete Settings', {
-            'fields': ('dynamicSuggestions', 'replacePredicates'),
+            'fields': ('dynamicSuggestions', 'mixedModeTimeout', 'replacePredicates'),
         }),
         ('Autocomplete Queries (context-sensitive)', {
             'fields': ('suggestSubjects', 'suggestPredicates', 'suggestObjects'),
@@ -57,13 +59,23 @@ class BackendAdmin(ImportExportModelAdmin):
         }),
     )
 
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["warmupTargets"] = warmup.Command.Targets.choices
+        extra_context["object_id"] = object_id
+        return super(BackendAdmin, self).change_view(
+            request, object_id, form_url, extra_context=extra_context,
+    )
+
     def get_form(self, request, obj=None, **kwargs):
         t = super().get_form(request, obj, **kwargs)
-        obj.useBackendDefaults = False
-        for fieldName in t.base_fields:
-            if fieldName in BackendDefaults.AVAILABLE_DEFAULTS:
-                t.base_fields[fieldName].widget.attrs["placeholder"] = obj.__getattribute__(
-                    fieldName, forceUseDefault=True)
+        obj = obj or  BackendDefaults.objects.first()
+        if obj:
+            obj.useBackendDefaults = False
+            for fieldName in t.base_fields:
+                if fieldName in BackendDefaults.AVAILABLE_DEFAULTS:
+                    t.base_fields[fieldName].widget.attrs["placeholder"] = obj.__getattribute__(
+                        fieldName, forceUseDefault=True)
         return t
 
     def get_queryset(self, request):

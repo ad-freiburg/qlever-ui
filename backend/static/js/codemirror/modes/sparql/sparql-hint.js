@@ -404,7 +404,8 @@ function getDynamicSuggestions(context) {
     sparqlQuery = "";
     var sendSparql = !(word.startsWith('?'));
     var sparqlLines = "";
-    var completionQuery = "";
+    var mode1Query = "";  // mode 1 is context-insensitive
+    var mode2Query = "";  // mode 2 is context-sensitive
     var suggestVariables;
     var appendToSuggestions = "";
     var nameList;
@@ -414,13 +415,9 @@ function getDynamicSuggestions(context) {
       if (words.length == 1) {
         suggestVariables = "both";
         appendToSuggestions = " ";
-        if (suggestionMode == 1 && SUGGESTSUBJECTS_CONTEXT_INSENSITIVE.length > 0) {
-          completionQuery = SUGGESTSUBJECTS_CONTEXT_INSENSITIVE;
-          nameList = subjectNames;
-        } else if (suggestionMode == 2 && SUGGESTSUBJECTS.length > 0) {
-          completionQuery = SUGGESTSUBJECTS
-          nameList = subjectNames;
-        }
+        mode1Query = SUGGESTSUBJECTS_CONTEXT_INSENSITIVE;
+        mode2Query = SUGGESTSUBJECTS;
+        nameList = subjectNames;
       } else if (words.length == 2) {
         suggestVariables = word.startsWith('?') ? "normal" : false;
         appendToSuggestions = " ";
@@ -430,21 +427,16 @@ function getDynamicSuggestions(context) {
         if (SUGGEST_PREFIXNAMES_FOR_PREDICATES) {
           response = response.concat(getPrefixNameSuggestions(word));
         }
-        if (suggestionMode == 1) {
-          completionQuery = SUGGESTPREDICATES_CONTEXT_INSENSITIVE;
-        } else if (suggestionMode == 2) {
-          completionQuery = SUGGESTPREDICATES;
-        }
+        mode1Query = SUGGESTPREDICATES_CONTEXT_INSENSITIVE;
+        mode2Query = SUGGESTPREDICATES;
+        
       } else if (words.length == 3) {
         predicateForObject = words[1];
         suggestVariables = "normal";
         appendToSuggestions = ' .';
         nameList = objectNames;
-        if (suggestionMode == 1) {
-          completionQuery = SUGGESTOBJECTS_CONTEXT_INSENSITIVE;
-        } else if (suggestionMode == 2) {
-          completionQuery = SUGGESTOBJECTS;
-        }
+        mode1Query = SUGGESTOBJECTS_CONTEXT_INSENSITIVE;
+        mode2Query = SUGGESTOBJECTS;
         // replace the prefixes
         var propertyPath = detectPropertyPath(words[1]);
 
@@ -503,9 +495,26 @@ function getDynamicSuggestions(context) {
         return [];
       }
 
-      if (sendSparql && completionQuery.length > 0) {
+      let completionQuery = "";
+      let mixedModeQuery = "";
+      switch(suggestionMode) {
+        case 1:
+          completionQuery = mode1Query;
+          break;
+        case 2:
+          completionQuery = mode2Query; break;
+        case 3:
+          completionQuery = mode2Query;
+          mixedModeQuery = mode1Query;
+          break;
+      }
+
+      if (sendSparql && completionQuery) {
         sparqlLines = replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words);
-        getQleverSuggestions(sparqlLines, prefixesRelation, appendToSuggestions, nameList, predicateForObject, word);
+        if (mixedModeQuery) {
+          mixedModeQuery = replaceQueryPlaceholders(mixedModeQuery, word, prefixes, lines, words);
+        }
+        getQleverSuggestions(sparqlLines, prefixesRelation, appendToSuggestions, nameList, predicateForObject, word, mixedModeQuery);
       }
 
       if (suggestVariables) {
@@ -665,9 +674,16 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
   return conditionSatisfied;
 }
 
-function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList, predicateForObject, word) {
+function getUrlFromSparqlQuery(sparqlQuery, timeout) {
+  if (!sparqlQuery) return false;
+  // do the limits for the scrolling feature
+  sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
-  try {
+  // HACK(Hannah 14.08.2020): query rewrite for KEYWORDS from
+  // helper.js also for completion queries.
+  sparqlQuery = sparqlQuery.replace(
+    /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/ig,
+    '?kwm ql:contains-entity $1 . ?kwm ql:contains-word $2 . ');
 
     // show the loading indicator and badge
     activeLineBadgeLine = $('.CodeMirror-activeline-background');
@@ -676,149 +692,168 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
     activeLine.html('<img src="/static/img/ajax-loader.gif">');
     $('#aBadge').remove();
     $('#suggestionErrorBlock').parent().hide()
-
-    // do the limits for the scrolling feature
-    sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
-
-    // HACK(Hannah 14.08.2020): query rewrite for KEYWORDS from
-    // helper.js also for completion queries.
-    sparqlQuery = sparqlQuery.replace(
-      /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/ig,
-      '?kwm ql:contains-entity $1 . ?kwm ql:contains-word $2 . ');
-
     log('Getting suggestions from QLever:\n' + sparqlQuery, 'requests');
 
-    lastUrl = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
-    var dynamicSuggestions = [];
+  let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
+  if (timeout) {
+    url += "&timeout=" + timeout;
+  }
+  return url;
+}
 
-    sparqlTimeout = window.setTimeout(function () {
 
-      sparqlRequest = $.ajax({ url: lastUrl }).done(function (data) {
+function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList, predicateForObject, word, mixedModeQuery) {
+  /* mixedModeQuery is the case-insensitive query that is sent additionally to the case-sensitive query when mixed mode is enabled. */
 
-        try {
-          data = $.parseJSON(data);
-        } catch (err) { }
 
-        if ($('#logRequests').is(':checked')) {
-          runtime_log[runtime_log.length] = data.runtimeInformation;
-          query_log[query_log.length] = data.query;
-          if (runtime_log.length - 10 >= 0) {
-            runtime_log[runtime_log.length - 10] = null;
-            query_log[query_log.length - 10] = null;
-          }
+  // show the loading indicator and badge
+  activeLineBadgeLine = $('.CodeMirror-activeline-background');
+  activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
+  activeLineNumber = activeLine.html();
+  activeLine.html('<img src="/static/img/ajax-loader.gif">');
+  $('#aBadge').remove();
+  $('#suggestionErrorBlock').parent().hide()
+
+  const lastUrl = getUrlFromSparqlQuery(sparqlQuery, timeout=MIXED_MODE_TIMEOUT);
+  const mixedModeUrl = getUrlFromSparqlQuery(mixedModeQuery);
+  var dynamicSuggestions = [];
+
+  sparqlTimeout = window.setTimeout(async function () {
+    try {
+      let mixedModeQuery;
+      if (mixedModeUrl) {
+        mixedModeQuery = fetch(mixedModeUrl);  // start the mixed mode query, but async
+      }
+      const response = await fetch(lastUrl);  // start the main query and wait for it to return
+      let data = await response.json();
+      let mainQueryHasTimedOut = false;
+      if (mixedModeUrl && data.status === "ERROR" && data.exception.toLowerCase().indexOf("timeout") !== -1) {
+        // the main query timed out.
+        // get the mixedModeQuery's response and continue with that
+        mainQueryHasTimedOut = true;
+        const mixedModeResponse = await mixedModeQuery;
+        data = await mixedModeResponse.json();
+      }
+
+      if ($('#logRequests').is(':checked')) {
+        runtime_log[runtime_log.length] = data.runtimeInformation;
+        query_log[query_log.length] = data.query;
+        if (runtime_log.length - 10 >= 0) {
+          runtime_log[runtime_log.length - 10] = null;
+          query_log[query_log.length - 10] = null;
         }
+      }
 
-        log("Got suggestions from QLever.", 'other');
-        log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
+      log("Got suggestions from QLever.", 'other');
+      if (mainQueryHasTimedOut) {
+        log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
+      }
+      log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
 
-        if (data.res) {
-          var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
-          var suggested = {};
-          for (var result of data.res) {
-            var entity = result[entityIndex];
+      if (data.res) {
+        var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
+        var suggested = {};
+        for (var result of data.res) {
+          var entity = result[entityIndex];
 
-            if (suggested[entity]) {
-              continue
+          if (suggested[entity]) {
+            continue
+          }
+          suggested[entity] = true;
+
+          if (predicateForObject !== undefined) {
+            var resultType = LITERAL;
+            if (/^<.*>$/.test(entity)) {
+              resultType = ENTITY;
+            } else if (/@[\w-_]+$/.test(entity)) {
+              resultType = LANGUAGELITERAL;
             }
-            suggested[entity] = true;
+          }
 
-            if (predicateForObject !== undefined) {
-              var resultType = LITERAL;
-              if (/^<.*>$/.test(entity)) {
-                resultType = ENTITY;
-              } else if (/@[\w-_]+$/.test(entity)) {
-                resultType = LANGUAGELITERAL;
-              }
+          // add back the prefixes
+          var replacePrefix = "";
+          var prefixName = "";
+          for (var prefix in prefixesRelation) {
+            if (entity.indexOf(prefixesRelation[prefix]) > 0 && prefixesRelation[prefix].length > replacePrefix.length) {
+              replacePrefix = prefixesRelation[prefix];
+              prefixName = prefix;
             }
-
-            // add back the prefixes
-            var replacePrefix = "";
-            var prefixName = "";
-            for (var prefix in prefixesRelation) {
-              if (entity.indexOf(prefixesRelation[prefix]) > 0 && prefixesRelation[prefix].length > replacePrefix.length) {
-                replacePrefix = prefixesRelation[prefix];
+          }
+          if (FILLPREFIXES) {
+            for (var prefix in COLLECTEDPREFIXES) {
+              if (entity.indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
+                replacePrefix = COLLECTEDPREFIXES[prefix];
                 prefixName = prefix;
               }
             }
-            if (FILLPREFIXES) {
-              for (var prefix in COLLECTEDPREFIXES) {
-                if (entity.indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
-                  replacePrefix = COLLECTEDPREFIXES[prefix];
-                  prefixName = prefix;
-                }
-              }
-            }
-            if (replacePrefix.length > 0) {
-              entity = entity.replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
-            }
-
-            if (predicateForObject !== undefined) {
-              if (predicateResultTypes[predicateForObject] == undefined) {
-                predicateResultTypes[predicateForObject] = resultType;
-              } else {
-                predicateResultTypes[predicateForObject] = Math.max(predicateResultTypes[predicateForObject], resultType);
-              }
-            }
-
-            var nameIndex = data.selected.indexOf(SUGGESTIONNAMEVARIABLE);
-            var altNameIndex = data.selected.indexOf(SUGGESTIONALTNAMEVARIABLE);
-            var entityName = (nameIndex != -1) ? result[nameIndex] : "";
-            var altEntityName = (altNameIndex != -1) ? result[altNameIndex] : "";
-            nameList[entity] = entityName;
-            // add ^ if the reversed column exists
-            // and is 1 (indicating that this is a predicate suggestion, but for
-            // the reversed predicate.
-            var reversedIndex = data.selected.indexOf(SUGGESTIONREVERSEDVARIABLE);
-            var reversed = (reversedIndex != -1 && result[reversedIndex] == 1);
-            dynamicSuggestions.push({
-              displayText: (reversed ? "^" : "") + entity + appendix,
-              completion: (reversed ? "^" : "") + entity + appendix,
-              name: entityName + (reversed ? " (reversed)" : ""),
-              altname: altEntityName
-            });
+          }
+          if (replacePrefix.length > 0) {
+            entity = entity.replace("<" + replacePrefix, prefixName + ':').slice(0, -1);
           }
 
-          activeLine.html(activeLineNumber);
+          if (predicateForObject !== undefined) {
+            if (predicateResultTypes[predicateForObject] == undefined) {
+              predicateResultTypes[predicateForObject] = resultType;
+            } else {
+              predicateResultTypes[predicateForObject] = Math.max(predicateResultTypes[predicateForObject], resultType);
+            }
+          }
 
-        } else {
-          activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red; cursor: pointer;" onclick="$(\'#suggestionErrorBlock\').parent().show()"></i>');
-          $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br><pre>' + data.exception + '</pre>')
-          console.error(data.exception);
+          var nameIndex = data.selected.indexOf(SUGGESTIONNAMEVARIABLE);
+          var altNameIndex = data.selected.indexOf(SUGGESTIONALTNAMEVARIABLE);
+          var entityName = (nameIndex != -1) ? result[nameIndex] : "";
+          var altEntityName = (altNameIndex != -1) ? result[altNameIndex] : "";
+          nameList[entity] = entityName;
+          // add ^ if the reversed column exists
+          // and is 1 (indicating that this is a predicate suggestion, but for
+          // the reversed predicate.
+          var reversedIndex = data.selected.indexOf(SUGGESTIONREVERSEDVARIABLE);
+          var reversed = (reversedIndex != -1 && result[reversedIndex] == 1);
+          dynamicSuggestions.push({
+            displayText: (reversed ? "^" : "") + entity + appendix,
+            completion: (reversed ? "^" : "") + entity + appendix,
+            name: entityName + (reversed ? " (reversed)" : ""),
+            altname: altEntityName,
+            isMixedModeSuggestion: mainQueryHasTimedOut,
+          });
         }
-        // reset loading indicator
 
-        $('#aBadge').remove();
+        activeLine.html(activeLineNumber);
 
-        // add badge
-        if (data.resultsize != undefined && data.resultsize != null) {
-          resultSize = data.resultsize;
-          activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + data.resultsize + '</span>');
-        }
+      } else {
+        activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red; cursor: pointer;" onclick="$(\'#suggestionErrorBlock\').parent().show()"></i>');
+        $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br><pre>' + data.exception + '</pre>')
+        console.error(data.exception);
+      }
+      // reset loading indicator
 
-        sparqlCallback({
-          list: suggestions.concat(dynamicSuggestions),
-          from: sparqlFrom,
-          to: sparqlTo,
-          word: word
-        });
+      $('#aBadge').remove();
 
-        return []
+      // add badge
+      if (data.resultsize != undefined && data.resultsize != null) {
+        resultSize = data.resultsize;
+        activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + data.resultsize + '</span>');
+      }
 
-      }).fail(function (e) {
-
-        console.error(e);
-        // things went terribly wrong...
-        console.error('Failed to load suggestions from QLever (step 2)', e);
-        activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
-
+      sparqlCallback({
+        list: suggestions.concat(dynamicSuggestions),
+        from: sparqlFrom,
+        to: sparqlTo,
+        word: word
       });
 
-    }, 500);
+      return []
+    } catch (err) {
+      // things went terribly wrong...
+      console.error('Failed to load suggestions from QLever', err);
+      activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
+      activeLine.html(activeLineNumber);
+      return [];
+    }
 
-  } catch (err) {
-    activeLine.html(activeLineNumber);
-    return [];
-  }
+  }, 500);
+
+
 }
 
 
