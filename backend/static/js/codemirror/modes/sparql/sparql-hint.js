@@ -688,7 +688,9 @@ function getUrlFromSparqlQuery(sparqlQuery, timeout) {
     // show the loading indicator and badge
     activeLineBadgeLine = $('.CodeMirror-activeline-background');
     activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
-    activeLineNumber = activeLine.html();
+    if(activeLine.html().length < 10){
+      activeLineNumber = activeLine.html();
+    }
     activeLine.html('<img src="/static/img/ajax-loader.gif">');
     $('#aBadge').remove();
     $('#suggestionErrorBlock').parent().hide()
@@ -826,7 +828,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         console.error(data.exception);
       }
       // reset loading indicator
-
+      
       $('#aBadge').remove();
 
       // add badge
