@@ -539,6 +539,7 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
     prefixes += `\nPREFIX ${prefixName}: <${COLLECTEDPREFIXES[prefixName]}>`
   }
 
+  word = word.replace('.','\\\\.').replace('*','\\\\*').replace('^','\\\\^').replace('?','\\\\?').replace('[','\\\\[').replace(']','\\\\]')
   var word_with_bracket = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
   sparqlLines = sparqlLines.replace(/%<CURRENT_WORD%/g, word_with_bracket).replace(/%CURRENT_WORD%/g, word);
   sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
