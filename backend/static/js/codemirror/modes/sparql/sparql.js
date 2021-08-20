@@ -223,6 +223,15 @@ const COMPLEXTYPES = [
     onlyOncePerVariation: false,
   },
   {
+    name: 'REGEX',
+    definition: /REGEX(\?.*)/g,
+    suggestions: [['REGEX(', function (c) { return getVariables(c, true); }]],
+    requiresEmptyLine: true,
+    onlyOncePerVariation: true,
+    availableInContext: ['WhereClause'],
+    
+  },
+  {
     name: 'FILTER',
     definition: /FILTER \((.*)/g,
     suggestions: [['FILTER (', function (c) { return getVariables(c, undefined, undefined, FILTER_TYPES); }, ' ']],
@@ -239,7 +248,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'SUBQUERY',
-    suggestions: [['{\n\n}']],
+    suggestions: [['{\n\n}'],['{\n\n} UNION {\n\n}\n']],
     availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
     suggestOnlyWhenMatch: true,
     requiresEmptyLine: true,

@@ -996,7 +996,7 @@ function buildQueryTree(content, start) {
       tree.push(tempElement);
       tempString = "";
 
-      tempElement = { w3name: 'OptionalClause', suggestInSameLine: true, start: i + start }
+      tempElement = { w3name: 'SubQuery', suggestInSameLine: true, start: i + start }
 
     } else if (/VALUES $/i.test(tempString)) {
 
@@ -1026,7 +1026,7 @@ function buildQueryTree(content, start) {
       tree.push(tempElement);
       tempString = "";
 
-      tempElement = { w3name: 'UnionClause', suggestInSameLine: true, start: i + start }
+      tempElement = { w3name: 'SubQuery', suggestInSameLine: true, start: i + start }
 
     } else if (tempString.endsWith('{')) {
 
