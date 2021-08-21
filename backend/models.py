@@ -57,6 +57,11 @@ class Backend(models.Model):
         help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
         verbose_name="Default suggestion mode")
     
+    defaultModeTimeout = models.FloatField(
+        default=0,
+        help_text="The timeout in seconds for autocomplete queries.",
+        verbose_name="Autocomplete timeout",
+    )
     mixedModeTimeout = models.FloatField(
         default=1,
         help_text="The timeout in seconds for the main query in mixed mode.",
