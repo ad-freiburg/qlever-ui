@@ -1,4 +1,5 @@
 from django.core.management.base import CommandError
+from django.http.response import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
@@ -120,8 +121,21 @@ def shareLink(request):
             Link.objects.all().delete()
         return redirect('/')
 
-@user_passes_test(lambda u: u.is_superuser)
+
 def warmup(request, backend, target):
+    token = request.GET.get("token")
+    backends = Backend.objects.filter(slug=backend)
+
+    try:
+        backends = backends | Backend.objects.filter(id=backend)
+    except (ValueError, TypeError):
+        pass
+
+    testBackend = backends.first()
+
+    if not request.user.is_superuser and not (token and testBackend and testBackend.apiToken and testBackend.apiToken == token):
+        return HttpResponseForbidden()
+
     print(backend, target)
     command = WarmupCommand()
     try:

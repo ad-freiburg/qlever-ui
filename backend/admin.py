@@ -24,7 +24,7 @@ class BackendAdmin(ImportExportModelAdmin):
     }
     fieldsets = (
         ("General", {
-            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault')
+            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault', 'apiToken')
         }),
         ('UI Suggestions', {
             'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', 'suggestPrefixnamesForPredicates', 'supportedPredicateSuggestions', 'suggestedPrefixes'),
@@ -96,7 +96,9 @@ class BackendDefaultsAdmin(ImportExportModelAdmin):
     #  - Autocomplete Settings
     #  - Autocomplete Queries (context-sensitive)
     #  - Autocomplete Queries (context-insensitive)
-    fieldsets = BackendAdmin.fieldsets[2:9]
+    fieldsets = (("General", {
+            'fields': ('apiToken', )
+        }),) + BackendAdmin.fieldsets[2:9]
 
 
 class ExampleAdmin(ImportExportModelAdmin):

@@ -32,8 +32,13 @@ class Backend(models.Model):
         help_text="The URL where to find / call the QLever backend (including http://)",
         verbose_name="Base URL")
 
-    ntFileLastChange = models.CharField(
-        max_length=100, default='0', blank=True, editable=False)
+    apiToken = models.CharField(
+        max_length=32,
+        help_text="This token needs to be provided as ?token query parameter when executing Warmup tasks through API",
+        verbose_name="API token",
+        default="",
+        blank=True,
+    )
 
     isDefault = models.BooleanField(
         default=0,
@@ -436,7 +441,8 @@ class BackendDefaults(Backend):
                           "predicateNameAndAliasPatternWithContext", "entityNameAndAliasPatternDefault",
                           "predicateNameAndAliasPatternWithoutContextDefault", "predicateNameAndAliasPatternWithContextDefault",
                           "warmupQuery1", "warmupQuery2", "warmupQuery3", "warmupQuery4", "warmupQuery5",
-                          'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive')
+                          'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive',
+                          'apiToken')
 
     class Meta:
         verbose_name_plural = "Backend defaults"
