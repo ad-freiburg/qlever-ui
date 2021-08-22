@@ -130,8 +130,8 @@
             for (var prefix in COLLECTEDPREFIXES) {
                 // HACK(Hannah 21.08.2020): consider that some completions start
                 // with ^ because of reversed predicate suggestions.
-                if (completion.startsWith(prefix + ':')
-                     || completion.startsWith("^" + prefix + ':')) {
+                if (completion.indexOf(prefix + ':') != -1
+                     || completion.indexOf("^" + prefix + ':') != -1) {
                     var prefixAvailable = false;
                     for (var line of prefixLines) {
                         if (line.trim().startsWith("PREFIX " + prefix + ':')) {

@@ -6,3 +6,5 @@ django.log
 .vscode
 venv
 db/
+backend/static/js/qleverUI.js
+.DS_Store
