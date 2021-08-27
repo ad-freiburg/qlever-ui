@@ -40,12 +40,20 @@ const CONTEXTS = [
     definition: /OPTIONAL \{([\s\S]*)\}/gi,
   },
   {
+    w3name: 'Filter',
+    definition: /Filter \(([\s\S]*)\)/gi,
+  },
+  {
+    w3name: 'ValuesClause',
+    definition: /VALUES \(([\s\S]*)\) \{\(([\s\S]*)\)\}/gi,
+  },
+  {
     w3name: 'ValuesClause',
     definition: /VALUES \{([\s\S]*)\}/gi,
   },
   {
     w3name: 'DataBlock',
-    definition: /VALUES \{([\s\S]*)\}/gi,
+    definition: /VALUES ([\s\S+] )?\{([\s\S]*)\}/gi,
   },
   {
     w3name: 'OrderCondition',
@@ -86,17 +94,19 @@ const COMPLEXTYPES = [
     onlyOncePerVariation: false,
   },
   {
-    name: 'VARIABLE',
+    name: 'VALUES',
     definition: /\?([a-zA-Z]*)/g,
-    suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' ') }); return a; }]],
-    availableInContext: ['SelectClause', 'OrderCondition', 'GroupCondition'],
+    suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push('('+v+' ') }); return a; }]],
+    availableInContext: ['ValuesClause', 'Filter'],
+    onlyOnce: true,
+    onlyOncePerVariation: false,
     
   },
   {
-    name: 'VALUES',
+    name: 'VARIABLE',
     definition: /\?([a-zA-Z]*)/g,
-    suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' {  }') }); return a; }]],
-    availableInContext: ['ValuesClause'],
+    suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' ') }); return a; }]],
+    availableInContext: ['SelectClause', 'OrderCondition', 'GroupCondition', 'ValuesClause', 'Filter'],
     
   },
   {
@@ -226,25 +236,24 @@ const COMPLEXTYPES = [
     name: 'REGEX',
     definition: /REGEX(\?.*)/g,
     suggestions: [['REGEX(', function (c) { return getVariables(c, true); }]],
-    requiresEmptyLine: true,
     onlyOncePerVariation: true,
-    availableInContext: ['WhereClause'],
+    availableInContext: ['Filter'],
     
   },
   {
     name: 'FILTER',
     definition: /FILTER\((.*)/g,
-    suggestions: [['FILTER(', function (c) { return getVariables(c, undefined, undefined, FILTER_TYPES); }, ' ']],
+    suggestions: [['FILTER ']],
     availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
     requiresEmptyLine: true,
-    onlyOncePerVariation: false
+    onlyOncePerVariation: false,
+    suggestOnlyWhenMatch: true,
   },
   {
     name: 'FILTER LANGUAGE',
-    definition: /FILTER(LANG(.*))/g,
-    suggestions: [['FILTER(LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER(LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
-    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
-    requiresEmptyLine: true,
+    definition: /LANG(.*)/g,
+    suggestions: [['(LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER(LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
+    availableInContext: ['Filter'],
   },
   {
     name: 'SUBQUERY',

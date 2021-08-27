@@ -1038,7 +1038,7 @@ function buildQueryTree(content, start) {
 
       tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
 
-    } else if (/VALUES $/i.test(tempString)) {
+    } else if (/VALUES \(?$/i.test(tempString)) {
 
       // shorten the end of the previous clause by what we needed to add to match VALUES {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
@@ -1047,6 +1047,16 @@ function buildQueryTree(content, start) {
       tempString = "";
 
       tempElement = { w3name: 'ValuesClause', suggestInSameLine: true, start: i + start }
+
+    } else if (/FILTER \(?$/i.test(tempString)) {
+
+      // shorten the end of the previous clause by what we needed to add to match VALUES {
+      tempElement['content'] = tempString.slice(0, tempString.length - 7);
+      tempElement['end'] = i + start - 6;
+      tree.push(tempElement);
+      tempString = "";
+
+      tempElement = { w3name: 'Filter', suggestInSameLine: true, start: i + start }
 
     } else if (tempElement.w3name == 'ValuesClause' && /{$/i.test(tempString)) {
 
