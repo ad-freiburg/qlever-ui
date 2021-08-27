@@ -1063,6 +1063,7 @@ function buildQueryTree(content, start) {
       // shorten the end of the previous clause by what we needed to add to match UNION {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
+      tempElement.w3name = 'WhereClause';
       tree.push(tempElement);
       tempString = "";
 
