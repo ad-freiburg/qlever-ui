@@ -91,7 +91,7 @@ $(document).ready(function () {
       newCursor = editor.getCursor();
       for (var prefix in COLLECTEDPREFIXES) {
         fullPrefix = 'PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>'
-        if (value.indexOf(' '+prefix+':') > 0 && value.indexOf(fullPrefix) == -1) {
+        if ((value.indexOf(' '+prefix+':') > 0 || value.indexOf('^'+prefix+':') > 0)&& value.indexOf(fullPrefix) == -1) {
           value = fullPrefix+'\n'+value
           lines += 1
         }

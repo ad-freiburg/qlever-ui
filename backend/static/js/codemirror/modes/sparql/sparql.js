@@ -210,8 +210,8 @@ const COMPLEXTYPES = [
   },
   {
     name: 'HAVING',
-    definition: /HAVING \?(.+)/g,
-    suggestions: [['HAVING (', function (c) { return getVariables(c); }, ' ']],
+    definition: /HAVING\?(.+)/g,
+    suggestions: [['HAVING(', function (c) { return getVariables(c); }, ' ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
     
@@ -233,16 +233,16 @@ const COMPLEXTYPES = [
   },
   {
     name: 'FILTER',
-    definition: /FILTER \((.*)/g,
-    suggestions: [['FILTER (', function (c) { return getVariables(c, undefined, undefined, FILTER_TYPES); }, ' ']],
+    definition: /FILTER\((.*)/g,
+    suggestions: [['FILTER(', function (c) { return getVariables(c, undefined, undefined, FILTER_TYPES); }, ' ']],
     availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
     requiresEmptyLine: true,
     onlyOncePerVariation: false
   },
   {
     name: 'FILTER LANGUAGE',
-    definition: /FILTER (LANG(.*))/g,
-    suggestions: [['FILTER (LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER (LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
+    definition: /FILTER(LANG(.*))/g,
+    suggestions: [['FILTER(LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER(LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
     availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
     requiresEmptyLine: true,
   },

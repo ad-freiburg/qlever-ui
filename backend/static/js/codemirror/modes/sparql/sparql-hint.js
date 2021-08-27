@@ -675,7 +675,19 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
   return conditionSatisfied;
 }
 
-function getUrlFromSparqlQuery(sparqlQuery, timeout) {
+const fetchTimeout = (url, timeoutSeconds, { ...options } = {}) => {
+  const ms = timeoutSeconds * 1000;
+  const controller = new AbortController();
+  const promise = fetch(url, { signal: controller.signal, ...options });
+  if (ms > 0) {
+    const timeout = setTimeout(() => controller.abort(), ms);
+    return promise.finally(() => clearTimeout(timeout));
+  } else {
+    return promise;
+  }
+};
+
+function getUrlFromSparqlQuery(sparqlQuery) {
   if (!sparqlQuery) return false;
   // do the limits for the scrolling feature
   sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
@@ -698,9 +710,6 @@ function getUrlFromSparqlQuery(sparqlQuery, timeout) {
     log('Getting suggestions from QLever:\n' + sparqlQuery, 'requests');
 
   let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
-  if (timeout) {
-    url += "&timeout=" + timeout;
-  }
   return url;
 }
 
@@ -717,7 +726,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
   $('#aBadge').remove();
   $('#suggestionErrorBlock').parent().hide()
 
-  const lastUrl = getUrlFromSparqlQuery(sparqlQuery, timeout=MIXED_MODE_TIMEOUT);
+  const lastUrl = getUrlFromSparqlQuery(sparqlQuery);
   const mixedModeUrl = getUrlFromSparqlQuery(mixedModeQuery);
   var dynamicSuggestions = [];
 
@@ -725,17 +734,41 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
     try {
       let mixedModeQuery;
       if (mixedModeUrl) {
-        mixedModeQuery = fetch(mixedModeUrl);  // start the mixed mode query, but async
+        mixedModeQuery = fetchTimeout(mixedModeUrl, DEFAULT_TIMEOUT);  // start the mixed mode query, but async
       }
-      const response = await fetch(lastUrl);  // start the main query and wait for it to return
-      let data = await response.json();
+      const mainQueryTimeout = mixedModeUrl ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
+      let response;
       let mainQueryHasTimedOut = false;
-      if (mixedModeUrl && data.status === "ERROR" && data.exception.toLowerCase().indexOf("timeout") !== -1) {
+      let showTimeoutError = false;
+      try {
+        response = await fetchTimeout(lastUrl, mainQueryTimeout);  // start the main query and wait for it to return
+      } catch (error) {
+        if (error.name === "AbortError") {
+          mainQueryHasTimedOut = true;
+          showTimeoutError = true;
+        } else {
+          throw error;
+        }
+      }
+      if (mainQueryHasTimedOut && mixedModeUrl) {
         // the main query timed out.
         // get the mixedModeQuery's response and continue with that
-        mainQueryHasTimedOut = true;
-        const mixedModeResponse = await mixedModeQuery;
-        data = await mixedModeResponse.json();
+        log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
+        try {
+          response = await mixedModeQuery;
+          showTimeoutError = false;
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            throw error;
+          }
+        }
+      }
+
+      let data;
+      if (showTimeoutError) {
+        data = {exception: "The request was cancelled due to timeout"};
+      } else {
+        data = await response.json();
       }
 
       if ($('#logRequests').is(':checked')) {
@@ -747,13 +780,10 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         }
       }
 
-      log("Got suggestions from QLever.", 'other');
-      if (mainQueryHasTimedOut) {
-        log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
-      }
-      log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
-
+      
       if (data.res) {
+        log("Got suggestions from QLever.", 'other');
+        log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
         var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
         var suggested = {};
         for (var result of data.res) {

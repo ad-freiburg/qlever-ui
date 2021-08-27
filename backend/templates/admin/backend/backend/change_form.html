@@ -22,6 +22,17 @@ django.jQuery("input.warmupTarget").click(e => {
   e.preventDefault();
   callWarmupTarget(e.currentTarget.name)
 });
+
+django.jQuery("input[name=apiToken]").each(function () {
+  if (!this.value) {
+    this.insertAdjacentHTML("afterend", `<div><button type="button" class="createApiToken">Create a token</button></div>`)
+  }
+});
+django.jQuery(".createApiToken").click(function() {
+  const token = Math.random().toString(36).substr(2, 32);
+  django.jQuery("input[name=apiToken]").val(token);
+});
+
 </script>
 {% endblock %}
 
