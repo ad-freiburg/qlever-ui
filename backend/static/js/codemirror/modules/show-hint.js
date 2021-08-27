@@ -159,6 +159,13 @@
                 log('Moved two characters back due to {} } at the end of the completion', 'other');
                 cursor.ch = cursor.ch + completion.length - 2;
                 editor.setCursor(cursor);
+            } else if (completion.replace(/\s?/g, "").slice(-1) == "}" && completion.slice(0,1) == "{") {
+                log('Moved two line ahead due to } at the end of the completion', 'other');
+                cursor.line = cursor.line + 2;
+                cursor.ch = 9999999;
+                editor.setSelection({ line: cursor.line, ch: cursor.ch }, { line: cursor.line, ch: cursor.ch });
+                editor.replaceSelection(indentWhitespaces);
+                editor.setCursor(cursor);
             } else if (completion.replace(/\s?/g, "").slice(-1) == "}") {
                 log('Moved one line ahead due to } at the end of the completion', 'other');
                 cursor.line = cursor.line + 1;

@@ -248,7 +248,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'SUBQUERY',
-    suggestions: [['{\n\n}'],['{\n\n} UNION {\n\n}\n']],
+    suggestions: [['{\n\n} UNION {\n\n}\n'],['{\n  SELECT  WHERE {\n  \n  }\n}\n'],],
     availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
     suggestOnlyWhenMatch: true,
     requiresEmptyLine: true,
