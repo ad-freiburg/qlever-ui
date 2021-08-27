@@ -1066,7 +1066,7 @@ function buildQueryTree(content, start) {
       tree.push(tempElement);
       tempString = "";
 
-      tempElement = { w3name: 'SubQuery', suggestInSameLine: true, start: i + start }
+      tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
 
     } else if (tempString.endsWith('{')) {
 

@@ -110,9 +110,12 @@ function switchStates(cm) {
     return;
   }
 
+
   var newCursor = editor.posFromIndex(found);
   editor.setCursor(newCursor);
   var line = cm.getLine(newCursor.line);
+
+  indentWhitespaces = (" ".repeat((line.length - line.trimStart().length)))
 
   if (line.slice(newCursor.ch, newCursor.ch + 5) == "WHERE") {
     // add empty whitespace in select if not present
@@ -125,15 +128,20 @@ function switchStates(cm) {
     if (editor.getLine(newCursor.line + 1) == undefined || editor.getLine(newCursor.line + 1) != "") {
       log("Adding a line at the end of the input", 'other');
       cm.setSelection({ 'line': newCursor.line, 'ch': line.length }, { 'line': newCursor.line, 'ch': line.length });
-      cm.replaceSelection('\n');
+      cm.replaceSelection('\n'+ indentWhitespaces);
     }
     cm.setCursor(newCursor.line + 1, 0);
   } else {
     log("Found WHERE-Placeholder on postion " + found, 'other');
     cm.setSelection({ 'line': newCursor.line, 'ch': 9999999 }, { 'line': newCursor.line, 'ch': 9999999 });
-    cm.replaceSelection('\n  ');
-    cm.setCursor(newCursor.line + 1, 2);
-
+    
+    if (line.slice(-1) == "{") {
+      cm.replaceSelection('\n' + (" ".repeat($('#whitespaces').val())) + indentWhitespaces);
+      cm.setCursor(newCursor.line + 1, $('#whitespaces').val() + indentWhitespaces.length);
+    } else {
+      cm.replaceSelection('\n' + indentWhitespaces);
+      cm.setCursor(newCursor.line + 1, indentWhitespaces.length);
+    }
   }
 
   cm.setSelection(cm.getCursor(), cm.getCursor());
