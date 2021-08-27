@@ -229,7 +229,7 @@ const COMPLEXTYPES = [
   {
     name: 'TRIPLE',
     suggestions: [[function (c) { return getDynamicSuggestions(c); }]],
-    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
+    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause', 'SubQuery'],
     onlyOncePerVariation: false,
   },
   {
@@ -257,7 +257,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'SUBQUERY',
-    suggestions: [['{\n\n}'],['{\n\n} UNION {\n\n}\n']],
+    suggestions: [['{\n\n} UNION {\n\n}\n'],['{\n  SELECT  WHERE {\n  \n  }\n}\n'],],
     availableInContext: ['WhereClause', 'OptionalClause', 'SubQuery'],
     suggestOnlyWhenMatch: true,
     requiresEmptyLine: true,

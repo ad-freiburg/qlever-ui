@@ -1073,10 +1073,11 @@ function buildQueryTree(content, start) {
       // shorten the end of the previous clause by what we needed to add to match UNION {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
+      tempElement.w3name = 'WhereClause';
       tree.push(tempElement);
       tempString = "";
 
-      tempElement = { w3name: 'SubQuery', suggestInSameLine: true, start: i + start }
+      tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
 
     } else if (tempString.endsWith('{')) {
 
