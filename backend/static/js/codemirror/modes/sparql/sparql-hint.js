@@ -1026,7 +1026,17 @@ function buildQueryTree(content, start) {
       tree.push(tempElement);
       tempString = "";
 
-      tempElement = { w3name: 'SubQuery', suggestInSameLine: true, start: i + start }
+      tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
+
+    } else if (/MINUS \{$/i.test(tempString)) {
+
+      // shorten the end of the previous clause by what we needed to add to match OPTIONAL {
+      tempElement['content'] = tempString.slice(0, tempString.length - 4);
+      tempElement['end'] = i + start - 3;
+      tree.push(tempElement);
+      tempString = "";
+
+      tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
 
     } else if (/VALUES $/i.test(tempString)) {
 
