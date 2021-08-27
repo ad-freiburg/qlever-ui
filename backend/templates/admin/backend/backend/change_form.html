@@ -54,7 +54,7 @@ async function callWarmupTarget(target) {
         <input type="submit" class="warmupTarget" value="{{ label }}" name="{{ value }}">
       {% endfor %}
       <br>
-      <pre id="warmupOutput" style="max-height: 40em; border: 1px solid grey; border-radius: 5px; background: white; display: none; margin: 5px; padding: 1em; font-size: 1em;"></pre>
+      <pre id="warmupOutput" style="max-height: 40em; border: 1px solid grey; border-radius: 5px; background: white; display: none; margin: 5px; padding: 1em; font-size: 1em; overflow-x: scroll"></pre>
     </div>
 
   {% endif %}
