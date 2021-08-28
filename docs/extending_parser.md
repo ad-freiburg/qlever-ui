@@ -20,7 +20,7 @@ For any features that are unrelated to the actual text editor window (results, s
 
 We implemented a `log()` function that accepts a message and a kind (one of 'parsing', 'requests', 'suggestions' and 'other) and logs the given message to the browser console when the corresponding log is enabled in the UI settings of the website. We make active use of this within the code which helps a lot figuring out which values are detected and what decisions are made within the UI. We recommend making active use of this feature which helps a lot while developing QLever UI. 
 
-[spraql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) and [qleverUI.js](/backend/static/js/qleverUI.js) also provide functions for displaying errors, switching positions inside a query and helpers that get variables, contexts and more within a query.
+[sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) and [qleverUI.js](/backend/static/js/qleverUI.js) also provide functions for displaying errors, switching positions inside a query and helpers that get variables, contexts and more within a query.
 
 ### Extending the Tokenizer
 By default CodeMirror uses a tokenizer in order to separate elements in a code lines to generate an HTML DOM representation of the actual value of the editor. This is intentionally used in order to allow syntax highlighting and QLever UI makes active use of it.
@@ -29,13 +29,13 @@ The tokenizer can be found in the [SPARQL mode](/backend/static/js/codemirror/mo
 
 Each mode get its own css class in the rendering which allows to easily style the new tokens. For example the "variable"-token get a class called `cm-variable` that can have custom styling attributes in [codemirror.css](/backend/static/css/codemirror.css).
 ### Extending the Suggestions
-For making suggestions there is a separate [spraql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) in the language mode folder that actually cares about the context-sensitivity.
+For making suggestions there is a separate [sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) in the language mode folder that actually cares about the context-sensitivity.
 
 According to the SPARQL grammar there are different contexts within a query - for example the *SelectClause*, the *WhereClause* or the *SolutionModifier* - QLever UI also uses these contexts and keeps a definition of available contexts in the [SPARQL language file](/backend/static/js/codemirror/modes/sparql/sparql.js) as a constant variable.
 
 Within a `CONTEXT` there are different parts of a query that may or may not occur at a specific position. Next to simple keywords and variables there are many constructs to use. We refer to them as complex types.
 
-The following options are taken for `CONTEXS`:
+The following options are taken for `CONTEXTS`:
 Attribute | Type | Required | Content 
 --- | --- | --- | --- |
 w3name | string | yes | name of the context, should correspond to the w3 standard
@@ -44,15 +44,15 @@ suggestInSameLine | boolean | no | false if the context should only be suggestio
 forceLineBreak | boolean | no | true if a line break should be added after choosing a suggestion inside this context
 
 function buildQueryTree(content, start) {
-Types and their names are used in order to build to query tree (as it is logged by the UI itself when enabling parser logging) and easily get the contents of one context within the query. On can find our more on the tree representation in the `buildQueryTree` function inside [spraql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js). 
+Types and their names are used in order to build to query tree (as it is logged by the UI itself when enabling parser logging) and easily get the contents of one context within the query. On can find our more on the tree representation in the `buildQueryTree` function inside [sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js). 
 
-There is also a constant definition of all available `COMPLEXTTYPES` in the [SPARQL language file](/backend/static/js/codemirror/modes/sparql/sparql.js). A complex type consists of a name, a definition on how to detect it if present and a callback that provides all the different variations of this type that might be relevant.
+There is also a constant definition of all available `COMPLEXTYPES` in the [SPARQL language file](/backend/static/js/codemirror/modes/sparql/sparql.js). A complex type consists of a name, a definition on how to detect it if present and a callback that provides all the different variations of this type that might be relevant.
 
 Additionally each type has a list of `CONTEXTS` it is compatible with and some optional configuration parameter that may limit the occurrence of this type to only one or only one per variation (e.g. each combination of a keyword with one variable is considered to be a variation).
 
-Also there are options to hide suggestions until they match whats currently typed (e.g. to prevent always suggestion subquerys or optionals in each and every line where they may occur).
+Also there are options to hide suggestions until they match whats currently typed (e.g. to prevent always suggestion sub-queries or optionals in each and every line where they may occur).
 
-The following options are taken for a `COMPLEXTTYPE`:
+The following options are taken for a `COMPLEXTYPE`:
 Attribute | Type | Required | Content 
 --- | --- | --- | --- |
 name | string | yes | name of the construct / suggestion (for reference)
@@ -86,7 +86,7 @@ let suggestions = [
 ]
 ```
 
-The suggestions-callback should always return all available combinations that are valid without limiting any further. In the following already typed letters and the `COMPLEXTTYPE` options mentioned above will be used to limit the list but this logic is intentionally separated from the generation of suggestions.
+The suggestions-callback should always return all available combinations that are valid without limiting any further. In the following already typed letters and the `COMPLEXTYPES` options mentioned above will be used to limit the list but this logic is intentionally separated from the generation of suggestions.
 
 The programmable API of CodeMirror allows adding a callback on their suggestion feature that is called once 'hints' (suggestions as we call them) are requested by the user / editor. This is where QLever UI hook its logic for collecting the possible suggestions.
 ```javascript
@@ -95,5 +95,5 @@ CodeMirror.registerHelper("hint", "sparql", function (editor, callback, options)
 
 For triples the "dynamicSuggestions" method is called that gathers the entities that are relevant based on the actual backend settings - more on the dynamic auto-completions can be found in [the next chapter](extending_suggestions.md).
 
-As new types / contexts will be available in QLever one can easily extend the according definition. For un-nested types adding the `COMPLEXTTYPES` is sufficient. If there are other complex types that may occur within brackets or at any other position within the type itself one needs to add a context for the "inside" of this complex type and add `COMPLEXTTYPES` that are allowed within the context. 
+As new types / contexts will be available in QLever one can easily extend the according definition. For un-nested types adding the `COMPLEXTYPES` is sufficient. If there are other complex types that may occur within brackets or at any other position within the type itself one needs to add a context for the "inside" of this complex type and add `COMPLEXTYPES` that are allowed within the context. 
 

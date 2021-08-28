@@ -1,16 +1,16 @@
 # Configure QLever UI
 
-Assuming that you already have a QLever Instance running and super user created you can now configure your existing QLever backend in you new QLever UI instance. 
+Assuming that you have a newly created [QLever UI instance running](./install_qleverui.md) and a super user created you can now add your existing QLever backend in your new QLever UI instance. 
 
-You may access the admin panel by adding `/admin` to the URL you are using for your QLever UI instance and login with the credentials you just created.
+You may access the admin panel by adding `/admin` to the URL you are using for your QLever UI instance and login with the credentials you just created. Click "Backends" and "Add backend" in order to start configuring your first QLever backend. 
 
-If you don't have a QLever instance readily available to key in or just want to get up and running as fast as possible, you can use our [example settings](/resources/) that use a QLever instance with Wikidata KB hosted at the Chair of Algorithms and Data Structures at the University of Freiburg.  
+If you don't have a QLever instance readily available to key in or just want to get up and running as fast as possible, you can also import our [example settings](/resources/) that use a QLever instance with a Wikidata knowledge base hosted at the Chair of Algorithms and Data Structures at the University of Freiburg. In this case click "Import" instead and follow the instructions.
 
-Click "Backends" and "Add backend" in order to start configuring your first QLever backend. There are many help texts below each configuration box that guide you through the process. If you are done save the settings and reload the QLever UI interface.
+There are many help texts below each configuration box that guide you through the process. In the following we [provide some instructions](#configure-the-autocompletion-queries) on the basic concepts. If you are done save the settings and reload the QLever UI interface.
 
-You can also import the respective `*-sample.csv` file for the example backend.
+If everything worked correctly you should see backend details displayed on top right of the regular QLever UI interface. If not you can enable details error logging in the user interface (in top right dropdown menu) and open your browsers developer console to see the outputs.
 
-If everything worked correctly you should see backend details displayed on top right of the regular QLever UI. If not you can enable details error logging in the user interface (in top right dropdown menu) and open your browsers developer console to see the outputs.
+You can also import the respective `*-sample.csv` file for the example backend or manually create examples in the "Examples" section in the admin panel that will be shown in the user interface later on.
 
 # Configure the autocompletion queries
 QLever UI offers several settings that can be used to configure the autocompletion. They are separated into five categories:
@@ -72,18 +72,18 @@ Can be helpful in combination with `HAVING` and KBs such as FreebaseEasy where y
 
 **3. `# IF #`, `# ELSE #` and `# ENDIF #`**  
 Can be used to alter the completion query depending on the users current input.  
-Text inside an `# IF #` or `# ELSE #` block will be ignored if the given condition is not satisified.  
+Text inside an `# IF #` or `# ELSE #` block will be ignored if the given condition is not satisfied.  
 Defining an  `# ELSE #` block is optional.  
 `IF / ELSE / ENDIF` statements can be nested.
 
 **4. Conditions**  
 Available conditions for `# IF #` statements are as follows:  
-* `CURRENT_WORD_EMPTY` : true if the user hasn't startet typing a new word
+* `CURRENT_WORD_EMPTY` : true if the user hasn't started typing a new word
 * `CURRENT_SUBJECT_VARIABLE` : true if `%CURRENT_SUBJECT%` is a variable
 * `CURRENT_PREDICATE_VARIABLE` : true if `%CURRENT_PREDICATE%` is a variable
 * `CONNECTED_TRIPLES_EMPTY` : true if `%CONNECTED_TRIPLES%` is empty
 
-These conditions can be combined into logical expressions of arbitraty length using
+These conditions can be combined into logical expressions of arbitrary length using
 - `OR` - _logical or (binds weakest)_
 - `AND` - _logical and (binds stronger than OR)_
 - `!` - _negation (binds stronger than AND)_
@@ -100,19 +100,17 @@ Example:
 ```
 
 **5. `%PREFIXES%`**  
-Inserts the prefix declarations the user has made in addition to all the prefixes that are defined in the backend's settings.
+Inserts the prefix declarations the user has made in addition to all the prefixes that are defined in the backend settings.
 
 **6. `%CONNECTED_TRIPLES%`**  
 Inserts the lines of the user's query that are connected to `%CURRENT_WORD%`
 
 **7. Placeholders for the queries defined above**  
-All the queries defined in "Warmup Queries" and "Warmup Query Patterns" can be inserted into an autocompletion query. The placeholder for a setting is the name of the setting in upper case, spaces replaced by underscore, all enclodes in percent signs. Examples:  
+All the queries defined in "Warmup Queries" and "Warmup Query Patterns" can be inserted into an autocompletion query. The placeholder for a setting is the name of the setting in upper case, spaces replaced by underscore, all enclosed in percent signs. Examples:  
 | Setting name                   | Placeholder                            |
 |--------------------------------|----------------------------------------|
 | Entity name and alias pattern  | `%ENTITY_NAME_AND_ALIAS_PATTERN%`      |
 | Warmup query 1                 | `%WARMUP_QUERY_1%`                     |
-
-
 
 
 ## Further reading
