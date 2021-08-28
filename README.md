@@ -18,9 +18,9 @@
 </p>
 
 # What is QLever UI?
-**QLever UI** is an easy-to-use interactive **user interface** for the **SPARQL search engine QLever** that helps to discover the scopes and information in very large knowledge bases by providing **context sensitive suggestions** and **auto-completions** while adding helpful information and additional views to the various outputs of the queries.
+**QLever UI** is an easy-to-use interactive **user interface** for the **SPARQL search engine QLever** that helps to discover the scopes and information in very large knowledge bases by providing **context-sensitive suggestions** and **auto-completion** while adding helpful information and additional views to the various outputs of the queries.
 
-QLever UI supports different types of results (e.g. geographical data, named instances, images and more) and is highly customizable to the needs of its users and the structure of the underlying dataset.
+QLever UI supports different types of results (e.g. geographical data, named instances, images, and more) and is highly customizable to the needs of its users and the structure of the underlying dataset.
 ### What is QLever?
 QLever (pronounced "clever") is an efficient SPARQL engine that can handle very large datasets. For example, QLever can index the complete Wikidata (~ 18 billion triples) in less than 24 hours on a standard Linux machine using around 40 GB of RAM, with subsequent query times below 1 second even for relatively complex queries with large result sets. On top of the standard SPARQL functionality, QLever also supports SPARQL+Text search.
 

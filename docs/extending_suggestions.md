@@ -31,11 +31,11 @@ If you need additional fields for warmup queries follow these simple steps:
         )
     ```
 ## 2. File `backend/backend/admin.py`
-1. Add your field to `BackendAdmin.fieldsets`. This will make the field available in the django admin. Your field will most likely fit into the `'Warmup Query Patterns'` or `'Warmup Queries'` sections.
+1. Add your field to `BackendAdmin.fieldsets`. This will make the field available in the Django admin. Your field will most likely fit into the `'Warmup Query Patterns'` or `'Warmup Queries'` sections.
     ```python
     fieldsets = (
         # ...
-        # Do not add your field to both sections. You need to decide for one of these!
+        # Do not add your field to both sections. You need to decide on one of these!
         ('Warmup Query Patterns', {
             'fields': ('...', 'myField'),
             'description': '...'

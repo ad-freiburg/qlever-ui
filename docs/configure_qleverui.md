@@ -1,14 +1,14 @@
 # Configure QLever UI
 
-Assuming that you have a newly created [QLever UI instance running](./install_qleverui.md) and a super user created you can now add your existing QLever backend in your new QLever UI instance. 
+Assuming that you have a newly created [QLever UI instance running](./install_qleverui.md) and an "superuser" created you can now add your existing QLever backend in your new QLever UI instance. 
 
-You may access the admin panel by adding `/admin` to the URL you are using for your QLever UI instance and login with the credentials you just created. Click "Backends" and "Add backend" in order to start configuring your first QLever backend. 
+You may access the admin panel by adding `/admin` to the URL you are using for your QLever UI instance and log in with the credentials you just created. Click "Backends" and "Add backend" in order to start configuring your first QLever backend. 
 
-If you don't have a QLever instance readily available to key in or just want to get up and running as fast as possible, you can also import our [example settings](/resources/) that use a QLever instance with a Wikidata knowledge base hosted at the Chair of Algorithms and Data Structures at the University of Freiburg. In this case click "Import" instead and follow the instructions.
+If you don't have a QLever instance readily available to key in or just want to get up and running as fast as possible, you can also import our [example settings](/resources/) that use a QLever instance with a Wikidata knowledge base hosted at the Chair of Algorithms and Data Structures at the University of Freiburg. In this case, click "Import" instead and follow the instructions.
 
-There are many help texts below each configuration box that guide you through the process. In the following we [provide some instructions](#configure-the-autocompletion-queries) on the basic configuration steps. Details on the underlying concepts can be found in the [publications](../README.md#publications) on QLever UI. If you are done save the settings and reload the QLever UI interface.
+There are many help texts below each configuration box that guide you through the process. In the following, we [provide some instructions](#configure-the-autocompletion-queries) on the basic configuration steps. Details on the underlying concepts can be found in the [publications](../README.md#publications) on QLever UI. If you are done save the settings and reload the QLever UI interface.
 
-If everything worked correctly you should see backend details displayed on top right of the regular QLever UI interface. If not you can enable details error logging in the user interface (in top right dropdown menu) and open your browsers developer console to see the outputs.
+If everything worked correctly you should see backend details displayed on the top right of the regular QLever UI interface. If not you can enable details error logging in the user interface (in the top-right dropdown menu) and open your browser's developer console to see the outputs.
 
 You can also import the respective `*-sample.csv` file for the example backend or manually create examples in the "Examples" section in the admin panel that will be shown in the user interface later on.
 
@@ -21,15 +21,15 @@ QLever UI offers several settings that can be used to configure the autocompleti
 - [Autocomplete Queries (context-sensitive)](#autocomplete-queries-context-sensitive)
 
 ## Variable Names
-In this section you can define the special variable names that are used in the queries below. QLever UI needs this information in order to know which variables to look out for. The variables that can be defined are:
+In this section, you can define the special variable names that are used in the queries below. QLever UI needs this information in order to know which variables to look out for. The variables that can be defined are:
 1. Variable for suggested entity: The variable that stores the suggested entity in the autocompletion queries.
 2. Variable for suggestion name: The variable that stores the name of the suggestion in the autocompletion queries.
 3. Variable for alternative suggestion name: The variable that stores the alternative name of the suggestion.
-4. Variable for reversed suggestion: The variable that stores wether a suggestion is reversed. This is only needed when using the [qlever proxy](https://github.com/ad-freiburg/qlever-proxy)
+4. Variable for reversed suggestion: The variable that stores whether a suggestion is reversed. This is only needed when using the [qlever proxy](https://github.com/ad-freiburg/qlever-proxy)
 
 ## Warmup Query Patterns
-The settings in "Warmup Query Patterns" category consist of patterns that are used in the warmup queries below. 
-The "Name and Alias" patterns are typically defined with KB-specific predicates such as rdfs:label or fb:type.object.name. However usually not all entities in a knowledge base have such names. As a fallback, therefore also names according to the patterns labelled as "... (default)" are used.
+The settings in the "Warmup Query Patterns" category consist of patterns that are used in the warmup queries below. 
+The "Name and Alias" patterns are typically defined with KB-specific predicates such as rdfs:label or fb:type.object.name. However usually not all entities in a knowledge base have such names. As a fallback, therefore also names according to the patterns labeled as "... (default)" are used.
 
 ## Warmup Queries
 The warmup queries are used in two different ways.
@@ -39,14 +39,14 @@ The warmup queries are used in two different ways.
 QLever UI can currently accommodate up to five warmup queries. The number of warmup queries can be extended with little work, though.
 
 ## Autocomplete Queries (context-insensitive)
-These are the queries QLever UI will use when searching for autocompletion suggestions. There are independent settings for subject, predicate and object autocompletion queries. The queries labelled _context-insensitive_ will be used when the backend is set to use suggestion mode 2: "SPARQL & context insensitive entities"
+These are the queries QLever UI will use when searching for auto-completion suggestions. There are independent settings for subject, predicate, and object autocompletion queries. The queries labeled _context-insensitive_ will be used when the backend is set to use suggestion mode 2: "SPARQL & context insensitive entities"
 
 ## Autocomplete Queries (context-sensitive)
-Everything said about the context-insensitive autocompletion queries also holds true for the context-sensitive ones. These are used when the backend is set to use suggestion mode 3: "SPARQL & context sensitive entities"
+Everything said about the context-insensitive autocompletion queries also holds true for the context-sensitive ones. These are used when the backend is set to use suggestion mode 3: "SPARQL & context-sensitive entities"
   
 
 # Writing autocompletion queries
-The autocompletion queries settings are not only written in plain SPARQL. QLever UI uses a simple template language which will be rendered to plain SPARQL before the autocompletion queries are sent to the QLever backend. This template language knows the following statements:
+The autocompletion queries settings are not only written in plain SPARQL. QLever UI uses a simple template language that will be rendered to plain SPARQL before the autocompletion queries are sent to the QLever backend. This template language knows the following statements:
 
 ## 1. `%CURRENT_SUBJECT%`, `%CURRENT_PREDICATE%` and `%CURRENT_WORD%`  
 The current line of the query where the user is actually typing will be split into these placeholders.  
@@ -81,7 +81,7 @@ Same as `%CURRENT_WORD%`, but prepends a `<` if `%CURRENT_WORD%` doesn't start w
 Can be helpful in combination with `HAVING` and knowledge bases such as FreebaseEasy where you don't want to always type the `<` char in order to have meaningful suggestions.
 
 ## 3. `# IF #`, `# ELSE #` and `# ENDIF #`
-Can be used to alter the completion query depending on the users current input.  
+Can be used to alter the completion query depending on the user's current input.  
 Text inside an `# IF #` or `# ELSE #` block will be ignored if the given condition is not satisfied.  
 Defining an  `# ELSE #` block is optional.  
 `IF / ELSE / ENDIF` statements can be nested.
@@ -119,7 +119,7 @@ Inserts the prefix declarations the user has made in addition to all the prefixe
 Inserts the lines of the user's query that are connected to `%CURRENT_WORD%`
 
 ## 7. Placeholders for the queries defined above
-All the queries defined in "Warmup Queries" and "Warmup Query Patterns" can be inserted into an autocompletion query. The placeholder for a setting is the name of the setting in upper case, spaces replaced by underscore, all enclosed in percent signs. 
+All the queries defined in "Warmup Queries" and "Warmup Query Patterns" can be inserted into an autocompletion query. The placeholder for a setting is the name of the setting in upper case, spaces replaced by underscores, all enclosed in percent signs. 
 
 **Examples:**
 | Setting name                   | Placeholder                            |
