@@ -43,7 +43,6 @@ definition | regex | yes | a regex that matches everything inside the context (i
 suggestInSameLine | boolean | no | false if the context should only be suggestions on an empty line  
 forceLineBreak | boolean | no | true if a line break should be added after choosing a suggestion inside this context
 
-function buildQueryTree(content, start) {
 Types and their names are used in order to build to query tree (as it is logged by the UI itself when enabling parser logging) and easily get the contents of one context within the query. On can find our more on the tree representation in the `buildQueryTree` function inside [sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js). 
 
 There is also a constant definition of all available `COMPLEXTYPES` in the [SPARQL language file](/backend/static/js/codemirror/modes/sparql/sparql.js). A complex type consists of a name, a definition on how to detect it if present and a callback that provides all the different variations of this type that might be relevant.
