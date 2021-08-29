@@ -1,6 +1,6 @@
 # Configure QLever UI
 
-Assuming that you have a newly created [QLever UI instance running](./install_qleverui.md) and an "superuser" created you can now add your existing QLever backend in your new QLever UI instance. 
+Assuming that you have a newly created [QLever UI instance running](./install_qleverui.md) and a "superuser" created you can now add your existing QLever backend in your new QLever UI instance. 
 
 You may access the admin panel by adding `/admin` to the URL you are using for your QLever UI instance and log in with the credentials you just created. Click "Backends" and "Add backend" in order to start configuring your first QLever backend. 
 
@@ -8,7 +8,7 @@ If you don't have a QLever instance readily available to key in or just want to 
 
 There are many help texts below each configuration box that guide you through the process. In the following, we [provide some instructions](#configure-the-autocompletion-queries) on the basic configuration steps. Details on the underlying concepts can be found in the [publications](../README.md#publications) on QLever UI. If you are done save the settings and reload the QLever UI interface.
 
-If everything worked correctly you should see backend details displayed on the top right of the regular QLever UI interface. If not you can enable details error logging in the user interface (in the top-right dropdown menu) and open your browser's developer console to see the outputs.
+If everything worked correctly you should see backend details displayed on the top right of the regular QLever UI interface. If not you can enable detailed error logging in the user interface (in the top-right dropdown menu) and open your browser's developer console to see the outputs.
 
 You can also import the respective `*-sample.csv` file for the example backend or manually create examples in the "Examples" section in the admin panel that will be shown in the user interface later on.
 

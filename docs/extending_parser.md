@@ -18,7 +18,7 @@ One may also make use of different code themes/styles as using different color s
 
 For any features that are unrelated to the actual text editor window (results, shares, etc.) there is a [qleverUI.js](/backend/static/js/qleverUI.js) and a [helper.js](/backend/static/js/helper.js) for some helper functions used within the code.
 
-We implemented a `log()` function that accepts a message and a kind (one of 'parsing', 'requests', 'suggestions' and 'other) and logs the given message to the browser console when the corresponding log is enabled in the UI settings of the website. We make active use of this within the code which helps a lot in figuring out which values are detected and what decisions are made within the UI. We recommend making active use of this feature which helps a lot while developing QLever UI. 
+We implemented a `log()` function that accepts a message and a kind (one of 'parsing', 'requests', 'suggestions' and 'other') and logs the given message to the browser console when the corresponding log is enabled in the UI settings of the website. We make active use of this within the code which helps a lot in figuring out which values are detected and what decisions are made within the UI. We recommend making active use of this feature which helps a lot while developing QLever UI. 
 
 [sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js) and [qleverUI.js](/backend/static/js/qleverUI.js) also provide functions for displaying errors, switching positions inside a query as well as helpers that get variables, contexts, and more within a query.
 
@@ -43,7 +43,7 @@ definition | regex | yes | a regex that matches everything inside the context (i
 suggestInSameLine | boolean | no | false if the context should only be suggestions on an empty line  
 forceLineBreak | boolean | no | true if a line break should be added after choosing a suggestion inside this context
 
-Types and their names are used in order to build to query tree (as it is logged by the UI itself when enabling parser logging) and easily get the contents of one context within the query. One can find more on the tree representation in the `buildQueryTree` function inside [sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js). 
+Types and their names are used in order to build the query tree (as it is logged by the UI itself when enabling parser logging) and easily get the contents of one context within the query. One can find more on the tree representation in the `buildQueryTree` function inside [sparql-hint.js](/backend/static/js/codemirror/modes/sparql/sparql-hint.js). 
 
 There is also a constant definition of all available `COMPLEXTYPES` in the [SPARQL language file](/backend/static/js/codemirror/modes/sparql/sparql.js). A complex type consists of a name, a definition on how to detect it if present, and a callback that provides all the different variations of this type that might be relevant.
 

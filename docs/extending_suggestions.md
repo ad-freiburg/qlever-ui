@@ -13,7 +13,7 @@ If you need additional fields for warmup queries follow these simple steps:
             help_text="My field description",
         )
     ```
-2. Add the new field to function `getWarmupAndAcPlaceholders`. This defines the name of the template variable. In this case, the template variable would therefore be called `%MY_Field%`
+2. Add the new field to function `getWarmupAndAcPlaceholders`. This defines the name of the template variable. In this case, the template variable would therefore be called `%MY_FIELD%`
     ```python
     def getWarmupAndAcPlaceholders(self):
         data = {

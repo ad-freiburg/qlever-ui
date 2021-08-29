@@ -10,7 +10,7 @@
 
 Since QLever UI was built upon Python/Django further information and details on the setup and configuration process (especially in production environments) can be found in the [Django documentation](https://docs.djangoproject.com/en/3.0/).
 <br><br>
-We provide a [docker image](#building-the-qlever-ui-docker-container) as well as for instructions for a [manual setup](#installing-qlever-ui-without-docker).
+We provide a [docker image](#building-the-qlever-ui-docker-container) as well as instructions for a [manual setup](#installing-qlever-ui-without-docker).
 <br>
 
 # Building the QLever UI Docker Image
@@ -72,7 +72,7 @@ When not using docker there are some additional steps to do. QLever UI is built 
     ```shell
     pip install -r requirements.txt
     ```
-    inside the project, folder to automatically install all dependencies. Otherwise, you can find the list of dependencies in the `requirements.txt` file to install them manually.
+    inside the project folder to automatically install all dependencies. Otherwise, you can find the list of dependencies in the `requirements.txt` file to install them manually.
 
 2. Next, you will need to adjust your individual settings in `qlever/settings_secret_template.py` and rename it to `qlever/settings_secret.py`. You may want to edit the file to [fit your needs](https://docs.djangoproject.com/en/3.0/ref/settings/).
     ```shell
@@ -82,7 +82,7 @@ When not using docker there are some additional steps to do. QLever UI is built 
 ## Setting up the database manually
 1. The QLever UI backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:
     ```shell
-    python manage.py make migrations —-merge && python manage.py migrate
+    python manage.py makemigrations —-merge && python manage.py migrate
     ```
     inside the project folder in order to do so. You will only need to do this once. If you prefer you can also overwrite the database [settings](https://docs.djangoproject.com/en/3.0/ref/settings/) to use some other database management system in your `settings_secret.py`.
 
