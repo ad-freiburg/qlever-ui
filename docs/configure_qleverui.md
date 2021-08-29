@@ -76,7 +76,7 @@ The current line of the query where the user is actually typing will be split in
 | %CURRENT_PREDICATE% | `[not defined]` | 
 | %CURRENT_WORD% | `?c` |
 
-## 2. `%CURRENT_WORD%`
+## 2. `%<CURRENT_WORD%`
 Same as `%CURRENT_WORD%`, but prepends a `<` if `%CURRENT_WORD%` doesn't start with `<` or `"`  
 Can be helpful in combination with `HAVING` and knowledge bases such as FreebaseEasy where you don't want to always type the `<` char in order to have meaningful suggestions.
 
