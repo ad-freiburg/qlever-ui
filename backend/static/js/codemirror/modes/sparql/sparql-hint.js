@@ -539,7 +539,12 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
     prefixes += `\nPREFIX ${prefixName}: <${COLLECTEDPREFIXES[prefixName]}>`
   }
 
-  word = word.replace('.','\\\\.').replace('*','\\\\*').replace('^','\\\\^').replace('?','\\\\?').replace('[','\\\\[').replace(']','\\\\]')
+  word = word.replaceAll('.','\\\\.')
+             .replaceAll('*','\\\\*')
+             .replaceAll('^','\\\\^')
+             .replaceAll('?','\\\\?')
+             .replaceAll('[','\\\\[')
+             .replaceAll(']','\\\\]');
   var word_with_bracket = ((word.startsWith("<") || word.startsWith('"')) ? "" : "<") + word.replace(/'/g, "\\'");
   sparqlLines = sparqlLines.replace(/%<CURRENT_WORD%/g, word_with_bracket).replace(/%CURRENT_WORD%/g, word);
   sparqlLines = sparqlLines.replace(/%PREFIXES%/g, prefixes);
@@ -556,9 +561,12 @@ function replaceQueryPlaceholders(completionQuery, word, prefixes, lines, words)
   }
   if (words.length > 1) {
     // HACK (Hannah, 23.02.2021): Replace <pred1>/<pred2>* by
-    // <pred1>|<pred2> in object completion.
-    words[1] = words[1].replace(/^([^ \/]+)\/([^ \/]+)\*$/, "$1|$2");
-    log("CURRENT_PREDICATE -> ", words[1], 'suggestions');
+    // <pred1>|<pred2> in object completion, but only when the subject is a
+    // variable.
+    if (words[0].startsWith("?")) {
+      words[1] = words[1].replace(/^([^ \/]+)\/([^ \/]+)\*$/, "$1|$2");
+      log("CURRENT_PREDICATE -> ", words[1], 'suggestions');
+    }
 
     sparqlLines = sparqlLines.replace(/%CURRENT_PREDICATE%/g, words[1]);
   }
@@ -692,11 +700,15 @@ function getUrlFromSparqlQuery(sparqlQuery) {
   // do the limits for the scrolling feature
   sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
+  // NEW HANNAH 0X.05.2021: Rewrite queries also when obtaining suggestions
+  // (FILTER KEYWORDS or ql:contains).
+  sparqlQuery = rewriteQuery(sparqlQuery);
+
   // HACK(Hannah 14.08.2020): query rewrite for KEYWORDS from
   // helper.js also for completion queries.
-  sparqlQuery = sparqlQuery.replace(
-    /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/ig,
-    '?kwm ql:contains-entity $1 . ?kwm ql:contains-word $2 . ');
+  // sparqlQuery = sparqlQuery.replace(
+  //   /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/ig,
+  //   '?kwm ql:contains-entity $1 . ?kwm ql:contains-word $2 . ');
 
     // show the loading indicator and badge
     activeLineBadgeLine = $('.CodeMirror-activeline-background');
@@ -842,13 +854,45 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           // the reversed predicate.
           var reversedIndex = data.selected.indexOf(SUGGESTIONREVERSEDVARIABLE);
           var reversed = (reversedIndex != -1 && result[reversedIndex] == 1);
-          dynamicSuggestions.push({
-            displayText: (reversed ? "^" : "") + entity + appendix,
-            completion: (reversed ? "^" : "") + entity + appendix,
+          var displayText = (reversed ? "^" : "") + entity + appendix;
+          var completion = (reversed ? "^" : "") + entity + appendix;
+            dynamicSuggestions.push({
+            displayText: displayText,
+            completion: completion,
             name: entityName + (reversed ? " (reversed)" : ""),
             altname: altEntityName,
             isMixedModeSuggestion: mainQueryHasTimedOut,
           });
+          // HACK Hannah 23.02.2021: Add transitive suggestions (for
+          // hand-picked predicates only -> TODO: generalize this).
+          // console.log("DISPLAY TEXT: \"" + displayText + "\"");
+          if (displayText == "wdt:P31 ") {
+            dynamicSuggestions.push({
+              displayText: displayText.trim() + "/wdt:P279* ",
+              completion: completion.trim() + "/wdt:P279* ",
+              name: entityName + " (transitive)",
+              altname: altEntityName,
+              isMixedModeSuggestion: mainQueryHasTimedOut
+            });
+          }
+          else if (displayText == "wdt:P131 ") {
+            dynamicSuggestions.push({
+              displayText: "wdt:P131+ ",
+              completion: "wdt:P131+ ",
+              name: entityName + " (transitive)",
+              altname: altEntityName,
+              isMixedModeSuggestion: mainQueryHasTimedOut
+            });
+          }
+          else if (displayText == "ogc:contains_area ") {
+            dynamicSuggestions.push({
+              displayText: "ogc:contains_area*/ogc:contains_nonarea ",
+              completion: "ogc:contains_area*/ogc:contains_nonarea ",
+              name: "",
+              altname: altEntityName,
+              isMixedModeSuggestion: mainQueryHasTimedOut
+            });
+          }
         }
 
         activeLine.html(activeLineNumber);

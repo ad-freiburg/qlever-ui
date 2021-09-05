@@ -339,7 +339,8 @@ function processQuery(query, showStatus, element) {
       let mapViewButton = '';
       if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
         let mapViewUrl = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
-        let params = $.param({ query: editor.getValue(), backend: BASEURL });
+        // NEW Hannah: Also rewrite query (ql:contains) for Map UI.
+        let params = $.param({ query: rewriteQuery(editor.getValue()), backend: BASEURL });
         mapViewButton = `<a class="btn btn-default" href="${mapViewUrl}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
       }
       if (nofRows < parseInt(result.resultsize)) {
