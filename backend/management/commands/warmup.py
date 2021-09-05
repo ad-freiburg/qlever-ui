@@ -27,7 +27,7 @@ class Command(BaseCommand):
     PRINT_FORMATS = {
         "red": lambda text: f"\033[31m{text}\033[0m",
         "blue": lambda text: f"\033[34m{text}\033[0m",
-        "bold": lambda text: f"{text}\033[0m",
+        "bold": lambda text: f"\033[1m{text}\033[0m",
         None: lambda text: text,
     }
 
@@ -124,21 +124,28 @@ class Command(BaseCommand):
 
         # pin warmup queries
         for warmup, headline in warmups:
-            self.log(f"\nPin: {headline}", format="bold")
+            self.log(" ")
+            self.log(f"Pin: {headline}", format="bold")
             warmupQuery = self._buildQuery(warmup)
             self.log(warmupQuery)
             self._pinQuery(f"{prefixString} {warmupQuery}")
+
+        # clear unpinned
+        self.log(" ")
+        self.clear(onlyUnpinned=True)
 
         # pin frequent predicates
         for predicate in self.backend.frequentPredicates.split(" "):
             if not predicate:
                 continue
-            self.log(f"\nPin: {predicate} ordered by subject", format="bold")
+            self.log(" ")
+            self.log(f"Pin: {predicate} ordered by subject", format="bold")
             query = f"{prefixString}\nSELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?x"
             self.log(query)
             self._pinQuery(query)
 
-            self.log(f"\nPin: {predicate} ordered by object", format="bold")
+            self.log(" ")
+            self.log(f"Pin: {predicate} ordered by object", format="bold")
             query = f"{prefixString}\nSELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?y"
             self.log(query)
             self._pinQuery(query)
@@ -147,17 +154,18 @@ class Command(BaseCommand):
         for pattern in self.backend.frequentPatternsWithoutOrder.split(" "):
             if not pattern:
                 continue
-            self.log(f"\nPin: {pattern} without ORDER BY", format="bold")
+            self.log(" ")
+            self.log(f"Pin: {pattern} without ORDER BY", format="bold")
             query = f"{prefixString}\nSELECT ?x ?y WHERE {{ ?x {pattern} ?y }}"
             self.log(query)
             self._pinQuery(query)
 
     def showAutocompleteQueries(self):
-        self.log("\nSubject AC query\n", format="bold")
+        self.log("Subject AC query", format="bold")
         self.log(self._buildQuery(self.backend.suggestSubjects))
-        self.log("\nPredicate AC query\n", format="bold")
+        self.log("Predicate AC query", format="bold")
         self.log(self._buildQuery(self.backend.suggestSubjects))
-        self.log("\nObject AC query\n", format="bold")
+        self.log("Object AC query", format="bold")
         self.log(self._buildQuery(self.backend.suggestSubjects))
 
     def _buildQuery(self, completionQuery):
@@ -189,6 +197,6 @@ class Command(BaseCommand):
         response.raise_for_status()
         jsonData = response.json()
         if "exception" in jsonData:
-            self.log("ERROR:", jsonData["exception"], format="red")
+            self.log(f"ERROR: {jsonData['exception']}", format="red")
         else:
             self.log(f"Result size: {jsonData['resultsize']:,}", format="blue")
