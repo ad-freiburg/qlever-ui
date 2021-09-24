@@ -428,13 +428,9 @@ function processQuery(query, showStatus, element) {
     
     $.getJSON(BASEURL + "?cmd=stats", function (result) {
       log('Evaluating and displaying stats...', 'other');
-      if (result.kbindex) {
-        $("#kbname").html(result.kbindex);
-      } else {
-        $("#kbname").html("<em>not provided</em>");
-      }
-      $("#textname").html(result.textindex);
-      $("#ntriples").html(tsep(result.noftriples));
+      $("#kbname").html(result.kbindex || "");
+      $("#textname").html(result.textindex || "");
+      $("#ntriples").html(tsep(result.nofActualTriples || result.noftriples));
       $("#nrecords").html(tsep(result.nofrecords));
       $("#nwo").html(tsep(result.nofwordpostings));
       $("#neo").html(tsep(result.nofentitypostings));
