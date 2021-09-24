@@ -798,6 +798,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
         var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
         var suggested = {};
+        var ogc_contains_added = false;
         for (var result of data.res) {
           var entity = result[entityIndex];
 
@@ -884,14 +885,17 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
               isMixedModeSuggestion: mainQueryHasTimedOut
             });
           }
-          else if (displayText == "ogc:contains_area ") {
-            dynamicSuggestions.push({
-              displayText: "ogc:contains_area*/ogc:contains_nonarea ",
-              completion: "ogc:contains_area*/ogc:contains_nonarea ",
+          else if (!ogc_contains_added && displayText.startsWith("ogc:contains_")) {
+            dynamicSuggestions.splice(dynamicSuggestions.length - 1, 0, {
+              displayText: "ogc:contains ",
+              completion: "ogc:contains ",
+              // displayText: "ogc:contains_area*/ogc:contains_nonarea ",
+              // completion: "ogc:contains_area*/ogc:contains_nonarea ",
               name: "",
               altname: altEntityName,
               isMixedModeSuggestion: mainQueryHasTimedOut
             });
+            ogc_contains_added = true;
           }
         }
 

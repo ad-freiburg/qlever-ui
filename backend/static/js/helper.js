@@ -27,20 +27,20 @@ function rewriteQuery(query) {
     // HACK(Hannah 30.03.2021): rewrite ql:contains using ogc:contains and
     // ogc:contains_area. Repeat if it occurs several times.
     var m_var = "?qlm_";
-    while (query_rewritten.includes("ql:contains-geo")) {
+    while (query_rewritten.includes("ogc:contains ")) {
       if (!query_rewritten.includes("PREFIX ogc:")) query_rewritten =
         'PREFIX ogc: <http://www.opengis.net/rdf#>\n' + query_rewritten
       m_var = m_var + "i";
-      // Replace first occurrence by ql_tmp:contains and check that it is indeed
+      // Replace first occurrence by ql_ogc:contains and check that it is indeed
       // gone. That way, we can be sure that we do not enter an infinite loop in
       // case the regex from the large replace does not match.
-      query_rewritten = query_rewritten.replace(/ql:contains-geo/, 'ql_tmp:contains-geo');
+      query_rewritten = query_rewritten.replace(/ogc:contains /, 'ogc_tmp:contains ');
       query_rewritten = query_rewritten.replace(
-        /\{(\s*)([^{}]*)ql_tmp:contains-geo([^{}]*[^{}\s])(\s*)\}/,
+        /\{(\s*)([^{}]*)ogc_tmp:contains([^{}]*[^{}\s])(\s*)\}/,
         '{ {$1$2ogc:contains_area+ ' + m_var + ' . ' + m_var + ' ogc:contains_nonarea$3\n' +
         '  } UNION {$1$2ogc:contains_area+|ogc:contains_nonarea$3$4} }');
       // console.log("Version with " + m_var + ":\n" + query_rewritten);
-      if (query_rewritten.includes('ql_tmp:contains-geo')) break;
+      if (query_rewritten.includes('ogc_tmp:contains ')) break;
     }
 
   return query_rewritten;
@@ -279,6 +279,11 @@ function htmlEscape(str) {
 }
 
 function getShortStr(str, maxLength, column = undefined) {
+
+  // HACK Hannah 16.09.2021: Remove xsd:decimal.
+  str = str.replace(/\^\^<.*>/, "");
+  // str = str.replace(/\^\^<http:\/\/www.w3.org\/2001\/XMLSchema#decimal>/, "");
+
   str = str.replace(/_/g, ' ');
   var pos;
   var cpy = str;
@@ -313,6 +318,15 @@ function getShortStr(str, maxLength, column = undefined) {
   if (str.startsWith('<') && str.endsWith('>')) {
     str = str.slice(1, -1);
   }
+
+  // HACK Hannah 16.09.2021: Fixed-precision float depending on variable name.
+  var var_name = $($("#resTable").find("th")[column + 1]).html();
+  // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
+  if (var_name == "?note") str = parseFloat(str).toFixed(2).toString();
+  if (var_name == "?lp_proz") str = parseFloat(str).toFixed(0).toString();
+  if (var_name == "?gesamt_score") str = parseFloat(str).toFixed(1).toString();
+  if (var_name == "?lehrpreis") str = parseFloat(str).toFixed(0).toString();
+
   pos = cpy.lastIndexOf("^^")
   let isLink = false;
   let linkStart = "";
