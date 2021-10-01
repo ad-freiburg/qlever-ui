@@ -1,0 +1,3 @@
+# Ignore everything in db/ except this file
+*
+!.gitignore
