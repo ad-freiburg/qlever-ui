@@ -496,15 +496,21 @@ function processQuery(query, showStatus, element) {
   
   function visualise(number) {
     $('#visualisation').modal('show');
+    var resultQuery;
     if (number) {
       runtimeInfoForTreant(runtime_log[number - 1]);
-      $('#result-query').html('<pre>' + query_log[number - 1] + '</pre>');
       runtime_info = runtime_log[number - 1];
+      resultQuery = query_log[number - 1];
     } else {
       runtimeInfoForTreant(runtime_log[runtime_log.length - 1]);
       runtime_info = runtime_log[runtime_log.length - 1];
-      $('#result-query').html('<pre>' + query_log[query_log.length - 1] + '</pre>');
+      resultQuery = query_log[query_log.length - 1];
     }
+    resultQuery = resultQuery
+                    .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+                    .replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace(/'/g, "&#039;");
+    $('#result-query').html('<pre>' + resultQuery + '</pre>');
     var treant_tree = {
       chart: {
         container: "#result-tree",
