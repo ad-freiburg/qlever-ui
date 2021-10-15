@@ -425,9 +425,12 @@ class Backend(models.Model):
 
     def __getattribute__(self, name, forceUseDefault=False):
         value = super().__getattribute__(name)
-        useDefault = forceUseDefault or super().__getattribute__("useBackendDefaults")
-        if useDefault and not value and super().__getattribute__("backendDefaults") and name in BackendDefaults.AVAILABLE_DEFAULTS:
-            value = getattr(self.backendDefaults, name)
+        try:
+            useDefault = forceUseDefault or super().__getattribute__("useBackendDefaults")
+            if useDefault and not value and super().__getattribute__("backendDefaults") and name in BackendDefaults.AVAILABLE_DEFAULTS:
+                value = getattr(self.backendDefaults, name)
+        except RecursionError:
+            pass  # during imports, the backend defaults don't work and would throw an error
 
         return value
 
