@@ -697,29 +697,23 @@ const fetchTimeout = (url, timeoutSeconds, { ...options } = {}) => {
 
 function getUrlFromSparqlQuery(sparqlQuery) {
   if (!sparqlQuery) return false;
-  // do the limits for the scrolling feature
+  // Do the limits for the scrolling feature.
   sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
 
-  // NEW HANNAH 0X.05.2021: Rewrite queries also when obtaining suggestions
-  // (FILTER KEYWORDS or ql:contains).
+  // Rewrite queries also when obtaining suggestions (FILTER CONTAINS or
+  // ql:contains).
   sparqlQuery = rewriteQuery(sparqlQuery);
 
-  // HACK(Hannah 14.08.2020): query rewrite for KEYWORDS from
-  // helper.js also for completion queries.
-  // sparqlQuery = sparqlQuery.replace(
-  //   /FILTER\s+keywords\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/ig,
-  //   '?kwm ql:contains-entity $1 . ?kwm ql:contains-word $2 . ');
-
-    // show the loading indicator and badge
-    activeLineBadgeLine = $('.CodeMirror-activeline-background');
-    activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
-    if(activeLine.html().length < 10){
-      activeLineNumber = activeLine.html();
-    }
-    activeLine.html('<img src="/static/img/ajax-loader.gif">');
-    $('#aBadge').remove();
-    $('#suggestionErrorBlock').parent().hide()
-    log('Getting suggestions from QLever:\n' + sparqlQuery, 'requests');
+  // Show the loading indicator and badge.
+  activeLineBadgeLine = $('.CodeMirror-activeline-background');
+  activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
+  if(activeLine.html().length < 10){
+    activeLineNumber = activeLine.html();
+  }
+  activeLine.html('<img src="/static/img/ajax-loader.gif">');
+  $('#aBadge').remove();
+  $('#suggestionErrorBlock').parent().hide()
+  log('Getting suggestions from QLever:\n' + sparqlQuery, 'requests');
 
   let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
   return url;

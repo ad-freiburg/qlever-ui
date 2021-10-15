@@ -16,32 +16,40 @@ function log(message, kind) {
 // FILTER KEYWORDS(...) or ql:contains .
 function rewriteQuery(query) {
 
-    console.log("Rewriting query (looking for \"FILTER KEYWORDS\" or \"ql:contains\" ...");
+  console.log("Rewriting query (looking for \"FILTER CONTAINS\" or \"ogc:contains\" ...");
+  var query_rewritten = query;
 
-    // HACK(Hannah 03.05.2020): allow a construct such as FILTER
-    // keywords(?title, "info* retr*")
-    query_rewritten = query.replace(
-         /FILTER\s+KEYWORDS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i,
-         '?qlm1 ql:contains-entity $1 . ?qlm1 ql:contains-word $2 . ');
+  // HACK(Hannah 03.05.2020): allow a construct such as FILTER
+  // keywords(?title, "info* retr*")
+  var m_var = "?qlm_";
+  var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
+  while (query_rewritten.match(filter_contains_re)) {
+    query_rewritten = query_rewritten.replace(filter_contains_re,
+         m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
+    m_var = m_var + "i";
+  }
 
-    // HACK(Hannah 30.03.2021): rewrite ql:contains using ogc:contains and
-    // ogc:contains_area. Repeat if it occurs several times.
-    var m_var = "?qlm_";
-    while (query_rewritten.includes("ogc:contains ")) {
-      if (!query_rewritten.includes("PREFIX ogc:")) query_rewritten =
-        'PREFIX ogc: <http://www.opengis.net/rdf#>\n' + query_rewritten
-      m_var = m_var + "i";
-      // Replace first occurrence by ql_ogc:contains and check that it is indeed
-      // gone. That way, we can be sure that we do not enter an infinite loop in
-      // case the regex from the large replace does not match.
-      query_rewritten = query_rewritten.replace(/ogc:contains /, 'ogc_tmp:contains ');
-      query_rewritten = query_rewritten.replace(
-        /\{(\s*)([^{}]*)ogc_tmp:contains([^{}]*[^{}\s])(\s*)\}/,
-        '{ {$1$2ogc:contains_area+ ' + m_var + ' . ' + m_var + ' ogc:contains_nonarea$3\n' +
-        '  } UNION {$1$2ogc:contains_area+|ogc:contains_nonarea$3$4} }');
-      // console.log("Version with " + m_var + ":\n" + query_rewritten);
-      if (query_rewritten.includes('ogc_tmp:contains ')) break;
+  // HACK(Hannah 30.03.2021): rewrite ql:contains using ogc:contains and
+  // ogc:contains_area. Repeat if it occurs several times.
+  var ogc_contains_match = /ogc:contains([^_])/;
+  var ogc_contains_replace = /\{(\s*)([^{}]*)ogc_tmp:contains([^{}]*[^{}\s])(\s*)\}/;
+  while (query_rewritten.match(ogc_contains_match)) {
+    if (!query_rewritten.includes("PREFIX ogc:")) query_rewritten =
+      'PREFIX ogc: <http://www.opengis.net/rdf#>\n' + query_rewritten
+    m_var = m_var + "i";
+    // Replace first occurrence by ql_ogc:contains and check that it is indeed
+    // gone. That way, we can be sure that we do not enter an infinite loop in
+    // case the regex from the large replace does not match.
+    query_rewritten = query_rewritten.replace(ogc_contains_match,
+      'ogc_tmp:contains$1');
+    query_rewritten = query_rewritten.replace(ogc_contains_replace,
+      '{ {$1$2ogc:contains_area+ ' + m_var + ' . ' + m_var + ' ogc:contains_nonarea$3\n' +
+      '  } UNION {$1$2ogc:contains_area+|ogc:contains_nonarea$3$4} }');
+    // console.log("Version with " + m_var + ":\n" + query_rewritten);
+    if (query_rewritten.includes('ogc_tmp:contains ')) {
+      throw "Leftover ogc_tmp:contains, this should not happen";
     }
+  }
 
   return query_rewritten;
 }
