@@ -43,8 +43,8 @@ function rewriteQuery(query) {
     query_rewritten = query_rewritten.replace(ogc_contains_match,
       'ogc_tmp:contains$1');
     query_rewritten = query_rewritten.replace(ogc_contains_replace,
-      '{ {$1$2ogc:contains_area+ ' + m_var + ' . ' + m_var + ' ogc:contains_nonarea$3\n' +
-      '  } UNION {$1$2ogc:contains_area+|ogc:contains_nonarea$3$4} }');
+      '{ {$1$2osm2rdf:contains_area+ ' + m_var + ' . ' + m_var + ' osm2rdf:contains_nonarea$3\n' +
+      '  } UNION {$1$2osm2rdf:contains_area+|osm2rdf:contains_nonarea$3$4} }');
     // console.log("Version with " + m_var + ":\n" + query_rewritten);
     if (query_rewritten.includes('ogc_tmp:contains ')) {
       throw "Leftover ogc_tmp:contains, this should not happen";
@@ -270,7 +270,7 @@ function showAllConcats(element, sep, column) {
 }
 
 function tsep(str) {
-  var spl = str.split('.');
+  var spl = str.toString().split('.');
   var intP = spl[0];
   var frac = spl.length > 1 ? '.' + spl[1] : '';
   var regex = /(\d+)(\d{3})/;
@@ -295,6 +295,8 @@ function getShortStr(str, maxLength, column = undefined) {
   str = str.replace(/_/g, ' ');
   var pos;
   var cpy = str;
+  var veryLongLength = 500;
+  var maxLinkLength = 50;
   if (cpy.charAt(0) == '<') {
     pos = cpy.lastIndexOf('/');
     var paraClose = cpy.lastIndexOf(')');
@@ -319,6 +321,12 @@ function getShortStr(str, maxLength, column = undefined) {
     if (str.length > maxLength) {
       str = str.substring(0, maxLength - 1) + "[...]\""
     }
+  } else {
+    // Always abbreviate very long texts.
+    if (cpy.length > veryLongLength) {
+      half_length = veryLongLength / 2 - 3;
+      str = cpy.substring(0, half_length) + " [...] " + cpy.substring(cpy.length - half_length);
+    }
   }
   if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\"') && str.endsWith('\"'))) {
     str = str.slice(1, -1);
@@ -330,12 +338,13 @@ function getShortStr(str, maxLength, column = undefined) {
   // HACK Hannah 16.09.2021: Fixed-precision float depending on variable name.
   var var_name = $($("#resTable").find("th")[column + 1]).html();
   // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
-  if (var_name == "?note") str = parseFloat(str).toFixed(2).toString();
+  if (var_name == "?note" || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
   if (var_name == "?lp_proz") str = parseFloat(str).toFixed(0).toString();
   if (var_name == "?gesamt_score") str = parseFloat(str).toFixed(1).toString();
   if (var_name == "?lehrpreis") str = parseFloat(str).toFixed(0).toString();
 
   pos = cpy.lastIndexOf("^^")
+  pos_http = cpy.indexOf("http");
   let isLink = false;
   let linkStart = "";
   let linkEnd = "";
@@ -347,7 +356,7 @@ function getShortStr(str, maxLength, column = undefined) {
     if (columnHTML.html().indexOf(content) < 0) {
       columnHTML.html(content + columnHTML.html());
     }
-  } else if (cpy.indexOf('http') > 0) {
+  } else if (pos_http > 0) {
     isLink = true;
     cpy = cpy.replace(/ /g, '_');
     link = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
@@ -366,6 +375,7 @@ function getShortStr(str, maxLength, column = undefined) {
   }
   str = htmlEscape(str);
   if (isLink) {
+    if (str.length > maxLinkLength) str = str.substring(0, maxLinkLength - 4) + " ...";
     str = `${linkStart}${str}${linkEnd}`;
   }
   return str

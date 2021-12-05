@@ -310,13 +310,14 @@ function getResultTime(resultTimes) {
 function processQuery(query, showStatus, element) {
   
   log('Preparing query...', 'other');
+  log('Element: ' + element, 'other');
   if (showStatus != false) displayStatus("Waiting for response...");
   
   $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
   $(element).find('.glyphicon').removeClass('glyphicon-remove');
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
-  $.getJSON(query, function (result) {
+  $.get(query, function (result) {
     log('Evaluating and displaying results...', 'other');
     
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
@@ -381,6 +382,7 @@ function processQuery(query, showStatus, element) {
             row += "</span></td>";
           } else {*/
             if (resultColumn) {
+              // console.log("COL ENTRY:", resultColumn);
               row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
               getShortStr(resultColumn, 50, j) +
               "</span></td>";
@@ -409,8 +411,12 @@ function processQuery(query, showStatus, element) {
           query_log[query_log.length - 10] = null;
         }
       }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-      var disp = "Connection problem...";
+    },
+    // The type of result we expect (this is the third argument of the $.get
+    // call above).
+    showStatus ? "json": "text")
+    .fail(function (jqXHR, textStatus, errorThrown) {
+      var disp = "Error in getJSON: " + textStatus;
       $('#errorReason').html(disp);
       $('#errorBlock').show();
       $('#answerBlock,#infoBlock').hide();

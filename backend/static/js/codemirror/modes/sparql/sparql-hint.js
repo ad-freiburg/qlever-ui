@@ -839,6 +839,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
             }
           }
 
+          // console.log("URL: " + window.location);
           var nameIndex = data.selected.indexOf(SUGGESTIONNAMEVARIABLE);
           var altNameIndex = data.selected.indexOf(SUGGESTIONALTNAMEVARIABLE);
           var entityName = (nameIndex != -1) ? result[nameIndex] : "";
@@ -848,7 +849,8 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           // and is 1 (indicating that this is a predicate suggestion, but for
           // the reversed predicate.
           var reversedIndex = data.selected.indexOf(SUGGESTIONREVERSEDVARIABLE);
-          var reversed = (reversedIndex != -1 && result[reversedIndex] == 1);
+          var reversed = (reversedIndex != -1 && (result[reversedIndex] == 1
+                            || result[reversedIndex].startsWith("\"1\"")))
           var displayText = (reversed ? "^" : "") + entity + appendix;
           var completion = (reversed ? "^" : "") + entity + appendix;
             dynamicSuggestions.push({
@@ -879,7 +881,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
               isMixedModeSuggestion: mainQueryHasTimedOut
             });
           }
-          else if (!ogc_contains_added && displayText.startsWith("ogc:contains_")) {
+          else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
             dynamicSuggestions.splice(dynamicSuggestions.length - 1, 0, {
               displayText: "ogc:contains ",
               completion: "ogc:contains ",
@@ -890,6 +892,15 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
               isMixedModeSuggestion: mainQueryHasTimedOut
             });
             ogc_contains_added = true;
+          }
+          else if (displayText == "rdf:type " && window.location.href.match(/yago-2/)) {
+            dynamicSuggestions.push({
+              displayText: displayText.trim() + "/rdfs:subClassOf* ",
+              completion: completion.trim() + "/rdfs:subClassOf* ",
+              name: entityName + " (transitive)",
+              altname: altEntityName,
+              isMixedModeSuggestion: mainQueryHasTimedOut
+            });
           }
         }
 
