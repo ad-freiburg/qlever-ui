@@ -73,7 +73,7 @@ FREQUENT_PREDICATES =
 FREQUENT_PATTERNS_WITHOUT_ORDER =
 
 # The name of the docker image.
-DOCKER_IMAGE = qlever.master
+DOCKER_IMAGE = adfreiburg/qlever
 
 # The name of the docker container. Used for target memory-usage: below.
 DOCKER_CONTAINER = qlever.$(DB)
@@ -107,11 +107,16 @@ show-config-default:
 %: %-default
 	@ true
 
+# Pull new image if image name contains a /
+
+docker_pull:
+	if [[ "$(DOCKER_IMAGE)" == */* ]]; then docker pull $(DOCKER_IMAGE); fi
+
 # Build an index or remove an existing one
 
 CAT_TTL = cat $(DB).ttl
 
-index:
+index: docker_pull
 	@if ls $(DB).index.* 1> /dev/null 2>&1; then echo -e "\033[31mIndex exists, delete it first with make remove_index, which would exeucte the following:\033[0m"; echo; make -sn remove_index; echo; else \
 	time ( docker run -it --rm -v $(shell pwd):/index --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "cd /index && $(CAT_TTL) | IndexBuilderMain -F ttl -f - -l -i $(DB) -K $(DB) $(TEXT_OPTIONS_INDEX) -s $(DB_BASE).settings.json | tee $(DB).index-log.txt"; rm -f $(DB)*tmp* ) \
 	fi
@@ -128,7 +133,7 @@ text_input_from_nt_literals:
 
 # START, WAIT (until the backend is read to respond), STOP, and view LOG
 
-start:
+start: docker_pull
 	-docker rm -f $(DOCKER_CONTAINER)
 	docker run -d --restart=unless-stopped -v $(shell pwd):/index -p $(PORT):7001 -e INDEX_PREFIX=$(DB) -e MEMORY_FOR_QUERIES=$(MEMORY_FOR_QUERIES) -e CACHE_MAX_SIZE_GB=${CACHE_MAX_SIZE_GB} -e CACHE_MAX_SIZE_GB_SINGLE_ENTRY=${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -e CACHE_MAX_NUM_ENTRIES=${CACHE_MAX_NUM_ENTRIES} --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) $(TEXT_OPTIONS_START)
 	
