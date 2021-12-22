@@ -35,7 +35,9 @@ function rewriteQuery(query) {
   var ogc_contains_replace = /\{(\s*)([^{}]*)ogc_tmp:contains([^{}]*[^{}\s])(\s*)\}/;
   while (query_rewritten.match(ogc_contains_match)) {
     if (!query_rewritten.includes("PREFIX ogc:")) query_rewritten =
-      'PREFIX ogc: <http://www.opengis.net/rdf#>\n' + query_rewritten
+      'PREFIX ogc: <http://www.opengis.net/rdf#>\n' + query_rewritten;
+    if (!query_rewritten.includes("PREFIX osm2rdf:")) query_rewritten =
+      'PREFIX osm2rdf: <https://osm2rdf.cs.uni-freiburg.de/rdf#>' + query_rewritten;
     m_var = m_var + "i";
     // Replace first occurrence by ql_ogc:contains and check that it is indeed
     // gone. That way, we can be sure that we do not enter an infinite loop in
@@ -71,7 +73,7 @@ function getQueryString() {
     queryString += "&name_service=true";
   }
   if ($("#clear").prop('checked')) {
-    queryString += "&cmd=clearcache";
+    queryString += "&cmd=clear-cache";
   }
   return BASEURL + queryString
 }

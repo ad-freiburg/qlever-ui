@@ -98,10 +98,10 @@ class Command(BaseCommand):
     def clear(self, onlyUnpinned=False):
         if onlyUnpinned:
             msg = "Clear cache, but only the unpinned results"
-            params = {"cmd": "clearcache"}
+            params = {"cmd": "clear-cache"}
         else:
             msg = "Clear cache completely, including the pinned results"
-            params = {"cmd": "clearcachecomplete"}
+            params = {"cmd": "clear-cache-complete"}
         self.log(msg, format="bold")
         response = requests.get(self.backend.baseUrl, params=params)
         response.raise_for_status()
