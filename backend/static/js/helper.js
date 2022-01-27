@@ -233,7 +233,7 @@ function displayError(result) {
     result["Exception-Error-Message"] = "Unknown error";
   }
   disp = "<h3>Error:</h3><h4><strong>" + result["Exception-Error-Message"] + "</strong></h4>";
-  disp += "Your query was: " + "<br><pre>" + result.query + "</pre>";
+  disp += "Your query was: " + "<br><pre>" + htmlEscape(result.query) + "</pre>";
   if (result['exception']) {
     disp += "<small><strong>Exception: </strong><em>";
     disp += result['exception'];
