@@ -72,10 +72,12 @@ TOKEN = aof4Ad
 FREQUENT_PREDICATES =
 FREQUENT_PATTERNS_WITHOUT_ORDER =
 
-# The name of the docker image.
-DOCKER_IMAGE = adfreiburg/qlever:latest
+# Directory with the QLever binaries.
+QLEVER_BIN_DIR = /local/data/qlever/qlever-code/build
 
-# The name of the docker container. Used for target memory-usage: below.
+# Docker-related variables.
+USE_DOCKER =
+DOCKER_IMAGE = adfreiburg/qlever:latest
 DOCKER_CONTAINER = qlever.$(DB)
 
 # Configuration for SPARQL+Text.
@@ -90,19 +92,19 @@ show-config-default:
 	@ echo
 	@ for VAR in DB DB_BASE SLUG CAT_TTL \
 	   PORT QLEVER_API WARMUP_API \
-	   DOCKER_IMAGE DOCKER_CONTAINER \
-	   MEMORY_FOR_QUERIES \
-	   CACHE_MAX_SIZE_GB CACHE_MAX_SIZE_GB_SINGLE_ENTRY CACHE_MAX_NUM_ENTRIES \
-	   TEXT_OPTIONS_INDEX TEXT_OPTIONS_START; do \
+	   MEMORY_FOR_QUERIES CACHE_MAX_SIZE_GB CACHE_MAX_SIZE_GB_SINGLE_ENTRY CACHE_MAX_NUM_ENTRIES \
+	   TEXT_OPTIONS_INDEX TEXT_OPTIONS_START \
+	   QLEVER_BIN_DIR USE_DOCKER DOCKER_IMAGE DOCKER_CONTAINER \
+	   INDEX_CMD START_CMD LOG_CMD STOP_CMD; do \
 	   printf "%-30s = %s\n" "$$VAR" "$${!VAR}"; done
 	@ echo
 	@ printf "All targets: "
 	@ grep "^[A-Za-z._]\+:" $(lastword $(MAKEFILE_LIST)) | sed 's/://' | paste -sd" "
 	@ echo
-	@ echo "make index will do the following (but NOT if an index with that name exists):"
-	@ echo
-	@ $(MAKE) -sn index | egrep -v "^(if|fi)"
-	@ echo
+	@ # echo "make index will do the following (but NOT if an index with that name exists):"
+	@ # echo
+	@ # $(MAKE) -sn index | egrep -v "^(if|fi)"
+	@ # echo
 
 %: %-default
 	@ true
@@ -113,14 +115,45 @@ docker_pull:
 	@ if [[ "$(DOCKER_IMAGE)" == */* ]]; then docker pull $(DOCKER_IMAGE); fi
 	@ docker images -f "reference=$(DOCKER_IMAGE)"
 
-# Build an index or remove an existing one
-
+# Building an index.
 CAT_TTL = cat $(DB).ttl
-
+QLEVER_INDEX_CMD = $(if $(USE_DOCKER),IndexBuilderMain,$(QLEVER_BIN_DIR)/IndexBuilderMain)
+INDEX_CMD_LINE = $(CAT_TTL) | $(QLEVER_INDEX_CMD) -F ttl -f - -l -i $(DB) -s $(DB_BASE).settings.json | tee $(DB).index-log.txt
+INDEX_CMD_NATIVE = $(INDEX_CMD_LINE)
+INDEX_CMD_DOCKER = docker run -it --rm -v $(shell pwd):/index --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "cd /index && $(INDEX_CMD_LINE)"
+INDEX_CMD = time ( $(if $(USE_DOCKER),$(INDEX_CMD_DOCKER),$(INDEX_CMD_NATIVE)) )
 index:
-	@if ls $(DB).index.* 1> /dev/null 2>&1; then echo -e "\033[31mIndex exists, delete it first with make remove_index, which would exeucte the following:\033[0m"; echo; make -sn remove_index; echo; else \
-	time ( docker run -it --rm -v $(shell pwd):/index --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "cd /index && $(CAT_TTL) | IndexBuilderMain -F ttl -f - -l -i $(DB) -K $(DB) $(TEXT_OPTIONS_INDEX) -s $(DB_BASE).settings.json | tee $(DB).index-log.txt"; rm -f $(DB)*tmp* ) \
-	fi
+	@if ls $(DB).index.* 1> /dev/null 2>&1; then echo -e "\033[31mIndex exists, delete it first with make remove_index, which would exeucte the following:\033[0m"; echo; make -sn remove_index; echo; else $(INDEX_CMD); fi
+
+# Starting the server in the background.
+QLEVER_START_CMD = $(if $(USE_DOCKER),ServerMain,$(QLEVER_BIN_DIR)/ServerMain)
+START_CMD_LINE = $(QLEVER_START_CMD) -i $(DB) -j 8 -m $(MEMORY_FOR_QUERIES) -c $(CACHE_MAX_SIZE_GB) -e $(CACHE_MAX_SIZE_GB_SINGLE_ENTRY) -k $(CACHE_MAX_NUM_ENTRIES) -p $(PORT)
+START_CMD_NATIVE = $(START_CMD_LINE) > $(DB).server-log.txt & echo $$! > $(DB).pid
+START_CMD_DOCKER = docker run -d --restart=unless-stopped -p $(PORT):7001 -v $(shell pwd):/index --entrypoint bash --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) -c "cd /index && $(START_CMD_LINE)"
+START_CMD = $(if $(USE_DOCKER),docker rm -f $(DOCKER_CONTAINER); $(START_CMD_DOCKER),$(START_CMD_NATIVE))
+start:
+	@ $(START_CMD)
+	@ $(MAKE) -s log
+
+# Command line for showing the log and following it.
+LOG_CMD_NATIVE = tail -f -n 100 $(DB).server-log.txt
+LOG_CMD_DOCKER = docker logs -f --tail 100 $(DOCKER_CONTAINER)
+LOG_CMD = $(if $(USE_DOCKER),$(LOG_CMD_DOCKER),$(LOG_CMD_NATIVE))
+log:
+	@ $(LOG_CMD)
+
+# Command line for stopping the server.
+STOP_CMD_NATIVE = kill -9 $(shell cat $(DB).pid)
+STOP_CMD_DOCKER = docker stop $(DOCKER_CONTAINER)
+STOP_CMD = $(if $(USE_DOCKER),$(STOP_CMD_DOCKER),$(STOP_CMD_NATIVE))
+stop:
+	@ $(STOP_CMD)
+
+
+
+
+index.OLD:
+	time ( docker run -it --rm -v $(shell pwd):/index --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "cd /index && $(CAT_TTL) | IndexBuilderMain -F ttl -f - -l -i $(DB) -K $(DB) $(TEXT_OPTIONS_INDEX) -s $(DB_BASE).settings.json | tee $(DB).index-log.txt" ) \
 
 remove_index:
 	rm -f $(DB).index.* $(DB).literals-index $(DB).vocabulary $(DB).prefixes $(DB).meta-data.json $(DB).index-log.txt
@@ -135,7 +168,9 @@ text_input_from_nt_literals:
 # START, WAIT (until the backend is read to respond), STOP, and view LOG
 
 start:
-	-docker rm -f $(DOCKER_CONTAINER)
+	$(START_CMD)
+
+start.OLD:
 	docker run -d --restart=unless-stopped -v $(shell pwd):/index -p $(PORT):7001 -e INDEX_PREFIX=$(DB) -e MEMORY_FOR_QUERIES=$(MEMORY_FOR_QUERIES) -e CACHE_MAX_SIZE_GB=${CACHE_MAX_SIZE_GB} -e CACHE_MAX_SIZE_GB_SINGLE_ENTRY=${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -e CACHE_MAX_NUM_ENTRIES=${CACHE_MAX_NUM_ENTRIES} --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) $(TEXT_OPTIONS_START)
 	
 wait:
@@ -146,11 +181,6 @@ wait:
 start_and_pin:
 	$(MAKE) -s start wait pin.remote
 
-stop:
-	docker stop $(DOCKER_CONTAINER)
-
-log:
-	docker logs -f --tail 100 $(DOCKER_CONTAINER)
 
 
 # WARMUP queries. The .local target only works on the machine, where the
@@ -161,7 +191,7 @@ log:
 # of the proxies involved).
 HTML2ANSI = jq -r '.log|join("\n")' | sed 's|<strong>\(.*\)</strong>|\\033[1m\1\\033[0m|; s|<span style="color: blue">\(.*\)</span>|\\033[34m\1\\033[0m|' | xargs -0 echo -e
 
-pin.remote:
+pin:
 	ssh -t galera docker exec -it qlever-ui bash -c \"python manage.py warmup $(SLUG) pin\"
 
 pin.local:
@@ -173,7 +203,7 @@ clear.local:
 clear_unpinned.local:
 	docker exec -it qlever-ui bash -c "python manage.py warmup $(SLUG) clear_unpinned"
 
-pin:
+pin.VIA_CURL:
 	@if ! curl -Gsf $(WARMUP_API)/pin?token=$(TOKEN) | $(HTML2ANSI); \
 	  then curl -Gi $(WARMUP_API)/pin?token=$(TOKEN); fi
 
