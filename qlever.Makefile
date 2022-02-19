@@ -118,7 +118,7 @@ docker_pull:
 # Building an index.
 CAT_TTL = cat $(DB).ttl
 QLEVER_INDEX_CMD = $(if $(USE_DOCKER),IndexBuilderMain,$(QLEVER_BIN_DIR)/IndexBuilderMain)
-INDEX_CMD_LINE = $(CAT_TTL) | $(QLEVER_INDEX_CMD) -F ttl -f - -l -i $(DB) -s $(DB_BASE).settings.json | tee $(DB).index-log.txt
+INDEX_CMD_LINE = $(CAT_TTL) | $(QLEVER_INDEX_CMD) -F ttl -f - -l -i $(DB) $(TEXT_OPTIONS_INDEX) -s $(DB_BASE).settings.json | tee $(DB).index-log.txt
 INDEX_CMD_NATIVE = $(INDEX_CMD_LINE)
 INDEX_CMD_DOCKER = docker run -it --rm -v $(shell pwd):/index --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "cd /index && $(INDEX_CMD_LINE)"
 INDEX_CMD = time ( $(if $(USE_DOCKER),$(INDEX_CMD_DOCKER),$(INDEX_CMD_NATIVE)) )
@@ -127,13 +127,12 @@ index:
 
 # Starting the server in the background.
 QLEVER_START_CMD = $(if $(USE_DOCKER),ServerMain,$(QLEVER_BIN_DIR)/ServerMain)
-START_CMD_LINE = $(QLEVER_START_CMD) -i $(DB) -j 8 -m $(MEMORY_FOR_QUERIES) -c $(CACHE_MAX_SIZE_GB) -e $(CACHE_MAX_SIZE_GB_SINGLE_ENTRY) -k $(CACHE_MAX_NUM_ENTRIES) -p $(PORT)
+START_CMD_LINE = $(QLEVER_START_CMD) -i $(DB) -j 8 -m $(MEMORY_FOR_QUERIES) -c $(CACHE_MAX_SIZE_GB) -e $(CACHE_MAX_SIZE_GB_SINGLE_ENTRY) -k $(CACHE_MAX_NUM_ENTRIES) -p $(PORT) $(TEXT_OPTIONS_START)
 START_CMD_NATIVE = $(START_CMD_LINE) > $(DB).server-log.txt & echo $$! > $(DB).pid
-START_CMD_DOCKER = docker run -d --restart=unless-stopped -p $(PORT):7001 -v $(shell pwd):/index --entrypoint bash --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) -c "cd /index && $(START_CMD_LINE)"
+START_CMD_DOCKER = docker run -d --restart=unless-stopped -p $(PORT):$(PORT) -v $(shell pwd):/index --entrypoint bash --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) -c "cd /index && $(START_CMD_LINE)"
 START_CMD = $(if $(USE_DOCKER),docker rm -f $(DOCKER_CONTAINER); $(START_CMD_DOCKER),$(START_CMD_NATIVE))
 start:
 	@ $(START_CMD)
-	@ $(MAKE) -s log
 
 # Command line for showing the log and following it.
 LOG_CMD_NATIVE = tail -f -n 100 $(DB).server-log.txt
@@ -143,7 +142,7 @@ log:
 	@ $(LOG_CMD)
 
 # Command line for stopping the server.
-STOP_CMD_NATIVE = kill -9 $(shell cat $(DB).pid)
+STOP_CMD_NATIVE = kill -9 $$(cat $(DB).pid)
 STOP_CMD_DOCKER = docker stop $(DOCKER_CONTAINER)
 STOP_CMD = $(if $(USE_DOCKER),$(STOP_CMD_DOCKER),$(STOP_CMD_NATIVE))
 stop:
@@ -167,9 +166,6 @@ text_input_from_nt_literals:
 
 # START, WAIT (until the backend is read to respond), STOP, and view LOG
 
-start:
-	$(START_CMD)
-
 start.OLD:
 	docker run -d --restart=unless-stopped -v $(shell pwd):/index -p $(PORT):7001 -e INDEX_PREFIX=$(DB) -e MEMORY_FOR_QUERIES=$(MEMORY_FOR_QUERIES) -e CACHE_MAX_SIZE_GB=${CACHE_MAX_SIZE_GB} -e CACHE_MAX_SIZE_GB_SINGLE_ENTRY=${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -e CACHE_MAX_NUM_ENTRIES=${CACHE_MAX_NUM_ENTRIES} --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) $(TEXT_OPTIONS_START)
 	
@@ -179,7 +175,7 @@ wait:
 	   do sleep 1; done; kill $$PID
 
 start_and_pin:
-	$(MAKE) -s start wait pin.remote
+	$(MAKE) -s start wait pin
 
 
 
