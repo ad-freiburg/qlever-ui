@@ -21,6 +21,12 @@ ENV VIRTUAL_ENV /env
 ENV PATH /env/bin:$PATH
 ENV PYTHONUNBUFFERED 1
 
-EXPOSE 8000
+CMD ["gunicorn", "--bind", ":7000", "--workers", "3", "qlever.wsgi:application"]
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "3", "qlever.wsgi:application"]
+# QLever UI on port 7000 for QLever instance listening on port 7001
+#
+# docker build -t qlever-ui .
+# docker run -it --rm -p 7000:7000 -v $(pwd)/db:/app/db qlever-ui
+#
+# To configure the QLever UI for a particular backend, in the UI: Resources ->
+# Qlever UI Admin -> Login (demo, demo) -> Backends
