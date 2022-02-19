@@ -1,8 +1,8 @@
-*
-!backend
-!qlever
+# *
+# !backend
+# !qlever
+# !manage.py
 !tests
-!manage.py
 !requirements.txt
 !LICENSE
 !README.md

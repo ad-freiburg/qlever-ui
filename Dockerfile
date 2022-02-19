@@ -14,7 +14,8 @@ RUN set -ex \
     && apk add --virtual rundeps $runDeps \
     && apk add bash
 
-ADD . /app
+COPY . /app
+# ADD . /app
 WORKDIR /app
 
 ENV VIRTUAL_ENV /env
@@ -26,7 +27,11 @@ CMD ["gunicorn", "--bind", ":7000", "--workers", "3", "qlever.wsgi:application"]
 # QLever UI on port 7000 for QLever instance listening on port 7001
 #
 # docker build -t qlever-ui .
-# docker run -it --rm -p 7000:7000 -v $(pwd)/db:/app/db qlever-ui
+# docker run -it --rm -p 7000:7000 qlever-ui
+#
+# OR simply
+#
+# docker run -it --rm -p 7000:7000 adfreiburg/qlever-ui
 #
 # To configure the QLever UI for a particular backend, in the UI: Resources ->
 # Qlever UI Admin -> Login (demo, demo) -> Backends
