@@ -190,6 +190,9 @@ HTML2ANSI = jq -r '.log|join("\n")' | sed 's|<strong>\(.*\)</strong>|\\033[1m\1\
 pin:
 	ssh -t galera docker exec -it qlever-ui bash -c \"python manage.py warmup $(SLUG) pin\"
 
+pin.from_cronjob:
+	ssh -q -tt galera docker exec qlever-ui bash -c \"python manage.py warmup $(SLUG) pin\"
+
 pin.local:
 	docker exec -it qlever-ui bash -c "python manage.py warmup $(SLUG) pin"
 
@@ -215,7 +218,7 @@ clear_unpinned:
 # STATISTICS on cache, memory, and the number of triples per predicate.
 
 disk_usage:
-	du -hc $(DB).index.* $(DB).literals-index $(DB).vocabulary $(DB).prefixes $(DB).meta-data.json
+	du -hc $(DB).index.* $(DB).vocabulary.* $(DB).prefixes $(DB).meta-data.json
 
 cachestats:
 	@curl -Gs $(QLEVER_API) --data-urlencode "cmd=cachestats" \
