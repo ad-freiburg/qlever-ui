@@ -142,7 +142,7 @@ log:
 	@ $(LOG_CMD)
 
 # Command line for stopping the server.
-STOP_CMD_NATIVE = kill -9 $$(cat $(DB).pid)
+STOP_CMD_NATIVE = kill -9 $$(cat $(DB).pid) && sleep 3
 STOP_CMD_DOCKER = docker stop $(DOCKER_CONTAINER)
 STOP_CMD = $(if $(USE_DOCKER),$(STOP_CMD_DOCKER),$(STOP_CMD_NATIVE))
 stop:
