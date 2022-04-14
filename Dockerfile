@@ -5,14 +5,15 @@ ADD requirements.txt /app/requirements.txt
 RUN set -ex \
     && python -m venv /env \
     && /env/bin/pip install --upgrade pip \
-    && /env/bin/pip install --no-cache-dir -r /app/requirements.txt \
+    && /env/bin/pip install --no-cache-dir -r /app/requirements.txt
+RUN set -ex \
     && runDeps="$(scanelf --needed --nobanner --recursive /env \
     | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
     | sort -u \
     | xargs -r apk info --installed \
     | sort -u)" \
     && apk add --virtual rundeps $runDeps \
-    && apk add bash
+    && apk add bash bash-completion make sqlite
 
 COPY . /app
 # ADD . /app
