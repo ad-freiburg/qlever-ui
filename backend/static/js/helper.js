@@ -30,7 +30,28 @@ function rewriteQuery(query) {
   }
 
   // HACK(Hannah 30.03.2021): rewrite ql:contains using ogc:contains and
-  // ogc:contains_area. Repeat if it occurs several times.
+  // ogc:contains_area. Repeat if it occurs several times. TODO: currently
+  // assumes that there are no ogc:contains inside of UNION, MINUS, OPTIONAL.
+ 
+  // First replace all { and } due to UNION, OPTIONAL, or MINUS by __OBR__ and
+  // __CBR__.
+  var union_regex = /\{\s*([^{}]*[^{} ])\s*\}\s*UNION\s*\{\s*([^{}]*[^{} ])\s*\}/;
+  var optional_or_minus_regex = /(OPTIONAL|MINUS)\s*\{\s*([^{}]*[^{} ])\s*\}/;
+  while (true) {
+    if (query_rewritten.match(union_regex)) {
+      query_rewritten = query_rewritten.replace(union_regex,
+        "__OBR__ $1 __CBR__ UNION __OBR__ $2 __CBR__");
+    } else if (query_rewritten.match(optional_or_minus_regex)) {
+      query_rewritten = query_rewritten.replace(optional_or_minus_regex,
+        "$1 __OBR__ $2 __CBR__");
+    } else {
+      break;
+    }
+  }
+  console.log("Query with UNION, OPTIONAL, or MINUS braces replaced: ",
+    query_rewritten);
+ 
+  // Now iteratively replace all ogc:contains within a { ... } scope.
   var ogc_contains_match = /ogc:contains([^_])/;
   var ogc_contains_replace = /\{(\s*)([^{}]*)ogc_tmp:contains([^{}]*[^{}\s])(\s*)\}/;
   while (query_rewritten.match(ogc_contains_match)) {
@@ -46,18 +67,23 @@ function rewriteQuery(query) {
       'ogc_tmp:contains$1');
     query_rewritten = query_rewritten.replace(ogc_contains_replace,
       '{ {$1$2osm2rdf:contains_area+ ' + m_var + ' . ' + m_var + ' osm2rdf:contains_nonarea$3\n' +
-      '  } UNION {$1$2osm2rdf:contains_area+|osm2rdf:contains_nonarea$3$4} }');
-    // console.log("Version with " + m_var + ":\n" + query_rewritten);
+      '  } UNION { {$1$2osm2rdf:contains_area+$3$4} UNION {$1$2osm2rdf:contains_nonarea$3$4} } }');
+    console.log("Version with " + m_var + ":\n" + query_rewritten);
     if (query_rewritten.includes('ogc_tmp:contains ')) {
       throw "Leftover ogc_tmp:contains, this should not happen";
     }
   }
 
+  // Replace all __OBR__ and __CBR__ back to { and }, respectively.
+  query_rewritten = query_rewritten.replace(/__OBR__/g, "{");
+  query_rewritten = query_rewritten.replace(/__CBR__/g, "}");
+
   return query_rewritten;
 }
 
 
-function getQueryString() {
+// Get URL for current query.
+function getQueryString(removeProxy = false) {
 
   q = editor.getValue();
 
@@ -75,7 +101,11 @@ function getQueryString() {
   if ($("#clear").prop('checked')) {
     queryString += "&cmd=clear-cache";
   }
-  return BASEURL + queryString
+
+  // Remove -proxy from base URL if so desired.
+  var base_url = removeProxy ? BASEURL.replace(/-proxy$/, "") : BASEURL;
+
+  return base_url + queryString
 }
 
 function cleanLines(cm) {
@@ -227,18 +257,30 @@ function expandEditor() {
   }
 }
 
-function displayError(result) {
-  console.error('QLever returned an error while processing request', result);
-  if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
-    result["Exception-Error-Message"] = "Unknown error";
+function displayError(response, statusWithText = undefined) {
+  console.error("Either the GET request failed or the backend returned an error:", response);
+  if (response["exception"] == undefined || response["exception"] == "") {
+    response["exception"] = "Unknown error";
   }
-  disp = "<h3>Error:</h3><h4><strong>" + result["Exception-Error-Message"] + "</strong></h4>";
-  disp += "Your query was: " + "<br><pre>" + htmlEscape(result.query) + "</pre>";
-  if (result['exception']) {
-    disp += "<small><strong>Exception: </strong><em>";
-    disp += result['exception'];
-    disp += "</em></small>";
+  disp = "<h4><strong>Error processing query</strong></h4>";
+  // if (statusWithText) { disp += "<p>" + statusWithText + "</p>"; }
+  disp += "<p>" + response["exception"] + "</p>";
+  // if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
+  //   result["Exception-Error-Message"] = "Unknown error";
+  // }
+  // disp = "<h3>Error:</h3><h4><strong>" + result["Exception-Error-Message"] + "</strong></h4>";
+  // The query sometimes is a one-element array with the query TODO: find out why.
+  if (Array.isArray(response.query)) {
+    if (response.query.length >= 1) { response.query = response.query[0]; }
+    else { response.query = "response.query is an empty array"; }
   }
+  disp += "Your query was: " + "<br><pre>" + htmlEscape(response.query) + "</pre>";
+  // disp += "Your query was: " + "<br><pre>" + htmlEscape(result.query) + "</pre>";
+  // if (result['exception']) {
+  //   disp += "<small><strong>Exception: </strong><em>";
+  //   disp += htmlEscape(result['exception']);
+  //   disp += "</em></small>";
+  // }
   $('#errorReason').html(disp);
   $('#errorBlock').show();
   $('#answerBlock, #infoBlock').hide();
