@@ -191,12 +191,14 @@ $(document).ready(function () {
   
   $("#csvbtn").click(function () {
     log('Download CSV', 'other');
-    window.location.href = getQueryString() + "&action=csv_export";
+    const removeProxy = true;
+    window.location.href = getQueryString(removeProxy) + "&action=csv_export";
   });
   
   $("#tsvbtn").click(function () {
     log('Download TSV', 'other');
-    window.location.href = getQueryString() + "&action=tsv_export";
+    const removeProxy = true;
+    window.location.href = getQueryString(removeProxy) + "&action=tsv_export";
   });
   
   $("#sharebtn").click(function () {
@@ -337,19 +339,30 @@ function processQuery(query, showStatus, element) {
       const columns = result.selected;
       
       let showAllButton = '';
-      let mapViewButton = '';
+      let mapViewButtonVanilla = '';
+      let mapViewButtonPetri = '';
+      let mapViewButtonPetriPatrick = '';
       if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
-        let mapViewUrl = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
+        let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
+        let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
+        let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
         // NEW Hannah: Also rewrite query (ql:contains) for Map UI.
         let params = $.param({ query: rewriteQuery(editor.getValue()), backend: BASEURL });
-        mapViewButton = `<a class="btn btn-default" href="${mapViewUrl}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+        mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+        mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
+        mapViewButtonPetriPatrick = `<a class="btn btn-default" href="${mapViewUrlPetriPatrick}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view+++</a>`;
       }
       if (nofRows < parseInt(result.resultsize)) {
         showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${resultSize} results.</a>`;
       }
       
-      if (showAllButton || mapViewButton) {
-        res += `<div class="pull-right">${showAllButton} ${mapViewButton}</div><br><br><br>`;
+      if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
+        if (BASEURL.endsWith("osm-germany") || BASEURL.endsWith("osm-planet")) {
+          // res += `<div class="pull-right">${showAllButton} ${mapViewButtonPetri}</div><br><br><br>`;
+          res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div><br><br><br>`;
+        } else {
+          res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla}</div><br><br><br>`;
+        }
       }
       
       var tableHead = $('#resTable thead');
@@ -416,13 +429,31 @@ function processQuery(query, showStatus, element) {
     // call above).
     showStatus ? "json": "text")
     .fail(function (jqXHR, textStatus, errorThrown) {
-      var disp = "Error in getJSON: " + textStatus;
-      $('#errorReason').html(disp);
-      $('#errorBlock').show();
-      $('#answerBlock,#infoBlock').hide();
       $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
       $(element).find('.glyphicon').addClass('glyphicon-remove');
       $(element).find('.glyphicon').css('color', 'red');
+      console.log("JQXHR", jqXHR);
+      if (!jqXHR.responseJSON) {
+        if (errorThrown = "Unknown error") {
+          errorThrown += ", check for error messages in the development console (F12)";
+        }
+        jqXHR.responseJSON = {
+          "exception" : errorThrown,
+          "query": rewriteQuery(editor.getValue())
+        };
+      }
+      var statusWithText = jqXHR.status && jqXHR.statusText
+          ? (jqXHR.status + " (" + jqXHR.statusText + ")") : undefined;
+      displayError(jqXHR.responseJSON, statusWithText);
+      // var disp = "No result received from backend"
+      //              + " (text status = \"" + textStatus + "\""
+      //              + ", error thrown = \"" + errorThrown + "\")";
+      // $('#errorReason').html(disp);
+      // $('#errorBlock').show();
+      // $('#answerBlock,#infoBlock').hide();
+      // $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
+      // $(element).find('.glyphicon').addClass('glyphicon-remove');
+      // $(element).find('.glyphicon').css('color', 'red');
     });
     
   }
