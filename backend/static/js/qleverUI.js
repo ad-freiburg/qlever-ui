@@ -466,7 +466,11 @@ function processQuery(query, showStatus, element) {
     $.getJSON(BASEURL + "?cmd=stats", function (result) {
       log('Evaluating and displaying stats...', 'other');
       $("#kbname").html(result.kbindex || "");
-      $("#textname").html(result.textindex || "");
+      if (result.textindex) {
+        $("#textname").html(result.textindex);
+      } else {
+        $("#textname").closest("div").hide();
+      }
       $("#ntriples").html(tsep(result.nofActualTriples || result.noftriples));
       $("#nrecords").html(tsep(result.nofrecords));
       $("#nwo").html(tsep(result.nofwordpostings));
