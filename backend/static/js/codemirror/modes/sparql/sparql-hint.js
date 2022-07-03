@@ -686,7 +686,11 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 const fetchTimeout = (url, timeoutSeconds, { ...options } = {}) => {
   const ms = timeoutSeconds * 1000;
   const controller = new AbortController();
-  const promise = fetch(url, { signal: controller.signal, ...options });
+  const promise = fetch(url, {
+    signal: controller.signal,
+    headers: { "Accept": "application/qlever-results+json" },
+    ...options
+  });
   if (ms > 0) {
     const timeout = setTimeout(() => controller.abort(), ms);
     return promise.finally(() => clearTimeout(timeout));

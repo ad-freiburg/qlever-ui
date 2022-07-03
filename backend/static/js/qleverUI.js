@@ -201,18 +201,19 @@ $(document).ready(function () {
     window.location.href = getQueryString(removeProxy) + "&action=tsv_export";
   });
   
+  // Generating the various links for sharing.
   $("#sharebtn").click(function () {
-    // generate pretty link
-    $.post('/api/share', { 'content': editor.getValue() }, function (result) {
-      log('Got pretty link from backend', 'other');
+    $.post('/api/share', { 'content': rewriteQuery(editor.getValue()) }, function (result) {
+      log('Generating links for sharing ...', 'other');
       var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
-      // Query from editor in one line with single whitespace and no
-      // trailing full stops before closing braces.
-      var editorStringCleaned = editor.getValue()
-                                  .replace(/\s+/g, " ")
-                                  .replace(/\s*\.\s*}/g, " }")
-                                  .replace(/"/g, "\\\"")
-                                  .trim();
+      // Query from editor, rewritten and then normalized to a single line with
+      // single whitespaces and no trailing full stops before closing braces.
+      var queryRewrittenAndNormalized =
+        rewriteQuery(editor.getValue())
+          .replace(/\s+/g, " ")
+          .replace(/\s*\.\s*}/g, " }")
+          .replace(/"/g, "\\\"")
+          .trim();
 
       $(".ok-text").collapse("hide");
       $("#share").modal("show");
@@ -220,10 +221,10 @@ $(document).ready(function () {
       $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
       $("#queryStringLink").val(baseLocation + "?" + result.queryString);
       $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
-      $("#apiCallCommandLine").val(
-          "curl -Gs " + BASEURL
-            + " --data-urlencode \"query=" + editorStringCleaned + "\""
-            + " --data-urlencode \"action=tsv_export\"");
+      $("#apiCallCommandLine").val("curl " + BASEURL
+        + " -H \"Accept: text/tab-separated-values\""
+        + " -H \"Content-type: application/sparql-query\""
+        + " --data \"" + queryRewrittenAndNormalized + "\"");
     }, 'json');
     
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
@@ -273,7 +274,11 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
     query = prefixes + "SELECT ?qleverui_name WHERE {\n" + "  " + namepredicate.replace(/\n/g, "\n  ").replace(/\?qleverui_entity/g, element) + "\n}";
     log("Retrieving name for " + element + ":", 'requests');
     log(query, 'requests');
-    $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
+    // $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
+    $.ajax({ url: BASEURL + "?query=" + encodeURIComponent(query),
+             headers: { Accept: "application/qlever-results+json" },
+             dataType: "json",
+             success: function (result) {
       if (result['res'] && result['res'][0]) {
         list[element] = result['res'][0];
         $(domElement).attr('data-title', result['res'][0]).attr('data-container', 'body').attr('data-tooltip', 'tooltip').tooltip();
@@ -283,7 +288,7 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
       } else {
         list[element] = "";
       }
-    });
+    }});
   }
 }
 
@@ -319,7 +324,10 @@ function processQuery(query, showStatus, element) {
   $(element).find('.glyphicon').removeClass('glyphicon-remove');
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
-  $.get(query, function (result) {
+  $.ajax({ url: query,
+           headers: { Accept: "application/qlever-results+json" },
+           // dataType: (showStatus ? "json" : "text"),
+           success: function (result) {
     log('Evaluating and displaying results...', 'other');
     
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
@@ -346,7 +354,6 @@ function processQuery(query, showStatus, element) {
         let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
         let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
         let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
-        // NEW Hannah: Also rewrite query (ql:contains) for Map UI.
         let params = $.param({ query: rewriteQuery(editor.getValue()), backend: BASEURL });
         mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
         mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
@@ -357,7 +364,7 @@ function processQuery(query, showStatus, element) {
       }
       
       if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-        if (BASEURL.endsWith("osm-germany") || BASEURL.endsWith("osm-planet")) {
+        if (BASEURL.match("osm-(germany|planet|test)")) {
           // res += `<div class="pull-right">${showAllButton} ${mapViewButtonPetri}</div><br><br><br>`;
           res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div><br><br><br>`;
         } else {
@@ -424,10 +431,7 @@ function processQuery(query, showStatus, element) {
           query_log[query_log.length - 10] = null;
         }
       }
-    },
-    // The type of result we expect (this is the third argument of the $.get
-    // call above).
-    showStatus ? "json": "text")
+    }})
     .fail(function (jqXHR, textStatus, errorThrown) {
       $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
       $(element).find('.glyphicon').addClass('glyphicon-remove');
@@ -435,7 +439,8 @@ function processQuery(query, showStatus, element) {
       console.log("JQXHR", jqXHR);
       if (!jqXHR.responseJSON) {
         if (errorThrown = "Unknown error") {
-          errorThrown += ", check for error messages in the development console (F12)";
+          errorThrown = "No reply from backend, "
+            + "for details check the development console (F12)";
         }
         jqXHR.responseJSON = {
           "exception" : errorThrown,
