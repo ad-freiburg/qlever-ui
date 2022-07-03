@@ -221,7 +221,7 @@ $(document).ready(function () {
       $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
       $("#queryStringLink").val(baseLocation + "?" + result.queryString);
       $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
-      $("#apiCallCommandLine").val("curl " + BASEURL
+      $("#apiCallCommandLine").val("curl " + BASEURL.replace(/-proxy$/, "")
         + " -H \"Accept: text/tab-separated-values\""
         + " -H \"Content-type: application/sparql-query\""
         + " --data \"" + queryRewrittenAndNormalized + "\"");

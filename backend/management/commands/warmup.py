@@ -192,9 +192,12 @@ class Command(BaseCommand):
         return prefixString
 
     def _pinQuery(self, query):
-        params = {"pinresult": "true", "send": "10", "query": query}
-        response = requests.get(self.backend.baseUrl, params=params)
+        params = { "query": query, "pinresult": "true", "send": "10" }
+        headers = { "Accept": "application/qlever-results+json" }
+        response = requests.get(self.backend.baseUrl, params=params, headers=headers)
         response.raise_for_status()
+        print(self.backend.baseUrl)
+        print(response.request.headers)
         jsonData = response.json()
         if "exception" in jsonData:
             self.log(f"ERROR: {jsonData['exception']}", format="red")
