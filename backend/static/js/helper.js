@@ -15,18 +15,21 @@ function log(message, kind) {
 // NEW Hannah 03.05.2020: Rewrite query to allow syntactic sugar in the UI like
 // FILTER KEYWORDS(...) or ql:contains .
 function rewriteQuery(query) {
-
-  console.log("Rewriting query (looking for \"FILTER CONTAINS\" or \"ogc:contains\" ...");
   var query_rewritten = query;
+  var num_rewrites_filter_contains = 0;
+  var num_rewrites_ogc_contains = 0;
 
-  // HACK(Hannah 03.05.2020): allow a construct such as FILTER
-  // keywords(?title, "info* retr*")
+  // HACK: Support for FILTER CONTAINS(?title, "info* retr*")
   var m_var = "?qlm_";
   var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
   while (query_rewritten.match(filter_contains_re)) {
     query_rewritten = query_rewritten.replace(filter_contains_re,
          m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
     m_var = m_var + "i";
+    num_rewrites_filter_contains += 1;
+  }
+  if (num_rewrites_filter_contains > 0) {
+    console.log("Rewrote query with \"FILTER CONTAINS\"");
   }
 
   // HACK(Hannah 30.03.2021): rewrite ql:contains using ogc:contains and
@@ -48,8 +51,7 @@ function rewriteQuery(query) {
       break;
     }
   }
-  console.log("Query with UNION, OPTIONAL, or MINUS braces replaced: ",
-    query_rewritten);
+  // console.log("Query with UNION, OPTIONAL, or MINUS braces replaced: ", query_rewritten);
  
   // Now iteratively replace all ogc:contains within a { ... } scope.
   var ogc_contains_match = /ogc:contains([^_])/;
@@ -68,10 +70,14 @@ function rewriteQuery(query) {
     query_rewritten = query_rewritten.replace(ogc_contains_replace,
       '{ {$1$2osm2rdf:contains_area+ ' + m_var + ' . ' + m_var + ' osm2rdf:contains_nonarea$3\n' +
       '  } UNION { {$1$2osm2rdf:contains_area+$3$4} UNION {$1$2osm2rdf:contains_nonarea$3$4} } }');
-    console.log("Version with " + m_var + ":\n" + query_rewritten);
+    num_rewrites_ogc_contains += 1;
+    // console.log("Version with " + m_var + ":\n" + query_rewritten);
     if (query_rewritten.includes('ogc_tmp:contains ')) {
       throw "Leftover ogc_tmp:contains, this should not happen";
     }
+  }
+  if (num_rewrites_ogc_contains > 0) {
+    console.log("Rewrote query with \"ogc:contains\"");
   }
 
   // Replace all __OBR__ and __CBR__ back to { and }, respectively.

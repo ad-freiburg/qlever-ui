@@ -485,7 +485,9 @@ function getDynamicSuggestions(context) {
         } else {
           var subject = (subjectNames[words[0]] != "" && subjectNames[words[0]] != undefined) ? subjectNames[words[0]] : words[0];
           var subjectVarName = subject.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
-          var objectVarName = lastWord.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+          var objectVarName = lastWord.split(/[.\/\#:]/g).slice(-1)[0]
+            .replace(/@\w*$/, "").replace(/\s/g, "_")
+            .replace(/^has([A-Z_-])/, "$1$").replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
 
           response.push('?' + objectVarName + ' .');
           response.push('?' + subjectVarName + '_' + objectVarName + ' .');
@@ -717,7 +719,8 @@ function getUrlFromSparqlQuery(sparqlQuery) {
   activeLine.html('<img src="/static/img/ajax-loader.gif">');
   $('#aBadge').remove();
   $('#suggestionErrorBlock').parent().hide()
-  log('Getting suggestions from QLever:\n' + sparqlQuery, 'requests');
+  log("Getting suggestions from QLever (PREFIXes omitted):\n"
+    + sparqlQuery.replace(/^PREFIX.*/mg, ""), "requests");
 
   let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
   return url;

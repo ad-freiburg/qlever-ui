@@ -206,10 +206,17 @@ $(document).ready(function () {
     $.post('/api/share', { 'content': rewriteQuery(editor.getValue()) }, function (result) {
       log('Generating links for sharing ...', 'other');
       var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
-      // Query from editor, rewritten and then normalized to a single line with
-      // single whitespaces and no trailing full stops before closing braces.
+      // Query from editor, with the following rewrites:
+      //
+      // 1. Remove all comments and empty lines
+      // 2. Replace all whitespace (including newlines) by a single space
+      // 3. Remove trailing full stops before closing braces
+      // 4. Escape quotes
+      // 5. Remove leading and trailing whitespac
+      //
       var queryRewrittenAndNormalized =
         rewriteQuery(editor.getValue())
+          .replace(/#.*\n/mg, " ")
           .replace(/\s+/g, " ")
           .replace(/\s*\.\s*}/g, " }")
           .replace(/"/g, "\\\"")
@@ -225,6 +232,7 @@ $(document).ready(function () {
         + " -H \"Accept: text/tab-separated-values\""
         + " -H \"Content-type: application/sparql-query\""
         + " --data \"" + queryRewrittenAndNormalized + "\"");
+      $("#queryStringUnescaped").val(queryRewrittenAndNormalized);
     }, 'json');
     
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
