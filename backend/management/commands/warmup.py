@@ -128,7 +128,7 @@ class Command(BaseCommand):
             self.log(f"Pin: {headline}", format="bold")
             warmupQuery = self._buildQuery(warmup)
             self.log(warmupQuery)
-            self._pinQuery(f"{prefixString} {warmupQuery}")
+            self._pinQuery(f"{prefixString}\n{warmupQuery}")
 
         # clear unpinned
         self.log(" ")
@@ -140,25 +140,25 @@ class Command(BaseCommand):
                 continue
             self.log(" ")
             self.log(f"Pin: {predicate} ordered by subject", format="bold")
-            query = f"{prefixString}\nSELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?x"
+            query = f"SELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?x"
             self.log(query)
-            self._pinQuery(query)
+            self._pinQuery(f"{prefixString}\n{query}")
 
             self.log(" ")
             self.log(f"Pin: {predicate} ordered by object", format="bold")
-            query = f"{prefixString}\nSELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?y"
+            query = f"SELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?y"
             self.log(query)
-            self._pinQuery(query)
+            self._pinQuery(f"{prefixString}\n{query}")
 
         # pin frequent patterns
         for pattern in self.backend.frequentPatternsWithoutOrder.split(" "):
             if not pattern:
                 continue
             self.log(" ")
-            self.log(f"Pin: {pattern} without ORDER BY", format="bold")
-            query = f"{prefixString}\nSELECT ?x ?y WHERE {{ ?x {pattern} ?y }}"
+            self.log(f"Pin: {pattern} ordered by subject only", format="bold")
+            query = f"SELECT ?x ?y WHERE {{ ?x {pattern} ?y }} ORDER BY ?x"
             self.log(query)
-            self._pinQuery(query)
+            self._pinQuery(f"{prefixString}\n{query}")
 
     def showAutocompleteQueries(self):
         self.log("Subject AC query", format="bold")
