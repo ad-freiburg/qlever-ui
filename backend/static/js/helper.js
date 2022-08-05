@@ -348,12 +348,13 @@ function getShortStr(str, maxLength, column = undefined) {
   var veryLongLength = 500;
   var maxLinkLength = 50;
   if (cpy.charAt(0) == '<') {
-    pos = cpy.lastIndexOf('/');
+    pos = Math.max(cpy.lastIndexOf('/'), cpy.lastIndexOf('#'));
     var paraClose = cpy.lastIndexOf(')');
     if (paraClose > 0 && paraClose > pos) {
       var paraOpen = cpy.lastIndexOf('(', paraClose);
       if (paraOpen > 0 && paraOpen < pos) {
-        pos = cpy.lastIndexOf('/', paraOpen);
+        pos = Math.max(cpy.lastIndexOf('/', paraOpen),
+                       cpy.lastIndexOf('#', paraOpen));
       }
     }
     if (pos < 0) {
