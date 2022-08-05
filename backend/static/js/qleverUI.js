@@ -208,7 +208,9 @@ $(document).ready(function () {
       var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
       // Query from editor, with the following rewrites:
       //
-      // 1. Remove all comments and empty lines
+      // 1a. Replace all # in IRIs by %23
+      // 1b. Remove all comments and empty lines
+      // 1c. Replace all %23 in IRIs by # 
       // 2. Replace all whitespace (including newlines) by a single space
       // 3. Remove trailing full stops before closing braces
       // 4. Escape quotes
@@ -216,7 +218,9 @@ $(document).ready(function () {
       //
       var queryRewrittenAndNormalized =
         rewriteQuery(editor.getValue())
+          .replace(/(<[^>]+)#/g, "$1%23")
           .replace(/#.*\n/mg, " ")
+          .replace(/(<[^>]+)%23/g, "$1#")
           .replace(/\s+/g, " ")
           .replace(/\s*\.\s*}/g, " }")
           .replace(/"/g, "\\\"")
