@@ -509,14 +509,25 @@ function processQuery(query, showStatus, element) {
     if (runtime_info["text"] == undefined) {
       var text = {};
       if (runtime_info["column_names"] == undefined) { runtime_info["column_names"] = ["not yet available"]; }
+      // console.log("RUNTIME INFO:",runtime_info["description"])
+      // Rewrite runtime info from QLever as follows:
+      //
+      // 1. Abbreviate IRIs (only keep part after last / or # or dot)
+      // 2. Remove qlc_ prefixes from variable names
+      // 3. Lowercase fully capitalized words (with _)
+      // 4. Separate CamelCase word parts by hyphen (Camel-Case)
+      // 5. First word in ALL CAPS (like JOIN or INDEX-SCAN)
+      // 6. Replace hyphen in all caps by space (INDEX SCAN)
+      //
       text["name"] = runtime_info["description"]
-      .replace(/<.*[#\/\.](.*)>/, "<$1>")
+      .replace(/<[^>]*[#\/\.]([^>]*)>/g, "<$1>")
       .replace(/qlc_/g, "")
       .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); })
       .replace(/([a-z])([A-Z])/g, "$1-$2")
       .replace(/^([a-zA-Z-])*/, function (match) { return match.toUpperCase(); })
       .replace(/([A-Z])-([A-Z])/g, "$1 $2")
       .replace(/AVAILABLE /, "").replace(/a all/, "all");
+      // console.log("-> REWRITTEN TO:", text["name"])
       text["size"] = format(runtime_info["result_rows"]) + " x " + format(runtime_info["result_cols"]);
       text["cols"] = runtime_info["column_names"].join(", ")
       .replace(/qlc_/g, "")
