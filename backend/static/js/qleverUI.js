@@ -195,8 +195,8 @@ $(document).ready(function () {
   $("#runbtn").click(async function() {
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
-    const query_string = await getQueryString({"name_service": "if_checked"});
-    await processQuery(query_string + "&send=" + $("#maxSendOnFirstRequest").html(), true, this);
+    const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+    await processQuery(query, "&send=" + $("#maxSendOnFirstRequest").html(), true, this);
 
     // Add query hash to URL (we need Django for this, hence the POST request),
     // unless this is a URL with ?query=...
@@ -217,25 +217,15 @@ $(document).ready(function () {
   // CSV report: we need to change the link, so that the result is downloadable.
   $("#csvbtn").click(async function () {
     log('Download CSV', 'other');
-    const removeProxy = true;
-    window.location.href = await getQueryString(
-      {"name_service": "if_checked", "remove-prox": true}) + "&action=csv_export";
+    const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+    window.location.href = await getQueryString(query) + "&action=csv_export";
   });
   
   // TSV report: like for CSV report above.
   $("#tsvbtn").click(async function () {
     log('Download TSV', 'other');
-    const removeProxy = true;
-    window.location.href = await getQueryString(
-      {"name_service": "if_checked", "remove-prox": true}) + "&action=tsv_export";
-    // const response = await fetch(BASEURL, {
-    //   method: "POST",
-    //   body: getQueryString(), 
-    //   headers: {
-    //     "Content-type": "application/sparql-query",
-    //     "Accept": "application/tab-separated-values"
-    //   }
-    // });
+    const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+    window.location.href = await getQueryString(query) + "&action=tsv_export";
   });
   
   // Generating the various links for sharing.
@@ -349,7 +339,7 @@ function getResultTime(resultTimes) {
   return timeList;
 }
 
-async function processQuery(queryUrl, showStatus, element) {
+async function processQuery(query, paramString, showStatus, element) {
   
   log('Preparing query...', 'other');
   log('Element: ' + element, 'other');
@@ -360,18 +350,7 @@ async function processQuery(queryUrl, showStatus, element) {
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
 
-  // Temporary HACK: Use proxy only for Wikidata and when the box "Automatically
-  // add names to results" is ticked.
-  if (queryUrl.match(/api\/wikidata\?.*&name_service=true/)) {
-    queryUrl = queryUrl.replace(/api\/wikidata\?/, "api/wikidata-proxy?");
-    console.log("WIKIDATA added -proxy to URL:", queryUrl);
-  }
-
-  // TODO: The rewritten query is used at several places in the following, but
-  // getQueryString does this again -> this should be avoided.
-  var queryRewritten = await rewriteQuery(editor.getValue());
-
-  $.ajax({ url: queryUrl,
+  $.ajax({ url: getQueryString(query) + paramString,
            headers: { Accept: "application/qlever-results+json" },
            // dataType: (showStatus ? "json" : "text"),
            success: function (result) {
@@ -420,7 +399,7 @@ async function processQuery(queryUrl, showStatus, element) {
         let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
         let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
         let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
-        let params = $.param({ query: queryRewritten, backend: BASEURL });
+        let params = $.param({ query: query, backend: BASEURL });
         mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
         mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
         mapViewButtonPetriPatrick = `<a class="btn btn-default" href="${mapViewUrlPetriPatrick}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view+++</a>`;
@@ -441,7 +420,8 @@ async function processQuery(queryUrl, showStatus, element) {
       }
       $("#answer").html(res);
       $("#show-all").click(async function() {
-        await processQuery(await getQueryString({"name_service": "if_checked"}), true, $("#runbtn"));
+        var query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+        await processQuery(query, "", true, $("#runbtn"));
       })
       
       var tableHead = $('#resTable thead');
@@ -515,7 +495,7 @@ async function processQuery(queryUrl, showStatus, element) {
         }
         jqXHR.responseJSON = {
           "exception" : errorThrown,
-          "query": queryRewritten
+          "query": query
         };
       }
       var statusWithText = jqXHR.status && jqXHR.statusText

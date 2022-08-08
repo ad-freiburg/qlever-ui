@@ -40,7 +40,7 @@ function splitSparqlQueryIntoParts(query) {
     query_parts["group_by"] = footer_match[1];
     query_parts["footer"] = footer_match[3];
   }
-  console.log("QUERY PARTS:", query_parts);
+  // console.log("QUERY PARTS:", query_parts);
   return query_parts;
 }
 
@@ -49,20 +49,32 @@ function splitSparqlQueryIntoParts(query) {
 // SPARQL query and returns as string.
 function createSparqlQueryFromParts(query_parts) {
   var query =
-    query_parts["prefixes"].join(" ") + " " +
-    "SELECT " + query_parts["select_clause"] + " WHERE { " +
-    query_parts["body"] + "\n" +
-    "} " + query_parts["group_by"] + " " + query_parts["footer"];
-  query = query.replace(/\s+/g, " ").replace(/^ /, "").replace(/ $/, "");
+    query_parts["prefixes"].join("\n") + "\n" +
+    "SELECT " + query_parts["select_clause"] + " WHERE {\n" +
+  query_parts["body"].replace(/^/mg, ">>") + "\n" + "}" +
+    (" " + query_parts["group_by"] + " " + query_parts["footer"])
+      .replace(/ +/g, " ").replace(/ $/, "");
+  query = query.replace(/ +/g, " ").replace(/^>>/mg, "  ").replace(/ *\. *}/, " }")
   return query;
 }
 
-// Name service (translated from qlever-proxy.py).
-async function enhanceQueryByNameTriples(query,
-             prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-             name_predicate="@en@rdfs:label",
-             predicate_exists_regex="(@[a-z]+@)?rdfs:label",
-             new_var_suffix="_label") {
+// Name service (translated to JavaScript from qlever-proxy.py).
+async function enhanceQueryByNameTriples(query) {
+
+  // CONFIG depending on instance. TODO: this should be configurable in the QLever UI.
+  if (BASEURL.match(/api\/wikidata$/)) {
+    prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
+    name_predicate="@en@rdfs:label";
+    predicate_exists_regex="(@[a-z]+@)?rdfs:label";
+    new_var_suffix="_label";
+  } else if (BASEURL.match(/api\/osm(-[a-z]+)?$/)) {
+    prefix_definition="PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>";
+    name_predicate="osmkey:name",
+    predicate_exists_regex="osmkey:name",
+    new_var_suffix="_name";
+  } else {
+    return query;
+  }
 
   // STEP 1: Get query parts.
   var query_parts = splitSparqlQueryIntoParts(query);
@@ -70,6 +82,11 @@ async function enhanceQueryByNameTriples(query,
   // STEP 2: Check which triples to add.
   var new_vars = { }
   var new_triples = { };
+  var new_prefix_definitions = query_parts["prefixes"];
+  if (new_prefix_definitions.length > 50) {
+    console.log("WARNING: Query with many prefix definitions, the name service" +
+      " might be slow because it does multiple linear searches in them!");
+  }
   for (const select_var of query_parts["select_vars"]) {
     var regex = new RegExp("\\" + select_var + " " + predicate_exists_regex);
     if (!query_parts["body"].match(regex)) {
@@ -84,28 +101,56 @@ async function enhanceQueryByNameTriples(query,
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
-      console.log("TEST QUERY:", test_query);
-      const response = await fetch(BASEURL, {
+      // console.log("TEST QUERY:", test_query);
+      const result = await fetch(BASEURL, {
         method: "POST",
         body: test_query, 
         headers: { "Content-type": "application/sparql-query" }
-      });
-      console.log(response);
-      // if ("results" in result && result.results.bindings.length == 1) {
-      //   console.log("RESULT:", result);
-      //   console.log("RESULT SIZE:", result.results.bindings.length);
-      //   new_vars[select_var] = select_var + new_var_suffix;
-      //   new_triples[select_var] =
-      //     select_var + " " + name_predicate + " " + new_vars[select_var];
-      // }
+      }).then(response => response.json());
+      if ("results" in result && result.results.bindings.length == 1) {
+        // console.log("RESULT:", result);
+        // console.log("RESULT SIZE:", result.results.bindings.length);
+        new_vars[select_var] = select_var + new_var_suffix;
+        new_triples[select_var] =
+          select_var + " " + name_predicate + " " + new_vars[select_var];
+        if (!new_prefix_definitions.includes(prefix_definition)) {
+          new_prefix_definitions.push(prefix_definition);
+        }
+      }
     }
   }
-  console.log("NEW TRIPLES:", new_triples);
+  // console.log("NEW TRIPLES:", Object.values(new_triples));
+  // console.log("NEW VARS:", new_vars);
+  // console.log("NEW PREFIXES:", new_prefix_definitions);
+
+  // Report whether we found any name triples, and if not, return query as is.
+  if (Object.keys(new_vars).length == 0) {
+    return query;
+  }
 
   // STEP 3: Reassemble the (possible augmented) query.
+  console.log("NAME SERVICE found triples for the following variables:",
+    Object.keys(new_vars));
+  new_query_parts = {};
+  new_query_parts["prefixes"] = new_prefix_definitions;
+  var select_clause = query_parts["select_clause"];
+  for (const select_var of Object.keys(new_vars)) {
+    select_clause = select_clause.replace(RegExp("\\" + select_var),
+      select_var + " " + new_vars[select_var]);
+  }
+  new_query_parts["select_clause"] = select_clause;
+  new_query_parts["body"] =
+      "{ SELECT " + query_parts["select_clause"] + " WHERE" +
+      " { " + query_parts["body"] + " } " + query_parts["group_by"] + " }\n" +
+      Object.values(new_triples).join(" .\n");
+  // console.log("BODY:\n" + new_query_parts["body"]);
+  new_query_parts["group_by"] = "";
+  new_query_parts["footer"] = query_parts["footer"];
+  new_query = createSparqlQueryFromParts(new_query_parts);
+  // console.log(new_query);
   // var enhanced_query = createSparqlQueryFromParts(query_parts);
   // return enhanced_query;
-  return query;
+  return new_query;
 }
 
 
@@ -126,6 +171,13 @@ async function rewriteQuery(query, kwargs = {}) {
   } else {
     query_rewritten = query;
   }
+  return rewriteQueryNoAsyncPart(query_rewritten);
+}
+
+// The rest of the function is synchronous (we currently need that for the
+// SPARQL suggestions).
+function rewriteQueryNoAsyncPart(query) {
+  var query_rewritten = query;
 
   // HACK: Rewrite FILTER CONTAINS(?title, "info* retr*") using
   // ql:contains-entity and ql:contains-word.
@@ -202,32 +254,28 @@ async function rewriteQuery(query, kwargs = {}) {
 
 
 // Get URL for current query.
-async function getQueryString(kwargs = {}) {
+function getQueryString(query) {
 
-  q = editor.getValue();
+  // q = editor.getValue();
+  // q = await rewriteQuery(q, kwargs);
 
-  // Rewrite query, see rewriteQueryHack above.
-  q = await rewriteQuery(q, kwargs);
+  log("getQueryString:\n" + query, 'requests');
 
-  log("getQueryString:\n" + q, 'requests');
-  q = encodeURIComponent(q);
-  // var q = encodeURIComponent(editor.getValue());
-
-  var queryString = "?query=" + q;
-  if ($("#name_service").prop("checked")) {
-    queryString += "&name_service=true";
-  }
+  var queryString = "?query=" + encodeURIComponent(query);
+  // if ($("#name_service").prop("checked")) {
+  //   queryString += "&name_service=true";
+  // }
   if ($("#clear").prop('checked')) {
     queryString += "&cmd=clear-cache";
   }
 
   // Remove -proxy from base URL if so desired.
-  var base_url = BASEURL;
-  if (kwargs["replace-proxy"] == true) {
-    base_url = baseurl.replace(/-proxy$/, "");
-  }
+  // var base_url = BASEURL;
+  // if (kwargs["replace-proxy"] == true) {
+  //   base_url = baseurl.replace(/-proxy$/, "");
+  // }
 
-  return base_url + queryString
+  return BASEURL + queryString
 }
 
 function cleanLines(cm) {
