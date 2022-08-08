@@ -12,9 +12,120 @@ function log(message, kind) {
   }
 }
 
-// NEW Hannah 03.05.2020: Rewrite query to allow syntactic sugar in the UI like
-// FILTER KEYWORDS(...) or ql:contains .
-function rewriteQuery(query) {
+
+// Split SPARQL query into the following parts and return as dictionary with
+// these keys: prefixes (is an array), select_clause, select_vars, body, group_by, footer.
+function splitSparqlQueryIntoParts(query) {
+  var query_normalized = query.replace(/\s+/g, " ")
+                              .replace(/\(\s+/g, "(").replace(/\s+\)/g, ")")
+                              .replace(/\{\s*/g, "{ ").replace(/\s*\.?\s*\}$/g, " }");
+  // console.log("SPLIT_SPARQL_QUERY_INTO_PARTS:", query_with_spaces_normalized)
+  const pattern = /^\s*(.*?)\s*SELECT\s+(\S[^{]*\S)\s*WHERE\s*{\s*(\S.*\S)\s*}\s*(.*?)\s*$/m;
+  var match = query_normalized.match(pattern);
+  if (!match) {
+    console.log("ERROR: Query did not match regex for SELECT queries")
+    return;
+  }
+  var query_parts = {};
+  query_parts["prefixes"] = match[1].split(/\s+(?=PREFIX)/);
+  query_parts["select_clause"] = match[2];
+  query_parts["select_vars"] = query_parts["select_clause"].replace(
+    /\(\s*[^(]+\s*\([^)]+\)\s*[aA][sS]\s*(\?[^)]+)\s*\)/g, "$1").split(/\s+/);
+  query_parts["body"] = match[3];
+  query_parts["footer"] = match[4];
+  query_parts["group_by"] = "";
+  var footer_match =
+    query_parts["footer"].match(/^(GROUP BY( \?[A-Za-z0-9_]+)+) (.*)$/);
+  if (footer_match) {
+    query_parts["group_by"] = footer_match[1];
+    query_parts["footer"] = footer_match[3];
+  }
+  console.log("QUERY PARTS:", query_parts);
+  return query_parts;
+}
+
+
+// Assemble query parts, as produced by splitSparqlQueryIntoParts above, to a
+// SPARQL query and returns as string.
+function createSparqlQueryFromParts(query_parts) {
+  var query =
+    query_parts["prefixes"].join(" ") + " " +
+    "SELECT " + query_parts["select_clause"] + " WHERE { " +
+    query_parts["body"] + "\n" +
+    "} " + query_parts["group_by"] + " " + query_parts["footer"];
+  query = query.replace(/\s+/g, " ").replace(/^ /, "").replace(/ $/, "");
+  return query;
+}
+
+// Name service (translated from qlever-proxy.py).
+async function enhanceQueryByNameTriples(query,
+             prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+             name_predicate="@en@rdfs:label",
+             predicate_exists_regex="(@[a-z]+@)?rdfs:label",
+             new_var_suffix="_label") {
+
+  // STEP 1: Get query parts.
+  var query_parts = splitSparqlQueryIntoParts(query);
+
+  // STEP 2: Check which triples to add.
+  var new_vars = { }
+  var new_triples = { };
+  for (const select_var of query_parts["select_vars"]) {
+    var regex = new RegExp("\\" + select_var + " " + predicate_exists_regex);
+    if (!query_parts["body"].match(regex)) {
+      // console.log("Name triple exists for:", select_var);
+      test_query_parts = {};
+      test_query_parts["prefixes"] = [...query_parts["prefixes"], prefix_definition];
+      test_query_parts["select_clause"] = "*";
+      test_query_parts["body"] =
+          "{ SELECT " + query_parts["select_clause"] + " WHERE " +
+          " { " + query_parts["body"] + " } " + query_parts["group_by"] + " } " +
+          select_var + " " + name_predicate + " ?qleverui_tmp";
+      test_query_parts["group_by"] = "";
+      test_query_parts["footer"] = "LIMIT 1";
+      test_query = createSparqlQueryFromParts(test_query_parts);
+      console.log("TEST QUERY:", test_query);
+      const response = await fetch(BASEURL, {
+        method: "POST",
+        body: test_query, 
+        headers: { "Content-type": "application/sparql-query" }
+      });
+      console.log(response);
+      // if ("results" in result && result.results.bindings.length == 1) {
+      //   console.log("RESULT:", result);
+      //   console.log("RESULT SIZE:", result.results.bindings.length);
+      //   new_vars[select_var] = select_var + new_var_suffix;
+      //   new_triples[select_var] =
+      //     select_var + " " + name_predicate + " " + new_vars[select_var];
+      // }
+    }
+  }
+  console.log("NEW TRIPLES:", new_triples);
+
+  // STEP 3: Reassemble the (possible augmented) query.
+  // var enhanced_query = createSparqlQueryFromParts(query_parts);
+  // return enhanced_query;
+  return query;
+}
+
+
+// Rewrite query in potentially three ways:
+//
+// 1. Add "name service" triples
+// 2. Rewrite FILTER CONTAINS(...) using ql:contains-word and ql:contains-entity
+// 3. Rewrite ogc:contains using osm2rdf:contains_area and osm2rdf:contains_nonarea
+//
+async function rewriteQuery(query) {
+  // NEW 08.08.2022: Trying something out.
+  query = await enhanceQueryByNameTriples(query);
+  // console.log("ENHANCED QUERY:", query);
+  return rewriteQueryNoAsyncPart(query);
+}
+
+// The NoAsync part of rewriteQuery (for the suggestions, we don't need the
+// asychronous part, and since we don't need it, we shouldn't call it for
+// efficiency reasons).
+function rewriteQueryNoAsyncPart(query) {
   var query_rewritten = query;
   var num_rewrites_filter_contains = 0;
   var num_rewrites_ogc_contains = 0;
@@ -89,12 +200,12 @@ function rewriteQuery(query) {
 
 
 // Get URL for current query.
-function getQueryString(removeProxy = false) {
+async function getQueryString(removeProxy = false) {
 
   q = editor.getValue();
 
   // Rewrite query, see rewriteQueryHack above.
-  q = rewriteQuery(q);
+  q = await rewriteQuery(q);
 
   log("getQueryString:\n" + q, 'requests');
   q = encodeURIComponent(q);

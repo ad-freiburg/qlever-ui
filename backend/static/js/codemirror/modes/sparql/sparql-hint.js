@@ -708,7 +708,7 @@ function getUrlFromSparqlQuery(sparqlQuery) {
 
   // Rewrite queries also when obtaining suggestions (FILTER CONTAINS or
   // ql:contains).
-  sparqlQuery = rewriteQuery(sparqlQuery);
+  sparqlQuery = rewriteQueryNoAsyncPart(sparqlQuery);
 
   // Show the loading indicator and badge.
   activeLineBadgeLine = $('.CodeMirror-activeline-background');

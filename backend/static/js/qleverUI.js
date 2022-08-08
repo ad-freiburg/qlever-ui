@@ -186,45 +186,82 @@ $(document).ready(function () {
     
     return true;
   }
-  
-  $("#runbtn").click(executeQuery);
-  
-  $("#csvbtn").click(function () {
+
+  // When clicking "Execute", do the following:
+  //
+  // 1. Call processQuery (sends query to backend + displays results).
+  // 2. Add query hash to URL.
+  //
+  $("#runbtn").click(async function() {
+    log('Start processing', 'other');
+    $('#suggestionErrorBlock').parent().hide();
+    const query_string = await getQueryString();
+    await processQuery(query_string + '&send=' + $('#maxSendOnFirstRequest').html(), true, this);
+
+    // Add query hash to URL (we need Django for this, hence the POST request),
+    // unless this is a URL with ?query=...
+    $.post('/api/share', { 'content': editor.getValue() }, function (result) {
+      log('Got pretty link from backend', 'other');
+      if (window.location.search.indexOf(result.queryString) == -1) {
+        const newUrl = window.location.origin
+                        + window.location.pathname.split('/')
+                                         .slice(0, 2).join('/') + '/' + result.link;
+        window.history.pushState("html:index.html", "QLever", newUrl);
+      }
+    }, "json");
+
+    if (editor.state.completionActive) { editor.state.completionActive.close(); }
+    $("#runbtn").focus();
+  });
+
+  // CSV report: we need to change the link, so that the result is downloadable.
+  $("#csvbtn").click(async function () {
     log('Download CSV', 'other');
     const removeProxy = true;
-    window.location.href = getQueryString(removeProxy) + "&action=csv_export";
+    window.location.href = await getQueryString(removeProxy) + "&action=csv_export";
   });
   
-  $("#tsvbtn").click(function () {
+  // TSV report: like for CSV report above.
+  $("#tsvbtn").click(async function () {
     log('Download TSV', 'other');
     const removeProxy = true;
-    window.location.href = getQueryString(removeProxy) + "&action=tsv_export";
+    window.location.href = await getQueryString(removeProxy) + "&action=tsv_export";
+    // const response = await fetch(BASEURL, {
+    //   method: "POST",
+    //   body: getQueryString(), 
+    //   headers: {
+    //     "Content-type": "application/sparql-query",
+    //     "Accept": "application/tab-separated-values"
+    //   }
+    // });
   });
   
   // Generating the various links for sharing.
-  $("#sharebtn").click(function () {
-    $.post('/api/share', { 'content': rewriteQuery(editor.getValue()) }, function (result) {
+  $("#sharebtn").click(async function () {
+    // Rewrite the query and normalize. For the normalization, do the following:
+    //
+    // 1a. Replace all # in IRIs by %23
+    // 1b. Remove all comments and empty lines
+    // 1c. Replace all %23 in IRIs by # 
+    // 2. Replace all whitespace (including newlines) by a single space
+    // 3. Remove trailing full stops before closing braces
+    // 4. Escape quotes
+    // 5. Remove leading and trailing whitespac
+    //
+    const queryRewritten = await rewriteQuery(editor.getValue());
+    const queryRewrittenAndNormalized =
+            queryRewritten.replace(/(<[^>]+)#/g, "$1%23")
+                          .replace(/#.*\n/mg, " ")
+                          .replace(/(<[^>]+)%23/g, "$1#")
+                          .replace(/\s+/g, " ")
+                          .replace(/\s*\.\s*}/g, " }")
+                          .replace(/"/g, "\\\"")
+                          .trim();
+
+    // POST request to Django, for the query hash.
+    $.post('/api/share', { "content": queryRewritten }, function (result) {
       log('Generating links for sharing ...', 'other');
       var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
-      // Query from editor, with the following rewrites:
-      //
-      // 1a. Replace all # in IRIs by %23
-      // 1b. Remove all comments and empty lines
-      // 1c. Replace all %23 in IRIs by # 
-      // 2. Replace all whitespace (including newlines) by a single space
-      // 3. Remove trailing full stops before closing braces
-      // 4. Escape quotes
-      // 5. Remove leading and trailing whitespac
-      //
-      var queryRewrittenAndNormalized =
-        rewriteQuery(editor.getValue())
-          .replace(/(<[^>]+)#/g, "$1%23")
-          .replace(/#.*\n/mg, " ")
-          .replace(/(<[^>]+)%23/g, "$1#")
-          .replace(/\s+/g, " ")
-          .replace(/\s*\.\s*}/g, " }")
-          .replace(/"/g, "\\\"")
-          .trim();
 
       $(".ok-text").collapse("hide");
       $("#share").modal("show");
@@ -237,7 +274,7 @@ $(document).ready(function () {
         + " -H \"Content-type: application/sparql-query\""
         + " --data \"" + queryRewrittenAndNormalized + "\"");
       $("#queryStringUnescaped").val(queryRewrittenAndNormalized);
-    }, 'json');
+    }, "json");
     
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
   });
@@ -251,23 +288,6 @@ $(document).ready(function () {
   });
   
 });
-
-function executeQuery(){
-    log('Start processing', 'other');
-    $('#suggestionErrorBlock').parent().hide();
-    processQuery(getQueryString() + '&send=' + $('#maxSendOnFirstRequest').html(), true, this);
-    
-    // generate pretty link
-    $.post('/api/share', { 'content': editor.getValue() }, function (result) {
-      log('Got pretty link from backend', 'other');
-      if (window.location.search.indexOf(result.queryString) == -1) {
-        window.history.pushState("html:index.html", "QLever", window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/' + result.link);
-      }
-    }, 'json');
-    
-    if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    $("#runbtn").focus();
-}
 
 function addNameHover(element, domElement, list, namepredicate, prefixes) {
   element = element.replace(/^@[a-zA-Z-]+@/, "");
@@ -326,7 +346,7 @@ function getResultTime(resultTimes) {
   return timeList;
 }
 
-function processQuery(query, showStatus, element) {
+async function processQuery(queryUrl, showStatus, element) {
   
   log('Preparing query...', 'other');
   log('Element: ' + element, 'other');
@@ -336,7 +356,19 @@ function processQuery(query, showStatus, element) {
   $(element).find('.glyphicon').removeClass('glyphicon-remove');
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
-  $.ajax({ url: query,
+
+  // Temporary HACK: Use proxy only for Wikidata and when the box "Automatically
+  // add names to results" is ticked.
+  if (queryUrl.match(/api\/wikidata\?.*&name_service=true/)) {
+    queryUrl = queryUrl.replace(/api\/wikidata\?/, "api/wikidata-proxy?");
+    console.log("WIKIDATA added -proxy to URL:", queryUrl);
+  }
+
+  // TODO: The rewritten query is used at several places in the following, but
+  // getQueryString does this again -> this should be avoided.
+  const queryRewritten = await rewriteQuery(editor.getValue());
+
+  $.ajax({ url: queryUrl,
            headers: { Accept: "application/qlever-results+json" },
            // dataType: (showStatus ? "json" : "text"),
            success: function (result) {
@@ -347,7 +379,6 @@ function processQuery(query, showStatus, element) {
       
       if (result.status == "ERROR") { displayError(result); return; }
       if (result['warnings'].length > 0) { displayWarning(result); }
-      var res = '<div id="res">';
       var nofRows = result.res.length;
       const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
       let resultSize = tsep(result.resultsize.toString());
@@ -358,7 +389,17 @@ function processQuery(query, showStatus, element) {
       
       const columns = result.selected;
       
-      let showAllButton = '';
+      // If more than predefined number of results, create "Show all" button
+      // (onclick action defined further down).
+      let showAllButton = "";
+      if (nofRows < parseInt(result.resultsize)) {
+        showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
+          + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
+          + "Limited to " + nofRows + " results; show all " + resultSize + " results</a>";
+      }
+
+      // If the last column of the first result row contains a WKT literal,
+      // create "Map View" buttons.
       let mapViewButtonVanilla = '';
       let mapViewButtonPetri = '';
       let mapViewButtonPetriPatrick = '';
@@ -366,23 +407,29 @@ function processQuery(query, showStatus, element) {
         let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
         let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
         let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
-        let params = $.param({ query: rewriteQuery(editor.getValue()), backend: BASEURL });
+        let params = $.param({ query: queryRewritten, backend: BASEURL });
         mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
         mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
         mapViewButtonPetriPatrick = `<a class="btn btn-default" href="${mapViewUrlPetriPatrick}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view+++</a>`;
       }
-      if (nofRows < parseInt(result.resultsize)) {
-        showAllButton = `<a class="btn btn-default" onclick="processQuery(getQueryString(), true, $('#runbtn'))"><i class="glyphicon glyphicon-sort-by-attributes"></i> Limited to ${nofRows} results. Show all ${resultSize} results.</a>`;
-      }
       
+      // Show the buttons (if there are any).
+      //
+      // TODO: Exactly which "MapView" buttons are shown depends on the
+      // instance. How is current hard-coded. This should be configurable (in
+      // the Django configuration of the respective backend).
+      var res = "<div id=\"res\">";
       if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
         if (BASEURL.match("osm-(germany|planet|test)")) {
-          // res += `<div class="pull-right">${showAllButton} ${mapViewButtonPetri}</div><br><br><br>`;
           res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div><br><br><br>`;
         } else {
           res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla}</div><br><br><br>`;
         }
       }
+      $("#answer").html(res);
+      $("#show-all").click(async function() {
+        await processQuery(await getQueryString(), true, $("#runbtn"));
+      })
       
       var tableHead = $('#resTable thead');
       var head = "<tr><th></th>";
@@ -430,7 +477,6 @@ function processQuery(query, showStatus, element) {
         }
         $('[data-toggle="tooltip"]').tooltip();
         $('#infoBlock,#errorBlock').hide();
-        $("#answer").html(res);
         $('#answerBlock').show();
         $("html, body").animate({
           scrollTop: $("#resTable").scrollTop() + 500
@@ -444,7 +490,7 @@ function processQuery(query, showStatus, element) {
         }
       }
     }})
-    .fail(function (jqXHR, textStatus, errorThrown) {
+    .fail(async function (jqXHR, textStatus, errorThrown) {
       $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
       $(element).find('.glyphicon').addClass('glyphicon-remove');
       $(element).find('.glyphicon').css('color', 'red');
@@ -456,7 +502,7 @@ function processQuery(query, showStatus, element) {
         }
         jqXHR.responseJSON = {
           "exception" : errorThrown,
-          "query": rewriteQuery(editor.getValue())
+          "query": queryRewritten
         };
       }
       var statusWithText = jqXHR.status && jqXHR.statusText
