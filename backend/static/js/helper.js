@@ -115,22 +115,21 @@ async function enhanceQueryByNameTriples(query,
 // 2. Rewrite FILTER CONTAINS(...) using ql:contains-word and ql:contains-entity
 // 3. Rewrite ogc:contains using osm2rdf:contains_area and osm2rdf:contains_nonarea
 //
-async function rewriteQuery(query) {
-  // NEW 08.08.2022: Trying something out.
-  query = await enhanceQueryByNameTriples(query);
-  // console.log("ENHANCED QUERY:", query);
-  return rewriteQueryNoAsyncPart(query);
-}
+async function rewriteQuery(query, kwargs = {}) {
+  // If certain conditions are met, rewrite with name service (asks queries,
+  // hence asynchronous, the rest of the function is synchronous).
+  var query_rewritten;
+  const apply_name_service = kwargs["name_service" == "always"] ||
+    (kwargs["name_service"] == "if_checked" && $("#name_service").prop("checked"));
+  if (apply_name_service) {
+    query_rewritten = await enhanceQueryByNameTriples(query);
+  } else {
+    query_rewritten = query;
+  }
 
-// The NoAsync part of rewriteQuery (for the suggestions, we don't need the
-// asychronous part, and since we don't need it, we shouldn't call it for
-// efficiency reasons).
-function rewriteQueryNoAsyncPart(query) {
-  var query_rewritten = query;
+  // HACK: Rewrite FILTER CONTAINS(?title, "info* retr*") using
+  // ql:contains-entity and ql:contains-word.
   var num_rewrites_filter_contains = 0;
-  var num_rewrites_ogc_contains = 0;
-
-  // HACK: Support for FILTER CONTAINS(?title, "info* retr*")
   var m_var = "?qlm_";
   var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
   while (query_rewritten.match(filter_contains_re)) {
@@ -143,9 +142,12 @@ function rewriteQueryNoAsyncPart(query) {
     console.log("Rewrote query with \"FILTER CONTAINS\"");
   }
 
-  // HACK(Hannah 30.03.2021): rewrite ql:contains using ogc:contains and
-  // ogc:contains_area. Repeat if it occurs several times. TODO: currently
-  // assumes that there are no ogc:contains inside of UNION, MINUS, OPTIONAL.
+  // HACK: Rewrite each occurrence of the ogc:contains predicate using the
+  // predicates osm2rdf:contains_area and osm2rdf:contains_nonarea .
+  //
+  // TODO: currently assumes that there are no ogc:contains inside of UNION,
+  // MINUS, OPTIONAL. Is this still true?.
+  var num_rewrites_ogc_contains = 0;
  
   // First replace all { and } due to UNION, OPTIONAL, or MINUS by __OBR__ and
   // __CBR__.
@@ -200,19 +202,19 @@ function rewriteQueryNoAsyncPart(query) {
 
 
 // Get URL for current query.
-async function getQueryString(removeProxy = false) {
+async function getQueryString(kwargs = {}) {
 
   q = editor.getValue();
 
   // Rewrite query, see rewriteQueryHack above.
-  q = await rewriteQuery(q);
+  q = await rewriteQuery(q, kwargs);
 
   log("getQueryString:\n" + q, 'requests');
   q = encodeURIComponent(q);
   // var q = encodeURIComponent(editor.getValue());
 
   var queryString = "?query=" + q;
-  if ($("#name_service").prop('checked')) {
+  if ($("#name_service").prop("checked")) {
     queryString += "&name_service=true";
   }
   if ($("#clear").prop('checked')) {
@@ -220,7 +222,10 @@ async function getQueryString(removeProxy = false) {
   }
 
   // Remove -proxy from base URL if so desired.
-  var base_url = removeProxy ? BASEURL.replace(/-proxy$/, "") : BASEURL;
+  var base_url = BASEURL;
+  if (kwargs["replace-proxy"] == true) {
+    base_url = baseurl.replace(/-proxy$/, "");
+  }
 
   return base_url + queryString
 }

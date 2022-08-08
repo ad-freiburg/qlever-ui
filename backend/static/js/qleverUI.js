@@ -193,19 +193,19 @@ $(document).ready(function () {
   // 2. Add query hash to URL.
   //
   $("#runbtn").click(async function() {
-    log('Start processing', 'other');
-    $('#suggestionErrorBlock').parent().hide();
-    const query_string = await getQueryString();
-    await processQuery(query_string + '&send=' + $('#maxSendOnFirstRequest').html(), true, this);
+    log("Start processing", "other");
+    $("#suggestionErrorBlock").parent().hide();
+    const query_string = await getQueryString({"name_service": "if_checked"});
+    await processQuery(query_string + "&send=" + $("#maxSendOnFirstRequest").html(), true, this);
 
     // Add query hash to URL (we need Django for this, hence the POST request),
     // unless this is a URL with ?query=...
-    $.post('/api/share', { 'content': editor.getValue() }, function (result) {
-      log('Got pretty link from backend', 'other');
+    $.post("/api/share", { "content": editor.getValue() }, function (result) {
+      log("Got pretty link from backend", "other");
       if (window.location.search.indexOf(result.queryString) == -1) {
         const newUrl = window.location.origin
-                        + window.location.pathname.split('/')
-                                         .slice(0, 2).join('/') + '/' + result.link;
+                        + window.location.pathname.split("/")
+                                         .slice(0, 2).join("/") + "/" + result.link;
         window.history.pushState("html:index.html", "QLever", newUrl);
       }
     }, "json");
@@ -218,14 +218,16 @@ $(document).ready(function () {
   $("#csvbtn").click(async function () {
     log('Download CSV', 'other');
     const removeProxy = true;
-    window.location.href = await getQueryString(removeProxy) + "&action=csv_export";
+    window.location.href = await getQueryString(
+      {"name_service": "if_checked", "remove-prox": true}) + "&action=csv_export";
   });
   
   // TSV report: like for CSV report above.
   $("#tsvbtn").click(async function () {
     log('Download TSV', 'other');
     const removeProxy = true;
-    window.location.href = await getQueryString(removeProxy) + "&action=tsv_export";
+    window.location.href = await getQueryString(
+      {"name_service": "if_checked", "remove-prox": true}) + "&action=tsv_export";
     // const response = await fetch(BASEURL, {
     //   method: "POST",
     //   body: getQueryString(), 
@@ -248,7 +250,8 @@ $(document).ready(function () {
     // 4. Escape quotes
     // 5. Remove leading and trailing whitespac
     //
-    const queryRewritten = await rewriteQuery(editor.getValue());
+    const queryRewritten = await rewriteQuery(
+      editor.getValue(), {"name_service": "if_checked"});
     const queryRewrittenAndNormalized =
             queryRewritten.replace(/(<[^>]+)#/g, "$1%23")
                           .replace(/#.*\n/mg, " ")
@@ -366,7 +369,7 @@ async function processQuery(queryUrl, showStatus, element) {
 
   // TODO: The rewritten query is used at several places in the following, but
   // getQueryString does this again -> this should be avoided.
-  const queryRewritten = await rewriteQuery(editor.getValue());
+  var queryRewritten = await rewriteQuery(editor.getValue());
 
   $.ajax({ url: queryUrl,
            headers: { Accept: "application/qlever-results+json" },
@@ -378,11 +381,20 @@ async function processQuery(queryUrl, showStatus, element) {
     if (showStatus != false) {
       
       if (result.status == "ERROR") { displayError(result); return; }
-      if (result['warnings'].length > 0) { displayWarning(result); }
+      if (result["warnings"].length > 0) { displayWarning(result); }
+     
+      // Show some statistics (on top of the table).
+      //
+      // NOTE: The result size reported by QLever (in the
+      // application/qlever-results+json format) is the result size without
+      // without LIMIT.
       var nofRows = result.res.length;
       const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
-      let resultSize = tsep(result.resultsize.toString());
-      $('#resultSize').html(resultSize);
+      let resultSize = result.resultsize;
+      let limitMatch = result.query.match(/LIMIT\s+(\d+)\s*$/);
+      if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
+      let resultSizeString = tsep(resultSize.toString());
+      $('#resultSize').html(resultSizeString);
       $('#totalTime').html(totalTime);
       $('#computationTime').html(computeTime);
       $('#jsonTime').html(resolveTime);
@@ -390,12 +402,13 @@ async function processQuery(queryUrl, showStatus, element) {
       const columns = result.selected;
       
       // If more than predefined number of results, create "Show all" button
-      // (onclick action defined further down).
+      // (onclick action defined further down). 
+      //
       let showAllButton = "";
-      if (nofRows < parseInt(result.resultsize)) {
+      if (nofRows < parseInt(resultSize)) {
         showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
           + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
-          + "Limited to " + nofRows + " results; show all " + resultSize + " results</a>";
+          + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
       }
 
       // If the last column of the first result row contains a WKT literal,
@@ -428,7 +441,7 @@ async function processQuery(queryUrl, showStatus, element) {
       }
       $("#answer").html(res);
       $("#show-all").click(async function() {
-        await processQuery(await getQueryString(), true, $("#runbtn"));
+        await processQuery(await getQueryString({"name_service": "if_checked"}), true, $("#runbtn"));
       })
       
       var tableHead = $('#resTable thead');
