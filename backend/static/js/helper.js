@@ -165,17 +165,20 @@ async function enhanceQueryByNameTriples(query) {
 // 3. Rewrite ogc:contains using osm2rdf:contains_area and osm2rdf:contains_nonarea
 //
 async function rewriteQuery(query, kwargs = {}) {
+  // First the synchronous part (this should come first, so that the label
+  // service gets a query where FILTER CONTAINS or ogc:contains have already
+  // been replaced by constructs know to QLever.
+  var query_rewritten = rewriteQueryNoAsyncPart(query);
+
   // If certain conditions are met, rewrite with name service (asks queries,
   // hence asynchronous, the rest of the function is synchronous).
-  var query_rewritten;
   const apply_name_service = kwargs["name_service" == "always"] ||
     (kwargs["name_service"] == "if_checked" && $("#name_service").prop("checked"));
   if (apply_name_service) {
-    query_rewritten = await enhanceQueryByNameTriples(query);
-  } else {
-    query_rewritten = query;
+    query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
   }
-  return rewriteQueryNoAsyncPart(query_rewritten);
+
+  return query_rewritten;
 }
 
 // The rest of the function is synchronous (we currently need that for the
