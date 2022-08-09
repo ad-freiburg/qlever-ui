@@ -128,10 +128,10 @@
             // Add prefixes if not yet declared
             var prefixLines = getPrefixLines();
             for (var prefix in COLLECTEDPREFIXES) {
-                // HACK(Hannah 21.08.2020): consider that some completions start
-                // with ^ because of reversed predicate suggestions.
-                if (completion.indexOf(prefix + ':') != -1
-                     || completion.indexOf("^" + prefix + ':') != -1) {
+                // Also consider completions such as "@en@rdfs:label" (special
+                // language predicates) or "^wdt:P31" (reverse predicate
+                // suggestions).
+                if (completion.match(RegExp("^\\^?(@[a-z]+@)?" + prefix + ":"))) {
                     var prefixAvailable = false;
                     for (var line of prefixLines) {
                         if (line.trim().startsWith("PREFIX " + prefix + ':')) {
@@ -140,6 +140,8 @@
                         }
                     }
                     if (!prefixAvailable) {
+                        console.log("ADDING PREFIX for \"" + completion + "\":", prefix);
+
                         editor.setSelection({
                             'line': 0,
                             'ch': 0

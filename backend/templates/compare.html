@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  {% include 'partials/head.html' %}
+  <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#runbtn').trigger('click');},500)"{% endif %}>
+    {% include 'partials/header.html' %}
+      <div id="main" class="container">
+        <h1>TODO: Compare engines on given query</h1>
+        <p>Query: {{ query }}</p>
+      </div>
+    {% include 'partials/modals.html' %}
+    {% include 'partials/footer.html' %}
+  </body>
+</html>

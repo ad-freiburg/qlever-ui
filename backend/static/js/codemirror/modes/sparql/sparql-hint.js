@@ -301,11 +301,10 @@ function getDynamicSuggestions(context) {
     sparqlTo = CodeMirror.Pos(cur.line, cur.ch);
   }
 
-  // collect prefixes (as string and dict)>
+  // Collect prefixes (as string and dict).
   var prefixes = "";
   var prefixesRelation = {};
   var lines = getPrefixLines();
-
   for (var prefLine of lines) {
     if (prefLine.trim().startsWith("PREFIX")) {
       var match = /PREFIX (.*): ?<(.*)>/g.exec(prefLine.trim());
@@ -316,7 +315,7 @@ function getDynamicSuggestions(context) {
     }
   }
 
-  // Get editor lines and remove current line
+  // Get editor lines and remove current line.
   var lines = context['content'].split('\n');
   for (var i = 0; i < lines.length; i++) {
     if (lines[i] == line) {

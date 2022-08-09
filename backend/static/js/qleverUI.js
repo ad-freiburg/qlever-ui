@@ -17,13 +17,13 @@ $(window).resize(function (e) {
 
 $(document).ready(function () {
   
-  // initialize code mirror
+  // Initialize the editor.
   editor = CodeMirror.fromTextArea(document.getElementById("query"), {
     mode: "application/sparql-query", indentWithTabs: true, smartIndent: false,
     lineNumbers: true, matchBrackets: true, autoCloseBrackets: true,
     autofocus: true, styleSelectedText: true, styleActiveLine: true,
     extraKeys: {
-      "Ctrl-Enter": function (cm) { $("#runbtn").trigger('click'); },
+      "Ctrl-Enter": function (cm) { $("#exebtn").trigger('click'); },
       "Space": function (cm) {
         var cursor = editor.getDoc().getCursor();
         var pos = { line: cursor.line, ch: cursor.ch }
@@ -37,10 +37,10 @@ $(document).ready(function () {
     },
   });
   
-  // set the editor size
+  // Set the width of the editor window.
   editor.setSize($('#queryBlock').width(), 350);
   
-  // make the editor resizable
+  // Make the editor resizable.
   $('.CodeMirror').resizable({
     resize: function () {
       // fix the "help"-box position on resize
@@ -48,24 +48,24 @@ $(document).ready(function () {
     }
   });
   
-  // initialize the tooltips
+  // Initialize the tooltips.
   $('[data-toggle="tooltip"]').tooltip();
   
-  // if there is a theme cookie: use it!
+  // If there is a theme cookie: use it!
   if (getCookie("theme") != "") {
     changeTheme(getCookie("theme"));
   }
   
-  // load the backends statistics
+  // Load the backends statistics.
   handleStatsDisplay();
   
-  // initialize the name hover
+  // Initialize the name hover.
   if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
     $('.cm-entity').hover(showRealName);
   }
   
-  // initializing done
-  log('Editor initialized.', 'other');
+  // Initialization done.
+  log('Editor initialized', 'other');
   
   // Do some custom activities on cursor activity
   editor.on("cursorActivity", function (instance) {
@@ -85,20 +85,24 @@ $(document).ready(function () {
   // Do some custom activities (overwrite codemirror behaviour)
   editor.on("keyup", function (instance, event) {
     
+    // For each prefix in COLLECTEDPREFIXES, check whether it occurs somewhere
+    // in the query and if so, add it before the first SELECT (and move
+    // the cursor accordingly).
     if (FILLPREFIXES) {
-      value = editor.getValue()
-      lines = 0
-      newCursor = editor.getCursor();
+      let queryString = editor.getValue();
+      let newCursor = editor.getCursor();
+      let linesAdded = 0;
       for (var prefix in COLLECTEDPREFIXES) {
-        fullPrefix = 'PREFIX '+prefix+': <'+COLLECTEDPREFIXES[prefix]+'>'
-        if ((value.indexOf(' '+prefix+':') > 0 || value.indexOf('^'+prefix+':') > 0)&& value.indexOf(fullPrefix) == -1) {
-          value = fullPrefix+'\n'+value
-          lines += 1
+        const fullPrefix = "PREFIX " + prefix + ": <" + COLLECTEDPREFIXES[prefix] + ">";
+        if (queryString.match(RegExp("[ ;/]\\^?" + prefix + ":")) &&
+             queryString.indexOf(fullPrefix) == -1) {
+          queryString = queryString.replace(/(^| )(SELECT)/m, fullPrefix + "\n$1$2");
+          linesAdded += 1;
         }
       }
-      if(lines > 0){
-        editor.setValue(value)
-        newCursor.line += lines
+      if (linesAdded > 0){
+        editor.setValue(queryString);
+        newCursor.line += linesAdded;
         editor.setCursor(newCursor);
       }
     }
@@ -192,11 +196,10 @@ $(document).ready(function () {
   // 1. Call processQuery (sends query to backend + displays results).
   // 2. Add query hash to URL.
   //
-  $("#runbtn").click(async function() {
+  $("#exebtn").click(async function() {
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
-    const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
-    await processQuery(query, "&send=" + $("#maxSendOnFirstRequest").html(), true, this);
+    await processQuery(parseInt($("#maxSendOnFirstRequest").html()));
 
     // Add query hash to URL (we need Django for this, hence the POST request),
     // unless this is a URL with ?query=...
@@ -211,21 +214,38 @@ $(document).ready(function () {
     }, "json");
 
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    $("#runbtn").focus();
+    $("#exebtn").focus();
   });
 
-  // CSV report: we need to change the link, so that the result is downloadable.
+  // CSV download (create link element, click on it, and remove the #csv from
+  // the URL, which is added by clicking; see index.html).
   $("#csvbtn").click(async function () {
     log('Download CSV', 'other');
     const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
-    window.location.href = await getQueryString(query) + "&action=csv_export";
+    var download_link = document.createElement("a");
+    download_link.href = getQueryString(query) + "&action=csv_export";
+    download_link.setAttribute("download",
+        window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".csv");
+    download_link.click();
+    // $.ajax({
+    //   url: BASEURL + "?query=" + encodeURIComponent(query),
+    //   headers: { "Content-Disposition": "attachment; filename=\"xxx.csv\"" },
+    //   // dataType: "json",
+    //   success: function (result) { console.log("DONE"); }
+    // });
+    // window.location.href = await getQueryString(query) + "&action=csv_export";
   });
   
   // TSV report: like for CSV report above.
   $("#tsvbtn").click(async function () {
     log('Download TSV', 'other');
     const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
-    window.location.href = await getQueryString(query) + "&action=tsv_export";
+    var download_link = document.createElement("a");
+    download_link.href = getQueryString(query) + "&action=tsv_export";
+    download_link.setAttribute("download",
+        window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".tsv");
+    download_link.click();
+    // window.location.href = await getQueryString(query) + "&action=tsv_export";
   });
   
   // Generating the various links for sharing.
@@ -339,151 +359,170 @@ function getResultTime(resultTimes) {
   return timeList;
 }
 
-async function processQuery(query, paramString, showStatus, element) {
+// Process the given query.
+async function processQuery(sendLimit=0, element=$("#exebtn")) {
   
   log('Preparing query...', 'other');
   log('Element: ' + element, 'other');
-  if (showStatus != false) displayStatus("Waiting for response...");
+  if (sendLimit >= 0) { displayStatus("Waiting for response..."); }
   
   $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
   $(element).find('.glyphicon').removeClass('glyphicon-remove');
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
 
-  $.ajax({ url: getQueryString(query) + paramString,
+  // A negative value for sendLimit has the special meaning: clean the cache. TODO:
+  // ugly, find a better solution.
+  let queryUrl;
+  let nothingToShow = false;
+  if (sendLimit >= 0) {
+    // console.log("EDITOR VALUE:", editor.getValue());
+    var query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+    // console.log("QUERY:", query);
+    queryUrl = getQueryString(query);
+    if (sendLimit > 0) { queryUrl += "&send=" + sendLimit; }
+  } else {
+    queryUrl = BASEURL + "?cmd=clear-cache";
+    nothingToShow = true;
+  }
+  // console.log("QUERY:", query);
+  $.ajax({ url: queryUrl,
            headers: { Accept: "application/qlever-results+json" },
-           // dataType: (showStatus ? "json" : "text"),
            success: function (result) {
     log('Evaluating and displaying results...', 'other');
     
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
-    if (showStatus != false) {
-      
-      if (result.status == "ERROR") { displayError(result); return; }
-      if (result["warnings"].length > 0) { displayWarning(result); }
-     
-      // Show some statistics (on top of the table).
-      //
-      // NOTE: The result size reported by QLever (in the
-      // application/qlever-results+json format) is the result size without
-      // without LIMIT.
-      var nofRows = result.res.length;
-      const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
-      let resultSize = result.resultsize;
-      let limitMatch = result.query.match(/LIMIT\s+(\d+)\s*$/);
-      if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
-      let resultSizeString = tsep(resultSize.toString());
-      $('#resultSize').html(resultSizeString);
-      $('#totalTime').html(totalTime);
-      $('#computationTime').html(computeTime);
-      $('#jsonTime').html(resolveTime);
-      
-      const columns = result.selected;
-      
-      // If more than predefined number of results, create "Show all" button
-      // (onclick action defined further down). 
-      //
-      let showAllButton = "";
-      if (nofRows < parseInt(resultSize)) {
-        showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
-          + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
-          + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
-      }
 
-      // If the last column of the first result row contains a WKT literal,
-      // create "Map View" buttons.
-      let mapViewButtonVanilla = '';
-      let mapViewButtonPetri = '';
-      let mapViewButtonPetriPatrick = '';
-      if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
-        let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
-        let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
-        let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
-        let params = $.param({ query: query, backend: BASEURL });
-        mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-        mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
-        mapViewButtonPetriPatrick = `<a class="btn btn-default" href="${mapViewUrlPetriPatrick}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view+++</a>`;
+    // For non-query commands like "cmd=clear-cache" just remove the "Waiting
+    // for response box" and that's it.
+    if (nothingToShow) {
+      $("#infoBlock").hide();
+      return;
+    }
+
+    if (result.status == "ERROR") { displayError(result); return; }
+    if (result["warnings"].length > 0) { displayWarning(result); }
+
+    // Show some statistics (on top of the table).
+    //
+    // NOTE: The result size reported by QLever (in the
+    // application/qlever-results+json format) is the result size without
+    // without LIMIT.
+    var nofRows = result.res.length;
+    const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
+    let resultSize = result.resultsize;
+    let limitMatch = result.query.match(/LIMIT\s+(\d+)\s*$/);
+    if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
+    let resultSizeString = tsep(resultSize.toString());
+    $('#resultSize').html(resultSizeString);
+    $('#totalTime').html(totalTime);
+    $('#computationTime').html(computeTime);
+    $('#jsonTime').html(resolveTime);
+
+    const columns = result.selected;
+
+    // If more than predefined number of results, create "Show all" button
+    // (onclick action defined further down). 
+    //
+    let showAllButton = "";
+    if (nofRows < parseInt(resultSize)) {
+      showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
+        + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
+        + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
+    }
+
+    // If the last column of the first result row contains a WKT literal,
+    // create "Map View" buttons.
+    let mapViewButtonVanilla = '';
+    let mapViewButtonPetri = '';
+    let mapViewButtonPetriPatrick = '';
+    if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
+      let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
+      let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
+      let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
+      let params = $.param({ query: query, backend: BASEURL });
+      mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+      mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
+      mapViewButtonPetriPatrick = `<a class="btn btn-default" href="${mapViewUrlPetriPatrick}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view+++</a>`;
+    }
+
+    // Show the buttons (if there are any).
+    //
+    // TODO: Exactly which "MapView" buttons are shown depends on the
+    // instance. How is current hard-coded. This should be configurable (in
+    // the Django configuration of the respective backend).
+    var res = "<div id=\"res\">";
+    if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
+      if (BASEURL.match("osm-(germany|planet|test)")) {
+        res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div><br><br><br>`;
+      } else {
+        res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla}</div><br><br><br>`;
       }
-      
-      // Show the buttons (if there are any).
-      //
-      // TODO: Exactly which "MapView" buttons are shown depends on the
-      // instance. How is current hard-coded. This should be configurable (in
-      // the Django configuration of the respective backend).
-      var res = "<div id=\"res\">";
-      if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-        if (BASEURL.match("osm-(germany|planet|test)")) {
-          res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div><br><br><br>`;
-        } else {
-          res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla}</div><br><br><br>`;
-        }
-      }
-      $("#answer").html(res);
-      $("#show-all").click(async function() {
-        var query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
-        await processQuery(query, "", true, $("#runbtn"));
-      })
-      
-      var tableHead = $('#resTable thead');
-      var head = "<tr><th></th>";
-      for (var column of columns) {
-        if (column) { head += "<th>" + column + "</th>"; }
-      }
-      head += "</tr>";
-      tableHead.html(head);
-      var tableBody = $('#resTable tbody');
-      tableBody.html("");
-      var i = 1;
-      for (var resultLine of result.res) {
-        var row = "<tr>";
-        row += "<td>" + i + "</td>";
-        var j = 0;
-        for (var resultColumn of resultLine) {
-          // GROUP_CONCAT
-          /*if ($('#resTable thead tr').children('th')[j + 1].innerHTML.startsWith('(GROUP_CONCAT')) {
-            match = (/separator[\s]?=[\s]?\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j + 1].innerHTML);
-            (match && match[1]) ? sep = match[1] : sep = "";
-            results = resultColumn.split(sep);
-            row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">"
-            for (var resultColumnValues of results) {
-              row += htmlEscape(getShortStr(resultColumnValues, 50, j)) + "<br>";
-            }
-            if (results.length > 5) {
-              row += "<a onclick=\"showAllConcats(this,'" + sep + "','" + j + "')\">... and " + (results.length - 5) + " more.</a>";
-            }
-            row += "</span></td>";
-          } else {*/
-            if (resultColumn) {
-              // console.log("COL ENTRY:", resultColumn);
-              row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
-              getShortStr(resultColumn, 50, j) +
-              "</span></td>";
-            } else {
-              row += "<td><span>-</span></td>";
-            }
-            //}
-            j++;
+    }
+    $("#answer").html(res);
+    $("#show-all").click(async function() {
+      await processQuery();
+    })
+
+    var tableHead = $('#resTable thead');
+    var head = "<tr><th></th>";
+    for (var column of columns) {
+      if (column) { head += "<th>" + column + "</th>"; }
+    }
+    head += "</tr>";
+    tableHead.html(head);
+    var tableBody = $('#resTable tbody');
+    tableBody.html("");
+    var i = 1;
+    for (var resultLine of result.res) {
+      var row = "<tr>";
+      row += "<td>" + i + "</td>";
+      var j = 0;
+      for (var resultColumn of resultLine) {
+        // GROUP_CONCAT
+        /*if ($('#resTable thead tr').children('th')[j + 1].innerHTML.startsWith('(GROUP_CONCAT')) {
+          match = (/separator[\s]?=[\s]?\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j + 1].innerHTML);
+          (match && match[1]) ? sep = match[1] : sep = "";
+          results = resultColumn.split(sep);
+          row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">"
+          for (var resultColumnValues of results) {
+            row += htmlEscape(getShortStr(resultColumnValues, 50, j)) + "<br>";
           }
-          row += "</tr>";
-          tableBody.append(row);
-          i++;
+          if (results.length > 5) {
+            row += "<a onclick=\"showAllConcats(this,'" + sep + "','" + j + "')\">... and " + (results.length - 5) + " more.</a>";
+          }
+          row += "</span></td>";
+        } else {*/
+          if (resultColumn) {
+            // console.log("COL ENTRY:", resultColumn);
+            row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
+            getShortStr(resultColumn, 50, j) +
+            "</span></td>";
+          } else {
+            row += "<td><span>-</span></td>";
+          }
+          //}
+          j++;
         }
-        $('[data-toggle="tooltip"]').tooltip();
-        $('#infoBlock,#errorBlock').hide();
-        $('#answerBlock').show();
-        $("html, body").animate({
-          scrollTop: $("#resTable").scrollTop() + 500
-        }, 500);
-        
-        runtime_log[runtime_log.length] = result.runtimeInformation;
-        query_log[query_log.length] = result.query;
-        if (runtime_log.length - 10 >= 0) {
-          runtime_log[runtime_log.length - 10] = null;
-          query_log[query_log.length - 10] = null;
-        }
+        row += "</tr>";
+        tableBody.append(row);
+        i++;
+      }
+      $('[data-toggle="tooltip"]').tooltip();
+      $('#infoBlock,#errorBlock').hide();
+      $('#answerBlock').show();
+      $("html, body").animate({
+        scrollTop: $("#resTable").scrollTop() + 500
+      }, 500);
+      
+      runtime_log[runtime_log.length] = result.runtimeInformation;
+      query_log[query_log.length] = result.query;
+      if (runtime_log.length - 10 >= 0) {
+        runtime_log[runtime_log.length - 10] = null;
+        query_log[query_log.length - 10] = null;
       }
     }})
-    .fail(async function (jqXHR, textStatus, errorThrown) {
+    .fail(function (jqXHR, textStatus, errorThrown) {
       $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
       $(element).find('.glyphicon').addClass('glyphicon-remove');
       $(element).find('.glyphicon').css('color', 'red');
@@ -501,15 +540,6 @@ async function processQuery(query, paramString, showStatus, element) {
       var statusWithText = jqXHR.status && jqXHR.statusText
           ? (jqXHR.status + " (" + jqXHR.statusText + ")") : undefined;
       displayError(jqXHR.responseJSON, statusWithText);
-      // var disp = "No result received from backend"
-      //              + " (text status = \"" + textStatus + "\""
-      //              + ", error thrown = \"" + errorThrown + "\")";
-      // $('#errorReason').html(disp);
-      // $('#errorBlock').show();
-      // $('#answerBlock,#infoBlock').hide();
-      // $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
-      // $(element).find('.glyphicon').addClass('glyphicon-remove');
-      // $(element).find('.glyphicon').css('color', 'red');
     });
     
   }

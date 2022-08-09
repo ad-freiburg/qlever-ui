@@ -94,9 +94,11 @@ async function enhanceQueryByNameTriples(query) {
       test_query_parts = {};
       test_query_parts["prefixes"] = [...query_parts["prefixes"], prefix_definition];
       test_query_parts["select_clause"] = "*";
+      // TODO: The ORDER BY is a workaround for Qlever Issue #729.
       test_query_parts["body"] =
           "{ SELECT " + query_parts["select_clause"] + " WHERE " +
-          " { " + query_parts["body"] + " } " + query_parts["group_by"] + " } " +
+          " { " + query_parts["body"] + " } " + query_parts["group_by"] +
+          " ORDER BY " + select_var + " } " +
           select_var + " " + name_predicate + " ?qleverui_tmp";
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
@@ -139,9 +141,11 @@ async function enhanceQueryByNameTriples(query) {
       select_var + " " + new_vars[select_var]);
   }
   new_query_parts["select_clause"] = select_clause;
+  // TODO: The ORDER BY is a workaround for Qlever Issue #729.
   new_query_parts["body"] =
       "{ SELECT " + query_parts["select_clause"] + " WHERE" +
-      " { " + query_parts["body"] + " } " + query_parts["group_by"] + " }\n" +
+      " { " + query_parts["body"] + " } " + query_parts["group_by"] +
+      " ORDER BY " + Object.keys(new_vars)[0] + " }\n" +
       Object.values(new_triples).join(" .\n");
   // console.log("BODY:\n" + new_query_parts["body"]);
   new_query_parts["group_by"] = "";
@@ -253,7 +257,7 @@ function rewriteQueryNoAsyncPart(query) {
 }
 
 
-// Get URL for current query.
+// DEPRECATED: Get URL for current query.
 function getQueryString(query) {
 
   // q = editor.getValue();

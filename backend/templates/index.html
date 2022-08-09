@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   {% include 'partials/head.html' %}
-  <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#runbtn').trigger('click');},500)"{% endif %}>
+  <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#exebtn').trigger('click');},500)"{% endif %}>
     {% include 'partials/header.html' %}
       <div id="main" class="container">
         {% if backends %}
@@ -84,7 +84,7 @@
                 <br>
                 <table class="table">
                     <tr><th>Backend name</th><td>{{ backend.name }}</td></tr>
-                    <tr><th>Backend slug</th><td>{{ backend.slugify }}</td></tr>
+                    <tr><th>Backend slug</th><td id="backend-slug">{{ backend.slugify }}</td></tr>
                     <tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
                     <tr><th>Is default:</th><td>{% if backend.isDefault %}Yes{% else %}No{% endif %}</td></tr>
                     <tr><th>Fill known prefixes:</th><td>{% if backend.fillPrefixes %}Yes{% else %}No{% endif %}</td></tr>
@@ -154,7 +154,7 @@
               <div class="col-md-9 buttonFlex">
                   
                 <!-- The run button -->
-                <button id="runbtn" class="btn btn-success">
+                <button id="exebtn" class="btn btn-success">
                   <i class="glyphicon glyphicon-refresh"></i> Execute
                 </button>
                 
@@ -188,7 +188,7 @@
                   <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
                     <i class="glyphicon glyphicon-trash"></i> Reset
                   </button>
-                  <button class="btn btn-default" onclick="processQuery(BASEURL+'?cmd=clear-cache',false,this);">
+                  <button class="btn btn-default" onclick="processQuery(-1, this);">
                     <i class="glyphicon glyphicon-refresh"></i> Clear cache
                   </button>
                   <button class="btn btn-default" onclick="visualise();">
@@ -249,7 +249,7 @@
                       <input type="checkbox" id="name_service"> Automatically add names to result
                     </label>
                   </div>
-                  <div class="checkbox">
+                  <div class="checkbox" style="display: none">
                     <label>
                       <input type="checkbox" id="clear"> Clear the cache before every request
                     </label>
