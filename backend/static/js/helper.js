@@ -441,7 +441,7 @@ function displayError(response, statusWithText = undefined) {
   }
   disp = "<h4><strong>Error processing query</strong></h4>";
   // if (statusWithText) { disp += "<p>" + statusWithText + "</p>"; }
-  disp += "<p>" + response["exception"] + "</p>";
+  disp += "<p>" + htmlEscape(response["exception"]) + "</p>";
   // if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
   //   result["Exception-Error-Message"] = "Unknown error";
   // }
