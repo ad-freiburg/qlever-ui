@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import TextChoices
 from backend.models import Backend
 import requests
+import sys
 
 
 class Command(BaseCommand):
@@ -46,15 +47,14 @@ class Command(BaseCommand):
     
 
     
-    def log(self, msg, format=None, *args):
+    def log(self, msg, format=None, *args, file=sys.stdout):
         if args:
             msg += " " + " ".join(str(arg) for arg in args)
-        
         
         printMsg = self.PRINT_FORMATS[format](msg)
         htmlMsg = self.HTML_FORMATS[format](msg)
         self._logs.append(htmlMsg)
-        print(printMsg)
+        print(printMsg, file=file)
 
     def handle(self, *args, returnLog=False, **options):
         target = options["target"]
@@ -95,6 +95,19 @@ class Command(BaseCommand):
         if returnLog:
             return self._logs
 
+    def request_to_qlever(self, params):
+        headers = { "Accept": "application/qlever-results+json" }
+        # print(f"PYTHON VERSION: {sys.version}", file=sys.stderr)
+        try:
+            response = requests.post(self.backend.baseUrl, data=params, headers=headers)
+            # response = requests.get(self.backend.baseUrl, params=params, headers=headers)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.RequestException as e:
+            self.log(f"An exception of type {type(e).__name__} occurred ({e})",
+                    format="red", file=sys.stderr)
+            return None
+
     def clear(self, onlyUnpinned=False):
         if onlyUnpinned:
             msg = "Clear cache, but only the unpinned results"
@@ -103,8 +116,7 @@ class Command(BaseCommand):
             msg = "Clear cache completely, including the pinned results"
             params = {"cmd": "clear-cache-complete"}
         self.log(msg, format="bold")
-        response = requests.get(self.backend.baseUrl, params=params)
-        response.raise_for_status()
+        response = self.request_to_qlever(params)
 
     def pin(self):
         prefixString = self._getPrefixString()
@@ -193,13 +205,11 @@ class Command(BaseCommand):
 
     def _pinQuery(self, query):
         params = { "query": query, "pinresult": "true", "send": "10" }
-        headers = { "Accept": "application/qlever-results+json" }
-        response = requests.get(self.backend.baseUrl, params=params, headers=headers)
-        response.raise_for_status()
-        print(self.backend.baseUrl)
-        print(response.request.headers)
-        jsonData = response.json()
-        if "exception" in jsonData:
-            self.log(f"ERROR: {jsonData['exception']}", format="red")
-        else:
-            self.log(f"Result size: {jsonData['resultsize']:,}", format="blue")
+        response = self.request_to_qlever(params)
+        if response:
+            jsonData = response.json()
+            if "exception" in jsonData:
+                self.log(f"ERROR in processing query: {jsonData['exception']}",
+                        format="red")
+            else:
+                self.log(f"Result size: {jsonData['resultsize']:,}", format="blue")

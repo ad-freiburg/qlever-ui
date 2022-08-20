@@ -684,12 +684,18 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
   return conditionSatisfied;
 }
 
-const fetchTimeout = (url, timeoutSeconds, { ...options } = {}) => {
+const fetchTimeout = (sparqlQuery, timeoutSeconds, { ...options } = {}) => {
   const ms = timeoutSeconds * 1000;
   const controller = new AbortController();
-  const promise = fetch(url, {
+  const promise = fetch(BASEURL, {
+    // BASEURL + "?query=" + encodeURIComponent(sparqlQuery), {
+    method: "POST",
+    body: sparqlQuery,
     signal: controller.signal,
-    headers: { "Accept": "application/qlever-results+json" },
+    headers: { 
+      "Content-type": "application/sparql-query",
+      "Accept": "application/qlever-results+json"
+    },
     ...options
   });
   if (ms > 0) {
@@ -700,7 +706,7 @@ const fetchTimeout = (url, timeoutSeconds, { ...options } = {}) => {
   }
 };
 
-function getUrlFromSparqlQuery(sparqlQuery) {
+function getSuggestionsSparqlQuery(sparqlQuery) {
   if (!sparqlQuery) return false;
   // Do the limits for the scrolling feature.
   sparqlQuery += "\nLIMIT " + size + "\nOFFSET " + lastSize;
@@ -721,8 +727,9 @@ function getUrlFromSparqlQuery(sparqlQuery) {
   log("Getting suggestions from QLever (PREFIXes omitted):\n"
     + sparqlQuery.replace(/^PREFIX.*/mg, ""), "requests");
 
-  let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
-  return url;
+  return sparqlQuery;
+  // let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
+  // return url;
 }
 
 
@@ -738,22 +745,22 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
   $('#aBadge').remove();
   $('#suggestionErrorBlock').parent().hide()
 
-  const lastUrl = getUrlFromSparqlQuery(sparqlQuery);
-  const mixedModeUrl = getUrlFromSparqlQuery(mixedModeQuery);
+  const lastSparqlQuery = getSuggestionsSparqlQuery(sparqlQuery);
+  const mixedModeSparqlQuery = getSuggestionsSparqlQuery(mixedModeQuery);
   var dynamicSuggestions = [];
 
   sparqlTimeout = window.setTimeout(async function () {
     try {
       let mixedModeQuery;
-      if (mixedModeUrl) {
-        mixedModeQuery = fetchTimeout(mixedModeUrl, DEFAULT_TIMEOUT);  // start the mixed mode query, but async
+      if (mixedModeSparqlQuery) {
+        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT);  // start the mixed mode query, but async
       }
-      const mainQueryTimeout = mixedModeUrl ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
+      const mainQueryTimeout = mixedModeSparqlQuery ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
       let response;
       let mainQueryHasTimedOut = false;
       let showTimeoutError = false;
       try {
-        response = await fetchTimeout(lastUrl, mainQueryTimeout);  // start the main query and wait for it to return
+        response = await fetchTimeout(lastSparqlQuery, mainQueryTimeout);  // start the main query and wait for it to return
       } catch (error) {
         if (error.name === "AbortError") {
           mainQueryHasTimedOut = true;
@@ -762,7 +769,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
           throw error;
         }
       }
-      if (mainQueryHasTimedOut && mixedModeUrl) {
+      if (mainQueryHasTimedOut && mixedModeSparqlQuery) {
         // the main query timed out.
         // get the mixedModeQuery's response and continue with that
         log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
@@ -802,9 +809,13 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         for (var result of data.res) {
           var entity = result[entityIndex];
 
-          if (suggested[entity]) {
-            continue
-          }
+          // NOTE: What was the purpose of this? The AC queries group by entity,
+          // so there should be no duplicates. When a  predicate occurs in both
+          // directions, this "continue" prevents the predicate showing twice
+          // (with and without ^).
+          // if (suggested[entity]) {
+          //   continue
+          // }
           suggested[entity] = true;
 
           if (predicateForObject !== undefined) {
