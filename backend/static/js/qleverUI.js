@@ -178,7 +178,7 @@ $(document).ready(function () {
       element = element + $(this).next().text();
     }
     
-    index = values.indexOf(element);
+    index = values.indexOf(element.replace(/^\^/, ""));
     
     if (index == 0) {
       addNameHover(element, domElement, subjectNames, SUBJECTNAME, prefixes);
@@ -303,7 +303,7 @@ $(document).ready(function () {
 });
 
 function addNameHover(element, domElement, list, namepredicate, prefixes) {
-  element = element.replace(/^@[a-zA-Z-]+@/, "");
+  element = element.replace(/^(@[a-zA-Z-]+@|\^)/, "");
   
   if ($(domElement).data('tooltip') == 'tooltip') {
     return;
