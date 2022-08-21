@@ -202,12 +202,12 @@
                     {% for example in examples %}
                       <li>
                         <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);">
-                          {{ example.name }}
-                          {% if request.user.is_authenticated %} &nbsp; 
+                          {% if request.user.is_authenticated %}
                           <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
                             <i class="glyphicon glyphicon-pencil"></i>
                           </span>
                           {% endif %}
+                          <span style="margin-right: 30px">{{ example.name }}</span>
                         </a>
                       </li>
                     {% endfor %}
