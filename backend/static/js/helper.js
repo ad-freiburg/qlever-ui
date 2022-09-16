@@ -544,7 +544,15 @@ function displayError(response, statusWithText = undefined) {
     if (response.query.length >= 1) { response.query = response.query[0]; }
     else { response.query = "response.query is an empty array"; }
   }
-  disp += "Your query was: " + "<br><pre>" + htmlEscape(response.query) + "</pre>";
+  let queryToDisplay = response.query;
+  if("metadata" in response && "startIndex" in response.metadata && "stopIndex" in response.metadata) {
+    let start = response.metadata.startIndex;
+    let stop = response.metadata.stopIndex;
+    queryToDisplay = htmlEscape(queryToDisplay.substr(0,start)) + "<b><u style='color: red'>" + htmlEscape(queryToDisplay.substr(start, stop)) + "</u></b>" + htmlEscape(queryToDisplay.substr(stop+1));
+  } else {
+      queryToDisplay = htmlEscape(queryToDisplay);
+  }
+  disp += "Your query was: " + "<br><pre>" + queryToDisplay + "</pre>";
   // disp += "Your query was: " + "<br><pre>" + htmlEscape(result.query) + "</pre>";
   // if (result['exception']) {
   //   disp += "<small><strong>Exception: </strong><em>";
