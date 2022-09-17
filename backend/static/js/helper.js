@@ -98,17 +98,20 @@ function splitSparqlQueryIntoParts(query) {
                               .replace(/\(\s+/g, "(").replace(/\s+\)/g, ")")
                               .replace(/\{\s*/g, "{ ").replace(/\s*\.?\s*\}$/g, " }");
   // console.log("SPLIT_SPARQL_QUERY_INTO_PARTS:", query_with_spaces_normalized)
-  const pattern = /^\s*(.*?)\s*SELECT\s+(\S[^{]*\S)\s*WHERE\s*{\s*(\S.*\S)\s*}\s*(.*?)\s*$/m;
+  const pattern = /^\s*(.*?)\s*SELECT\s+([^{]*\S)\s*WHERE\s*{\s*(\S.*\S)\s*}\s*(.*?)\s*$/m;
   var match = query_normalized.match(pattern);
   if (!match) {
-    console.log("ERROR: Query did not match regex for SELECT queries")
-    return;
+    throw "ERROR: Query did not match regex for SELECT queries";
   }
   var query_parts = {};
   query_parts["prefixes"] = match[1].split(/\s+(?=PREFIX)/);
   query_parts["select_clause"] = match[2];
-  query_parts["select_vars"] = query_parts["select_clause"].replace(
-    /\(\s*[^(]+\s*\([^)]+\)\s*[aA][sS]\s*(\?[^)]+)\s*\)/g, "$1").split(/\s+/);
+  if (query_parts["select_clause"] != "*") {
+    query_parts["select_vars"] = query_parts["select_clause"].replace(
+      /\(\s*[^(]+\s*\([^)]+\)\s*[aA][sS]\s*(\?[^)]+)\s*\)/g, "$1").split(/\s+/);
+  } else {
+    throw "NOT YET IMPLEMENTED: enhanceQueryByName cannot handle SELECT * yet";
+  }
   query_parts["body"] = match[3];
   query_parts["footer"] = match[4];
   query_parts["group_by"] = "";
@@ -142,14 +145,19 @@ async function enhanceQueryByNameTriples(query) {
   // CONFIG depending on instance. TODO: this should be configurable in the QLever UI.
   if (BASEURL.match(/api\/wikidata$/)) {
     prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
-    name_predicate="@en@rdfs:label";
+    name_template="%ENTITY% rdfs:label %NAME% FILTER(LANG(%NAME%) = \"en\")";
     predicate_exists_regex="(@[a-z]+@)?rdfs:label";
     new_var_suffix="_label";
   } else if (BASEURL.match(/api\/osm(-[a-z]+)?$/)) {
     prefix_definition="PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>";
-    name_predicate="osmkey:name",
+    name_template="%ENTITY% osmkey:name %NAME%",
     predicate_exists_regex="osmkey:name",
     new_var_suffix="_name";
+  } else if (BASEURL.match(/api\/pubchem$/)) {
+    prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
+    name_template="%ENTITY% rdfs:label %NAME%";
+    predicate_exists_regex="rdfs:label";
+    new_var_suffix="_label";
   } else {
     return query;
   }
@@ -177,7 +185,8 @@ async function enhanceQueryByNameTriples(query) {
           "{ SELECT " + query_parts["select_clause"] + " WHERE " +
           " { " + query_parts["body"] + " } " + query_parts["group_by"] +
           " ORDER BY " + select_var + " } " +
-          select_var + " " + name_predicate + " ?qleverui_tmp";
+          name_template.replace(/%ENTITY%/g, select_var)
+                       .replace(/%NAME%/g, "?qleverui_tmp");
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
@@ -192,7 +201,8 @@ async function enhanceQueryByNameTriples(query) {
         // console.log("RESULT SIZE:", result.results.bindings.length);
         new_vars[select_var] = select_var + new_var_suffix;
         new_triples[select_var] =
-          select_var + " " + name_predicate + " " + new_vars[select_var];
+          name_template.replace(/%ENTITY%/g, select_var)
+                       .replace(/%NAME%/g, new_vars[select_var]);
         if (!new_prefix_definitions.includes(prefix_definition)) {
           new_prefix_definitions.push(prefix_definition);
         }
@@ -253,7 +263,12 @@ async function rewriteQuery(query, kwargs = {}) {
   const apply_name_service = kwargs["name_service" == "always"] ||
     (kwargs["name_service"] == "if_checked" && $("#name_service").prop("checked"));
   if (apply_name_service) {
-    query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
+    try {
+      query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
+    } catch(e) {
+      console.log("ERROR in \"enhanceQueryByName\": " + e);
+      return query;
+    }
   }
 
   return query_rewritten;
