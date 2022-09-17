@@ -4,7 +4,7 @@
 </p>
 <h1 align="center">QLever UI</h1>
 <p align="center">
-  An easy-to-use interactive user interface for the very fast SPARQL search engine QLever<br><br />
+  A user-friendly interface for the QLever SPARQL engine<br><br />
     <strong><a href="https://qlever.cs.uni-freiburg.de/wikidata">View Demo</a></strong>
     ·
     <strong><a href="#overview">Read Documentation</a></strong>
@@ -26,7 +26,7 @@ QLever (pronounced "clever") is an efficient SPARQL engine that can handle very 
 
 For more information on QLever, visit the corresponding [QLever GitHub Repo](https://github.com/ad-freiburg/QLever).
 ## Authors & Copyright
-© 2016 - 2021 University of Freiburg, [Chair for Algorithms and Data Structures](https://ad.cs.uni-freiburg.de/)
+© 2016 - 2022 University of Freiburg, [Chair for Algorithms and Data Structures](https://ad.cs.uni-freiburg.de/)
 
 - @jbuerklin <jb@software-design.de>   
 - @dkemen <dk@software-design.de>
