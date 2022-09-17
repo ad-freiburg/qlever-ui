@@ -281,14 +281,22 @@ li.CodeMirror-hint-active {
   color: black;
 }
 
-#result-tree .node > p { margin: 0; }
+#result-tree .node > p { margin: 0; white-space: nowrap; }
 #result-tree .node-name { font-weight: bold; }
-#result-tree .node-size:before { content: "Size: "; }
+#result-tree .node-status:before { content: "Status: " }
+/* #result-tree .node-status { font-size: 90%; } */
+#result-tree .node-status.failed { font-weight: bold; color: red; }
+#result-tree .node-status.child-failed { color: red; }
+#result-tree .node-status.not-started { color: blue; }
 #result-tree .node-cols:before { content: "Cols: "; }
 #result-tree .node-size:before { content: "Size: "; }
-#result-tree .node-time:before { content: "Time: "; }
+#result-tree .node-size { display: inline; }
+#result-tree .node-size-estimate { display: inline; padding-left: 1em; }
+#result-tree .node-time:before { content: "\ATime: "; white-space: pre; }
+#result-tree .node-time { display: inline; }
+#result-tree .node-cost-estimate { display: inline; padding-left: 1em; }
 #result-tree .node-time:after { content: "ms"; }
-#result-tree div.cached .node-time:after { content: "ms (cached -> 0ms)"; }
+#result-tree div.cached .node-time:after { content: "ms [cached]"; }
 #result-tree .node-total { display: none; }
 #result-tree .node-cached { display: none; }
 #result-tree .node.cached { color: grey; border: 1px solid grey; }

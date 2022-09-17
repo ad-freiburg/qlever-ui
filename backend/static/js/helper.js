@@ -12,6 +12,84 @@ function log(message, kind) {
   }
 }
 
+// Append the given runtime information for the given query to the runtime log.
+//
+// NOTE: A click on "Analysis" will show the runtime information from the last
+// query. See runtimeInfoForTreant in qleverUI.js.
+function appendRuntimeInformation(runtimeInformation, query) {
+  runtime_log[runtime_log.length] = runtimeInformation;
+  query_log[query_log.length] = query;
+  if (runtime_log.length - 10 >= 0) {
+    runtime_log[runtime_log.length - 10] = null;
+    query_log[query_log.length - 10] = null;
+  }
+}
+
+// Add "text" field to given runtime_info, for display using treant (in function
+// "visualise" in qleverUI.js). Works recursively by calling itself on each
+// child if any.
+//
+// NOTE: The labels and the style can be found in backend/static/css/style.css .
+// The coloring of the boxes depending on the time and caching status is done in
+// function "visualise" in qleverUI.js .
+function runtimeInfoForTreant(runtime_info, parent_cached = false) {
+  if (runtime_info["text"] == undefined) {
+    var text = {};
+    if (runtime_info["column_names"] == undefined) { runtime_info["column_names"] = ["not yet available"]; }
+    // console.log("RUNTIME INFO:",runtime_info["description"])
+    // Rewrite runtime info from QLever as follows:
+    //
+    // 1. Abbreviate IRIs (only keep part after last / or # or dot)
+    // 2. Remove qlc_ prefixes from variable names
+    // 3. Lowercase fully capitalized words (with _)
+    // 4. Separate CamelCase word parts by hyphen (Camel-Case)
+    // 5. First word in ALL CAPS (like JOIN or INDEX-SCAN)
+    // 6. Replace hyphen in all caps by space (INDEX SCAN)
+    //
+    text["name"] = runtime_info["description"]
+    .replace(/<[^>]*[#\/\.]([^>]*)>/g, "<$1>")
+    .replace(/qlc_/g, "")
+    .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); })
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/^([a-zA-Z-])*/, function (match) { return match.toUpperCase(); })
+    .replace(/([A-Z])-([A-Z])/g, "$1 $2")
+    .replace(/AVAILABLE /, "").replace(/a all/, "all");
+    // console.log("-> REWRITTEN TO:", text["name"])
+
+    text["status"] = format(runtime_info["status"]);
+    if (text["status"] == "completed") { delete text["status"]; }
+    text["cols"] = runtime_info["column_names"].join(", ")
+    .replace(/qlc_/g, "")
+    .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
+    text["size"] = format(runtime_info["result_rows"]) + " x " + format(runtime_info["result_cols"])
+    text["size-estimate"] = "[~ " + format(runtime_info["estimated_size"]) + "]";
+    text["time"] = runtime_info["was_cached"]
+      ? runtime_info["original_operation_time"]
+      : runtime_info["operation_time"];
+    text["cost-estimate"] = "[~ " + format(runtime_info["estimated_operation_cost"]) + "]"
+    text["total"] = text["time"];
+    text["cached"] = parent_cached == true ? true : runtime_info["was_cached"];
+    // Save the original was_cached flag, before it's deleted, for use below.
+    for (var key in runtime_info) { if (key != "children") { delete runtime_info[key]; } }
+    runtime_info["text"] = text;
+    runtime_info["stackChildren"] = true;
+
+    // Recurse over all children, propagating the was_cached flag from the
+    // original runtime_info to all nodes in the subtree.
+    runtime_info["children"].map(child => runtimeInfoForTreant(child, text["cached"]));
+    // If result is cached, subtract time from children, to get the original
+    // operation time (instead of the original time for the whole subtree).
+    if (text["cached"]) {
+      runtime_info["children"].forEach(function (child) {
+        // text["time"] -= child["text"]["total"];
+      })
+    }
+  }
+}
+
+function format(number) {
+  return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+}
 
 // Split SPARQL query into the following parts and return as dictionary with
 // these keys: prefixes (is an array), select_clause, select_vars, body, group_by, footer.
@@ -461,6 +539,14 @@ function displayError(response, statusWithText = undefined) {
   $('#errorReason').html(disp);
   $('#errorBlock').show();
   $('#answerBlock, #infoBlock').hide();
+
+  // If error response contains query and runtime info, append to runtime log.
+  //
+  // TODO: Show items from error responses in different color (how about "red").
+  if (response["query"] && response["runtimeInformation"]) {
+    // console.log("DEBUG: Error response with runtime information found!");
+    appendRuntimeInformation(response.runtimeInformation, response.query);
+  }
 }
 
 function displayWarning(result) {
