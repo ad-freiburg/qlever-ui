@@ -548,7 +548,7 @@ function displayError(response, statusWithText = undefined) {
   if("metadata" in response && "startIndex" in response.metadata && "stopIndex" in response.metadata) {
     let start = response.metadata.startIndex;
     let stop = response.metadata.stopIndex;
-    queryToDisplay = htmlEscape(queryToDisplay.substr(0,start)) + "<b><u style='color: red'>" + htmlEscape(queryToDisplay.substr(start, stop)) + "</u></b>" + htmlEscape(queryToDisplay.substr(stop+1));
+    queryToDisplay = htmlEscape(queryToDisplay.substring(0,start)) + "<b><u style='color: red'>" + htmlEscape(queryToDisplay.substring(start, stop+1)) + "</u></b>" + htmlEscape(queryToDisplay.substring(stop+1));
   } else {
       queryToDisplay = htmlEscape(queryToDisplay);
   }
