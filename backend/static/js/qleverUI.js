@@ -462,20 +462,41 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // Show the buttons (if there are any).
     //
     // TODO: Exactly which "MapView" buttons are shown depends on the
-    // instance. How is current hard-coded. This should be configurable (in
+    // instance. How is currently hard-coded. This should be configurable (in
     // the Django configuration of the respective backend).
     var res = "<div id=\"res\">";
     if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-      if (BASEURL.match("osm-(germany|planet|test)")) {
-        res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div><br><br><br>`;
+      if (BASEURL.match("osm-(germany|kenya|planet|test)")) {
+        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div>`;
       } else {
-        res += `<div class="pull-right">${showAllButton} ${mapViewButtonVanilla}</div><br><br><br>`;
+        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla}</div>`;
       }
     }
+
+    // Optionally show links to other SPARQL endpoints.
+    // NOTE: we want the *original* query here, as it appears in the editor,
+    // without the QLever-specific rewrites (see above).
+    if (SLUG == "wikidata") {
+      const queryEncoded = encodeURIComponent(original_query);
+      wdqsUrl = "https://query.wikidata.org/";
+      wdqsParams = "#" + queryEncoded;
+      wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}${wdqsParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
+      virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
+      virtuosoParams = $.param({ "default-graph-uri": "http://www.wikidata.org/",
+                                 "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+                                 "format": "text/html", "timeout": 0, "signal_void": "on"  });
+      virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+      res += `<div class="pull-right">${wdqsButton}</div>`;
+      res += `<div class="pull-right">${virtuosoButton}</div>`;
+    }
+
+    // Leave some space to the actual result table.
+    res += "</div><br><br>";
+
     $("#answer").html(res);
     $("#show-all").click(async function() {
       await processQuery();
-    })
+    });
 
     var tableHead = $('#resTable thead');
     var head = "<tr><th></th>";
