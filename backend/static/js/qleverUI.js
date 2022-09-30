@@ -377,23 +377,30 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
 
-  // A negative value for sendLimit has the special meaning: clean the cache. TODO:
-  // ugly, find a better solution.
-  let queryUrl;
+  // A negative value for `sendLimit` has the special meaning: clear the cache
+  // (without issuing a query). This is used in `backend/templates/index.html`,
+  // in the definition of the `oncklick` action for the "Clear cache" button.
+  // TODO: super ugly, find a better solution.
   let nothingToShow = false;
+  var params = {};
   if (sendLimit >= 0) {
-    // console.log("EDITOR VALUE:", editor.getValue());
-    var query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
-    // console.log("QUERY:", query);
-    queryUrl = getQueryString(query);
-    if (sendLimit > 0) { queryUrl += "&send=" + sendLimit; }
+    var original_query = editor.getValue();
+    var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
+    params["query"] = query;
+    if (sendLimit > 0) {
+      params["send"] = sendLimit;
+    }
   } else {
-    queryUrl = BASEURL + "?cmd=clear-cache";
+    params["cmd"] = "clear-cache";
     nothingToShow = true;
   }
-  // console.log("QUERY:", query);
-  $.ajax({ url: queryUrl,
-           headers: { Accept: "application/qlever-results+json" },
+  $.ajax({ method: "POST",
+           url: BASEURL,
+           data: $.param(params),
+           headers: {
+             "Content-type": "application/x-www-form-urlencoded",
+             "Accept": "application/qlever-results+json"
+           },
            success: function (result) {
     log('Evaluating and displaying results...', 'other');
     
