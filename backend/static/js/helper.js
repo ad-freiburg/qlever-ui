@@ -544,13 +544,21 @@ function displayError(response, statusWithText = undefined) {
     if (response.query.length >= 1) { response.query = response.query[0]; }
     else { response.query = "response.query is an empty array"; }
   }
-  disp += "Your query was: " + "<br><pre>" + htmlEscape(response.query) + "</pre>";
-  // disp += "Your query was: " + "<br><pre>" + htmlEscape(result.query) + "</pre>";
-  // if (result['exception']) {
-  //   disp += "<small><strong>Exception: </strong><em>";
-  //   disp += htmlEscape(result['exception']);
-  //   disp += "</em></small>";
-  // }
+  let queryToDisplay = response.query;
+  // If the error response contains metadata about position of parse error,
+  // highlight that part.
+  if ("metadata" in response && "startIndex" in response.metadata
+                             && "stopIndex" in response.metadata) {
+    let start = response.metadata.startIndex;
+    let stop = response.metadata.stopIndex;
+    queryToDisplay = htmlEscape(queryToDisplay.substring(0, start))
+                       + "<b><u style=\"color: red\">"
+                       + htmlEscape(queryToDisplay.substring(start, stop + 1))
+                       + "</u></b>" + htmlEscape(queryToDisplay.substring(stop + 1));
+  } else {
+      queryToDisplay = htmlEscape(queryToDisplay);
+  }
+  disp += "Your query was: " + "<br><pre>" + queryToDisplay + "</pre>";
   $('#errorReason').html(disp);
   $('#errorBlock').show();
   $('#answerBlock, #infoBlock').hide();
