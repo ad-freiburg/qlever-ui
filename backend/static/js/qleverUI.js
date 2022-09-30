@@ -181,11 +181,17 @@ $(document).ready(function () {
     index = values.indexOf(element.replace(/^\^/, ""));
     
     if (index == 0) {
-      addNameHover(element, domElement, subjectNames, SUBJECTNAME, prefixes);
+      if (SUBJECTNAME != "") {
+        addNameHover(element, domElement, subjectNames, SUBJECTNAME, prefixes);
+      }
     } else if (index == 1 || index == -1 && values.length > 1 && values[1].indexOf(element) != -1) {  // entity in property path
-      addNameHover(element, domElement, predicateNames, PREDICATENAME, prefixes);
+      if (PREDICATENAME != "") {
+        addNameHover(element, domElement, predicateNames, PREDICATENAME, prefixes);
+      }
     } else if (index == 2) {
-      addNameHover(element, domElement, objectNames, OBJECTNAME, prefixes);
+      if (OBJECTNAME != "") {
+        addNameHover(element, domElement, objectNames, OBJECTNAME, prefixes);
+      }
     }
     
     return true;
