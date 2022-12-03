@@ -224,7 +224,7 @@ async function enhanceQueryByNameTriples(query) {
       // console.log("TEST QUERY:", test_query);
       const result = await fetch(BASEURL, {
         method: "POST",
-        body: test_query, 
+        body: test_query,
         headers: { "Content-type": "application/sparql-query" }
       }).then(response => response.json());
       if ("results" in result && result.results.bindings.length == 1) {
@@ -279,12 +279,75 @@ async function enhanceQueryByNameTriples(query) {
   return new_query;
 }
 
-
-// Rewrite query in potentially three ways:
+// Rewrite all SERVICE clauses in the query. For each such clause, launch the
+// respective query against the respective endpoint, and turn the result into a
+// VALUES clause, which then replaces the SERVICE clause.
 //
-// 1. Add "name service" triples
-// 2. Rewrite FILTER CONTAINS(...) using ql:contains-word and ql:contains-entity
-// 3. Rewrite ogc:contains using osm2rdf:contains_area and osm2rdf:contains_nonarea
+// NOTE: Currently assumes that the SERVICE clause does not contain any "{ ... }.
+async function rewriteServiceClauses(query) {
+
+  query = escapeCurlyBracesOfUnionMinusOptional(query);
+
+  var service_query_parts;
+  var service_clause_re = /SERVICE\s*<([^>]+)>\s*\{\s*([^}]+?)\s*\}/;
+  while (true) {
+    var service_clause_match = query.match(service_clause_re);
+    if (!service_clause_match) break;
+    const service_url = service_clause_match[1];
+    const service_where_clause = service_clause_match[2];
+    // Build the skeleton of the SERVICE query (needed at most once).
+    if (!service_query_parts) {
+      service_query_parts = splitSparqlQueryIntoParts(query);
+      service_query_parts["select_clause"] = "*";
+      service_query_parts["group_by"] = "";
+      service_query_parts["footer"] = "";
+    }
+    service_query_parts["body"] =
+      unescapeCurlyBracesOfUnionMinusOptional(service_where_clause);
+    const service_query = createSparqlQueryFromParts(service_query_parts);
+    console.log("SERVICE match:", service_clause_match);
+    console.log("Endpoint:", service_url);
+    console.log("Query:", service_where_clause);
+    const result_json = await fetch(service_url, {
+      method: "POST",
+      body: service_query,
+      headers: {
+        "Content-type": "application/sparql-query",
+        "Accept": "application/qlever-results+json"
+        // "Accept": "text/tab-separated-values"
+      }
+    }).then(response => response.json());
+    console.log("RESULT:", result_json);
+    var values_clause = "";
+    if (result_json.selected.length >= 1) {
+      values_clause =
+        "VALUES (" + result_json.selected.join(" ") + ")"
+        + " { " +
+        result_json.res.map(tuple => "(" + tuple.join(" ") + ")").join("  ")
+        + " }";
+      console.log("VALUES clause:", values_clause);
+    } else {
+      console.log("ERROR in processing SERVICE clause: no variables found, SERVICE clause will be ignored");
+    }
+    query = query.replace(service_clause_re, values_clause);
+  }
+
+  query = unescapeCurlyBracesOfUnionMinusOptional(query);
+
+  return query;
+}
+
+
+// Rewrite query in various ways, where the first three are synchronous (in a
+// seperate function right below) and the fourth is asynchronous because it
+// launches queries itself. Note that the first three are all HACKs, which
+// should eventually be handled by the QLever backend instead of here.
+//
+// 1a. Rewrite FILTER CONTAINS(...) using ql:contains-word and ql:contains-entity
+// 1b. Rewrite queries suitable for ql:has-predicate (simplistic)
+// 1c. Rewrite ogc:contains using osm2rdf:contains_area and osm2rdf:contains_nonarea
+//
+// 4. Add "name service" triples
 //
 async function rewriteQuery(query, kwargs = {}) {
   // First the synchronous part (this should come first, so that the label
@@ -292,8 +355,8 @@ async function rewriteQuery(query, kwargs = {}) {
   // been replaced by constructs know to QLever.
   var query_rewritten = rewriteQueryNoAsyncPart(query);
 
-  // If certain conditions are met, rewrite with name service (asks queries,
-  // hence asynchronous, the rest of the function is synchronous).
+  // If certain conditions are met, rewrite query with name service. This asks
+  // queries to the backend, and is hence asynchronous.
   const apply_name_service = kwargs["name_service" == "always"] ||
     (kwargs["name_service"] == "if_checked" && $("#name_service").prop("checked"));
   if (apply_name_service) {
@@ -301,19 +364,31 @@ async function rewriteQuery(query, kwargs = {}) {
       query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
     } catch(e) {
       console.log("ERROR in \"enhanceQueryByName\": " + e);
-      return query;
+      return query_rewritten;
+    }
+  }
+
+  // Resolve SERVICE clauses in the query.
+  const rewrite_service_clauses = false;
+  if (rewrite_service_clauses) {
+    try {
+      query_rewritten = await rewriteServiceClauses(query_rewritten);
+    } catch(e) {
+      console.log("ERROR in \"rewriteServiceClauses\": " + e);
+      return query_rewritten;
     }
   }
 
   return query_rewritten;
 }
 
-// The rest of the function is synchronous (we currently need that for the
-// SPARQL suggestions).
+// Synchronous parts of the query rewriting, see above.
+// TODO: We currently need this for the SPARQL suggestions, check whether that
+// is still up to date.
 function rewriteQueryNoAsyncPart(query) {
   var query_rewritten = query;
 
-  // HACK: Rewrite FILTER CONTAINS(?title, "info* retr*") using
+  // HACK 1: Rewrite FILTER CONTAINS(?title, "info* retr*") using
   // ql:contains-entity and ql:contains-word.
   var num_rewrites_filter_contains = 0;
   var m_var = "?qlm_";
@@ -328,30 +403,62 @@ function rewriteQueryNoAsyncPart(query) {
     console.log("Rewrote query with \"FILTER CONTAINS\"");
   }
 
-  // HACK: Rewrite each occurrence of the ogc:contains predicate using the
+  // HACK 2: Rewrite query to use ql:has-predicate if it fits a certain pattern
+  // (which is currently far from covering all cases where it fits).
+  const rewriteQlHasPredicateQueries = false;
+  if (rewriteQlHasPredicateQueries) {
+    var query_parts = splitSparqlQueryIntoParts(query);
+    var select_clause_re = /(\?\S+) \(COUNT\(DISTINCT (\?\S+)\) AS (\?\S+)\)/i;
+    var body_re = /(\?\S+) (\?\S+) (\?\S+)( \.)?/;
+    var group_by_re = /GROUP BY (\?\S+)/i;
+    var select_clause_match = query_parts["select_clause"].match(select_clause_re);
+    var body_match = query_parts["body"].match(body_re);
+    var body_without_match = query_parts["body"].replace(body_re, "");
+    var group_by_match = query_parts["group_by"].match(group_by_re);
+    if (select_clause_match && body_match && group_by_match &&
+        select_clause_match[1] == body_match[2] &&
+        select_clause_match[2] == body_match[1] &&
+        select_clause_match[1] == group_by_match[1] &&
+        !body_without_match.includes(body_match[2] + " ") &&
+        !body_without_match.includes(body_match[3] + " ")
+    ) {
+      const subject = body_match[1];
+      const predicate = body_match[2];
+      const has_predicate_triple = subject + " ql:has-predicate " + predicate;
+      // console.log("Query suitable for ql:has-predicate (subject = \"" + subject + "\", predicate = \"" + predicate + "\"): replacing \"" + body_match[0] + "\" by \"" + has_predicate_triple + "\"")
+      query_parts["select_clause"] =
+        query_parts["select_clause"].replace(/DISTINCT /, "");
+      query_parts["body"] =
+        query_parts["body"].replace(body_re, has_predicate_triple + " .");
+      query_rewritten = createSparqlQueryFromParts(query_parts);
+      console.log("Rewrote query using \"ql:has-predicate\":", query_rewritten);
+    }
+  }
+
+  // HACK 3: Rewrite each occurrence of the ogc:contains predicate using the
   // predicates osm2rdf:contains_area and osm2rdf:contains_nonarea .
   //
   // TODO: currently assumes that there are no ogc:contains inside of UNION,
   // MINUS, OPTIONAL. Is this still true?.
   var num_rewrites_ogc_contains = 0;
- 
+
   // First replace all { and } due to UNION, OPTIONAL, or MINUS by __OBR__ and
   // __CBR__.
-  var union_regex = /\{\s*([^{}]*[^{} ])\s*\}\s*UNION\s*\{\s*([^{}]*[^{} ])\s*\}/;
-  var optional_or_minus_regex = /(OPTIONAL|MINUS)\s*\{\s*([^{}]*[^{} ])\s*\}/;
-  while (true) {
-    if (query_rewritten.match(union_regex)) {
-      query_rewritten = query_rewritten.replace(union_regex,
-        "__OBR__ $1 __CBR__ UNION __OBR__ $2 __CBR__");
-    } else if (query_rewritten.match(optional_or_minus_regex)) {
-      query_rewritten = query_rewritten.replace(optional_or_minus_regex,
-        "$1 __OBR__ $2 __CBR__");
-    } else {
-      break;
-    }
-  }
-  // console.log("Query with UNION, OPTIONAL, or MINUS braces replaced: ", query_rewritten);
- 
+  query_rewritten = escapeCurlyBracesOfUnionMinusOptional(query_rewritten);
+  // var union_regex = /\{\s*([^{}]*[^{} ])\s*\}\s*UNION\s*\{\s*([^{}]*[^{} ])\s*\}/;
+  // var optional_or_minus_regex = /(OPTIONAL|MINUS)\s*\{\s*([^{}]*[^{} ])\s*\}/;
+  // while (true) {
+  //   if (query_rewritten.match(union_regex)) {
+  //     query_rewritten = query_rewritten.replace(union_regex,
+  //       "__OBR__ $1 __CBR__ UNION __OBR__ $2 __CBR__");
+  //   } else if (query_rewritten.match(optional_or_minus_regex)) {
+  //     query_rewritten = query_rewritten.replace(optional_or_minus_regex,
+  //       "$1 __OBR__ $2 __CBR__");
+  //   } else {
+  //     break;
+  //   }
+  // }
+
   // Now iteratively replace all ogc:contains within a { ... } scope.
   var ogc_contains_match = /ogc:contains([^_])/;
   var ogc_contains_replace = /\{(\s*)([^{}]*)ogc_tmp:contains([^{}]*[^{}\s])(\s*)\}/;
@@ -380,12 +487,38 @@ function rewriteQueryNoAsyncPart(query) {
   }
 
   // Replace all __OBR__ and __CBR__ back to { and }, respectively.
-  query_rewritten = query_rewritten.replace(/__OBR__/g, "{");
-  query_rewritten = query_rewritten.replace(/__CBR__/g, "}");
+  query_rewritten = unescapeCurlyBracesOfUnionMinusOptional(query_rewritten);
+  // query_rewritten = query_rewritten.replace(/__OBR__/g, "{");
+  // query_rewritten = query_rewritten.replace(/__CBR__/g, "}");
 
   return query_rewritten;
 }
 
+// Replace all { and } due to UNION, OPTIONAL, or MINUS by __OBR__ and __CBR__.
+// This is used in `rewriteQueryNoAsyncPart` above.
+function escapeCurlyBracesOfUnionMinusOptional(query) {
+  var union_regex = /\{\s*([^{}]*[^{} ])\s*\}\s*UNION\s*\{\s*([^{}]*[^{} ])\s*\}/;
+  var optional_or_minus_regex = /(OPTIONAL|MINUS)\s*\{\s*([^{}]*[^{} ])\s*\}/;
+  while (true) {
+    if (query.match(union_regex)) {
+      query = query.replace(union_regex, "__OBR__ $1 __CBR__ UNION __OBR__ $2 __CBR__");
+    } else if (query.match(optional_or_minus_regex)) {
+      query = query.replace(optional_or_minus_regex, "$1 __OBR__ $2 __CBR__");
+    } else {
+      break;
+    }
+  }
+  // console.log("Query with UNION, OPTIONAL, or MINUS braces replaced: ", query_rewritten);
+  return query;
+}
+
+// Unescape the escaping from the previous function. That is, replace all
+// __OBR__ and __CBR__ back to { and }, respectively.
+function unescapeCurlyBracesOfUnionMinusOptional(query) {
+  query = query.replace(/__OBR__/g, "{");
+  query = query.replace(/__CBR__/g, "}");
+  return query;
+}
 
 // DEPRECATED: Get URL for current query.
 function getQueryString(query) {
@@ -513,7 +646,7 @@ function switchStates(cm) {
   } else {
     log("Found WHERE-Placeholder on postion " + found, 'other');
     cm.setSelection({ 'line': newCursor.line, 'ch': 9999999 }, { 'line': newCursor.line, 'ch': 9999999 });
-    
+
     if (line.slice(-1) == "{") {
       cm.replaceSelection('\n' + (" ".repeat($('#whitespaces').val())) + indentWhitespaces);
       cm.setCursor(newCursor.line + 1, $('#whitespaces').val() + indentWhitespaces.length);

@@ -288,6 +288,7 @@ li.CodeMirror-hint-active {
 #result-tree .node-status.failed { font-weight: bold; color: red; }
 #result-tree .node-status.child-failed { color: red; }
 #result-tree .node-status.not-started { color: blue; }
+#result-tree .node-status.optimized-out { color: blue; }
 #result-tree .node-cols:before { content: "Cols: "; }
 #result-tree .node-size:before { content: "Size: "; }
 #result-tree .node-size { display: inline; }
