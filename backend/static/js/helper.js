@@ -599,12 +599,14 @@ function displayStatus(str) {
   $("#infoBlock").show();
 }
 
-function showAllConcats(element, sep, column) {
+// This is used only in commented out code in the function `processQuery` in
+// `qleverUI.js`.
+function showAllConcatsDeprecated(element, sep, column) {
   data = $(element).parent().data('original-title');
   html = "";
   results = data.split(sep);
   for (var k = 0; k < results.length; k++) {
-    html += getShortStr(results[k], 50, column) + "<br>";
+    html += getFormattedResultEntry(results[k], 50, column)[0] + "<br>";
   }
   $(element).parent().html(html);
 }
@@ -626,17 +628,25 @@ function htmlEscape(str) {
     .replace(/>/g, "&gt;")
 }
 
-function getShortStr(str, maxLength, column = undefined) {
+// Get formatted version of given entry `str` from the result table. Returns an
+// array with two elements: the formatted result entry and a boolean that says
+// whether the entry should be right aligned or not..
+//
+// For the kind of formatting, see the many cases in the implementation below.
+// This is called in `processQuery` in `qleverUI.js` when filling the result
+// table.
+function getFormattedResultEntry(str, maxLength, column = undefined) {
 
-  // HACK Hannah 16.09.2021: Remove xsd:decimal.
-  str = str.replace(/\^\^<.*>/, "");
-  // str = str.replace(/\^\^<http:\/\/www.w3.org\/2001\/XMLSchema#decimal>/, "");
-
+  // TODO: Do we really want to replace each _ by a space right in the
+  // beginning?
   str = str.replace(/_/g, ' ');
+
   var pos;
   var cpy = str;
-  var veryLongLength = 500;
-  var maxLinkLength = 50;
+  var rightAlign = false;
+
+  // For IRIs, remove everything before the final / or # and abbreviate what
+  // remains if it's longer than `maxLength`.
   if (cpy.charAt(0) == '<') {
     pos = Math.max(cpy.lastIndexOf('/'), cpy.lastIndexOf('#'));
     var paraClose = cpy.lastIndexOf(')');
@@ -654,6 +664,9 @@ function getShortStr(str, maxLength, column = undefined) {
     if (str.length > maxLength) {
       str = str.substring(0, maxLength - 1) + "[...]"
     }
+
+  // For literals, remove everything after the final " and abbreviate what
+  // remains if it is longer than `maxLength`.
   } else if (cpy.charAt(0) == '\"') {
     pos = cpy.lastIndexOf('\"');
     if (pos !== 0) {
@@ -662,13 +675,18 @@ function getShortStr(str, maxLength, column = undefined) {
     if (str.length > maxLength) {
       str = str.substring(0, maxLength - 1) + "[...]\""
     }
+
+  // For entries that are neither IRIs nor literals (TODO: are these text
+  // records?), abbreviate them if they are longer than `veryLongLength`.
   } else {
-    // Always abbreviate very long texts.
+    const veryLongLength = 500;
     if (cpy.length > veryLongLength) {
       half_length = veryLongLength / 2 - 3;
       str = cpy.substring(0, half_length) + " [...] " + cpy.substring(cpy.length - half_length);
     }
   }
+
+  // For IRIs and literals, remove the surrouning < > or " ", respectively.
   if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\"') && str.endsWith('\"'))) {
     str = str.slice(1, -1);
   }
@@ -676,10 +694,12 @@ function getShortStr(str, maxLength, column = undefined) {
     str = str.slice(1, -1);
   }
 
-  // HACK Hannah 16.09.2021: Fixed-precision float depending on variable name.
+  // HACK Hannah 16.09.2021: Custom formatting depending on the variable name in
+  // the column header.
   var var_name = $($("#resTable").find("th")[column + 1]).html();
   // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
   if (var_name == "?note" || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
+  if (var_name.endsWith("_perc") || var_name.endsWith("percent")) str = parseFloat(str).toFixed(2).toString();
   if (var_name == "?lp_proz") str = parseFloat(str).toFixed(0).toString();
   if (var_name == "?gesamt_score") str = parseFloat(str).toFixed(1).toString();
   if (var_name == "?lehrpreis") str = parseFloat(str).toFixed(0).toString();
@@ -689,6 +709,13 @@ function getShortStr(str, maxLength, column = undefined) {
   let isLink = false;
   let linkStart = "";
   let linkEnd = "";
+
+  // For typed literals (with a ^^ part), prepend icon to header that links to
+  // that type.
+  // TODO: What if ^^ occurs inside the literal?
+  // TODO: This is computed for *every* entry of a column. It's not wrong
+  // (because the code makes sure that the icon is prepended at most once), but
+  // it's terribly inefficient.
   if (pos > 0) {
     cpy = cpy.replace(/ /g, '_');
     link = cpy.substring(pos).match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
@@ -697,6 +724,21 @@ function getShortStr(str, maxLength, column = undefined) {
     if (columnHTML.html().indexOf(content) < 0) {
       columnHTML.html(content + columnHTML.html());
     }
+    // If the type is int or integer or if the type is decimal yet the number is
+    // an integer, display the number with thousand separators and mark it as
+    // right-aligned.
+    const typeIsInteger = link.endsWith("int") || link.endsWith("integer");
+    const typeIsDecimalButNumberIsInteger = link.endsWith("decimal") && str.match(/^\d+$/);
+    if (typeIsInteger || typeIsDecimalButNumberIsInteger) {
+      str = formatInteger(str);
+      rightAlign = true;
+    }
+
+  // For IRIs that start with http display the item depending on the link type.
+  // For images, a thumbnail of the image is shown. For other links, prepend a
+  // symbol that depends on the link tpye and links to the respective URL.
+  //
+  // TODO: What if http occur somewhere inside a literal or a link?
   } else if (pos_http > 0) {
     isLink = true;
     cpy = cpy.replace(/ /g, '_');
@@ -714,12 +756,27 @@ function getShortStr(str, maxLength, column = undefined) {
       linkEnd = '</a></span>';
     }
   }
+
+  // Any remaining < and > and & should now be takig literally.
   str = htmlEscape(str);
+
+  // Abbreviate links longer than `maxLinkLength`.
+  // TODO: What all counts as a link here?
   if (isLink) {
+    const maxLinkLength = 50;
     if (str.length > maxLinkLength) str = str.substring(0, maxLinkLength - 4) + " ...";
     str = `${linkStart}${str}${linkEnd}`;
   }
-  return str
+
+  // Right align of the whole column gives a strange look when there are few
+  // columns.
+  if (rightAlign) {
+    // str = "<span style=\"width: 5em; float: right\">" + str + "</span>";
+    rightAlign = false;
+  }
+
+  // Return the modified string and whether it should be right aligned or not.
+  return [str, rightAlign];
 }
 
 // Cookie helpers

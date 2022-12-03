@@ -512,7 +512,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       var row = "<tr>";
       row += "<td>" + i + "</td>";
       var j = 0;
-      for (var resultColumn of resultLine) {
+      for (var resultEntry of resultLine) {
         // GROUP_CONCAT
         /*if ($('#resTable thead tr').children('th')[j + 1].innerHTML.startsWith('(GROUP_CONCAT')) {
           match = (/separator[\s]?=[\s]?\"(.*)\"/g).exec($('#resTable thead tr').children('th')[j + 1].innerHTML);
@@ -527,11 +527,13 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
           }
           row += "</span></td>";
         } else {*/
-          if (resultColumn) {
+          if (resultEntry) {
             // console.log("COL ENTRY:", resultColumn);
-            row += "<td><span data-toggle='tooltip' title=\"" + htmlEscape(resultColumn).replace(/\"/g, "&quot;") + "\">" +
-            getShortStr(resultColumn, 50, j) +
-            "</span></td>";
+            const [formattedResultEntry, rightAlign] = getFormattedResultEntry(resultEntry, 50, j);
+            const tooltipText = htmlEscape(resultEntry).replace(/\"/g, "&quot;");
+            row += "<td" + (rightAlign ? " align=\"right\"" : "") + ">"
+                   + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
+                   + formattedResultEntry + "</span></td>";
           } else {
             row += "<td><span>-</span></td>";
           }
@@ -650,6 +652,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     $("p.node-status").filter(function() { return $(this).text() === "failed"}).addClass("failed");
     $("p.node-status").filter(function() { return $(this).text() === "failed because child failed"}).addClass("child-failed");
     $("p.node-status").filter(function() { return $(this).text() === "not started"}).addClass("not-started");
+    $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
     
     if ($('#logRequests').is(':checked')) {
       select = "";
