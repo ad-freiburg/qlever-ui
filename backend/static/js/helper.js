@@ -91,6 +91,15 @@ function format(number) {
   return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
+// Check if the given query fragment (for example, a completion or a whole
+// query) contains the given prefix. Take into account that prefixes may occur
+// in predicate paths and be prefixed by language tags, for example,
+// wdt:P17|@en@rdfs:label . Also take into account that prefixes may occur in
+// literal type IRIs, following ^^
+function doesQueryFragmentContainPrefix(query_fragment, prefix) {
+  return query_fragment.match(RegExp("(^|[\\s{;/|]|[\'\"]\\^\\^)\\^?(@[a-z]+@)?" + prefix + ":"));
+}
+
 // Split SPARQL query into the following parts and return as dictionary with
 // these keys: prefixes (is an array), select_clause, select_vars, body, group_by, footer.
 function splitSparqlQueryIntoParts(query) {

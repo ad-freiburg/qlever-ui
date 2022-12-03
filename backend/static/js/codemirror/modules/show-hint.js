@@ -131,7 +131,7 @@
                 // Also consider completions such as "@en@rdfs:label" (special
                 // language predicates) or "^wdt:P31" (reverse predicate
                 // suggestions).
-                if (completion.match(RegExp("^\\^?(@[a-z]+@)?" + prefix + ":"))) {
+                if (doesQueryFragmentContainPrefix(completion, prefix)) {
                     var prefixAvailable = false;
                     for (var line of prefixLines) {
                         if (line.trim().startsWith("PREFIX " + prefix + ':')) {

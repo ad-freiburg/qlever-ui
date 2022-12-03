@@ -94,7 +94,7 @@ $(document).ready(function () {
       let linesAdded = 0;
       for (var prefix in COLLECTEDPREFIXES) {
         const fullPrefix = "PREFIX " + prefix + ": <" + COLLECTEDPREFIXES[prefix] + ">";
-        if (queryString.match(RegExp("[ ;/]\\^?" + prefix + ":")) &&
+        if (doesQueryFragmentContainPrefix(queryString, prefix) &&
              queryString.indexOf(fullPrefix) == -1) {
           queryString = queryString.replace(/(^| )(SELECT)/m, fullPrefix + "\n$1$2");
           linesAdded += 1;
