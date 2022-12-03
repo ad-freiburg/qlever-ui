@@ -120,7 +120,7 @@ function splitSparqlQueryIntoParts(query) {
     query_parts["select_vars"] = query_parts["select_clause"].replace(
       /\(\s*[^(]+\s*\([^)]+\)\s*[aA][sS]\s*(\?[^)]+)\s*\)/g, "$1").split(/\s+/);
   } else {
-    throw "NOT YET IMPLEMENTED: enhanceQueryByName cannot handle SELECT * yet";
+    query_parts["select_vars"] = "*";
   }
   query_parts["body"] = match[3];
   query_parts["footer"] = match[4];
@@ -139,9 +139,16 @@ function splitSparqlQueryIntoParts(query) {
 // Assemble query parts, as produced by splitSparqlQueryIntoParts above, to a
 // SPARQL query and returns as string.
 function createSparqlQueryFromParts(query_parts) {
+  // If no GROUP BY (which is the case for all our invocations of this method),
+  // remove all aliases from the SELECT clause. For example, (COUNT(?link) AS
+  // ?num_links) becomes ?num_links.
+  var select_clause = query_parts["group_by"] != ""
+    ? query_parts["select_clause"]
+    : query_parts["select_clause"]
+        .replace(/\(.+\s*[aA][sS]\s*(\?\S+)\s*\)/g, "$1");
   var query =
     query_parts["prefixes"].join("\n") + "\n" +
-    "SELECT " + query_parts["select_clause"] + " WHERE {\n" +
+    "SELECT " + select_clause + " WHERE {\n" +
   query_parts["body"].replace(/^/mg, ">>") + "\n" + "}" +
     (" " + query_parts["group_by"] + " " + query_parts["footer"])
       .replace(/ +/g, " ").replace(/ $/, "");
@@ -154,17 +161,24 @@ async function enhanceQueryByNameTriples(query) {
 
   // CONFIG depending on instance. TODO: this should be configurable in the QLever UI.
   if (BASEURL.match(/api\/wikidata$/)) {
-    prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
+    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+                       "PREFIX wikibase: <http://wikiba.se/ontology#>"];
     name_template="%ENTITY% rdfs:label %NAME% FILTER(LANG(%NAME%) = \"en\")";
+    name_template_alt="%ENTITY% ^wikibase:directClaim/@en@rdfs:label %NAME%";
     predicate_exists_regex="(@[a-z]+@)?rdfs:label";
     new_var_suffix="_label";
   } else if (BASEURL.match(/api\/osm(-[a-z]+)?$/)) {
-    prefix_definition="PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>";
+    prefix_definitions=["PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>"];
     name_template="%ENTITY% osmkey:name %NAME%",
     predicate_exists_regex="osmkey:name",
     new_var_suffix="_name";
   } else if (BASEURL.match(/api\/pubchem$/)) {
-    prefix_definition="PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
+    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
+    name_template="%ENTITY% rdfs:label %NAME%";
+    predicate_exists_regex="rdfs:label";
+    new_var_suffix="_label";
+  } else if (BASEURL.match(/api\/dblp$/)) {
+    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
     name_template="%ENTITY% rdfs:label %NAME%";
     predicate_exists_regex="rdfs:label";
     new_var_suffix="_label";
@@ -174,6 +188,9 @@ async function enhanceQueryByNameTriples(query) {
 
   // STEP 1: Get query parts.
   var query_parts = splitSparqlQueryIntoParts(query);
+  if (query_parts["select_vars"] == "*") {
+    throw "NOT YET IMPLEMENTED: enhanceQueryByName cannot handle SELECT * yet";
+  }
 
   // STEP 2: Check which triples to add.
   var new_vars = { }
@@ -188,15 +205,19 @@ async function enhanceQueryByNameTriples(query) {
     if (!query_parts["body"].match(regex)) {
       // console.log("Name triple exists for:", select_var);
       test_query_parts = {};
-      test_query_parts["prefixes"] = [...query_parts["prefixes"], prefix_definition];
+      test_query_parts["prefixes"] = [...query_parts["prefixes"], ...prefix_definitions];
       test_query_parts["select_clause"] = "*";
       // TODO: The ORDER BY is a workaround for Qlever Issue #729.
       test_query_parts["body"] =
           "{ SELECT " + query_parts["select_clause"] + " WHERE " +
           " { " + query_parts["body"] + " } " + query_parts["group_by"] +
           " ORDER BY " + select_var + " } " +
-          name_template.replace(/%ENTITY%/g, select_var)
-                       .replace(/%NAME%/g, "?qleverui_tmp");
+          // HACK: For variable ?pred use name_template_alt (see above).
+          (select_var != "?pred"
+            ?  name_template.replace(/%ENTITY%/g, select_var)
+                            .replace(/%NAME%/g, "?qleverui_tmp")
+            :  name_template_alt.replace(/%ENTITY%/g, select_var)
+                                .replace(/%NAME%/g, "?qleverui_tmp"));
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
@@ -207,14 +228,17 @@ async function enhanceQueryByNameTriples(query) {
         headers: { "Content-type": "application/sparql-query" }
       }).then(response => response.json());
       if ("results" in result && result.results.bindings.length == 1) {
-        // console.log("RESULT:", result);
-        // console.log("RESULT SIZE:", result.results.bindings.length);
+        // HACK: For variable ?pred use name_template_alt (see above).
         new_vars[select_var] = select_var + new_var_suffix;
-        new_triples[select_var] =
-          name_template.replace(/%ENTITY%/g, select_var)
-                       .replace(/%NAME%/g, new_vars[select_var]);
-        if (!new_prefix_definitions.includes(prefix_definition)) {
-          new_prefix_definitions.push(prefix_definition);
+        new_triples[select_var] = select_var != "?pred"
+          ?  name_template.replace(/%ENTITY%/g, select_var)
+                          .replace(/%NAME%/g, new_vars[select_var])
+          :  name_template_alt.replace(/%ENTITY%/g, select_var)
+                              .replace(/%NAME%/g, new_vars[select_var]);
+        for (const prefix_definition of prefix_definitions) {
+          if (!new_prefix_definitions.includes(prefix_definition)) {
+            new_prefix_definitions.push(prefix_definition);
+          }
         }
       }
     }
