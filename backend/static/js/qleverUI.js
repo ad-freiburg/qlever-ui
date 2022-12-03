@@ -598,23 +598,24 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     
     $.getJSON(BASEURL + "?cmd=stats", function (result) {
       log('Evaluating and displaying stats...', 'other');
-      $("#kbname").html(result.kbindex || "");
-      if (result.textindex) {
-        $("#textname").html(result.textindex);
+      $("#kbname").html(result.kbindex || result["name-index"] || "");
+      if (result["name-text-index"]) {
+        $("#nrecords").html(tsep(result["num-text-records"] || result["nofrecords"]));
+        $("#nwo").html(tsep(result["num-word-occurrences"] || result["nofwordpostings"]));
+        $("#neo").html(tsep(result["num-entity-occurrences"] || result["nofentitypostings"]));
+        $("#textname").html(result["name-text-index"]);
       } else {
         $("#textname").closest("div").hide();
       }
-      $("#ntriples").html(tsep(result.nofActualTriples || result.noftriples));
-      $("#nrecords").html(tsep(result.nofrecords));
-      $("#nwo").html(tsep(result.nofwordpostings));
-      $("#neo").html(tsep(result.nofentitypostings));
-      $("#permstats").html(result.permutations);
-      if (result.permutations == "6") {
+      $("#ntriples").html(tsep(result["num-triples-normal"] || result["nofActualTriples"]))
+      $("#permstats").html(result["num-permutations"] || result["permutations"]);
+      if ((result["num-permutations"] || result["permutations"]) == "6") {
         $("#kbstats").html("Number of subjects: <b>" +
-        tsep(result.nofsubjects) + "</b><br>" +
+          tsep(result["num-subjects-normal"] || result["nofsubjects"]) + "</b><br>" +
         "Number of predicates: <b>" +
-        tsep(result.nofpredicates) + "</b><br>" +
-        "Number of objects: <b>" + tsep(result.nofobjects) + "</b>");
+          tsep(result["num-predicates-normal"] || result["nofpredicates"]) + "</b><br>" +
+        "Number of objects: <b>" +
+          tsep(result["num-objects-normal"] || result["nofobjects"]) + "</b>");
       }
       $('#statsButton').removeAttr('disabled');
       $('#statsButton span').html('Index Information');
