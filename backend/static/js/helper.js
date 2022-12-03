@@ -40,15 +40,16 @@ function runtimeInfoForTreant(runtime_info, parent_cached = false) {
     // Rewrite runtime info from QLever as follows:
     //
     // 1. Abbreviate IRIs (only keep part after last / or # or dot)
-    // 2. Remove qlc_ prefixes from variable names
+    // 2. Remove qlc_ and _qlever_internal_... prefixes from variable names
     // 3. Lowercase fully capitalized words (with _)
     // 4. Separate CamelCase word parts by hyphen (Camel-Case)
     // 5. First word in ALL CAPS (like JOIN or INDEX-SCAN)
     // 6. Replace hyphen in all caps by space (INDEX SCAN)
+    // 7. Abbreviate long QLever-internal variable names
     //
     text["name"] = runtime_info["description"]
     .replace(/<[^>]*[#\/\.]([^>]*)>/g, "<$1>")
-    .replace(/qlc_/g, "")
+    .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); })
     .replace(/([a-z])([A-Z])/g, "$1-$2")
     .replace(/^([a-zA-Z-])*/, function (match) { return match.toUpperCase(); })
@@ -56,17 +57,17 @@ function runtimeInfoForTreant(runtime_info, parent_cached = false) {
     .replace(/AVAILABLE /, "").replace(/a all/, "all");
     // console.log("-> REWRITTEN TO:", text["name"])
 
-    text["status"] = format(runtime_info["status"]);
+    text["status"] = formatInteger(runtime_info["status"]);
     if (text["status"] == "completed") { delete text["status"]; }
     text["cols"] = runtime_info["column_names"].join(", ")
-    .replace(/qlc_/g, "")
+    .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
-    text["size"] = format(runtime_info["result_rows"]) + " x " + format(runtime_info["result_cols"])
-    text["size-estimate"] = "[~ " + format(runtime_info["estimated_size"]) + "]";
+    text["size"] = formatInteger(runtime_info["result_rows"]) + " x " + formatInteger(runtime_info["result_cols"])
+    text["size-estimate"] = "[~ " + formatInteger(runtime_info["estimated_size"]) + "]";
     text["time"] = runtime_info["was_cached"]
       ? runtime_info["original_operation_time"]
       : runtime_info["operation_time"];
-    text["cost-estimate"] = "[~ " + format(runtime_info["estimated_operation_cost"]) + "]"
+    text["cost-estimate"] = "[~ " + formatInteger(runtime_info["estimated_operation_cost"]) + "]"
     text["total"] = text["time"];
     text["cached"] = parent_cached == true ? true : runtime_info["was_cached"];
     // Save the original was_cached flag, before it's deleted, for use below.
@@ -87,7 +88,7 @@ function runtimeInfoForTreant(runtime_info, parent_cached = false) {
   }
 }
 
-function format(number) {
+function formatInteger(number) {
   return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
