@@ -282,6 +282,16 @@ $(document).ready(function () {
       log('Generating links for sharing ...', 'other');
       var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
 
+      // The default media type for the curl command line link is TSV, but for
+      // CONSTRUCT queries use Turtle.
+      var mediaType = "text/tab-separated-values";
+      var apiCallCommandLineLabel = "Command line for TSV export (using curl)";
+      if (queryRewrittenAndNormalized.match(/CONSTRUCT \{/)) {
+        mediaType = "text/turtle";
+        apiCallCommandLineLabel = apiCallCommandLineLabel.replace(/TSV/, "Turtle");
+      }
+      $("#apiCallCommandLineLabel").html(apiCallCommandLineLabel);
+
       $(".ok-text").collapse("hide");
       $("#share").modal("show");
       $("#prettyLink").val(baseLocation + result.link);
@@ -289,7 +299,7 @@ $(document).ready(function () {
       $("#queryStringLink").val(baseLocation + "?" + result.queryString);
       $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
       $("#apiCallCommandLine").val("curl -s " + BASEURL.replace(/-proxy$/, "")
-        + " -H \"Accept: text/tab-separated-values\""
+        + " -H \"Accept: " + mediaType + "\""
         + " -H \"Content-type: application/sparql-query\""
         + " --data \"" + queryRewrittenAndNormalized + "\"");
       $("#queryStringUnescaped").val(queryRewrittenAndNormalized);
