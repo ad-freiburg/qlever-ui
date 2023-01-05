@@ -12,12 +12,47 @@ function log(message, kind) {
   }
 }
 
+// Normalize query in the following way. This is used when we need the query in
+// a single line, for example, in the "Share" dialog or for the "Map View".
+//
+// 1a. Replace all # in IRIs by %23
+// 1b. Remove all comments and empty lines
+// 1c. Replace all %23 in IRIs by #
+// 2. Replace all whitespace (including newlines) by a single space
+// 3. Remove trailing full stops before closing braces
+// 4. Remove leading and trailing whitespac
+//
+//
+function normalizeQuery(query, escapeQuotes = false) {
+  return query.replace(/(<[^>]+)#/g, "$1%23")
+              .replace(/#.*\n/mg, " ")
+              .replace(/(<[^>]+)%23/g, "$1#")
+              .replace(/\s+/g, " ")
+              .replace(/\s*\.\s*}/g, " }")
+              .trim();
+}
+
 // Append the given runtime information for the given query to the runtime log.
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
 // query. See runtimeInfoForTreant in qleverUI.js.
-function appendRuntimeInformation(runtimeInformation, query) {
-  runtime_log[runtime_log.length] = runtimeInformation;
+function appendRuntimeInformation(runtime_info, query, time) {
+  // Backwards compatability hack in case the info on the execution tree is
+  // not in a separate "query_execution_tree" element yet.
+  if (runtime_info["query_execution_tree"] == undefined) {
+    console.log("BACKWARDS compatibility hack: adding runtime_info[\"query_execution_tree\"]");
+    runtime_info["query_execution_tree"] = structuredClone(runtime_info);
+    runtime_info["meta"] = { }
+  }
+
+  // Add query time to meta info.
+  runtime_info["meta"]["total_time_computing"] =
+    parseInt(time["computeResult"].toString().replace(/ms/, ""))
+  runtime_info["meta"]["total_time"] =
+    parseInt(time["total"].toString().replace(/ms/, ""))
+
+  // Append to log and shorten log if too long (FIFO).
+  runtime_log[runtime_log.length] = runtime_info;
   query_log[query_log.length] = query;
   if (runtime_log.length - 10 >= 0) {
     runtime_log[runtime_log.length - 10] = null;
@@ -25,17 +60,17 @@ function appendRuntimeInformation(runtimeInformation, query) {
   }
 }
 
-// Add "text" field to given runtime_info, for display using treant (in function
-// "visualise" in qleverUI.js). Works recursively by calling itself on each
-// child if any.
+// Add "text" field to given `tree_node`, for display using Treant.js (in
+// function `visualise` in `qleverUI.js`). This function call itself recursively
+// on each child of `tree_node` (if any).
 //
 // NOTE: The labels and the style can be found in backend/static/css/style.css .
-// The coloring of the boxes depending on the time and caching status is done in
-// function "visualise" in qleverUI.js .
-function runtimeInfoForTreant(runtime_info, parent_cached = false) {
-  if (runtime_info["text"] == undefined) {
+// The coloring of the boxes, which depends on the time and caching status, is
+// done in function `visualise` in `qleverUI.js`.
+function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cached = false) {
+  if (tree_node["text"] == undefined) {
     var text = {};
-    if (runtime_info["column_names"] == undefined) { runtime_info["column_names"] = ["not yet available"]; }
+    if (tree_node["column_names"] == undefined) { tree_node["column_names"] = ["not yet available"]; }
     // console.log("RUNTIME INFO:",runtime_info["description"])
     // Rewrite runtime info from QLever as follows:
     //
@@ -47,7 +82,7 @@ function runtimeInfoForTreant(runtime_info, parent_cached = false) {
     // 6. Replace hyphen in all caps by space (INDEX SCAN)
     // 7. Abbreviate long QLever-internal variable names
     //
-    text["name"] = runtime_info["description"]
+    text["name"] = tree_node["description"]
     .replace(/<[^>]*[#\/\.]([^>]*)>/g, "<$1>")
     .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); })
@@ -57,34 +92,40 @@ function runtimeInfoForTreant(runtime_info, parent_cached = false) {
     .replace(/AVAILABLE /, "").replace(/a all/, "all");
     // console.log("-> REWRITTEN TO:", text["name"])
 
-    text["status"] = formatInteger(runtime_info["status"]);
+    text["status"] = tree_node["status"];
     if (text["status"] == "completed") { delete text["status"]; }
-    text["cols"] = runtime_info["column_names"].join(", ")
+    text["cols"] = tree_node["column_names"].join(", ")
     .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
-    text["size"] = formatInteger(runtime_info["result_rows"]) + " x " + formatInteger(runtime_info["result_cols"])
-    text["size-estimate"] = "[~ " + formatInteger(runtime_info["estimated_size"]) + "]";
-    text["time"] = runtime_info["was_cached"]
-      ? runtime_info["original_operation_time"]
-      : runtime_info["operation_time"];
-    text["cost-estimate"] = "[~ " + formatInteger(runtime_info["estimated_operation_cost"]) + "]"
+    text["size"] = formatInteger(tree_node["result_rows"]) + " x " + formatInteger(tree_node["result_cols"])
+    text["size-estimate"] = "[~ " + formatInteger(tree_node["estimated_size"]) + "]";
+    text["cache-status"] = is_ancestor_cached
+      ? "ancestor_cached"
+      : tree_node["cache_status"]
+          ? tree_node["cache_status"]
+          : tree_node["was_cached"]
+              ? "cached_not_pinned"
+              : "computed";
+    text["time"] = tree_node["cache_status"] == "computed" || tree_node["was_cached"] == false
+      ? formatInteger(tree_node["operation_time"])
+      : formatInteger(tree_node["original_operation_time"]);
+    text["cost-estimate"] = "[~ " + formatInteger(tree_node["estimated_operation_cost"]) + "]"
     text["total"] = text["time"];
-    text["cached"] = parent_cached == true ? true : runtime_info["was_cached"];
-    // Save the original was_cached flag, before it's deleted, for use below.
-    for (var key in runtime_info) { if (key != "children") { delete runtime_info[key]; } }
-    runtime_info["text"] = text;
-    runtime_info["stackChildren"] = true;
 
-    // Recurse over all children, propagating the was_cached flag from the
-    // original runtime_info to all nodes in the subtree.
-    runtime_info["children"].map(child => runtimeInfoForTreant(child, text["cached"]));
-    // If result is cached, subtract time from children, to get the original
-    // operation time (instead of the original time for the whole subtree).
-    if (text["cached"]) {
-      runtime_info["children"].forEach(function (child) {
-        // text["time"] -= child["text"]["total"];
-      })
-    }
+    // Delete all other keys except "children" (we only needed them here to
+    // create a proper "text" element) and the "text" element.
+    for (var key in tree_node) { if (key != "children") { delete tree_node[key]; } }
+    tree_node["text"] = text;
+
+    // Check out https://fperucic.github.io/treant-js
+    // TODO: Do we still need / want this?
+    tree_node["stackChildren"] = true;
+
+    // Recurse over all children. Propagate "cached" status.
+    tree_node["children"].map(
+      child => addTextElementsToQueryExecutionTreeForTreant(
+        child,
+        is_ancestor_cached || text["cache-status"] != "computed"));
   }
 }
 
@@ -735,7 +776,9 @@ function displayError(response, statusWithText = undefined) {
   // TODO: Show items from error responses in different color (how about "red").
   if (response["query"] && response["runtimeInformation"]) {
     // console.log("DEBUG: Error response with runtime information found!");
-    appendRuntimeInformation(response.runtimeInformation, response.query);
+    appendRuntimeInformation(response.runtimeInformation,
+                             response.query,
+                             response.time);
   }
 }
 

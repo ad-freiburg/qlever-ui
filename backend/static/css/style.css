@@ -256,6 +256,9 @@ li.CodeMirror-hint-active {
 	color: #9a9a9a !important;
 }
 
+#meta-info p {
+  font-size: 80%;
+}
 
 /* required LIB STYLES */
 /* .Treant se automatski dodaje na svaki chart conatiner */
@@ -275,8 +278,8 @@ li.CodeMirror-hint-active {
   border-radius: 3px;
   background-color: #FEFEFE;
   border: 1px solid #000;
-  min-width: 20em;
-  max-width: 30em;
+  min-width: 25em;
+  max-width: 40em;
   font-size: 80%;
   color: black;
 }
@@ -289,6 +292,7 @@ li.CodeMirror-hint-active {
 #result-tree .node-status.child-failed { color: red; }
 #result-tree .node-status.not-started { color: blue; }
 #result-tree .node-status.optimized-out { color: blue; }
+#result-tree .node-status.complete-during-query-planning { color: blue; }
 #result-tree .node-cols:before { content: "Cols: "; }
 #result-tree .node-size:before { content: "Size: "; }
 #result-tree .node-size { display: inline; }
@@ -297,10 +301,13 @@ li.CodeMirror-hint-active {
 #result-tree .node-time { display: inline; }
 #result-tree .node-cost-estimate { display: inline; padding-left: 1em; }
 #result-tree .node-time:after { content: "ms"; }
-#result-tree div.cached .node-time:after { content: "ms [cached]"; }
+#result-tree div.cached-not-pinned .node-time:after { content: "ms [cached]"; }
+#result-tree div.cached-pinned .node-time:after { content: "ms [cached, pinned]"; }
+#result-tree div.ancestor-cached .node-time:after { content: "ms [ancestor cached]"; }
+#result-tree p.node-cache-status { display: none; }
+#result-tree .node.cached-pinned { color: grey; border: 1px solid grey; }
+#result-tree .node.cached-not-pinned { color: grey; border: 1px solid grey; }
 #result-tree .node-total { display: none; }
-#result-tree .node-cached { display: none; }
-#result-tree .node.cached { color: grey; border: 1px solid grey; }
 #result-tree .node.high { background-color: #FFF7F7; }
 #result-tree .node.veryhigh { background-color: #FFEEEE; }
 #result-tree .node.high.cached { background-color: #FFFFF7; }
