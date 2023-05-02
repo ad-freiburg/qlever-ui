@@ -223,6 +223,11 @@ async function enhanceQueryByNameTriples(query) {
     name_template="%ENTITY% rdfs:label %NAME%";
     predicate_exists_regex="rdfs:label";
     new_var_suffix="_label";
+  } else if (BASEURL.match(/api\/vvz$/)) {
+    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
+    name_template="%ENTITY% rdfs:label %NAME%";
+    predicate_exists_regex="rdfs:label";
+    new_var_suffix="_label";
   } else {
     return query;
   }
