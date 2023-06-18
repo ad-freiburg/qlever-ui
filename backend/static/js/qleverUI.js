@@ -129,7 +129,7 @@ $(document).ready(function () {
       return;
     }
     
-    if (token.string.match(/^[.`\w?<@]\w*$/)) {
+    if (token.string.match(new RegExp('^[.`\w?<@]\w*$'))) {
       string = token.string;
     }
     // do not suggest anything inside a word
@@ -422,7 +422,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     var nofRows = result.res.length;
     const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
     let resultSize = result.resultsize;
-    let limitMatch = result.query.match(/LIMIT\s+(\d+)\s*$/);
+    let limitMatch = result.query.match(/\bLIMIT\s+(\d+)\s*$/);
     if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
     let resultSizeString = tsep(resultSize.toString());
     $('#resultSize').html(resultSizeString);
@@ -446,19 +446,16 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // create "Map View" buttons.
     let mapViewButtonVanilla = '';
     let mapViewButtonPetri = '';
-    let mapViewButtonPetriPatrick = '';
     if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
       let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
       let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
-      let mapViewUrlPetriPatrick = 'http://qlever.cs.uni-freiburg.de/mapui-petri-patrick/?';
       let params = $.param({ query: normalizeQuery(query), backend: BASEURL });
       // var query_escaped = query.replace(/"/g, "\\\"");
       // console.log("QUERY:", `'${query}'`);
       // var query_escaped = encodeURIComponent(query);
       // mapViewButtonVanilla = `<form method="post" action="${mapViewUrlVanilla}" class="inline" target="_blank" ><input type="text" name="backend" value="${BASEURL}"><input type="text" name="query" value='PREFIX osm: <https://www.openstreetmap.org> SELECT * WHERE { ?s ?p ?o } LIMIT 10'><button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-map-marker"></i> Map view</button></form>`;
       mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-      mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view++</a>`;
-      mapViewButtonPetriPatrick = `<a class="btn btn-default" href="${mapViewUrlPetriPatrick}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view+++</a>`;
+      mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
     }
 
     // Show the buttons (if there are any).
@@ -468,17 +465,18 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // the Django configuration of the respective backend).
     var res = "<div id=\"res\">";
     if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-      if (BASEURL.match("osm-(germany|kenya|planet|test)")) {
-        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div>`;
+      if (BASEURL.match("wikidata|osm-")) {
+        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
+        // res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div>`;
       } else {
-        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla}</div>`;
+        // res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla}</div>`;
       }
     }
 
     // Optionally show links to other SPARQL endpoints.
     // NOTE: we want the *original* query here, as it appears in the editor,
     // without the QLever-specific rewrites (see above).
-    if (SLUG == "wikidata") {
+    if (SLUG.startsWith("wikidata")) {
       const queryEncoded = encodeURIComponent(original_query);
       wdqsUrl = "https://query.wikidata.org/";
       wdqsParams = "#" + queryEncoded;
@@ -489,6 +487,15 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
                                  "format": "text/html", "timeout": 0, "signal_void": "on"  });
       virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${wdqsButton}</div>`;
+      res += `<div class="pull-right">${virtuosoButton}</div>`;
+    }
+    if (SLUG.startsWith("dbpedia")) {
+      const queryEncoded = encodeURIComponent(original_query);
+      virtuosoUrl = "https://dbpedia.org/sparql?";
+      virtuosoParams = $.param({ "default-graph-uri": "http://dbpedia.org",
+                                 "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+                                 "format": "text/html", "timeout": 0, "signal_void": "on"  });
+      virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
 
@@ -652,10 +659,10 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
     var treant_chart = new Treant(treant_tree);
     $("p.node-time").
-    filter(function () { return $(this).html() >= high_query_time_ms }).
+    filter(function () { return $(this).html().replace(/,/g, "") >= high_query_time_ms }).
     parent().addClass("high");
     $("p.node-time").
-    filter(function () { return $(this).html() >= very_high_query_time_ms }).
+    filter(function () { return $(this).html().replace(/,/g, "") >= very_high_query_time_ms }).
     parent().addClass("veryhigh");
     $("p.node-cache-status").filter(function () { return $(this).html() === "cached_not_pinned" })
                             .parent().addClass("cached-not-pinned").addClass("cached");

@@ -308,7 +308,7 @@ li.CodeMirror-hint-active {
 #result-tree .node.cached-pinned { color: grey; border: 1px solid grey; }
 #result-tree .node.cached-not-pinned { color: grey; border: 1px solid grey; }
 #result-tree .node-total { display: none; }
-#result-tree .node.high { background-color: #FFF7F7; }
-#result-tree .node.veryhigh { background-color: #FFEEEE; }
-#result-tree .node.high.cached { background-color: #FFFFF7; }
-#result-tree .node.veryhigh.cached { background-color: #FFFFEE; }
+#result-tree .node.high { background-color: #FFEEEE; }
+#result-tree .node.veryhigh { background-color: #FFCCCC; }
+#result-tree .node.high.cached { background-color: #FFFFEE; }
+#result-tree .node.veryhigh.cached { background-color: #FFFFCC; }

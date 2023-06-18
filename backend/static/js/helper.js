@@ -898,11 +898,12 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   // the column header.
   var var_name = $($("#resTable").find("th")[column + 1]).html();
   // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
-  if (var_name == "?note" || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
+  if (var_name.endsWith("?note") || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
+  if (var_name.endsWith("_per_paper")) str = parseFloat(str).toFixed(2).toString();
   if (var_name.endsWith("_perc") || var_name.endsWith("percent")) str = parseFloat(str).toFixed(2).toString();
-  if (var_name == "?lp_proz") str = parseFloat(str).toFixed(0).toString();
-  if (var_name == "?gesamt_score") str = parseFloat(str).toFixed(1).toString();
-  if (var_name == "?lehrpreis") str = parseFloat(str).toFixed(0).toString();
+  if (var_name.endsWith("?lp_proz")) str = parseFloat(str).toFixed(0).toString();
+  if (var_name.endsWith("?gesamt_score") || var_name.endsWith("?imdb_rating")) str = parseFloat(str).toFixed(1).toString();
+  if (var_name.endsWith("?lehrpreis")) str = parseFloat(str).toFixed(0).toString();
 
   pos = cpy.lastIndexOf("^^")
   pos_http = cpy.indexOf("http");
@@ -930,8 +931,10 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
     const typeIsInteger = link.endsWith("int") || link.endsWith("integer");
     const typeIsDecimalButNumberIsInteger = link.endsWith("decimal") && str.match(/^\d+$/);
     if (typeIsInteger || typeIsDecimalButNumberIsInteger) {
-      str = formatInteger(str);
-      rightAlign = true;
+      if (!var_name.endsWith("year")) {
+        str = formatInteger(str);
+        rightAlign = true;
+      }
     }
 
   // For IRIs that start with http display the item depending on the link type.
