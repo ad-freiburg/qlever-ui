@@ -1,10 +1,12 @@
 *.pyc
 *.tmp
+*.swp
 qlever/settings_secret.py
 backend/static/admin/
 django.log
 .vscode
 venv
 db/qleverui.sqlite3
+db/qleverui.sqlite3.BACKUP*
 backend/static/js/qleverUI.js
 .DS_Store
