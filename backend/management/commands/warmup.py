@@ -133,7 +133,7 @@ class Command(BaseCommand):
              "Predicates names aliases score, without prefix (only wdt: and schema:about)"),
             (self.backend.warmupQuery5,
              "Predicates names aliases score, with prefix (all predicates)"),
-        )
+            ]
 
         # pin warmup queries
         for warmup, headline in warmups:
