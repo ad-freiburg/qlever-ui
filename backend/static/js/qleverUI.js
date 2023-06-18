@@ -434,7 +434,6 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
 
     // If more than predefined number of results, create "Show all" button
     // (onclick action defined further down). 
-    //
     let showAllButton = "";
     if (nofRows < parseInt(resultSize)) {
       showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
@@ -469,7 +468,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
         // res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div>`;
       } else {
-        // res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla}</div>`;
+        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;
       }
     }
 
