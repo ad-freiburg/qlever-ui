@@ -121,7 +121,8 @@ class Command(BaseCommand):
     def pin(self):
         prefixString = self._getPrefixString()
 
-        warmups = (
+        # Standard warmup queries.
+        warmups = [
             (self.backend.warmupQuery1,
              "Entities names aliases score, ordered by score, full result for Subject AC query with empty prefix"),
             (self.backend.warmupQuery2,
@@ -152,13 +153,13 @@ class Command(BaseCommand):
                 continue
             self.log(" ")
             self.log(f"Pin: {predicate} ordered by subject", format="bold")
-            query = f"SELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?x"
+            query = f"SELECT ?x ?y WHERE {{ ?x {predicate} ?y }} INTERNAL SORT BY ?x"
             self.log(query)
             self._pinQuery(f"{prefixString}\n{query}")
 
             self.log(" ")
             self.log(f"Pin: {predicate} ordered by object", format="bold")
-            query = f"SELECT ?x ?y WHERE {{ ?x {predicate} ?y }} ORDER BY ?y"
+            query = f"SELECT ?x ?y WHERE {{ ?x {predicate} ?y }} INTERNAL SORT BY ?y"
             self.log(query)
             self._pinQuery(f"{prefixString}\n{query}")
 
@@ -168,7 +169,7 @@ class Command(BaseCommand):
                 continue
             self.log(" ")
             self.log(f"Pin: {pattern} ordered by subject only", format="bold")
-            query = f"SELECT ?x ?y WHERE {{ ?x {pattern} ?y }} ORDER BY ?x"
+            query = f"SELECT ?x ?y WHERE {{ ?x {pattern} ?y }} INTERNAL SORT BY ?x"
             self.log(query)
             self._pinQuery(f"{prefixString}\n{query}")
 
