@@ -8,6 +8,7 @@ from django.shortcuts import render
 
 from .models import *
 from backend.management.commands.warmup import Command as WarmupCommand
+from backend.management.commands.examples import Command as ExamplesCommand
 
 import json
 import urllib
@@ -122,6 +123,7 @@ def shareLink(request):
         return redirect('/')
 
 
+# Handle "warmup" request.
 def warmup(request, backend, target):
     token = request.GET.get("token")
     backends = Backend.objects.filter(slug=backend)
@@ -143,12 +145,24 @@ def warmup(request, backend, target):
     except Exception as e:
         return JsonResponse({"status":"error", "message": str(e)})
     return JsonResponse({"status":"ok", "log": log})
+
+# Handle "examples" request, for example:
 #
+# With the URL https://qlever.cs.uni-freiburg.de/api/examples/wikidata
+#
+# this function is called with backend = "wikidata".
+def examples(request, backend):
+    print_to_log(f"Call of \"examples\" in views.py with backend = \"{backend}\"")
+    command = ExamplesCommand()
+    try:
+        tsv = command.handle(returnLog=True, slug=[backend])
+    except Exception as e:
+        return HttpResponse("Error: " + str(e), status=500)
+    return HttpResponse(tsv, content_type="text/tab-separated-values")
+
+
 # Helpers
-#
-
-
-def log(msg, output=print):
+def print_to_log(msg, output=print):
     """
         Helper to log things that happen during the process
     """

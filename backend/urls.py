@@ -9,4 +9,5 @@ urlpatterns = [
         name='index'),
     re_path(r'^api/share$', views.shareLink, name='shareLink'),
     re_path(r'^api/warmup/(?P<backend>[^/]+)/(?P<target>[a-zA-Z0-9_-]+)$', views.warmup, name='warmup'),
+    re_path(r'^api/examples/(?P<backend>[^/]+)$', views.examples, name='examples'),
 ]
