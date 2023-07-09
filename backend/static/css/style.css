@@ -286,13 +286,13 @@ li.CodeMirror-hint-active {
 
 #result-tree .node > p { margin: 0; white-space: nowrap; }
 #result-tree .node-name { font-weight: bold; }
+/* #result-tree .node-status { font-size: 80%; color: blue; } */
 #result-tree .node-status:before { content: "Status: " }
-/* #result-tree .node-status { font-size: 90%; } */
 #result-tree .node-status.failed { font-weight: bold; color: red; }
 #result-tree .node-status.child-failed { color: red; }
 #result-tree .node-status.not-started { color: blue; }
 #result-tree .node-status.optimized-out { color: blue; }
-#result-tree .node-status.complete-during-query-planning { color: blue; }
+#result-tree .node-status.lazily-materialized { color: blue; }
 #result-tree .node-cols:before { content: "Cols: "; }
 #result-tree .node-size:before { content: "Size: "; }
 #result-tree .node-size { display: inline; }
@@ -301,6 +301,8 @@ li.CodeMirror-hint-active {
 #result-tree .node-time { display: inline; }
 #result-tree .node-cost-estimate { display: inline; padding-left: 1em; }
 #result-tree .node-time:after { content: "ms"; }
+#result-tree .node-details { display: none; color: blue; }
+#result-tree .node-details:before { content: "Details: " }
 #result-tree div.cached-not-pinned .node-time:after { content: "ms [cached]"; }
 #result-tree div.cached-pinned .node-time:after { content: "ms [cached, pinned]"; }
 #result-tree div.ancestor-cached .node-time:after { content: "ms [ancestor cached]"; }

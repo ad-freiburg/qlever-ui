@@ -657,6 +657,14 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       nodeStructure: runtime_info["query_execution_tree"]
     }
     var treant_chart = new Treant(treant_tree);
+
+    // For each node, on mouseover show the details.
+    $("div.node").hover(function () {
+      $(this).children(".node-details").show();
+    }, function () {
+      $(this).children(".node-details").hide();
+    });
+
     $("p.node-time").
     filter(function () { return $(this).html().replace(/,/g, "") >= high_query_time_ms }).
     parent().addClass("high");
@@ -669,12 +677,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
                             .parent().addClass("cached-pinned").addClass("cached");
     $("p.node-cache-status").filter(function () { return $(this).html() === "ancestor_cached" })
                             .parent().addClass("ancestor-cached").addClass("cached");
-    $("p.node-status").filter(function() { return $(this).text() === "completed"}).addClass("completed");
+    $("p.node-status").filter(function() { return $(this).text() === "fully materialized"}).addClass("fully-materialized");
+    $("p.node-status").filter(function() { return $(this).text() === "lazily materialized"}).addClass("lazily-materialized");
     $("p.node-status").filter(function() { return $(this).text() === "failed"}).addClass("failed");
     $("p.node-status").filter(function() { return $(this).text() === "failed because child failed"}).addClass("child-failed");
     $("p.node-status").filter(function() { return $(this).text() === "not started"}).addClass("not-started");
     $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
-    $("p.node-status").filter(function() { return $(this).text() === "completed during query planning"}).addClass("completed-during-query-planning");
     
     if ($('#logRequests').is(':checked')) {
       select = "";
