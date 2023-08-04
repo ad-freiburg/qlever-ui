@@ -7,6 +7,7 @@ Author: Hannah Bast <bast@cs.uni-freiburg.de>
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 # from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -64,14 +65,15 @@ class QleverUiTester:
         options = Options()
         if self.headless:
             log.info("Running in \x1b[1mheadless\x1b[0m mode")
-            options.headless = True
+            options.add_argument("-headless")
         else:
             log.info("Not headless, rerun with --headless to activate")
         log.info("Initializing webdriver ...")
+        # options.binary = FirefoxBinary("/usr/bin/firefox")
         self.driver = webdriver.Firefox(options=options)
         # self.driver = webdriver.Chrome(options=options)
-        self.driver.set_window_position(100, 0)
-        self.driver.set_window_size(1400, 600)
+        # self.driver.set_window_position(100, 0)
+        # self.driver.set_window_size(1400, 600)
 
     def done(self):
         """
