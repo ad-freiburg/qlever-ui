@@ -30,7 +30,7 @@ jobs:
         run: sudo docker build -t qlever-ui ${{github.workspace}}
 
       - name: Run docker image for QLever UI
-        run: docker run -it -d -v $(pwd)/db:/app/db --name qlever-ui qlever-ui
+        run: docker run -it -d -p 7000:7000 -v $(pwd)/db:/app/db --name qlever-ui qlever-ui
 
       - name: Test the QLever UI using Selenium
         run: python3 end2end-test.py --url http://localhost:7000
