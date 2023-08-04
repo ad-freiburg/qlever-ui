@@ -1,0 +1,136 @@
+#!/usr/bin/python3
+"""
+Copyright 2023, University of Freiburg,
+Chair of Algorithms and Data Structures
+Author: Hannah Bast <bast@cs.uni-freiburg.de>
+"""
+
+import selenium
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support import expected_conditions as EC
+
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+
+import argparse
+import logging
+import sys
+import re
+
+
+# Global log with custom formatter, inspired by several posts on Stackoverflow.
+class MyFormatter(logging.Formatter):
+    def __init__(self):
+        super().__init__(datefmt="%Y-%m-%d %H:%M:%S")
+    def format(self, record):
+        format_orig = self._style._fmt
+        fmt_begin, fmt_end = "", ""
+        if record.levelno == logging.ERROR:
+            fmt_begin, fmt_end = "\x1b[31m", "\x1b[0m"
+        elif record.levelno == logging.WARN:
+            fmt_begin, fmt_end = "\x1b[35m", "\x1b[0m"
+        fmt = "%(asctime)s.%(msecs)03d %(levelname)-5s %(message)s"
+        self._style._fmt = fmt_begin + fmt + fmt_end
+        result = logging.Formatter.format(self, record)
+        self._style._fmt = format_orig
+        return result
+
+log = logging.getLogger("e2e test logger")
+log.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(MyFormatter())
+# handler.setFormatter(logging.Formatter(
+#      "%(asctime)s.%(msecs)03d %(levelname)-5s %(message)s", "%Y-%m-%d %H:%M:%S"))
+log.addHandler(handler)
+
+class QleverUiTester:
+    """
+    Class or testing the Qlever UI.
+
+    NOTE: The basic structure of this code is taken from
+    https://github.com/ad-freiburg/hisinone-scraper
+    """
+
+    def __init__(self, headless, url, num_retries):
+        """
+        Basic settings and open the browser window (using Firefox).
+        """
+
+        self.url = url
+        self.timeout_loading = 5
+        self.num_retries = num_retries
+        self.headless = headless
+        options = Options()
+        if headless == True:
+            options.headless = True
+        self.driver = webdriver.Firefox(options=options)
+        self.driver.set_window_position(100, 0)
+        self.driver.set_window_size(1400, 600)
+
+    def done(self):
+        """
+        Close the browser window if it's still there.
+        """
+
+        try:
+            self.driver.close()
+        except:
+            pass
+
+    def test(self):
+        """
+        Some basic tests to check if the UI is working.
+        """
+
+        for i in range(self.num_retries):
+            try:
+                self.driver.get(self.url)
+                WebDriverWait(self.driver, self.timeout_loading).until(
+                      EC.presence_of_element_located((By.ID, "query")))
+            except:
+                if i < self.num_retries - 1:
+                    log.info("Loading page failed, retrying...")
+                else:
+                    log.error("Aborting after %d retries." % self.num_retries)
+                    self.done()
+                    sys.exit(1)
+
+
+if __name__ == "__main__":
+
+    # Setup parser and basic usage information.
+    parser = MyArgumentParser(
+            epilog="Example invocation: python3 hisinone-scraper",
+            formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # Command line arguments.
+    parser.add_argument(
+            "--headless", dest="headless", action="store_true",
+            default="False", help="Run browser in headless mode (default: no)")
+    parser.add_argument(
+            "--url", dest="url", type=str,
+            default="https://qlever.cs.uni-freiburg.de",
+            help="The URL of the QLever UI (may redirect)")
+    parser.add_argument(
+            "--num-retries", dest="num_retries", type=int, default=5,
+            help="Number of retries for loading a page")
+    parser.add_argument(
+            "--log-level", dest="log_level", type=str,
+            choices=["INFO", "DEBUG", "ERROR"], default="INFO",
+            help="Log level (INFO, DEBUG, ERROR)")
+    args = parser.parse_args(sys.argv[1:])
+
+    # Set log level and show it.
+    log.setLevel(eval("logging.%s" % args.log_level))
+    print()
+    log.info("Log level is \x1b[1m%s\x1b[0m" % args.log_level)
+    log.info("Headless is \x1b[1m%s\x1b[0m" % args.headless)
+
+    # Test the QLever UI.
+    qleverui_tester = QleverUiTester(args.headless, args.url, args.num_retries)
+    qleverui_tester.test()
+    qleverui_tester.done()
