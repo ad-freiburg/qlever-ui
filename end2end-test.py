@@ -97,10 +97,11 @@ class QleverUiTester:
                       EC.presence_of_element_located((By.ID, "query")))
                 log.info(f"Page {self.url} loaded successfully")
                 break
-            except Exception:
+            except Exception as e:
                 if i < self.num_retries - 1:
                     log.info(f"Loading page failed"
-                             f" (attempt {i + 1} of {self.num_retries})"
+                             f" (attempt {i + 1} of {self.num_retries}"
+                             f", error: \"{str(e)}\")"
                              f", trying again ...")
                 else:
                     log.error("Aborting after %d retries." % self.num_retries)
