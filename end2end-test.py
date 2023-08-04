@@ -5,27 +5,24 @@ Chair of Algorithms and Data Structures
 Author: Hannah Bast <bast@cs.uni-freiburg.de>
 """
 
-import selenium
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+# from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
 
 import argparse
 import logging
 import sys
-import re
 
 
 # Global log with custom formatter, inspired by several posts on Stackoverflow.
 class MyFormatter(logging.Formatter):
     def __init__(self):
         super().__init__(datefmt="%Y-%m-%d %H:%M:%S")
+
     def format(self, record):
         format_orig = self._style._fmt
         fmt_begin, fmt_end = "", ""
@@ -39,13 +36,13 @@ class MyFormatter(logging.Formatter):
         self._style._fmt = format_orig
         return result
 
+
 log = logging.getLogger("e2e test logger")
 log.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setFormatter(MyFormatter())
-# handler.setFormatter(logging.Formatter(
-#      "%(asctime)s.%(msecs)03d %(levelname)-5s %(message)s", "%Y-%m-%d %H:%M:%S"))
 log.addHandler(handler)
+
 
 class QleverUiTester:
     """
@@ -57,17 +54,22 @@ class QleverUiTester:
 
     def __init__(self, headless, url, num_retries):
         """
-        Basic settings and open the browser window (using Firefox).
+        Basic settings and open the browser window.
         """
 
-        self.url = url
-        self.timeout_loading = 5
-        self.num_retries = num_retries
         self.headless = headless
+        self.url = url
+        self.num_retries = num_retries
+        self.timeout_loading = 5
         options = Options()
-        if headless == True:
+        if self.headless:
+            log.info("Running in \x1b[1mheadless\x1b[0m mode")
             options.headless = True
+        else:
+            log.info("Not headless, rerun with --headless to activate")
+        log.info("Initializing webdriver ...")
         self.driver = webdriver.Firefox(options=options)
+        # self.driver = webdriver.Chrome(options=options)
         self.driver.set_window_position(100, 0)
         self.driver.set_window_size(1400, 600)
 
@@ -78,7 +80,7 @@ class QleverUiTester:
 
         try:
             self.driver.close()
-        except:
+        except Exception:
             pass
 
     def test(self):
@@ -91,13 +93,29 @@ class QleverUiTester:
                 self.driver.get(self.url)
                 WebDriverWait(self.driver, self.timeout_loading).until(
                       EC.presence_of_element_located((By.ID, "query")))
-            except:
+                log.info(f"Page {self.url} loaded successfully")
+                break
+            except Exception:
                 if i < self.num_retries - 1:
-                    log.info("Loading page failed, retrying...")
+                    log.info(f"Loading page failed"
+                             f" (attempt {i + 1} of {self.num_retries})"
+                             f", trying again ...")
                 else:
                     log.error("Aborting after %d retries." % self.num_retries)
                     self.done()
                     sys.exit(1)
+
+
+class MyArgumentParser(argparse.ArgumentParser):
+    """
+    Override the error message so that it prints the full help text if the
+    script is called without arguments or with a wrong argument.
+    """
+
+    def error(self, message):
+        print("ArgumentParser: %s\n" % message)
+        self.print_help()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
@@ -109,8 +127,8 @@ if __name__ == "__main__":
 
     # Command line arguments.
     parser.add_argument(
-            "--headless", dest="headless", action="store_true",
-            default="False", help="Run browser in headless mode (default: no)")
+            "--not-headless", dest="not_headless", action="store_true",
+            help="Run browser in headful mode (default: headless mode)")
     parser.add_argument(
             "--url", dest="url", type=str,
             default="https://qlever.cs.uni-freiburg.de",
@@ -128,9 +146,9 @@ if __name__ == "__main__":
     log.setLevel(eval("logging.%s" % args.log_level))
     print()
     log.info("Log level is \x1b[1m%s\x1b[0m" % args.log_level)
-    log.info("Headless is \x1b[1m%s\x1b[0m" % args.headless)
 
     # Test the QLever UI.
-    qleverui_tester = QleverUiTester(args.headless, args.url, args.num_retries)
+    qleverui_tester = QleverUiTester(
+            not args.not_headless, args.url, args.num_retries)
     qleverui_tester.test()
     qleverui_tester.done()
