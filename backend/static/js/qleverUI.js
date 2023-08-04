@@ -483,9 +483,17 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
       virtuosoParams = $.param({ "default-graph-uri": "http://www.wikidata.org/",
                                  "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-                                 "format": "text/html", "timeout": 0, "signal_void": "on"  });
+                                 "format": "text/html", "timeout": 0, "signal_void": "on" });
       virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${wdqsButton}</div>`;
+      res += `<div class="pull-right">${virtuosoButton}</div>`;
+    }
+    if (SLUG.startsWith("uniprot")) {
+      const queryEncoded = encodeURIComponent(original_query);
+      virtuosoUrl = "http://sparql.uniprot.org/sparql?";
+      virtuosoParams = $.param({ "qtxt": original_query,
+                                 "format": "text/html", "timeout": 0, "signal_void": "on" });
+      virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
     if (SLUG.startsWith("dbpedia")) {
