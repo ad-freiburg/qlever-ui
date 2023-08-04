@@ -27,7 +27,7 @@ jobs:
       - name: Docker build and run
         run: |
           sudo docker build -t qlever-ui ${{github.workspace}}
-          docker run --it -d -v $(pwd)/db:/app/db --name qlever-ui qlever-ui
+          docker run -it -d -v $(pwd)/db:/app/db --name qlever-ui qlever-ui
 
       - name: End-to-end test
         run: |
