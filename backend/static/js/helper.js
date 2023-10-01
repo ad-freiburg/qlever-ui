@@ -440,17 +440,20 @@ function rewriteQueryNoAsyncPart(query) {
 
   // HACK 1: Rewrite FILTER CONTAINS(?title, "info* retr*") using
   // ql:contains-entity and ql:contains-word.
-  var num_rewrites_filter_contains = 0;
-  var m_var = "?qlm_";
-  var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
-  while (query_rewritten.match(filter_contains_re)) {
-    query_rewritten = query_rewritten.replace(filter_contains_re,
-         m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
-    m_var = m_var + "i";
-    num_rewrites_filter_contains += 1;
-  }
-  if (num_rewrites_filter_contains > 0) {
-    console.log("Rewrote query with \"FILTER CONTAINS\"");
+  const rewriteFilterContains = false;
+  if (rewriteFilterContains) {
+    var num_rewrites_filter_contains = 0;
+    var m_var = "?qlm_";
+    var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
+    while (query_rewritten.match(filter_contains_re)) {
+      query_rewritten = query_rewritten.replace(filter_contains_re,
+           m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
+      m_var = m_var + "i";
+      num_rewrites_filter_contains += 1;
+    }
+    if (num_rewrites_filter_contains > 0) {
+      console.log("Rewrote query with \"FILTER CONTAINS\"");
+    }
   }
 
   // HACK 2: Rewrite query to use ql:has-predicate if it fits a certain pattern
