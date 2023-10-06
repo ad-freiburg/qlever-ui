@@ -418,6 +418,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
           updateTimeStamp: Date.now()
         }
       );
+      visualise(false);
     }
   };
   ws.onerror = () => {
@@ -657,8 +658,10 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     });
   }
   
-  function visualise(number) {
-    $("#visualisation").modal("show");
+  function visualise(show, number) {
+    if (show) {
+      $("#visualisation").modal("show");
+    }
 
     // Get the right entries from the runtime log.
     runtime_log_index = number ? number - 1 : runtime_log.length - 1;
@@ -728,7 +731,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     if ($('#logRequests').is(':checked')) {
       select = "";
       for (var i = runtime_log.length; i > runtime_log.length - 10 && i > 0; i--) {
-        select = '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="visualise(' + i + ')">[' + i + ']</a></li>' + select;
+        select = '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="visualise(true, ' + i + ')">[' + i + ']</a></li>' + select;
       }
       select = '<ul class="pagination">' + select + '</ul>';
       $('#lastQueries').html(select);
