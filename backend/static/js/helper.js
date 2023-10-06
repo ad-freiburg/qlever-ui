@@ -36,28 +36,36 @@ function normalizeQuery(query, escapeQuotes = false) {
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
 // query. See runtimeInfoForTreant in qleverUI.js.
-function appendRuntimeInformation(runtime_info, query, time) {
+function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   // Backwards compatability hack in case the info on the execution tree is
   // not in a separate "query_execution_tree" element yet.
   if (runtime_info["query_execution_tree"] == undefined) {
     console.log("BACKWARDS compatibility hack: adding runtime_info[\"query_execution_tree\"]");
     runtime_info["query_execution_tree"] = structuredClone(runtime_info);
-    runtime_info["meta"] = { }
+    runtime_info["meta"] = {};
   }
 
   // Add query time to meta info.
   runtime_info["meta"]["total_time_computing"] =
-    parseInt(time["computeResult"].toString().replace(/ms/, ""))
+    parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
   runtime_info["meta"]["total_time"] =
-    parseInt(time["total"].toString().replace(/ms/, ""))
+    parseInt(time["total"].toString().replace(/ms/, ""), 10);
 
-  // Append to log and shorten log if too long (FIFO).
-  runtime_log[runtime_log.length] = runtime_info;
-  query_log[query_log.length] = query;
-  if (runtime_log.length - 10 >= 0) {
-    runtime_log[runtime_log.length - 10] = null;
-    query_log[query_log.length - 10] = null;
+  if (queryUpdate.queryId === lastQueryUpdate.queryId) {
+    if (queryUpdate.updateTimeStamp > lastQueryUpdate.updateTimeStamp) {
+      runtime_log[runtime_log.length - 1] = runtime_info;
+      query_log[query_log.length - 1] = query;
+    }
+  } else {
+    // Append to log and shorten log if too long (FIFO).
+    runtime_log[runtime_log.length] = runtime_info;
+    query_log[query_log.length] = query;
+    if (runtime_log.length - 10 >= 0) {
+      runtime_log[runtime_log.length - 10] = null;
+      query_log[query_log.length - 10] = null;
+    }
   }
+  lastQueryUpdate = queryUpdate;
 }
 
 // Add "text" field to given `tree_node`, for display using Treant.js (in
@@ -744,7 +752,7 @@ function expandEditor() {
   }
 }
 
-function displayError(response, statusWithText = undefined) {
+function displayError(queryId, response, statusWithText = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
     response["exception"] = "Unknown error";
@@ -787,7 +795,8 @@ function displayError(response, statusWithText = undefined) {
     // console.log("DEBUG: Error response with runtime information found!");
     appendRuntimeInformation(response.runtimeInformation,
                              response.query,
-                             response.time);
+                             response.time,
+                             { queryId, updateTimeStamp: Date.now() });
   }
 }
 

@@ -8,6 +8,7 @@ var high_query_time_ms = 100;
 var very_high_query_time_ms = 1000;
 var runtime_log = [];
 var query_log = [];
+var lastQueryUpdate = { queryId: null, updateTimeStamp: 0 };
 
 $(window).resize(function (e) {
   if (e.target == window) {
@@ -392,12 +393,43 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     params["cmd"] = "clear-cache";
     nothingToShow = true;
   }
+  const queryId = crypto.randomUUID();
+  const ws = new WebSocket(`${BASEURL.replaceAll(/^http/g, "ws")}/watch/${queryId}`);
+  const startTimeStamp = Date.now();
+  ws.onopen = () => {
+    log("Waiting for live updates", "other");
+  };
+  ws.onmessage = (message) => {
+    if (typeof message.data !== "string") {
+      log("Unexpected message format", "other");
+    } else {
+      appendRuntimeInformation(
+        {
+          query_execution_tree: JSON.parse(message.data),
+          meta: {}
+        },
+        params["query"],
+        {
+          computeResult: Date.now() - startTimeStamp,
+          total: Date.now() - startTimeStamp
+        },
+        {
+          queryId,
+          updateTimeStamp: Date.now()
+        }
+      );
+    }
+  };
+  ws.onerror = () => {
+    log("Live updates not supported", "other");
+  };
   $.ajax({ method: "POST",
            url: BASEURL,
            data: $.param(params),
            headers: {
              "Content-type": "application/x-www-form-urlencoded",
-             "Accept": "application/qlever-results+json"
+             "Accept": "application/qlever-results+json",
+             "Query-Id": queryId,
            },
            success: function (result) {
     log('Evaluating and displaying results...', 'other');
@@ -411,7 +443,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       return;
     }
 
-    if (result.status == "ERROR") { displayError(result); return; }
+    if (result.status == "ERROR") { displayError(queryId, result); return; }
     if (result["warnings"].length > 0) { displayWarning(result); }
 
     // Show some statistics (on top of the table).
@@ -567,7 +599,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         scrollTop: $("#resTable").scrollTop() + 500
       }, 500);
       
-      appendRuntimeInformation(result.runtimeInformation, result.query, result.time);
+      // MAX_VALUE ensures this always has priority over the websocket updates
+      appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
     }})
     .fail(function (jqXHR, textStatus, errorThrown) {
       $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
@@ -586,7 +619,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       }
       var statusWithText = jqXHR.status && jqXHR.statusText
           ? (jqXHR.status + " (" + jqXHR.statusText + ")") : undefined;
-      displayError(jqXHR.responseJSON, statusWithText);
+      displayError(queryId, jqXHR.responseJSON, statusWithText);
     });
     
   }
