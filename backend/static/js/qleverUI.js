@@ -396,6 +396,22 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   const queryId = crypto.randomUUID();
   const ws = new WebSocket(`${BASEURL.replaceAll(/^http/g, "ws")}/watch/${queryId}`);
   const startTimeStamp = Date.now();
+  
+  appendRuntimeInformation(
+    {
+      query_execution_tree: null,
+      meta: {}
+    },
+    params["query"],
+    {
+      computeResult: "0ms",
+      total: `${Date.now() - startTimeStamp}ms`
+    },
+    {
+      queryId,
+      updateTimeStamp: startTimeStamp
+    }
+  );
   ws.onopen = () => {
     log("Waiting for live updates", "other");
   };
@@ -665,10 +681,23 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       $("#visualisation").modal("show");
     }
 
+    if (runtime_log.length === 0) {
+      return;
+    }
+
     // Get the right entries from the runtime log.
     runtime_log_index = number ? number - 1 : runtime_log.length - 1;
     let runtime_info = runtime_log[runtime_log_index];
     let resultQuery = query_log[runtime_log_index];
+    
+    if (runtime_info["query_execution_tree"] === null) {
+      document.querySelector("#result-query").innerText = "";
+      document.querySelector("#meta-info").innerText = "";
+      const element = document.querySelector("#result-tree");
+      element.innerText = "Waiting for query...";
+      element.style.color = "green";
+      return;
+    }
 
     // Show meta information (if it exists).
     const meta_info = runtime_info["meta"]

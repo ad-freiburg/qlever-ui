@@ -39,7 +39,7 @@ function normalizeQuery(query, escapeQuotes = false) {
 function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   // Backwards compatability hack in case the info on the execution tree is
   // not in a separate "query_execution_tree" element yet.
-  if (runtime_info["query_execution_tree"] == undefined) {
+  if (runtime_info["query_execution_tree"] === undefined) {
     console.log("BACKWARDS compatibility hack: adding runtime_info[\"query_execution_tree\"]");
     runtime_info["query_execution_tree"] = structuredClone(runtime_info);
     runtime_info["meta"] = {};
