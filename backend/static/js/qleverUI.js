@@ -403,15 +403,16 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     if (typeof message.data !== "string") {
       log("Unexpected message format", "other");
     } else {
+      const payload = JSON.parse(message.data);
       appendRuntimeInformation(
         {
-          query_execution_tree: JSON.parse(message.data),
+          query_execution_tree: payload,
           meta: {}
         },
         params["query"],
         {
-          computeResult: Date.now() - startTimeStamp,
-          total: Date.now() - startTimeStamp
+          computeResult: `${payload["total_time"] || (Date.now() - startTimeStamp)}ms`,
+          total: `${Date.now() - startTimeStamp}ms`
         },
         {
           queryId,
@@ -602,6 +603,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       
       // MAX_VALUE ensures this always has priority over the websocket updates
       appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
+      visualise(false);
     }})
     .fail(function (jqXHR, textStatus, errorThrown) {
       $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');

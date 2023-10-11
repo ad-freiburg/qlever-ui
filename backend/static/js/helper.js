@@ -55,6 +55,8 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
     if (queryUpdate.updateTimeStamp > lastQueryUpdate.updateTimeStamp) {
       runtime_log[runtime_log.length - 1] = runtime_info;
       query_log[query_log.length - 1] = query;
+    } else {
+      return;
     }
   } else {
     // Append to log and shorten log if too long (FIFO).
