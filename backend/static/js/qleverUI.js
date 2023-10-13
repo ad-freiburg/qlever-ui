@@ -706,20 +706,21 @@ function handleStatsDisplay() {
 }
 
 // Shows the modal containing the current runtime information tree
-function showQueryPlanningTree() {
+// calls renderRuntimeInformationToDom() afterwards to render it.
+function showQueryPlanningTree(number = undefined) {
   $("#visualisation").modal("show");
+  renderRuntimeInformationToDom(number);
 }
 
 // Uses the information inside of runtime_log and query_log
 // to populate the DOM with the current runtime information.
-// Use showQueryPlanningTree() to display it to the user.
-function renderRuntimeInformationToDom(number) {
+function renderRuntimeInformationToDom(number = undefined) {
   if (runtime_log.length === 0) {
     return;
   }
 
   // Get the right entries from the runtime log.
-  let runtime_log_index = number || runtime_log.length - 1;
+  let runtime_log_index = number !== undefined ? number : runtime_log.length - 1;
   let runtime_info = runtime_log[runtime_log_index];
   let resultQuery = query_log[runtime_log_index];
   
@@ -796,10 +797,7 @@ function renderRuntimeInformationToDom(number) {
         href: "#",
         text: `[${i}]`
       });
-      link.on("click", () => {
-        renderRuntimeInformationToDom(i);
-        showQueryPlanningTree();
-      });
+      link.on("click", () => showQueryPlanningTree(i));
       queryHistoryList.append($("<li/>", {
         class: "page-item",
         append: link

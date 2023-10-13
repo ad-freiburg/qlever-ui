@@ -59,12 +59,12 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
     query_log[query_log.length - 1] = query;
   } else {
     // Append to log and shorten log if too long (FIFO).
-    runtime_log[runtime_log.length] = runtime_info;
-    query_log[query_log.length] = query;
     if (runtime_log.length - 10 >= 0) {
       runtime_log[runtime_log.length - 10] = null;
       query_log[query_log.length - 10] = null;
     }
+    runtime_log[runtime_log.length] = runtime_info;
+    query_log[query_log.length] = query;
   }
   lastQueryUpdate = queryUpdate;
 }
