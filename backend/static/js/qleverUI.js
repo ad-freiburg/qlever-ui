@@ -10,6 +10,16 @@ var runtime_log = [];
 var query_log = [];
 var lastQueryUpdate = { queryId: null, updateTimeStamp: 0 };
 
+function generateQueryId() {
+  if (window.isSecureContext) {
+    return crypto.randomUUID();
+  }
+  log("WARNING: Site is not served in secure context. " +
+      "Falling back to Math.random() for random value generation. " +
+      "Make sure this is not happening in production.", "other")
+  return Math.floor(Math.random() * 1000000000);
+}
+
 $(window).resize(function (e) {
   if (e.target == window) {
     editor.setSize($('#queryBlock').width());
@@ -392,7 +402,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     params["cmd"] = "clear-cache";
     nothingToShow = true;
   }
-  const queryId = crypto.randomUUID();
+  const queryId = generateQueryId();
   const ws = new WebSocket(`${BASEURL.replaceAll(/^http/g, "ws")}/watch/${queryId}`);
   const startTimeStamp = Date.now();
   
