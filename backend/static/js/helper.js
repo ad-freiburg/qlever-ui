@@ -52,12 +52,11 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
     parseInt(time["total"].toString().replace(/ms/, ""), 10);
 
   if (queryUpdate.queryId === lastQueryUpdate.queryId) {
-    if (queryUpdate.updateTimeStamp > lastQueryUpdate.updateTimeStamp) {
-      runtime_log[runtime_log.length - 1] = runtime_info;
-      query_log[query_log.length - 1] = query;
-    } else {
+    if (queryUpdate.updateTimeStamp <= lastQueryUpdate.updateTimeStamp) {
       return;
     }
+    runtime_log[runtime_log.length - 1] = runtime_info;
+    query_log[query_log.length - 1] = query;
   } else {
     // Append to log and shorten log if too long (FIFO).
     runtime_log[runtime_log.length] = runtime_info;
@@ -798,7 +797,7 @@ function displayError(queryId, response, statusWithText = undefined) {
     appendRuntimeInformation(response.runtimeInformation,
                              response.query,
                              response.time,
-                             { queryId, updateTimeStamp: Date.now() });
+                             { queryId, updateTimeStamp: Number.MAX_VALUE });
   }
 }
 

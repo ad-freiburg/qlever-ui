@@ -677,7 +677,7 @@ function visualise(show, number) {
     $("#result-query").text("");
     $("#meta-info").text("");
     const resultTree = $("#result-tree");
-    resultTree.text("Waiting for query...");
+    resultTree.text("Query was started, waiting for status updates...");
     resultTree.css("color", "green");
     return;
   }
