@@ -674,11 +674,11 @@ function visualise(show, number) {
   let resultQuery = query_log[runtime_log_index];
   
   if (runtime_info["query_execution_tree"] === null) {
-    document.querySelector("#result-query").innerText = "";
-    document.querySelector("#meta-info").innerText = "";
-    const element = document.querySelector("#result-tree");
-    element.innerText = "Waiting for query...";
-    element.style.color = "green";
+    $("#result-query").text("");
+    $("#meta-info").text("");
+    const resultTree = $("#result-tree");
+    resultTree.text("Waiting for query...");
+    resultTree.css("color", "green");
     return;
   }
 
