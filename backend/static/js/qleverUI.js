@@ -10,6 +10,7 @@ var runtime_log = [];
 var query_log = [];
 var lastQueryUpdate = { queryId: null, updateTimeStamp: 0 };
 
+// Generates a random query id only known to this client
 function generateQueryId() {
   if (window.isSecureContext) {
     return crypto.randomUUID();
@@ -18,6 +19,11 @@ function generateQueryId() {
       "Falling back to Math.random() for random value generation. " +
       "Make sure this is not happening in production.", "other")
   return Math.floor(Math.random() * 1000000000);
+}
+
+// Uses the BASEURL variable to build the URL for the websocket endpoint
+function getWebSocketUrl(queryId) {
+  return `${BASEURL.replaceAll(/^http/g, "ws")}/watch/${queryId}`;
 }
 
 $(window).resize(function (e) {
@@ -374,6 +380,62 @@ function getResultTime(resultTimes) {
   return timeList;
 }
 
+// Makes the UI display a placeholder text
+// indicating that the query started but
+// we haven't heard back from it yet.
+function signalQueryStart(queryId, startTimeStamp, query) {
+  appendRuntimeInformation(
+    {
+      query_execution_tree: null,
+      meta: {}
+    },
+    query,
+    {
+      computeResult: "0ms",
+      total: `${Date.now() - startTimeStamp}ms`
+    },
+    {
+      queryId,
+      updateTimeStamp: startTimeStamp
+    }
+  );
+  renderRuntimeInformationToDom();
+}
+
+function createWebSocketForQuery(queryId, startTimeStamp, query) {
+  const ws = new WebSocket(getWebSocketUrl(queryId));
+
+  ws.onopen = () => log("Waiting for live updates", "other");
+
+  ws.onmessage = (message) => {
+    if (typeof message.data !== "string") {
+      log("Unexpected message format", "other");
+    } else {
+      const payload = JSON.parse(message.data);
+      appendRuntimeInformation(
+        {
+          query_execution_tree: payload,
+          meta: {}
+        },
+        query,
+        {
+          computeResult: `${payload["total_time"] || (Date.now() - startTimeStamp)}ms`,
+          total: `${Date.now() - startTimeStamp}ms`
+        },
+        {
+          queryId,
+          updateTimeStamp: Date.now()
+        }
+      );
+      renderRuntimeInformationToDom();
+    }
+  };
+
+  ws.onerror = () => log("Live updates not supported", "other");
+
+  return ws;
+}
+
 // Process the given query.
 async function processQuery(sendLimit=0, element=$("#exebtn")) {
   log('Preparing query...', 'other');
@@ -402,63 +464,26 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     params["cmd"] = "clear-cache";
     nothingToShow = true;
   }
-  const queryId = generateQueryId();
-  const ws = new WebSocket(`${BASEURL.replaceAll(/^http/g, "ws")}/watch/${queryId}`);
-  const startTimeStamp = Date.now();
-  
-  appendRuntimeInformation(
-    {
-      query_execution_tree: null,
-      meta: {}
-    },
-    params["query"],
-    {
-      computeResult: "0ms",
-      total: `${Date.now() - startTimeStamp}ms`
-    },
-    {
-      queryId,
-      updateTimeStamp: startTimeStamp
-    }
-  );
-  ws.onopen = () => {
-    log("Waiting for live updates", "other");
-  };
-  ws.onmessage = (message) => {
-    if (typeof message.data !== "string") {
-      log("Unexpected message format", "other");
-    } else {
-      const payload = JSON.parse(message.data);
-      appendRuntimeInformation(
-        {
-          query_execution_tree: payload,
-          meta: {}
-        },
-        params["query"],
-        {
-          computeResult: `${payload["total_time"] || (Date.now() - startTimeStamp)}ms`,
-          total: `${Date.now() - startTimeStamp}ms`
-        },
-        {
-          queryId,
-          updateTimeStamp: Date.now()
-        }
-      );
-      visualise(false);
-    }
-  };
-  ws.onerror = () => {
-    log("Live updates not supported", "other");
-  };
+
+  const headers = {
+    "Content-type": "application/x-www-form-urlencoded",
+    "Accept": "application/qlever-results+json"
+  }
+  let ws = null;
+  let queryId = undefined;
+  if (!nothingToShow) {
+    queryId = generateQueryId();
+    const startTimeStamp = Date.now();
+    signalQueryStart(queryId, startTimeStamp, params["query"]);
+    ws = createWebSocketForQuery(queryId, startTimeStamp, params["query"]);
+    headers["Query-Id"] = queryId;
+  }
+
   $.ajax({
     method: "POST",
     url: BASEURL,
     data: $.param(params),
-    headers: {
-      "Content-type": "application/x-www-form-urlencoded",
-      "Accept": "application/qlever-results+json",
-      "Query-Id": queryId,
-    },
+    headers: headers,
     success: function (result) {
       log('Evaluating and displaying results...', 'other');
       
@@ -471,7 +496,10 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         return;
       }
 
-      if (result.status == "ERROR") { displayError(queryId, result); return; }
+      if (result.status == "ERROR") {
+        displayError(result, undefined, queryId);
+        return;
+      }
       if (result["warnings"].length > 0) { displayWarning(result); }
 
       // Show some statistics (on top of the table).
@@ -613,7 +641,10 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       
       // MAX_VALUE ensures this always has priority over the websocket updates
       appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
-      visualise(false);
+      renderRuntimeInformationToDom();
+      
+      // Make sure we have no socket that stays open forever
+      ws.close();
     }
   }).fail(function (jqXHR, textStatus, errorThrown) {
     $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
@@ -632,7 +663,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
     var statusWithText = jqXHR.status && jqXHR.statusText
         ? (jqXHR.status + " (" + jqXHR.statusText + ")") : undefined;
-    displayError(queryId, jqXHR.responseJSON, statusWithText);
+    displayError(jqXHR.responseJSON, statusWithText, nothingToShow ? undefined : queryId);
+
+    // Make sure we have no socket that stays open forever
+    if (ws) {
+      ws.close();
+    }
   });
 }
   
@@ -668,18 +704,22 @@ function handleStatsDisplay() {
     $('#statsButton span').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
   });
 }
-  
-function visualise(show, number) {
-  if (show) {
-    $("#visualisation").modal("show");
-  }
 
+// Shows the modal containing the current runtime information tree
+function showQueryPlanningTree() {
+  $("#visualisation").modal("show");
+}
+
+// Uses the information inside of runtime_log and query_log
+// to populate the DOM with the current runtime information.
+// Use showQueryPlanningTree() to display it to the user.
+function renderRuntimeInformationToDom(number) {
   if (runtime_log.length === 0) {
     return;
   }
 
   // Get the right entries from the runtime log.
-  runtime_log_index = number ? number - 1 : runtime_log.length - 1;
+  let runtime_log_index = number || runtime_log.length - 1;
   let runtime_info = runtime_log[runtime_log_index];
   let resultQuery = query_log[runtime_log_index];
   
@@ -708,11 +748,7 @@ function visualise(show, number) {
   );
 
   // Show the query.
-  resultQuery = resultQuery
-                  .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
-                  .replace(/</g, "&lt;").replace(/>/g, "&gt;")
-                  .replace(/'/g, "&#039;");
-  $("#result-query").html("<pre>" + resultQuery + "</pre>");
+  $("#result-query").html($("<pre />", { text: resultQuery }));
 
   // Show the query execution tree (using Treant.js).
   addTextElementsToQueryExecutionTreeForTreant(runtime_info["query_execution_tree"]);
@@ -724,7 +760,7 @@ function visualise(show, number) {
     },
     nodeStructure: runtime_info["query_execution_tree"]
   }
-  var treant_chart = new Treant(treant_tree);
+  new Treant(treant_tree);
 
   // For each node, on mouseover show the details.
   $("div.node").hover(function () {
@@ -753,11 +789,22 @@ function visualise(show, number) {
   $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
   
   if ($('#logRequests').is(':checked')) {
-    select = "";
-    for (var i = runtime_log.length; i > runtime_log.length - 10 && i > 0; i--) {
-      select = '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="visualise(true, ' + i + ')">[' + i + ']</a></li>' + select;
+    const queryHistoryList = $("<ul/>", { class: "pagination" });
+    for (let i = Math.max(runtime_log.length - 10, 0); i < runtime_log.length; i++) {
+      const link = $("<a/>", {
+        class: "page-link",
+        href: "#",
+        text: `[${i}]`
+      });
+      link.on("click", () => {
+        renderRuntimeInformationToDom(i);
+        showQueryPlanningTree();
+      });
+      queryHistoryList.append($("<li/>", {
+        class: "page-item",
+        append: link
+      }));
     }
-    select = '<ul class="pagination">' + select + '</ul>';
-    $('#lastQueries').html(select);
+    $('#lastQueries').html(queryHistoryList);
   }
 }

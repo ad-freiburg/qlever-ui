@@ -69,13 +69,13 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   lastQueryUpdate = queryUpdate;
 }
 
-// Add "text" field to given `tree_node`, for display using Treant.js (in
-// function `visualise` in `qleverUI.js`). This function call itself recursively
-// on each child of `tree_node` (if any).
+// Add "text" field to given `tree_node`, for display using Treant.js
+// (in function `renderRuntimeInformationToDom` in `qleverUI.js`).
+// This function call itself recursively on each child of `tree_node` (if any).
 //
 // NOTE: The labels and the style can be found in backend/static/css/style.css .
 // The coloring of the boxes, which depends on the time and caching status, is
-// done in function `visualise` in `qleverUI.js`.
+// done in function `renderRuntimeInformationToDom` in `qleverUI.js`.
 function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cached = false) {
   if (tree_node["text"] == undefined) {
     var text = {};
@@ -753,7 +753,7 @@ function expandEditor() {
   }
 }
 
-function displayError(queryId, response, statusWithText = undefined) {
+function displayError(response, statusWithText = undefined, queryId = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
     response["exception"] = "Unknown error";
@@ -792,12 +792,13 @@ function displayError(queryId, response, statusWithText = undefined) {
   // If error response contains query and runtime info, append to runtime log.
   //
   // TODO: Show items from error responses in different color (how about "red").
-  if (response["query"] && response["runtimeInformation"]) {
+  if (response["query"] && response["runtimeInformation"] && queryId) {
     // console.log("DEBUG: Error response with runtime information found!");
     appendRuntimeInformation(response.runtimeInformation,
                              response.query,
                              response.time,
                              { queryId, updateTimeStamp: Number.MAX_VALUE });
+    renderRuntimeInformationToDom();
   }
 }
 
