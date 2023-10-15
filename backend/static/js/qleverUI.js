@@ -402,6 +402,9 @@ function signalQueryStart(queryId, startTimeStamp, query) {
   renderRuntimeInformationToDom();
 }
 
+// Create a websocket object that listens for updates qlever
+// broadcasts during computation and update the current
+// runtime information in the log accordingly.
 function createWebSocketForQuery(queryId, startTimeStamp, query) {
   const ws = new WebSocket(getWebSocketUrl(queryId));
 
