@@ -279,15 +279,20 @@ li.CodeMirror-hint-active {
   background-color: #FEFEFE;
   border: 1px solid #000;
   min-width: 25em;
-  max-width: 40em;
+  /* max-width: 40em; */
   font-size: 80%;
   color: black;
 }
 
 #result-tree .node > p { margin: 0; white-space: nowrap; }
 #result-tree .node-name { font-weight: bold; }
-/* #result-tree .node-status { font-size: 80%; color: blue; } */
-#result-tree .node-status:before { content: "Status: " }
+#result-tree .node-status { font-size: 90%; color: #000099; }
+#result-tree .node.not-started { color: #999; }
+/* #result-tree .node-status:before { content: "Status: " } */
+/* #result-tree p.node-status { display: none; } */
+/* #result-tree p.not-started { display: none; } */
+#result-tree p.fully-materialized { display: none; }
+#result-tree p.lazily-materialized { display: none; }
 #result-tree .node-status.failed { font-weight: bold; color: red; }
 #result-tree .node-status.child-failed { color: red; }
 #result-tree .node-status.not-started { color: blue; }
@@ -300,6 +305,7 @@ li.CodeMirror-hint-active {
 #result-tree .node-time:before { content: "\ATime: "; white-space: pre; }
 #result-tree .node-time { display: inline; }
 #result-tree .node-cost-estimate { display: inline; padding-left: 1em; }
+#result-tree .node-status { display: inline; padding-left: 1em; }
 #result-tree .node-time:after { content: "ms"; }
 #result-tree .node-details { display: none; color: blue; }
 #result-tree .node-details:before { content: "Details: " }

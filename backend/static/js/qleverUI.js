@@ -645,7 +645,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       // MAX_VALUE ensures this always has priority over the websocket updates
       appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
       renderRuntimeInformationToDom();
-      
+
       // Make sure we have no socket that stays open forever
       ws.close();
     }
@@ -764,7 +764,13 @@ function renderRuntimeInformationToDom(number = undefined) {
     },
     nodeStructure: runtime_info["query_execution_tree"]
   }
+
+  // Draw the (new) tree, but retain the scrollbar position.
+  const scrollTop = $("#visualisation").scrollTop();
+  const scrollLeft = $("#result-tree").scrollLeft();
   new Treant(treant_tree);
+  $("#visualisation").scrollTop(scrollTop);
+  $("#result-tree").scrollLeft(scrollLeft);
 
   // For each node, on mouseover show the details.
   $("div.node").hover(function () {
@@ -789,7 +795,7 @@ function renderRuntimeInformationToDom(number = undefined) {
   $("p.node-status").filter(function() { return $(this).text() === "lazily materialized"}).addClass("lazily-materialized");
   $("p.node-status").filter(function() { return $(this).text() === "failed"}).addClass("failed");
   $("p.node-status").filter(function() { return $(this).text() === "failed because child failed"}).addClass("child-failed");
-  $("p.node-status").filter(function() { return $(this).text() === "not started"}).addClass("not-started");
+  $("p.node-status").filter(function() { return $(this).text() === "not yet started"}).parent().addClass("not-started");
   $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
   
   if ($('#logRequests').is(':checked')) {

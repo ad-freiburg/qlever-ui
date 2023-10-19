@@ -101,8 +101,6 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     .replace(/AVAILABLE /, "").replace(/a all/, "all");
     // console.log("-> REWRITTEN TO:", text["name"])
 
-    text["status"] = tree_node["status"];
-    if (text["status"] == "fully materialized") { delete text["status"]; }
     text["cols"] = tree_node["column_names"].join(", ")
     .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
@@ -119,6 +117,9 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
       ? formatInteger(tree_node["operation_time"])
       : formatInteger(tree_node["original_operation_time"]);
     text["cost-estimate"] = "[~ " + formatInteger(tree_node["estimated_operation_cost"]) + "]"
+    text["status"] = tree_node["status"];
+    if (text["status"] == "not started") { text["status"] = "not yet started"; }
+    // if (text["status"] == "fully materialized") { delete text["status"]; }
     text["total"] = text["time"];
     if (tree_node["details"]) {
       text["details"] = JSON.stringify(tree_node["details"]);
