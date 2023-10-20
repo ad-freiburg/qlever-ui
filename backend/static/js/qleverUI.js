@@ -10,7 +10,9 @@ var runtime_log = [];
 var query_log = [];
 var lastQueryUpdate = { queryId: null, updateTimeStamp: 0 };
 
-// Generates a random query id only known to this client
+// Generates a random query id only known to this client.
+// We don't use consecutive ids to prevent clashes between
+// several qlever-ui instances.
 function generateQueryId() {
   if (window.isSecureContext) {
     return crypto.randomUUID();
@@ -23,7 +25,7 @@ function generateQueryId() {
 
 // Uses the BASEURL variable to build the URL for the websocket endpoint
 function getWebSocketUrl(queryId) {
-  return `${BASEURL.replaceAll(/^http/g, "ws")}/watch/${queryId}`;
+  return `${BASEURL.replace(/^http/g, "ws")}/watch/${queryId}`;
 }
 
 $(window).resize(function (e) {
@@ -395,7 +397,7 @@ function signalQueryStart(queryId, startTimeStamp, query) {
       total: `${Date.now() - startTimeStamp}ms`
     },
     {
-      queryId,
+      queryId: queryId,
       updateTimeStamp: startTimeStamp
     }
   );
@@ -710,7 +712,10 @@ function handleStatsDisplay() {
 
 // Shows the modal containing the current runtime information tree
 // calls renderRuntimeInformationToDom() afterwards to render it.
+// If number is explicitly given, this means a tree from the history
+// is rendered.
 function showQueryPlanningTree(number = undefined) {
+  // Modal needs to be visible for rendering to succeed
   $("#visualisation").modal("show");
   renderRuntimeInformationToDom(number);
 }
