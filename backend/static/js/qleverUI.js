@@ -6,9 +6,8 @@ var predicateNames = {};
 var objectNames = {};
 var high_query_time_ms = 100;
 var very_high_query_time_ms = 1000;
-var runtime_log = [];
-var query_log = [];
-var lastQueryUpdate = { queryId: null, updateTimeStamp: 0 };
+// Map guarantees to keep insertion order
+var request_log = new Map();
 
 // Generates a random query id only known to this client.
 // We don't use consecutive ids to prevent clashes between
@@ -712,25 +711,26 @@ function handleStatsDisplay() {
 
 // Shows the modal containing the current runtime information tree
 // calls renderRuntimeInformationToDom() afterwards to render it.
-// If number is explicitly given, this means a tree from the history
-// is rendered.
-function showQueryPlanningTree(number = undefined) {
+// If entry is explicitly given, the entry specifically will be
+// rendered.
+function showQueryPlanningTree(entry = undefined) {
   // Modal needs to be visible for rendering to succeed
   $("#visualisation").modal("show");
-  renderRuntimeInformationToDom(number);
+  renderRuntimeInformationToDom(entry);
 }
 
-// Uses the information inside of runtime_log and query_log
+// Uses the information inside of request_log
 // to populate the DOM with the current runtime information.
-function renderRuntimeInformationToDom(number = undefined) {
-  if (runtime_log.length === 0) {
+function renderRuntimeInformationToDom(entry = undefined) {
+  if (request_log.size === 0) {
     return;
   }
 
   // Get the right entries from the runtime log.
-  let runtime_log_index = number !== undefined ? number : runtime_log.length - 1;
-  let runtime_info = runtime_log[runtime_log_index];
-  let resultQuery = query_log[runtime_log_index];
+  const {
+    runtime_info,
+    query
+  } = entry || Array.from(request_log.values()).pop();
   
   if (runtime_info["query_execution_tree"] === null) {
     $("#result-query").text("");
@@ -757,7 +757,7 @@ function renderRuntimeInformationToDom(number = undefined) {
   );
 
   // Show the query.
-  $("#result-query").html($("<pre />", { text: resultQuery }));
+  $("#result-query").html($("<pre />", { text: query }));
 
   // Show the query execution tree (using Treant.js).
   addTextElementsToQueryExecutionTreeForTreant(runtime_info["query_execution_tree"]);
@@ -805,13 +805,14 @@ function renderRuntimeInformationToDom(number = undefined) {
   
   if ($('#logRequests').is(':checked')) {
     const queryHistoryList = $("<ul/>", { class: "pagination" });
-    for (let i = Math.max(runtime_log.length - 10, 0); i < runtime_log.length; i++) {
+    for (const [key, value] of request_log.entries()) {
       const link = $("<a/>", {
         class: "page-link",
         href: "#",
-        text: `[${i}]`
+        // Trim id to keep it readable
+        text: `[${key.substring(0, 5)}]`
       });
-      link.on("click", () => showQueryPlanningTree(i));
+      link.on("click", () => showQueryPlanningTree(value));
       queryHistoryList.append($("<li/>", {
         class: "page-item",
         append: link

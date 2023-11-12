@@ -51,22 +51,17 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   runtime_info["meta"]["total_time"] =
     parseInt(time["total"].toString().replace(/ms/, ""), 10);
 
-  if (queryUpdate.queryId === lastQueryUpdate.queryId) {
-    if (queryUpdate.updateTimeStamp <= lastQueryUpdate.updateTimeStamp) {
-      return;
+  const previousTimeStamp = request_log.get(queryUpdate.queryId)?.timeStamp || Number.MIN_VALUE;
+  if (previousTimeStamp < queryUpdate.updateTimeStamp) {
+    request_log.set(queryUpdate.queryId, {
+      timeStamp: queryUpdate.updateTimeStamp,
+      runtime_info: runtime_info,
+      query: query
+    });
+    if (request_log.size > 10) {
+      request_log.delete(request_log.keys().next().value);
     }
-    runtime_log[runtime_log.length - 1] = runtime_info;
-    query_log[query_log.length - 1] = query;
-  } else {
-    // Append to log and shorten log if too long (FIFO).
-    if (runtime_log.length - 10 >= 0) {
-      runtime_log[runtime_log.length - 10] = null;
-      query_log[query_log.length - 10] = null;
-    }
-    runtime_log[runtime_log.length] = runtime_info;
-    query_log[query_log.length] = query;
   }
-  lastQueryUpdate = queryUpdate;
 }
 
 // Add "text" field to given `tree_node`, for display using Treant.js
