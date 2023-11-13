@@ -24,7 +24,7 @@ class BackendAdmin(ImportExportModelAdmin):
     }
     fieldsets = (
         ("General", {
-            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault', 'apiToken')
+            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault', 'isNoSlugMode', 'apiToken')
         }),
         ('UI Suggestions', {
             'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', 'suggestPrefixnamesForPredicates', 'supportedPredicateSuggestions', 'suggestedPrefixes'),

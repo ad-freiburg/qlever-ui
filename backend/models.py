@@ -45,6 +45,11 @@ class Backend(models.Model):
         help_text="Check if this should be the default backend for QLever UI",
         verbose_name="Use as default")
 
+    isNoSlugMode = models.BooleanField(
+        default=0,
+        help_text="Check if this default backend should also be available without a slug in QLever UI",
+        verbose_name="Enable no-slug mode")
+
     maxDefault = models.IntegerField(
         default=100,
         help_text="The default for how many lines are shown in the first request",
@@ -337,6 +342,7 @@ class Backend(models.Model):
 
         if self.isDefault == True:
             Backend.objects.exclude(pk=self.pk).update(isDefault=False)
+            Backend.objects.exclude(pk=self.pk).update(isNoSlugMode=False)
 
     def __str__(self):
         return self.name

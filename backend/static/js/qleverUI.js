@@ -212,10 +212,15 @@ $(document).ready(function () {
     $.post("/api/share", { "content": editor.getValue() }, function (result) {
       log("Got pretty link from backend", "other");
       if (window.location.search.indexOf(result.queryString) == -1) {
-        const newUrl = window.location.origin
-                        + window.location.pathname.split("/")
-                                         .slice(0, 2).join("/") + "/" + result.link;
-        window.history.pushState("html:index.html", "QLever", newUrl);
+        if (NO_SLUG_MODE) {
+          const newUrl = window.location.origin + "/" + result.link;
+          window.history.pushState("html:index.html", "QLever", newUrl);
+        } else {
+          const newUrl = window.location.origin
+              + window.location.pathname.split("/")
+                  .slice(0, 2).join("/") + "/" + result.link;
+          window.history.pushState("html:index.html", "QLever", newUrl);
+        }
       }
     }, "json");
 
@@ -268,7 +273,11 @@ $(document).ready(function () {
     // POST request to Django, for the query hash.
     $.post('/api/share', { "content": queryRewritten }, function (result) {
       log('Generating links for sharing ...', 'other');
-      var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
+      if (NO_SLUG_MODE) {
+        var baseLocation = window.location.origin + '/';
+      } else {
+        var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
+      }
 
       // The default media type for the curl command line link is TSV, but for
       // CONSTRUCT queries use Turtle.

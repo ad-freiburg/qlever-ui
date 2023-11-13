@@ -29,6 +29,7 @@ def index(request, backend=None, short=None):
     activeBackend = None
     examples = []
     prefill = None
+    noSlugMode = False
 
     if request.POST.get('whitespaces', False):
         request.session['logParsing'] = request.POST.get('logParsing', False)
@@ -45,25 +46,34 @@ def index(request, backend=None, short=None):
                 activeBackend = availableBackend
                 break
 
-        if activeBackend == None:
+        # check for default backend with no-slug mode active
+        if activeBackend is None and short is None:
+            for availableBackend in Backend.objects.all():
+                if availableBackend.isDefault and availableBackend.isNoSlugMode:
+                    activeBackend = availableBackend
+                    short = backend
+                    noSlugMode = True
+                    break
+
+        if activeBackend is None:
             return redirect('/')
 
-    # if no backend is given activate the last one
+    # if no backend is given activate the last one or a default with no-slug mode
     else:
         # go to the last active backend if set
         if request.session.get('backend', False):
-            backend = Backend.objects.filter(
-                pk=request.session['backend']).first()
-            # and if still available
-            if backend:
-                return redirect('/' + backend.slugify())
+            activeBackend = Backend.objects.filter(pk=request.session['backend']).first()
         # find a default backend
         else:
-            backend = Backend.objects.order_by('-isDefault').first()
-            if backend:
-                return redirect('/' + backend.slugify())
+            activeBackend = Backend.objects.order_by('-isDefault').first()
 
-    if activeBackend:
+        if activeBackend is not None:
+            if activeBackend.isNoSlugMode:
+                noSlugMode = True
+            else:
+                return redirect('/' + activeBackend.slugify())
+
+    if activeBackend is not None:
 
         # safe to session
         request.session['backend'] = activeBackend.pk
@@ -72,16 +82,27 @@ def index(request, backend=None, short=None):
         examples = Example.objects.filter(backend=activeBackend)
 
     # collect shortlink data
-    if short:
+    if short is not None:
         link = Link.objects.filter(identifier=short).first()
-        if link:
-            prefill = link.content
-    elif request.GET.get("query"):
+
+        if link is None:
+            # if no valid link, then redirect to main backend route
+            if activeBackend is not None:
+                if activeBackend.isNoSlugMode:
+                    return redirect('/')
+                else:
+                    return redirect('/' + activeBackend.slugify())
+            else:
+                return redirect('/')
+
+        prefill = link.content
+    elif request.GET.get("query") is not None:
         prefill = request.GET["query"]
 
     return render(
         request, 'index.html', {
             'backend': activeBackend,
+            'noSlugMode': noSlugMode,
             'prefixes': json.dumps(activeBackend.availablePrefixes) if activeBackend else '{}',
             'backends': Backend.objects.all(),
             'examples': examples,
