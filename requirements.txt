@@ -2,3 +2,4 @@ django
 requests
 django-import-export
 gunicorn
+whitenoise[brotli]

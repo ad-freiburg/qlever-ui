@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html>
   {% include 'partials/head.html' %}
   <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#exebtn').trigger('click');},500)"{% endif %}>
@@ -268,7 +268,7 @@
       
           <!-- The loading block -->
           <div class="alert alert-success" id="infoBlock" style="display: none; text-align: center;">
-            <img src="/static/img/loader.gif"><br><br>
+            <img src="{% static "img/loader.gif" %}"><br><br>
             <h4 id="info"></h4>
           </div>
 

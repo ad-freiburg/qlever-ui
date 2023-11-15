@@ -1,18 +1,18 @@
-<head>
+{% load static %}<head>
   <title>The QLever SPARQL engine: fast, scalable, with autocompletion and text search</title>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="shortcut icon" type="image/png" href="/static/favicon.ico">
+  <link rel="shortcut icon" type="image/png" href="{% static "favicon.ico" %}">
 
   <!-- The stylesheets for this page -->
   <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
 
-  <!-- CSS Code for the UI  -->
-  <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-  <link rel="stylesheet" type="text/css" href="/static/css/codemirror.css">
-
   <!-- Bootstraps CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- CSS Code for the UI  -->
+  <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}">
+  <link rel="stylesheet" type="text/css" href="{% static "css/codemirror.css" %}">
 
   <!-- The basic jQuery library & jQuery UI library -->
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -65,29 +65,29 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
   <!-- Our own JavaScript code for this demo -->
-  <script src="/static/js/helper.js"></script>
-  <script src="/static/js/raphael.js"></script>
-  <script src="/static/js/treant.js"></script>
-  <script src="/static/js/qleverUI.js"></script>
+  <script src="{% static "js/helper.js" %}"></script>
+  <script src="{% static "js/raphael.js" %}"></script>
+  <script src="{% static "js/treant.js" %}"></script>
+  <script src="{% static "js/qleverUI.js" %}"></script>
 
   <!-- CodeMirror and it's modules and language mode -->
-  <script src="/static/js/codemirror/codemirror.js"></script>
-  <script src="/static/js/codemirror/modules/autocomplete.js"></script>
-  <script src="/static/js/codemirror/modules/active-line.js"></script>
-  <script src="/static/js/codemirror/modules/show-hint.js"></script>
-  <script src="/static/js/codemirror/modules/search.js"></script>
+  <script src="{% static "js/codemirror/codemirror.js" %}"></script>
+  <script src="{% static "js/codemirror/modules/autocomplete.js" %}"></script>
+  <script src="{% static "js/codemirror/modules/active-line.js" %}"></script>
+  <script src="{% static "js/codemirror/modules/show-hint.js" %}"></script>
+  <script src="{% static "js/codemirror/modules/search.js" %}"></script>
 
-  <script src="/static/js/codemirror/modes/sparql/sparql.js"></script>
-  <script src="/static/js/codemirror/modes/sparql/sparql-hint.js"></script>
+  <script src="{% static "js/codemirror/modes/sparql/sparql.js" %}"></script>
+  <script src="{% static "js/codemirror/modes/sparql/sparql-hint.js" %}"></script>
 
   {% if request.GET.test %}
-      <!-- Jasemine JS Testing Framework -->
-      <link rel="shortcut icon" type="image/png" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png">
-      <link rel="stylesheet" type="text/css" href="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.css">
+    <!-- Jasemine JS Testing Framework -->
+    <link rel="shortcut icon" type="image/png" href="{% static "tests/jasmine/lib/jasmine-2.8.0/jasmine_favicon.png" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "tests/jasmine/lib/jasmine-2.8.0/jasmine.css" %}">
 
-      <script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine.js"></script>
-      <script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js"></script>
-      <script type="text/javascript" src="/static/tests/jasmine/lib/jasmine-2.8.0/boot.js"></script>
-      <script type="text/javascript" src="/static/tests/interface.js"></script>
+    <script type="text/javascript" src="{% static "tests/jasmine/lib/jasmine-2.8.0/jasmine.js" %}"></script>
+    <script type="text/javascript" src="{% static "tests/jasmine/lib/jasmine-2.8.0/jasmine-html.js" %}"></script>
+    <script type="text/javascript" src="{% static "tests/jasmine/lib/jasmine-2.8.0/boot.js" %}"></script>
+    <script type="text/javascript" src="{% static "tests/interface.js" %}"></script>
   {% endif %}
 </head>
