@@ -114,7 +114,6 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     text["cost-estimate"] = "[~ " + formatInteger(tree_node["estimated_operation_cost"]) + "]"
     text["status"] = tree_node["status"];
     if (text["status"] == "not started") { text["status"] = "not yet started"; }
-    // if (text["status"] == "fully materialized") { delete text["status"]; }
     text["total"] = text["time"];
     if (tree_node["details"]) {
       text["details"] = JSON.stringify(tree_node["details"]);
