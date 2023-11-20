@@ -6,12 +6,11 @@ var predicateNames = {};
 var objectNames = {};
 var high_query_time_ms = 100;
 var very_high_query_time_ms = 1000;
-// Map guarantees to keep insertion order
 var request_log = new Map();
 
 // Generates a random query id only known to this client.
 // We don't use consecutive ids to prevent clashes between
-// several qlever-ui instances.
+// different instances of the Qlever UI running at the same time.
 function generateQueryId() {
   if (window.isSecureContext) {
     return crypto.randomUUID();
@@ -805,6 +804,8 @@ function renderRuntimeInformationToDom(entry = undefined) {
   
   if ($('#logRequests').is(':checked')) {
     const queryHistoryList = $("<ul/>", { class: "pagination" });
+    // Note: when we later iterate over this `Map`, we get the key-value
+    // pairs in the order in which the keys were first inserted.
     for (const [key, value] of request_log.entries()) {
       const link = $("<a/>", {
         class: "page-link",

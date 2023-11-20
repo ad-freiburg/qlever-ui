@@ -52,6 +52,7 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
     parseInt(time["total"].toString().replace(/ms/, ""), 10);
 
   const previousTimeStamp = request_log.get(queryUpdate.queryId)?.timeStamp || Number.MIN_VALUE;
+  // If newer runtime info for existing query or new query.
   if (previousTimeStamp < queryUpdate.updateTimeStamp) {
     request_log.set(queryUpdate.queryId, {
       timeStamp: queryUpdate.updateTimeStamp,
@@ -59,6 +60,7 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
       query: query
     });
     if (request_log.size > 10) {
+      // Note: `keys().next()` is the key that was inserted first.
       request_log.delete(request_log.keys().next().value);
     }
   }
