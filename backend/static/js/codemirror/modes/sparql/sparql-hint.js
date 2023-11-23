@@ -790,19 +790,10 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         data = await response.json();
       }
 
-      if ($('#logRequests').is(':checked')) {
-        runtime_log[runtime_log.length] = data.runtimeInformation;
-        query_log[query_log.length] = data.query;
-        if (runtime_log.length - 10 >= 0) {
-          runtime_log[runtime_log.length - 10] = null;
-          query_log[query_log.length - 10] = null;
-        }
-      }
-
       
       if (data.res) {
         log("Got suggestions from QLever.", 'other');
-        log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
+        log("Query took " + data.time.total + " and found " + data.resultsize + " lines", 'requests');
         var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
         var suggested = {};
         var ogc_contains_added = false;
