@@ -846,18 +846,6 @@ function getQleverSuggestions(
         data = await response.json();
       }
 
-      // When `Log requests` is checked in the `UI Settings` of the QLever UI,
-      // add the query and its runtime information to the runtime log (so that
-      // we can analyse the query using the `Analysis` button).
-      if ($('#logRequests').is(':checked')) {
-        runtime_log[runtime_log.length] = data.runtimeInformation;
-        query_log[query_log.length] = data.query;
-        if (runtime_log.length - 10 >= 0) {
-          runtime_log[runtime_log.length - 10] = null;
-          query_log[query_log.length - 10] = null;
-        }
-      }
-      
       // Show the suggestions to the user.
       //
       // NOTE: This involves some post-processing (for example, showing the
@@ -866,7 +854,7 @@ function getQleverSuggestions(
       // is a suggestion, also add wdt:P31/wdt:P279*).
       if (data.res) {
         log("Got suggestions from QLever.", 'other');
-        log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
+        log("Query took " + data.time.total + " and found " + data.resultsize + " lines", 'requests');
         var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
         var suggested = {};
         var ogc_contains_added = false;

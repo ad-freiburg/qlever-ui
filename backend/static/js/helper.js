@@ -36,37 +36,43 @@ function normalizeQuery(query, escapeQuotes = false) {
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
 // query. See runtimeInfoForTreant in qleverUI.js.
-function appendRuntimeInformation(runtime_info, query, time) {
+function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   // Backwards compatability hack in case the info on the execution tree is
   // not in a separate "query_execution_tree" element yet.
-  if (runtime_info["query_execution_tree"] == undefined) {
+  if (runtime_info["query_execution_tree"] === undefined) {
     console.log("BACKWARDS compatibility hack: adding runtime_info[\"query_execution_tree\"]");
     runtime_info["query_execution_tree"] = structuredClone(runtime_info);
-    runtime_info["meta"] = { }
+    runtime_info["meta"] = {};
   }
 
   // Add query time to meta info.
   runtime_info["meta"]["total_time_computing"] =
-    parseInt(time["computeResult"].toString().replace(/ms/, ""))
+    parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
   runtime_info["meta"]["total_time"] =
-    parseInt(time["total"].toString().replace(/ms/, ""))
+    parseInt(time["total"].toString().replace(/ms/, ""), 10);
 
-  // Append to log and shorten log if too long (FIFO).
-  runtime_log[runtime_log.length] = runtime_info;
-  query_log[query_log.length] = query;
-  if (runtime_log.length - 10 >= 0) {
-    runtime_log[runtime_log.length - 10] = null;
-    query_log[query_log.length - 10] = null;
+  const previousTimeStamp = request_log.get(queryUpdate.queryId)?.timeStamp || Number.MIN_VALUE;
+  // If newer runtime info for existing query or new query.
+  if (previousTimeStamp < queryUpdate.updateTimeStamp) {
+    request_log.set(queryUpdate.queryId, {
+      timeStamp: queryUpdate.updateTimeStamp,
+      runtime_info: runtime_info,
+      query: query
+    });
+    if (request_log.size > 10) {
+      // Note: `keys().next()` is the key that was inserted first.
+      request_log.delete(request_log.keys().next().value);
+    }
   }
 }
 
-// Add "text" field to given `tree_node`, for display using Treant.js (in
-// function `visualise` in `qleverUI.js`). This function call itself recursively
-// on each child of `tree_node` (if any).
+// Add "text" field to given `tree_node`, for display using Treant.js
+// (in function `renderRuntimeInformationToDom` in `qleverUI.js`).
+// This function call itself recursively on each child of `tree_node` (if any).
 //
 // NOTE: The labels and the style can be found in backend/static/css/style.css .
 // The coloring of the boxes, which depends on the time and caching status, is
-// done in function `visualise` in `qleverUI.js`.
+// done in function `renderRuntimeInformationToDom` in `qleverUI.js`.
 function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cached = false) {
   if (tree_node["text"] == undefined) {
     var text = {};
@@ -92,8 +98,6 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     .replace(/AVAILABLE /, "").replace(/a all/, "all");
     // console.log("-> REWRITTEN TO:", text["name"])
 
-    text["status"] = tree_node["status"];
-    if (text["status"] == "fully materialized") { delete text["status"]; }
     text["cols"] = tree_node["column_names"].join(", ")
     .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
@@ -110,6 +114,8 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
       ? formatInteger(tree_node["operation_time"])
       : formatInteger(tree_node["original_operation_time"]);
     text["cost-estimate"] = "[~ " + formatInteger(tree_node["estimated_operation_cost"]) + "]"
+    text["status"] = tree_node["status"];
+    if (text["status"] == "not started") { text["status"] = "not yet started"; }
     text["total"] = text["time"];
     if (tree_node["details"]) {
       text["details"] = JSON.stringify(tree_node["details"]);
@@ -747,7 +753,7 @@ function expandEditor() {
   }
 }
 
-function displayError(response, statusWithText = undefined) {
+function displayError(response, statusWithText = undefined, queryId = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
     response["exception"] = "Unknown error";
@@ -786,11 +792,13 @@ function displayError(response, statusWithText = undefined) {
   // If error response contains query and runtime info, append to runtime log.
   //
   // TODO: Show items from error responses in different color (how about "red").
-  if (response["query"] && response["runtimeInformation"]) {
+  if (response["query"] && response["runtimeInformation"] && queryId) {
     // console.log("DEBUG: Error response with runtime information found!");
     appendRuntimeInformation(response.runtimeInformation,
                              response.query,
-                             response.time);
+                             response.time,
+                             { queryId, updateTimeStamp: Number.MAX_VALUE });
+    renderRuntimeInformationToDom();
   }
 }
 
