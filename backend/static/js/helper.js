@@ -960,20 +960,23 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   //
   // TODO: What if http occur somewhere inside a literal or a link?
   } else if (pos_http > 0) {
-    isLink = true;
     cpy = cpy.replace(/ /g, '_');
-    link = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
-    checkLink = link.toLowerCase();
-    if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
-      str = "";
-      linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" >';
-      linkEnd = '</a>';
-    } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
-      linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-file"></i>&nbsp;';
-      linkEnd = '</a></span>';
-    } else {
-      linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-link"></i>&nbsp;';
-      linkEnd = '</a></span>';
+    link_match = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g);
+    if(link_match != null) {
+      isLink = true;
+      link = link_match[0];
+      checkLink = link.toLowerCase();
+      if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
+        str = "";
+        linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" >';
+        linkEnd = '</a>';
+      } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
+        linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-file"></i>&nbsp;';
+        linkEnd = '</a></span>';
+      } else {
+        linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-link"></i>&nbsp;';
+        linkEnd = '</a></span>';
+      }
     }
   }
 
