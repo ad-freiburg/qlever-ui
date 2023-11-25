@@ -562,7 +562,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
       let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
       let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
-      let params = $.param({ query: normalizeQuery(query), backend: BASEURL });
+      let params = new URLSearchParams({ query: normalizeQuery(query), backend: BASEURL });
       // var query_escaped = query.replace(/"/g, "\\\"");
       // console.log("QUERY:", `'${query}'`);
       // var query_escaped = encodeURIComponent(query);
@@ -679,37 +679,46 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   };
 }
   
-function handleStatsDisplay() {
-  log('Loading backend statistics...', 'other');
-  $('#statsButton span').html('Loading information...');
-  $('#statsButton').attr('disabled', 'disabled');
-  
-  $.getJSON(BASEURL + "?cmd=stats", function (result) {
-    log('Evaluating and displaying stats...', 'other');
-    $("#kbname").html(result.kbindex ?? result["name-index"]);
-    if (result["name-text-index"]) {
-      $("#nrecords").html(tsep(result["num-text-records"] ?? result["nofrecords"]));
-      $("#nwo").html(tsep(result["num-word-occurrences"] ?? result["nofwordpostings"]));
-      $("#neo").html(tsep(result["num-entity-occurrences"] ?? result["nofentitypostings"]));
-      $("#textname").html(result["name-text-index"]);
-    } else {
-      $("#textname").closest("div").hide();
+async function handleStatsDisplay() {
+  try {
+    log('Loading backend statistics...', 'other');
+    $('#statsButton span').html('Loading information...');
+    $('#statsButton').attr('disabled', 'disabled');
+    
+    try {
+      const response = await fetch(`${BASEURL}?cmd=stats`);
+      if (response.ok) {
+        const result = await response.json();
+        log('Evaluating and displaying stats...', 'other');
+        $("#kbname").html(result.kbindex ?? result["name-index"]);
+        if (result["name-text-index"]) {
+          $("#nrecords").html(tsep(result["num-text-records"] ?? result["nofrecords"]));
+          $("#nwo").html(tsep(result["num-word-occurrences"] ?? result["nofwordpostings"]));
+          $("#neo").html(tsep(result["num-entity-occurrences"] ?? result["nofentitypostings"]));
+          $("#textname").html(result["name-text-index"]);
+        } else {
+          $("#textname").closest("div").hide();
+        }
+        $("#ntriples").html(tsep(result["num-triples-normal"] ?? result["nofActualTriples"]))
+        $("#permstats").html(result["num-permutations"] ?? result["permutations"]);
+        if ((result["num-permutations"] ?? result["permutations"]) == "6") {
+          $("#kbstats").html("Number of subjects: <b>" +
+            tsep(result["num-subjects-normal"] ?? result["nofsubjects"]) + "</b><br>" +
+          "Number of predicates: <b>" +
+            tsep(result["num-predicates-normal"] ?? result["nofpredicates"]) + "</b><br>" +
+          "Number of objects: <b>" +
+            tsep(result["num-objects-normal"] ?? result["nofobjects"]) + "</b>");
+        }
+        $('#statsButton').removeAttr('disabled');
+        $('#statsButton span').html('Index Information');
+      }
+    } catch (error) {
+      log(error, 'requests');
+      $('#statsButton span').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
     }
-    $("#ntriples").html(tsep(result["num-triples-normal"] ?? result["nofActualTriples"]))
-    $("#permstats").html(result["num-permutations"] ?? result["permutations"]);
-    if ((result["num-permutations"] ?? result["permutations"]) == "6") {
-      $("#kbstats").html("Number of subjects: <b>" +
-        tsep(result["num-subjects-normal"] ?? result["nofsubjects"]) + "</b><br>" +
-      "Number of predicates: <b>" +
-        tsep(result["num-predicates-normal"] ?? result["nofpredicates"]) + "</b><br>" +
-      "Number of objects: <b>" +
-        tsep(result["num-objects-normal"] ?? result["nofobjects"]) + "</b>");
-    }
-    $('#statsButton').removeAttr('disabled');
-    $('#statsButton span').html('Index Information');
-  }).fail(function () {
-    $('#statsButton span').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
-  });
+  } catch (error) {
+    log(error, 'requests');
+  }
 }
 
 // Shows the modal containing the current runtime information tree
