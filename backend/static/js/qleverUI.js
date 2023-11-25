@@ -219,25 +219,38 @@ $(document).ready(function () {
   // 1. Call processQuery (sends query to backend + displays results).
   // 2. Add query hash to URL.
   //
-  $("#exebtn").click(async function() {
+  $("#exebtn").click(function() {
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
 
     // Add query hash to URL (we need Django for this, hence the POST request),
     // unless this is a URL with ?query=...
-    $.post("/api/share", { "content": editor.getValue() }, function (result) {
-      log("Got pretty link from backend", "other");
-      if (window.location.search.indexOf(result.queryString) == -1) {
-        const newUrl = window.location.origin
-                        + window.location.pathname.split("/")
-                                         .slice(0, 2).join("/") + "/" + result.link;
-        window.history.pushState("html:index.html", "QLever", newUrl);
+    const acquireShareLink = async () => {
+      const response = await fetch("/api/share", {
+        method: "POST",
+        body: new URLSearchParams({
+          "content": editor.getValue()
+        })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        log("Got pretty link from backend", "other");
+        if (window.location.search.indexOf(result.queryString) == -1) {
+          const newUrl = window.location.origin
+                          + window.location.pathname.split("/")
+                                           .slice(0, 2).join("/") + "/" + result.link;
+          window.history.pushState("html:index.html", "QLever", newUrl);
+        }
       }
-    }, "json");
+    };
+
+    Promise.all([
+      processQuery(parseInt($("#maxSendOnFirstRequest").html())),
+      acquireShareLink()
+    ]).catch(error => log(error, 'requests'));
 
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
     $("#exebtn").focus();
-    await processQuery(parseInt($("#maxSendOnFirstRequest").html()));
   });
 
   // CSV download (create link element, click on it, and remove the #csv from
@@ -266,44 +279,53 @@ $(document).ready(function () {
   
   // Generating the various links for sharing.
   $("#sharebtn").click(async function () {
-    // Rewrite the query, normalize it, and escape quotes.
-    //
-    // TODO: The escaping of the quotes is simplistic and currently fails when
-    // the query already contains some escaping itself.
-    const queryRewritten = await rewriteQuery(
-      editor.getValue(), {"name_service": "if_checked"});
-    const queryRewrittenAndNormalizedAndWithEscapedQuotes =
-      normalizeQuery(queryRewritten).replace(/"/g, "\\\"");
+    try {
+      // Rewrite the query, normalize it, and escape quotes.
+      //
+      // TODO: The escaping of the quotes is simplistic and currently fails when
+      // the query already contains some escaping itself.
+      const queryRewritten = await rewriteQuery(
+        editor.getValue(), {"name_service": "if_checked"});
+      const queryRewrittenAndNormalizedAndWithEscapedQuotes =
+        normalizeQuery(queryRewritten).replace(/"/g, "\\\"");
+      
+      if (editor.state.completionActive) { editor.state.completionActive.close(); }
 
-    // POST request to Django, for the query hash.
-    $.post('/api/share', { "content": queryRewritten }, function (result) {
-      log('Generating links for sharing ...', 'other');
-      var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
+      // POST request to Django, for the query hash.
+      const response = await fetch("/api/share", {
+        method: "POST",
+        body: new URLSearchParams({ "content": queryRewritten })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        log('Generating links for sharing ...', 'other');
+        var baseLocation = window.location.origin + window.location.pathname.split('/').slice(0, 2).join('/') + '/';
 
-      // The default media type for the curl command line link is TSV, but for
-      // CONSTRUCT queries use Turtle.
-      var mediaType = "text/tab-separated-values";
-      var apiCallCommandLineLabel = "Command line for TSV export (using curl)";
-      if (queryRewrittenAndNormalizedAndWithEscapedQuotes.match(/CONSTRUCT \{/)) {
-        mediaType = "text/turtle";
-        apiCallCommandLineLabel = apiCallCommandLineLabel.replace(/TSV/, "Turtle");
+        // The default media type for the curl command line link is TSV, but for
+        // CONSTRUCT queries use Turtle.
+        var mediaType = "text/tab-separated-values";
+        var apiCallCommandLineLabel = "Command line for TSV export (using curl)";
+        if (queryRewrittenAndNormalizedAndWithEscapedQuotes.match(/CONSTRUCT \{/)) {
+          mediaType = "text/turtle";
+          apiCallCommandLineLabel = apiCallCommandLineLabel.replace(/TSV/, "Turtle");
+        }
+        $("#apiCallCommandLineLabel").html(apiCallCommandLineLabel);
+
+        $(".ok-text").collapse("hide");
+        $("#share").modal("show");
+        $("#prettyLink").val(baseLocation + result.link);
+        $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
+        $("#queryStringLink").val(baseLocation + "?" + result.queryString);
+        $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
+        $("#apiCallCommandLine").val("curl -s " + BASEURL.replace(/-proxy$/, "")
+          + " -H \"Accept: " + mediaType + "\""
+          + " -H \"Content-type: application/sparql-query\""
+          + " --data \"" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
+        $("#queryStringUnescaped").val(queryRewrittenAndNormalizedAndWithEscapedQuotes);
       }
-      $("#apiCallCommandLineLabel").html(apiCallCommandLineLabel);
-
-      $(".ok-text").collapse("hide");
-      $("#share").modal("show");
-      $("#prettyLink").val(baseLocation + result.link);
-      $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
-      $("#queryStringLink").val(baseLocation + "?" + result.queryString);
-      $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
-      $("#apiCallCommandLine").val("curl -s " + BASEURL.replace(/-proxy$/, "")
-        + " -H \"Accept: " + mediaType + "\""
-        + " -H \"Content-type: application/sparql-query\""
-        + " --data \"" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
-      $("#queryStringUnescaped").val(queryRewrittenAndNormalizedAndWithEscapedQuotes);
-    }, "json");
-    
-    if (editor.state.completionActive) { editor.state.completionActive.close(); }
+    } catch (error) {
+      log(error, 'requests');
+    }
   });
   
   $(".copy-clipboard-button").click(function () {
