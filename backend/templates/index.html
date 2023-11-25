@@ -188,7 +188,7 @@
                   <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
                     <i class="glyphicon glyphicon-trash"></i> Reset
                   </button>
-                  <button class="btn btn-default" onclick="processQuery(-1, this);">
+                  <button class="btn btn-default" onclick="processQuery(-1, this).catch(error => log(error, 'requests'));">
                     <i class="glyphicon glyphicon-refresh"></i> Clear cache
                   </button>
                   <button class="btn btn-default" onclick="showQueryPlanningTree();">

@@ -750,18 +750,13 @@ function expandEditor() {
   }
 }
 
-function displayError(response, statusWithText = undefined, queryId = undefined) {
+function displayError(response, queryId = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
     response["exception"] = "Unknown error";
   }
   disp = "<h4><strong>Error processing query</strong></h4>";
-  // if (statusWithText) { disp += "<p>" + statusWithText + "</p>"; }
   disp += "<p>" + htmlEscape(response["exception"]) + "</p>";
-  // if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
-  //   result["Exception-Error-Message"] = "Unknown error";
-  // }
-  // disp = "<h3>Error:</h3><h4><strong>" + result["Exception-Error-Message"] + "</strong></h4>";
   // The query sometimes is a one-element array with the query TODO: find out why.
   if (Array.isArray(response.query)) {
     if (response.query.length >= 1) { response.query = response.query[0]; }
@@ -814,18 +809,6 @@ function displayStatus(str) {
   $("#errorBlock,#answerBlock,#warningBlock").hide();
   $("#info").html(str);
   $("#infoBlock").show();
-}
-
-// This is used only in commented out code in the function `processQuery` in
-// `qleverUI.js`.
-function showAllConcatsDeprecated(element, sep, column) {
-  data = $(element).parent().data('original-title');
-  html = "";
-  results = data.split(sep);
-  for (var k = 0; k < results.length; k++) {
-    html += getFormattedResultEntry(results[k], 50, column)[0] + "<br>";
-  }
-  $(element).parent().html(html);
 }
 
 function tsep(str) {

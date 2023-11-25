@@ -222,7 +222,6 @@ $(document).ready(function () {
   $("#exebtn").click(async function() {
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
-    await processQuery(parseInt($("#maxSendOnFirstRequest").html()));
 
     // Add query hash to URL (we need Django for this, hence the POST request),
     // unless this is a URL with ?query=...
@@ -238,6 +237,7 @@ $(document).ready(function () {
 
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
     $("#exebtn").focus();
+    await processQuery(parseInt($("#maxSendOnFirstRequest").html()));
   });
 
   // CSV download (create link element, click on it, and remove the #csv from
@@ -250,13 +250,6 @@ $(document).ready(function () {
     download_link.setAttribute("download",
         window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".csv");
     download_link.click();
-    // $.ajax({
-    //   url: BASEURL + "?query=" + encodeURIComponent(query),
-    //   headers: { "Content-Disposition": "attachment; filename=\"xxx.csv\"" },
-    //   // dataType: "json",
-    //   success: function (result) { console.log("DONE"); }
-    // });
-    // window.location.href = await getQueryString(query) + "&action=csv_export";
   });
   
   // TSV report: like for CSV report above.
@@ -340,11 +333,14 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
     query = prefixes + "SELECT ?qleverui_name WHERE {\n" + "  " + namepredicate.replace(/\n/g, "\n  ").replace(/\?qleverui_entity/g, element) + "\n}";
     log("Retrieving name for " + element + ":", 'requests');
     log(query, 'requests');
-    // $.getJSON(BASEURL + '?query=' + encodeURIComponent(query), function (result) {
-    $.ajax({ url: BASEURL + "?query=" + encodeURIComponent(query),
-             headers: { Accept: "application/qlever-results+json" },
-             dataType: "json",
-             success: function (result) {
+
+    (async () => {
+      const urlParams = new URLSearchParams({ query: encodeURIComponent(query) });
+      const response = await fetch(`${BASEURL}?${urlParams}`, {
+        headers: { Accept: "application/qlever-results+json" }
+      });
+
+      const result = await response.json();
       if (result['res'] && result['res'][0]) {
         list[element] = result['res'][0];
         $(domElement).attr('data-title', result['res'][0]).attr('data-container', 'body').attr('data-tooltip', 'tooltip').tooltip();
@@ -354,7 +350,7 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
       } else {
         list[element] = "";
       }
-    }});
+    })().catch(error => log(error, 'requests'));
   }
 }
 
@@ -481,198 +477,184 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     ws = createWebSocketForQuery(queryId, startTimeStamp, params["query"]);
     headers["Query-Id"] = queryId;
   }
+  
+  try {
+    const response = await fetch(BASEURL, {
+      method: "POST",
+      body: new URLSearchParams(params),
+      headers: headers,
+    });
 
-  $.ajax({
-    method: "POST",
-    url: BASEURL,
-    data: $.param(params),
-    headers: headers,
-    success: function (result) {
-      log('Evaluating and displaying results...', 'other');
-      
-      $(element).find('.glyphicon').removeClass('glyphicon-spin');
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
 
-      // For non-query commands like "cmd=clear-cache" just remove the "Waiting
-      // for response box" and that's it.
-      if (nothingToShow) {
-        $("#infoBlock").hide();
+    const result = await response.json();
+    
+    log('Evaluating and displaying results...', 'other');
+
+    // For non-query commands like "cmd=clear-cache" just remove the "Waiting
+    // for response box" and that's it.
+    if (nothingToShow) {
+      $("#infoBlock").hide();
         return;
-      }
+    }
 
-      if (result.status == "ERROR") {
-        displayError(result, undefined, queryId);
-        return;
-      }
-      if (result["warnings"].length > 0) { displayWarning(result); }
+    if (result.status == "ERROR") {
+      displayError(result, queryId);
+      return;
+    }
+    if (result["warnings"].length > 0) { displayWarning(result); }
 
       // Show some statistics (on top of the table).
-      //
-      // NOTE: The result size reported by QLever (in the
-      // application/qlever-results+json format) is the result size without
-      // without LIMIT.
-      var nofRows = result.res.length;
-      const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
-      let resultSize = result.resultsize;
-      let limitMatch = result.query.match(/\bLIMIT\s+(\d+)\s*$/);
-      if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
-      let resultSizeString = tsep(resultSize.toString());
-      $('#resultSize').html(resultSizeString);
-      $('#totalTime').html(totalTime);
-      $('#computationTime').html(computeTime);
-      $('#jsonTime').html(resolveTime);
+    //
+    // NOTE: The result size reported by QLever (in the
+    // application/qlever-results+json format) is the result size without
+    // without LIMIT.
+    var nofRows = result.res.length;
+    const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
+    let resultSize = result.resultsize;
+    let limitMatch = result.query.match(/\bLIMIT\s+(\d+)\s*$/);
+    if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
+    let resultSizeString = tsep(resultSize.toString());
+    $('#resultSize').html(resultSizeString);
+    $('#totalTime').html(totalTime);
+    $('#computationTime').html(computeTime);
+    $('#jsonTime').html(resolveTime);
 
-      const columns = result.selected;
+    const columns = result.selected;
 
-      // If more than predefined number of results, create "Show all" button
-      // (onclick action defined further down). 
-      let showAllButton = "";
-      if (nofRows < parseInt(resultSize)) {
-        showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
-          + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
-          + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
-      }
-
-      // If the last column of the first result row contains a WKT literal,
-      // create "Map View" buttons.
-      let mapViewButtonVanilla = '';
-      let mapViewButtonPetri = '';
-      if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
-        let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
-        let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
-        let params = $.param({ query: normalizeQuery(query), backend: BASEURL });
-        // var query_escaped = query.replace(/"/g, "\\\"");
-        // console.log("QUERY:", `'${query}'`);
-        // var query_escaped = encodeURIComponent(query);
-        // mapViewButtonVanilla = `<form method="post" action="${mapViewUrlVanilla}" class="inline" target="_blank" ><input type="text" name="backend" value="${BASEURL}"><input type="text" name="query" value='PREFIX osm: <https://www.openstreetmap.org> SELECT * WHERE { ?s ?p ?o } LIMIT 10'><button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-map-marker"></i> Map view</button></form>`;
-        mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-        mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-      }
-
-      // Show the buttons (if there are any).
-      //
-      // TODO: Exactly which "MapView" buttons are shown depends on the
-      // instance. How is currently hard-coded. This should be configurable (in
-      // the Django configuration of the respective backend).
-      var res = "<div id=\"res\">";
-      if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-        if (BASEURL.match("wikidata|osm-")) {
-          res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
-          // res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div>`;
-        } else {
-          res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;
-        }
-      }
-
-      // Optionally show links to other SPARQL endpoints.
-      // NOTE: we want the *original* query here, as it appears in the editor,
-      // without the QLever-specific rewrites (see above).
-      if (SLUG.startsWith("wikidata")) {
-        const queryEncoded = encodeURIComponent(original_query);
-        wdqsUrl = "https://query.wikidata.org/";
-        wdqsParams = "#" + queryEncoded;
-        wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}${wdqsParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
-        virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
-        virtuosoParams = $.param({ "default-graph-uri": "http://www.wikidata.org/",
-                                  "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-                                  "format": "text/html", "timeout": 0, "signal_void": "on" });
-        virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-        res += `<div class="pull-right">${wdqsButton}</div>`;
-        res += `<div class="pull-right">${virtuosoButton}</div>`;
-      }
-      if (SLUG.startsWith("uniprot")) {
-        const queryEncoded = encodeURIComponent(original_query);
-        virtuosoUrl = "http://sparql.uniprot.org/sparql?";
-        virtuosoParams = $.param({ "qtxt": original_query,
-                                  "format": "text/html", "timeout": 0, "signal_void": "on" });
-        virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-        res += `<div class="pull-right">${virtuosoButton}</div>`;
-      }
-      if (SLUG.startsWith("dbpedia")) {
-        const queryEncoded = encodeURIComponent(original_query);
-        virtuosoUrl = "https://dbpedia.org/sparql?";
-        virtuosoParams = $.param({ "default-graph-uri": "http://dbpedia.org",
-                                  "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-                                  "format": "text/html", "timeout": 0, "signal_void": "on"  });
-        virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-        res += `<div class="pull-right">${virtuosoButton}</div>`;
-      }
-
-      // Leave some space to the actual result table.
-      res += "</div><br><br>";
-
-      $("#answer").html(res);
-      $("#show-all").click(async function() {
-        await processQuery();
-      });
-
-      var tableHead = $('#resTable thead');
-      var head = "<tr><th></th>";
-      for (var column of columns) {
-        if (column) { head += "<th>" + column + "</th>"; }
-      }
-      head += "</tr>";
-      tableHead.html(head);
-      var tableBody = $('#resTable tbody');
-      tableBody.html("");
-      var i = 1;
-      for (var resultLine of result.res) {
-        var row = "<tr>";
-        row += "<td>" + i + "</td>";
-        var j = 0;
-        for (var resultEntry of resultLine) {
-          if (resultEntry) {
-            const [formattedResultEntry, rightAlign] = getFormattedResultEntry(resultEntry, 50, j);
-            const tooltipText = htmlEscape(resultEntry).replace(/\"/g, "&quot;");
-            row += "<td" + (rightAlign ? " align=\"right\"" : "") + ">"
-                   + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
-                   + formattedResultEntry + "</span></td>";
-          } else {
-            row += "<td><span>-</span></td>";
-          }
-          j++;
-        }
-        row += "</tr>";
-        tableBody.append(row);
-        i++;
-      }
-      $('[data-toggle="tooltip"]').tooltip();
-      $('#infoBlock,#errorBlock').hide();
-      $('#answerBlock').show();
-      $("html, body").animate({
-        scrollTop: $("#resTable").scrollTop() + 500
-      }, 500);
-      
-      // MAX_VALUE ensures this always has priority over the websocket updates
-      appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
-      renderRuntimeInformationToDom();
-
-      // Make sure we have no socket that stays open forever
-      ws.close();
+    // If more than predefined number of results, create "Show all" button
+    // (onclick action defined further down). 
+    let showAllButton = "";
+    if (nofRows < parseInt(resultSize)) {
+      showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
+        + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
+        + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
     }
-  }).fail(function (jqXHR, textStatus, errorThrown) {
-    $(element).find('.glyphicon').removeClass('glyphicon-spin glyphicon-refresh');
+
+    // If the last column of the first result row contains a WKT literal,
+    // create "Map View" buttons.
+    let mapViewButtonVanilla = '';
+    let mapViewButtonPetri = '';
+    if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
+      let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
+      let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
+      let params = $.param({ query: normalizeQuery(query), backend: BASEURL });
+      // var query_escaped = query.replace(/"/g, "\\\"");
+      // console.log("QUERY:", `'${query}'`);
+      // var query_escaped = encodeURIComponent(query);
+      // mapViewButtonVanilla = `<form method="post" action="${mapViewUrlVanilla}" class="inline" target="_blank" ><input type="text" name="backend" value="${BASEURL}"><input type="text" name="query" value='PREFIX osm: <https://www.openstreetmap.org> SELECT * WHERE { ?s ?p ?o } LIMIT 10'><button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-map-marker"></i> Map view</button></form>`;
+      mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+      mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+    }
+
+    // Show the buttons (if there are any).
+    //
+    // TODO: Exactly which "MapView" buttons are shown depends on the
+    // instance. How is currently hard-coded. This should be configurable (in
+    // the Django configuration of the respective backend).
+    var res = "<div id=\"res\">";
+    if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
+      if (BASEURL.match("wikidata|osm-")) {
+        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
+      } else {
+        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;
+      }
+    }
+
+    // Optionally show links to other SPARQL endpoints.
+    // NOTE: we want the *original* query here, as it appears in the editor,
+    // without the QLever-specific rewrites (see above).
+    if (SLUG.startsWith("wikidata")) {
+      let wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
+      let wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
+      let virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
+      let virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://www.wikidata.org/",
+                                "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+                                "format": "text/html", "timeout": 0, "signal_void": "on" });
+      let virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+      res += `<div class="pull-right">${wdqsButton}</div>`;
+      res += `<div class="pull-right">${virtuosoButton}</div>`;
+    }
+    if (SLUG.startsWith("uniprot")) {
+      let virtuosoUrl = "http://sparql.uniprot.org/sparql?";
+      let virtuosoParams = new URLSearchParams({ "qtxt": original_query,
+                                "format": "text/html", "timeout": 0, "signal_void": "on" });
+      virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+      res += `<div class="pull-right">${virtuosoButton}</div>`;
+    }
+    if (SLUG.startsWith("dbpedia")) {
+      let virtuosoUrl = "https://dbpedia.org/sparql?";
+      let virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://dbpedia.org",
+                                "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+                                "format": "text/html", "timeout": 0, "signal_void": "on"  });
+      virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+      res += `<div class="pull-right">${virtuosoButton}</div>`;
+    }
+
+    // Leave some space to the actual result table.
+    res += "</div><br><br>";
+
+    $("#answer").html(res);
+    $("#show-all").click(() => processQuery().catch(error => log(error, "requests")));
+
+    var tableHead = $('#resTable thead');
+    var head = "<tr><th></th>";
+    for (var column of columns) {
+      if (column) { head += "<th>" + column + "</th>"; }
+    }
+    head += "</tr>";
+    tableHead.html(head);
+    var tableBody = $('#resTable tbody');
+    tableBody.html("");
+    var i = 1;
+    for (var resultLine of result.res) {
+      var row = "<tr>";
+      row += "<td>" + i + "</td>";
+      var j = 0;
+      for (var resultEntry of resultLine) {
+        if (resultEntry) {
+          const [formattedResultEntry, rightAlign] = getFormattedResultEntry(resultEntry, 50, j);
+          const tooltipText = htmlEscape(resultEntry).replace(/\"/g, "&quot;");
+          row += "<td" + (rightAlign ? " align=\"right\"" : "") + ">"
+                 + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
+                 + formattedResultEntry + "</span></td>";
+        } else {
+          row += "<td><span>-</span></td>";
+        }
+        j++;
+      }
+      row += "</tr>";
+      tableBody.append(row);
+      i++;
+    }
+    $('[data-toggle="tooltip"]').tooltip();
+    $('#infoBlock,#errorBlock').hide();
+    $('#answerBlock').show();
+    $("html, body").animate({
+      scrollTop: $("#resTable").scrollTop() + 500
+    }, 500);
+    
+    // MAX_VALUE ensures this always has priority over the websocket updates
+    appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
+    renderRuntimeInformationToDom();
+  } catch (error) {
+    $(element).find('.glyphicon').removeClass('glyphicon-refresh');
     $(element).find('.glyphicon').addClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', 'red');
-    console.log("JQXHR", jqXHR);
-    if (!jqXHR.responseJSON) {
-      if (errorThrown = "Unknown error") {
-        errorThrown = "No reply from backend, "
-          + "for details check the development console (F12)";
-      }
-      jqXHR.responseJSON = {
-        "exception" : errorThrown,
-        "query": query
-      };
-    }
-    var statusWithText = jqXHR.status && jqXHR.statusText
-        ? (jqXHR.status + " (" + jqXHR.statusText + ")") : undefined;
-    displayError(jqXHR.responseJSON, statusWithText, nothingToShow ? undefined : queryId);
-
+    const errorContent = {
+      "exception" : error.message || "Unknown error",
+      "query": query
+    };
+    displayError(errorContent, nothingToShow ? undefined : queryId);
+  } finally {
+    $(element).find('.glyphicon').removeClass('glyphicon-spin');
     // Make sure we have no socket that stays open forever
     if (ws) {
       ws.close();
     }
-  });
+  };
 }
   
 function handleStatsDisplay() {
