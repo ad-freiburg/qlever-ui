@@ -589,6 +589,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // NOTE: we want the *original* query here, as it appears in the editor,
     // without the QLever-specific rewrites (see above).
     if (SLUG.startsWith("wikidata")) {
+      const queryEncoded = encodeURIComponent(original_query);
       let wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
       let wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
       let virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
