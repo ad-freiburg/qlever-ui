@@ -508,7 +508,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     });
 
     // fetch with non-200 status code is considered
-    // as success, so throw an exception here to
+    // a success, so throw an exception here to
     // handle it just like a network error.
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
