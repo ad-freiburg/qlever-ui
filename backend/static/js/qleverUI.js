@@ -507,13 +507,6 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       headers: headers,
     });
 
-    // fetch with non-200 status code is considered
-    // a success, so throw an exception here to
-    // handle it just like a network error.
-    if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
-    }
-
     const result = await response.json();
     
     log('Evaluating and displaying results...', 'other');
@@ -531,7 +524,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
     if (result["warnings"].length > 0) { displayWarning(result); }
 
-      // Show some statistics (on top of the table).
+    // Show some statistics (on top of the table).
     //
     // NOTE: The result size reported by QLever (in the
     // application/qlever-results+json format) is the result size without
