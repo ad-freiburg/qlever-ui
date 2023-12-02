@@ -673,7 +673,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     if (ws) {
       ws.close();
     }
-  };
+  }
 }
   
 async function handleStatsDisplay() {
