@@ -244,6 +244,7 @@ $(document).ready(function () {
       }
     };
 
+    // Run the query and fetch the share link concurrently
     Promise.all([
       processQuery(parseInt($("#maxSendOnFirstRequest").html())),
       acquireShareLink()
@@ -506,6 +507,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       headers: headers,
     });
 
+    // fetch with non-200 status code is considered
+    // as success, so throw an exception here to
+    // handle it just like a network error.
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
@@ -589,29 +593,29 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // without the QLever-specific rewrites (see above).
     if (SLUG.startsWith("wikidata")) {
       const queryEncoded = encodeURIComponent(original_query);
-      let wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
-      let wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
-      let virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
-      let virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://www.wikidata.org/",
+      const wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
+      const wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
+      const virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
+      const virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://www.wikidata.org/",
                                 "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
                                 "format": "text/html", "timeout": 0, "signal_void": "on" });
-      let virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+      const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${wdqsButton}</div>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
     if (SLUG.startsWith("uniprot")) {
-      let virtuosoUrl = "http://sparql.uniprot.org/sparql?";
-      let virtuosoParams = new URLSearchParams({ "qtxt": original_query,
+      const virtuosoUrl = "http://sparql.uniprot.org/sparql?";
+      const virtuosoParams = new URLSearchParams({ "qtxt": original_query,
                                 "format": "text/html", "timeout": 0, "signal_void": "on" });
-      let virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+                                const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
     if (SLUG.startsWith("dbpedia")) {
-      let virtuosoUrl = "https://dbpedia.org/sparql?";
-      let virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://dbpedia.org",
+      const virtuosoUrl = "https://dbpedia.org/sparql?";
+      const virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://dbpedia.org",
                                 "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
                                 "format": "text/html", "timeout": 0, "signal_void": "on"  });
-      let virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+                                const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
 
