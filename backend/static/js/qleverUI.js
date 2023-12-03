@@ -662,8 +662,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     $(element).find('.glyphicon').removeClass('glyphicon-refresh');
     $(element).find('.glyphicon').addClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', 'red');
-    // SyntaxError indicates JSON parsing issue which
-    // means the server has some sort of internal error
+    // SyntaxError indicates a JSON parsing issue which
+    // means the server either has some sort of internal
+    // error, or we're only able to reach the proxy
     const errorMessage = error instanceof SyntaxError
       ? "Invalid reply from backend, "
         + "for details check the development console (F12)"
