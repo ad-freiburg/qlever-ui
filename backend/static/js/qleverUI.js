@@ -662,8 +662,14 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     $(element).find('.glyphicon').removeClass('glyphicon-refresh');
     $(element).find('.glyphicon').addClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', 'red');
+    // SyntaxError indicates JSON parsing issue which
+    // means the server has some sort of internal error
+    const errorMessage = error instanceof SyntaxError
+      ? "Invalid reply from backend, "
+        + "for details check the development console (F12)"
+      : error.message || "Unknown error";
     const errorContent = {
-      "exception" : error.message || "Unknown error",
+      "exception" : errorMessage,
       "query": query
     };
     displayError(errorContent, nothingToShow ? undefined : queryId);
