@@ -248,7 +248,7 @@ $(document).ready(function () {
     Promise.all([
       processQuery(parseInt($("#maxSendOnFirstRequest").html())),
       acquireShareLink()
-    ]).catch(error => log(error, 'requests'));
+    ]).catch(error => log(error.message, 'requests'));
 
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
     $("#exebtn").focus();
@@ -325,7 +325,7 @@ $(document).ready(function () {
         $("#queryStringUnescaped").val(queryRewrittenAndNormalizedAndWithEscapedQuotes);
       }
     } catch (error) {
-      log(error, 'requests');
+      log(error.message, 'requests');
     }
   });
   
@@ -374,7 +374,7 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
       } else {
         list[element] = "";
       }
-    })().catch(error => log(error, 'requests'));
+    })().catch(error => log(error.message, 'requests'));
   }
 }
 
@@ -617,7 +617,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     res += "</div><br><br>";
 
     $("#answer").html(res);
-    $("#show-all").click(() => processQuery().catch(error => log(error, "requests")));
+    $("#show-all").click(() => processQuery().catch(error => log(error.message, "requests")));
 
     var tableHead = $('#resTable thead');
     var head = "<tr><th></th>";
@@ -718,7 +718,7 @@ async function handleStatsDisplay() {
         $('#statsButton span').html('Index Information');
       }
     } catch (error) {
-      log(error, 'requests');
+      log(error.message, 'requests');
       $('#statsButton span').html('<i class="glyphicon glyphicon-remove" style="color: red;"></i> Unable to connect to backend');
     }
   } catch (error) {
