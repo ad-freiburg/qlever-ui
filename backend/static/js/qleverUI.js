@@ -358,8 +358,9 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
     log(query, 'requests');
 
     (async () => {
-      const urlParams = new URLSearchParams({ query: encodeURIComponent(query) });
+      const urlParams = new URLSearchParams({ query: query });
       const response = await fetch(`${BASEURL}?${urlParams}`, {
+        method: "POST",
         headers: { Accept: "application/qlever-results+json" }
       });
 
