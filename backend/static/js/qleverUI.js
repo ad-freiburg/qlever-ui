@@ -78,7 +78,9 @@ $(document).ready(function () {
   
   // Initialize the name hover.
   if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
-    $('.cm-entity').hover(showRealName);
+    const entities = $('.cm-entity:not([data-has-mouseenter-handler])');
+    entities.on('mouseenter', showRealName);
+    entities.data('has-mouseenter-handler', 'true');
   }
   
   // Initialization done.
@@ -95,7 +97,9 @@ $(document).ready(function () {
     
     // (re)initialize the name hover
     if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
-      $('.cm-entity').hover(showRealName);
+      const newEntities = $('.cm-entity:not([data-has-mouseenter-handler])');
+      newEntities.on('mouseenter', showRealName);
+      newEntities.data('has-mouseenter-handler', 'true');
     }
   });
   
