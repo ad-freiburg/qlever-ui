@@ -335,65 +335,6 @@ async function enhanceQueryByNameTriples(query) {
   return new_query;
 }
 
-// Rewrite all SERVICE clauses in the query. For each such clause, launch the
-// respective query against the respective endpoint, and turn the result into a
-// VALUES clause, which then replaces the SERVICE clause.
-//
-// NOTE: Currently assumes that the SERVICE clause does not contain any "{ ... }.
-async function rewriteServiceClauses(query) {
-
-  query = escapeCurlyBracesOfUnionMinusOptional(query);
-
-  var service_query_parts;
-  var service_clause_re = /SERVICE\s*<([^>]+)>\s*\{\s*([^}]+?)\s*\}/;
-  while (true) {
-    var service_clause_match = query.match(service_clause_re);
-    if (!service_clause_match) break;
-    const service_url = service_clause_match[1];
-    const service_where_clause = service_clause_match[2];
-    // Build the skeleton of the SERVICE query (needed at most once).
-    if (!service_query_parts) {
-      service_query_parts = splitSparqlQueryIntoParts(query);
-      service_query_parts["select_clause"] = "*";
-      service_query_parts["group_by"] = "";
-      service_query_parts["footer"] = "";
-    }
-    service_query_parts["body"] =
-      unescapeCurlyBracesOfUnionMinusOptional(service_where_clause);
-    const service_query = createSparqlQueryFromParts(service_query_parts);
-    console.log("SERVICE match:", service_clause_match);
-    console.log("Endpoint:", service_url);
-    console.log("Query:", service_where_clause);
-    const result_json = await fetch(service_url, {
-      method: "POST",
-      body: service_query,
-      headers: {
-        "Content-type": "application/sparql-query",
-        "Accept": "application/qlever-results+json"
-        // "Accept": "text/tab-separated-values"
-      }
-    }).then(response => response.json());
-    console.log("RESULT:", result_json);
-    var values_clause = "";
-    if (result_json.selected.length >= 1) {
-      values_clause =
-        "VALUES (" + result_json.selected.join(" ") + ")"
-        + " { " +
-        result_json.res.map(tuple => "(" + tuple.join(" ") + ")").join("  ")
-        + " }";
-      console.log("VALUES clause:", values_clause);
-    } else {
-      console.log("ERROR in processing SERVICE clause: no variables found, SERVICE clause will be ignored");
-    }
-    query = query.replace(service_clause_re, values_clause);
-  }
-
-  query = unescapeCurlyBracesOfUnionMinusOptional(query);
-
-  return query;
-}
-
-
 // Rewrite query in various ways, where the first three are synchronous (in a
 // seperate function right below) and the fourth is asynchronous because it
 // launches queries itself. Note that the first three are all HACKs, which
@@ -420,17 +361,6 @@ async function rewriteQuery(query, kwargs = {}) {
       query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
     } catch(e) {
       console.log("ERROR in \"enhanceQueryByName\": " + e);
-      return query_rewritten;
-    }
-  }
-
-  // Resolve SERVICE clauses in the query.
-  const rewrite_service_clauses = false;
-  if (rewrite_service_clauses) {
-    try {
-      query_rewritten = await rewriteServiceClauses(query_rewritten);
-    } catch(e) {
-      console.log("ERROR in \"rewriteServiceClauses\": " + e);
       return query_rewritten;
     }
   }
