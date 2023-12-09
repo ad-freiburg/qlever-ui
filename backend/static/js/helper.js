@@ -32,6 +32,39 @@ function normalizeQuery(query, escapeQuotes = false) {
               .trim();
 }
 
+
+// Wrapper for `fetch` that turns potential errors into
+// errors with user-friendly error messages.
+async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions = {}) {
+  let response;
+  try {
+    response = await fetch(BASEURL, {
+      method: "POST",
+      body: new URLSearchParams(params),
+      headers: {
+        Accept: "application/qlever-results+json",
+        ...additionalHeaders
+      },
+      ...fetchOptions
+    });
+  } catch {
+    throw new Error(`Network error: Can't reach ${BASEURL}. Please check your internet connection.`);
+  }
+  switch(response.status) {
+    case 502:
+      throw new Error("Could not reach the QLever engine. The server might be down for maintenance. Please try again later.");
+    case 503:
+      throw new Error("Unable to handle the request. The server might be overloaded. Please try again later.");
+    case 504:
+      throw new Error("Qlever engine timed out. Please report this issue if it continues to persist.");
+  }
+  try {
+    return await response.json();
+  } catch {
+    throw new Error(`Expected a JSON response, but got '${await response.text()}'`);
+  }
+}
+
 // Append the given runtime information for the given query to the runtime log.
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
@@ -277,12 +310,7 @@ async function enhanceQueryByNameTriples(query) {
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
-      // console.log("TEST QUERY:", test_query);
-      const result = await fetch(BASEURL, {
-        method: "POST",
-        body: test_query,
-        headers: { "Content-type": "application/sparql-query" }
-      }).then(response => response.json());
+      const result = await fetchQleverBackend({ query: test_query });
       if ("results" in result && result.results.bindings.length == 1) {
         // HACK: For variable ?pred use name_template_alt (see above).
         new_vars[select_var] = select_var + new_var_suffix;

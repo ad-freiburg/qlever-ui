@@ -684,20 +684,14 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
   return conditionSatisfied;
 }
 
-const fetchTimeout = (sparqlQuery, timeoutSeconds, { ...options } = {}) => {
+const fetchTimeout = (sparqlQuery, timeoutSeconds) => {
   const ms = timeoutSeconds * 1000;
   const controller = new AbortController();
-  const promise = fetch(BASEURL, {
-    // BASEURL + "?query=" + encodeURIComponent(sparqlQuery), {
-    method: "POST",
-    body: sparqlQuery,
-    signal: controller.signal,
-    headers: { 
-      "Content-type": "application/sparql-query",
-      "Accept": "application/qlever-results+json"
-    },
-    ...options
-  });
+  const promise = fetchQleverBackend(
+    { query: sparqlQuery },
+    {},
+    { signal: controller.signal }
+  );
   if (ms > 0) {
     const timeout = setTimeout(() => controller.abort(), ms);
     return promise.finally(() => clearTimeout(timeout));
@@ -783,12 +777,7 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         }
       }
 
-      let data;
-      if (showTimeoutError) {
-        data = {exception: "The request was cancelled due to timeout"};
-      } else {
-        data = await response.json();
-      }
+      const data = showTimeoutError ? { exception: "The request was cancelled due to timeout" } : response;
 
       
       if (data.res) {

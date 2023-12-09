@@ -358,13 +358,7 @@ function addNameHover(element, domElement, list, namepredicate, prefixes) {
     log(query, 'requests');
 
     (async () => {
-      const response = await fetch(BASEURL, {
-        method: "POST",
-        body: new URLSearchParams({ query: query }),
-        headers: { Accept: "application/qlever-results+json" }
-      });
-
-      const result = await response.json();
+      const result = await fetchQleverBackend({ query: query });
       if (result['res'] && result['res'][0]) {
         list[element] = result['res'][0];
         $(domElement).attr('data-title', result['res'][0]).attr('data-container', 'body').attr('data-tooltip', 'tooltip').tooltip();
@@ -488,9 +482,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     nothingToShow = true;
   }
 
-  const headers = {
-    "Accept": "application/qlever-results+json"
-  }
+  const headers = {};
   let ws = null;
   let queryId = undefined;
   if (!nothingToShow) {
@@ -502,13 +494,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   }
   
   try {
-    const response = await fetch(BASEURL, {
-      method: "POST",
-      body: new URLSearchParams(params),
-      headers: headers,
-    });
-
-    const result = await response.json();
+    const result = await fetchQleverBackend(params, headers);
     
     log('Evaluating and displaying results...', 'other');
 
@@ -663,15 +649,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     $(element).find('.glyphicon').removeClass('glyphicon-refresh');
     $(element).find('.glyphicon').addClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', 'red');
-    // SyntaxError indicates a JSON parsing issue which
-    // means the server either has some sort of internal
-    // error, or we're only able to reach the proxy
-    const errorMessage = error instanceof SyntaxError
-      ? "Invalid reply from backend, "
-        + "for details check the development console (F12)"
-      : error.message || "Unknown error";
     const errorContent = {
-      "exception" : errorMessage,
+      "exception" : error.message || "Unknown error",
       "query": query
     };
     displayError(errorContent, nothingToShow ? undefined : queryId);
