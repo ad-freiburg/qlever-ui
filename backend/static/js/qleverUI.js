@@ -33,7 +33,7 @@ $(window).resize(function (e) {
 });
 
 $(document).ready(function () {
-  
+
   // Initialize the editor.
   editor = CodeMirror.fromTextArea(document.getElementById("query"), {
     mode: "application/sparql-query", indentWithTabs: true, smartIndent: false,
@@ -53,10 +53,10 @@ $(document).ready(function () {
       "Ctrl-R": "replace"
     },
   });
-  
+
   // Set the width of the editor window.
   editor.setSize($('#queryBlock').width(), 350);
-  
+
   // Make the editor resizable.
   $('.CodeMirror').resizable({
     resize: function () {
@@ -64,44 +64,44 @@ $(document).ready(function () {
       editor.setSize($(this).width(), $(this).height());
     }
   });
-  
+
   // Initialize the tooltips.
   $('[data-toggle="tooltip"]').tooltip();
-  
+
   // If there is a theme cookie: use it!
   if (getCookie("theme") != "") {
     changeTheme(getCookie("theme"));
   }
-  
+
   // Load the backends statistics.
   handleStatsDisplay();
-  
+
   // Initialize the name hover.
   if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
     $('.cm-entity').hover(showRealName);
   }
-  
+
   // Initialization done.
   log('Editor initialized', 'other');
-  
+
   // Do some custom activities on cursor activity
   editor.on("cursorActivity", function (instance) {
     $('[data-tooltip=tooltip]').tooltip('hide');
     cleanLines(instance);
   });
-  
+
   editor.on("update", function (instance, event) {
     $('[data-tooltip=tooltip]').tooltip('hide');
-    
+
     // (re)initialize the name hover
     if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
       $('.cm-entity').hover(showRealName);
     }
   });
-  
+
   // Do some custom activities (overwrite codemirror behaviour)
   editor.on("keyup", function (instance, event) {
-    
+
     // For each prefix in COLLECTEDPREFIXES, check whether it occurs somewhere
     // in the query and if so, add it before the first SELECT (and move
     // the cursor accordingly).
@@ -128,7 +128,7 @@ $(document).ready(function () {
     var line = instance.getLine(cur.line);
     var token = instance.getTokenAt(cur);
     var string = '';
-    
+
     // do not overwrite ENTER inside an completion window
     // esc - 27
     // arrow left - 37
@@ -136,7 +136,7 @@ $(document).ready(function () {
     // arrow right - 39
     // arrow down - 40
     if (instance.state.completionActive || event.keyCode == 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
-      
+
       // for for autocompletions opened unintented
       if (line[cur.ch] == "}" || line[cur.ch + 1] == "}" || line[cur.ch - 1] == "}") {
         if(instance && instance.state && instance.state.completionActive){
@@ -145,12 +145,12 @@ $(document).ready(function () {
       }
       return;
     }
-    
+
     if (token.string.match(new RegExp('^[.`\w?<@]\w*$'))) {
       string = token.string;
     }
     // do not suggest anything inside a word
-    
+
     if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}" && line[cur.ch + 1] != "}" && line[cur.ch - 1] != "}") {
       // invoke autocompletion after a very short delay
       window.setTimeout(function () {
@@ -162,17 +162,17 @@ $(document).ready(function () {
       console.warn('Skipped completion due to cursor position');
     }
   });
-  
+
   // when completion is chosen - remove the counter badge
   editor.on("endCompletion", function () { $('#aBadge').remove(); });
-  
+
   function showRealName(element) {
-    
+
     // collect prefixes (as string and dict)
     // TODO: move this to a function. Also use this new function in sparql-hint.js
     var prefixes = "";
     var lines = getPrefixLines();
-    
+
     for (var line of lines) {
       if (line.trim().startsWith("PREFIX")) {
         var match = /PREFIX (.*): ?<(.*)>/g.exec(line.trim());
@@ -181,22 +181,22 @@ $(document).ready(function () {
         }
       }
     }
-    
+
     // TODO: move this "get current element with its prefix" to a function. Also use this new function in sparql-hint.js
     values = $(this).parent().text().trim().split(' ');
     element = $(this).text().trim();
     domElement = this;
-    
+
     if ($(this).prev().hasClass('cm-prefix-name') || $(this).prev().hasClass('cm-string-language')) {
       element = $(this).prev().text() + element;
     }
-    
+
     if ($(this).next().hasClass('cm-entity-name')) {
       element = element + $(this).next().text();
     }
-    
+
     index = values.indexOf(element.replace(/^\^/, ""));
-    
+
     if (index == 0) {
       if (SUBJECTNAME != "") {
         addNameHover(element, domElement, subjectNames, SUBJECTNAME, prefixes);
@@ -210,7 +210,7 @@ $(document).ready(function () {
         addNameHover(element, domElement, objectNames, OBJECTNAME, prefixes);
       }
     }
-    
+
     return true;
   }
 
@@ -258,7 +258,7 @@ $(document).ready(function () {
     // });
     // window.location.href = await getQueryString(query) + "&action=csv_export";
   });
-  
+
   // TSV report: like for CSV report above.
   $("#tsvbtn").click(async function () {
     log('Download TSV', 'other');
@@ -270,7 +270,7 @@ $(document).ready(function () {
     download_link.click();
     // window.location.href = await getQueryString(query) + "&action=tsv_export";
   });
-  
+
   // Generating the various links for sharing.
   $("#sharebtn").click(async function () {
     // Rewrite the query, normalize it, and escape quotes.
@@ -309,10 +309,10 @@ $(document).ready(function () {
         + " --data \"" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
       $("#queryStringUnescaped").val(queryRewrittenAndNormalizedAndWithEscapedQuotes);
     }, "json");
-    
+
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
   });
-  
+
   $(".copy-clipboard-button").click(function () {
     var link = $(this).parent().parent().find("input")[0];
     link.select();
@@ -320,12 +320,12 @@ $(document).ready(function () {
     document.execCommand("copy");
     $(this).parent().parent().parent().find(".ok-text").collapse("show");
   });
-  
+
 });
 
 function addNameHover(element, domElement, list, namepredicate, prefixes) {
   element = element.replace(/^(@[a-zA-Z-]+@|\^)/, "");
-  
+
   if ($(domElement).data('tooltip') == 'tooltip') {
     return;
   }
@@ -365,7 +365,7 @@ function getResultTime(resultTimes) {
     parseFloat(resultTimes.computeResult.replace(/[^\d\.]/g, ""))
   ];
   timeList.push(timeList[0] - timeList[1]);  // time for resolving and sending
-  
+
   for (const i in timeList) {
     const time = timeList[i];
     let timeAmount = Math.round(time);
@@ -444,7 +444,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   log('Preparing query...', 'other');
   log('Element: ' + element, 'other');
   if (sendLimit >= 0) { displayStatus("Waiting for response..."); }
-  
+
   $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
   $(element).find('.glyphicon').removeClass('glyphicon-remove');
   $(element).find('.glyphicon').css('color', $(element).css('color'));
@@ -489,7 +489,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     headers: headers,
     success: function (result) {
       log('Evaluating and displaying results...', 'other');
-      
+
       $(element).find('.glyphicon').removeClass('glyphicon-spin');
 
       // For non-query commands like "cmd=clear-cache" just remove the "Waiting
@@ -524,7 +524,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       const columns = result.selected;
 
       // If more than predefined number of results, create "Show all" button
-      // (onclick action defined further down). 
+      // (onclick action defined further down).
       let showAllButton = "";
       if (nofRows < parseInt(resultSize)) {
         showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
@@ -555,7 +555,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       // the Django configuration of the respective backend).
       var res = "<div id=\"res\">";
       if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-        if (BASEURL.match("wikidata|osm-")) {
+        if (BASEURL.match("wikidata|osm-|dblp")) {
           res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
           // res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonVanilla} ${mapViewButtonPetri}</div>`;
         } else {
@@ -641,7 +641,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       $("html, body").animate({
         scrollTop: $("#resTable").scrollTop() + 500
       }, 500);
-      
+
       // MAX_VALUE ensures this always has priority over the websocket updates
       appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
       renderRuntimeInformationToDom();
@@ -674,12 +674,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
   });
 }
-  
+
 function handleStatsDisplay() {
   log('Loading backend statistics...', 'other');
   $('#statsButton span').html('Loading information...');
   $('#statsButton').attr('disabled', 'disabled');
-  
+
   $.getJSON(BASEURL + "?cmd=stats", function (result) {
     log('Evaluating and displaying stats...', 'other');
     $("#kbname").html(result.kbindex ?? result["name-index"]);
@@ -730,7 +730,7 @@ function renderRuntimeInformationToDom(entry = undefined) {
     runtime_info,
     query
   } = entry || Array.from(request_log.values()).pop();
-  
+
   if (runtime_info["query_execution_tree"] === null) {
     $("#result-query").text("");
     $("#meta-info").text("");
@@ -801,7 +801,7 @@ function renderRuntimeInformationToDom(entry = undefined) {
   $("p.node-status").filter(function() { return $(this).text() === "failed because child failed"}).addClass("child-failed");
   $("p.node-status").filter(function() { return $(this).text() === "not yet started"}).parent().addClass("not-started");
   $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
-  
+
   if ($('#logRequests').is(':checked')) {
     const queryHistoryList = $("<ul/>", { class: "pagination" });
     // Note: when we later iterate over this `Map`, we get the key-value
