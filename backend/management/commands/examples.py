@@ -73,5 +73,3 @@ class Command(BaseCommand):
         query = query.strip()
 
         return query
-
-
