@@ -550,10 +550,6 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
       let mapViewUrlPetri = 'http://qlever.cs.uni-freiburg.de/mapui-petri/?';
       let params = new URLSearchParams({ query: normalizeQuery(query), backend: BASEURL });
-      // var query_escaped = query.replace(/"/g, "\\\"");
-      // console.log("QUERY:", `'${query}'`);
-      // var query_escaped = encodeURIComponent(query);
-      // mapViewButtonVanilla = `<form method="post" action="${mapViewUrlVanilla}" class="inline" target="_blank" ><input type="text" name="backend" value="${BASEURL}"><input type="text" name="query" value='PREFIX osm: <https://www.openstreetmap.org> SELECT * WHERE { ?s ?p ?o } LIMIT 10'><button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-map-marker"></i> Map view</button></form>`;
       mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
       mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewUrlPetri}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
     }
@@ -580,25 +576,37 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       const wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
       const wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
       const virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
-      const virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://www.wikidata.org/",
-                                "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-                                "format": "text/html", "timeout": 0, "signal_void": "on" });
+      const virtuosoParams = new URLSearchParams({
+        "default-graph-uri": "http://www.wikidata.org/",
+        "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+        "format": "text/html",
+        "timeout": 0,
+        "signal_void": "on"
+      });
       const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${wdqsButton}</div>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
     if (SLUG.startsWith("uniprot")) {
       const virtuosoUrl = "http://sparql.uniprot.org/sparql?";
-      const virtuosoParams = new URLSearchParams({ "qtxt": original_query,
-                                "format": "text/html", "timeout": 0, "signal_void": "on" });
+      const virtuosoParams = new URLSearchParams({
+        "qtxt": original_query,
+        "format": "text/html",
+        "timeout": 0,
+        "signal_void": "on"
+      });
       const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
     if (SLUG.startsWith("dbpedia")) {
       const virtuosoUrl = "https://dbpedia.org/sparql?";
-      const virtuosoParams = new URLSearchParams({ "default-graph-uri": "http://dbpedia.org",
-                                "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-                                "format": "text/html", "timeout": 0, "signal_void": "on"  });
+      const virtuosoParams = new URLSearchParams({
+        "default-graph-uri": "http://dbpedia.org",
+        "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+        "format": "text/html",
+        "timeout": 0,
+        "signal_void": "on"
+      });
       const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
     }
