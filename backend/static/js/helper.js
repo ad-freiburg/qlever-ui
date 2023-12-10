@@ -402,19 +402,22 @@ async function rewriteQuery(query, kwargs = {}) {
 function rewriteQueryNoAsyncPart(query) {
   var query_rewritten = query;
 
-  // HACK 1: Rewrite FILTER CONTAINS(?title, "info* retr*") using
+  // HACK 1: Rewrite FILTER KEYWORDS(?title, "info* retr*") using
   // ql:contains-entity and ql:contains-word.
-  var num_rewrites_filter_contains = 0;
-  var m_var = "?qlm_";
-  var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
-  while (query_rewritten.match(filter_contains_re)) {
-    query_rewritten = query_rewritten.replace(filter_contains_re,
-         m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
-    m_var = m_var + "i";
-    num_rewrites_filter_contains += 1;
-  }
-  if (num_rewrites_filter_contains > 0) {
-    console.log("Rewrote query with \"FILTER CONTAINS\"");
+  const rewriteFilterKeywords = true;
+  if (rewriteFilterKeywords) {
+    var num_rewrites_filter_contains = 0;
+    var m_var = "?qlm_";
+    var filter_contains_re = /FILTER\s+KEYWORDS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
+    while (query_rewritten.match(filter_contains_re)) {
+      query_rewritten = query_rewritten.replace(filter_contains_re,
+           m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
+      m_var = m_var + "i";
+      num_rewrites_filter_contains += 1;
+    }
+    if (num_rewrites_filter_contains > 0) {
+      console.log("Rewrote query with \"FILTER KEYWORDS\"");
+    }
   }
 
   // HACK 2: Rewrite query to use ql:has-predicate if it fits a certain pattern
@@ -795,6 +798,38 @@ function htmlEscape(str) {
 // table.
 function getFormattedResultEntry(str, maxLength, column = undefined) {
 
+  // Get the variable name from the table header. TODO: it is inefficient to do
+  // this for every table entry.
+  var var_name = $($("#resTable").find("th")[column + 1]).html();
+
+  // If the entry is or contains a link, make it clickable (see where these
+  // variables are set in the following code).
+  let isLink = false;
+  let linkStart = "";
+  let linkEnd = "";
+
+  // HACK: If the variable ends in "_sparql" or "_mapview", consider the value
+  // as a SPARQL query, and show it in the QLever UI or on a map, respectively.
+  if (var_name.endsWith("_sparql") || var_name.endsWith("_mapview")) {
+    isLink = true;
+    if (var_name.endsWith("_sparql")) {
+      mapview_url = `https://qlever.cs.uni-freiburg.de/${SLUG}/` +
+                    `?query=${encodeURIComponent(str)}`;
+      icon_class = "glyphicon glyphicon-search";
+      str = "Query view";
+    } else {
+      mapview_url = `https://qlever.cs.uni-freiburg.de/mapui-petri/` +
+                    `?query=${encodeURIComponent(str)}` +
+                    `&mode=objects&backend=${BASEURL}`;
+      icon_class = "glyphicon glyphicon-globe";
+      str = "Map view";
+    }
+    linkStart = `<span style="white-space: nowrap;">` +
+                `<i class="${icon_class}"></i> ` +
+                `<a href="${mapview_url}" target="_blank">`;
+    linkEnd = '</a></span>';
+  }
+
   // TODO: Do we really want to replace each _ by a space right in the
   // beginning?
   str = str.replace(/_/g, ' ');
@@ -854,7 +889,6 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 
   // HACK Hannah 16.09.2021: Custom formatting depending on the variable name in
   // the column header.
-  var var_name = $($("#resTable").find("th")[column + 1]).html();
   // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
   if (var_name.endsWith("?note") || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
   if (var_name.endsWith("_per_paper")) str = parseFloat(str).toFixed(2).toString();
@@ -865,9 +899,6 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 
   pos = cpy.lastIndexOf("^^")
   pos_http = cpy.indexOf("http");
-  let isLink = false;
-  let linkStart = "";
-  let linkEnd = "";
 
   // For typed literals (with a ^^ part), prepend icon to header that links to
   // that type.
@@ -897,7 +928,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 
   // For IRIs that start with http display the item depending on the link type.
   // For images, a thumbnail of the image is shown. For other links, prepend a
-  // symbol that depends on the link tpye and links to the respective URL.
+  // symbol that depends on the link type and links to the respective URL.
   //
   // TODO: What if http occur somewhere inside a literal or a link?
   } else if (pos_http > 0) {

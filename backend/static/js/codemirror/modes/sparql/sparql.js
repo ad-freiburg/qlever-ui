@@ -41,7 +41,7 @@ const CONTEXTS = [
   },
   {
     w3name: 'Filter',
-    definition: /Filter \(([\s\S]*)\)/gi,
+    definition: /FILTER \(([\s\S]*)\)/gi,
   },
   {
     w3name: 'ValuesClause',
@@ -69,6 +69,8 @@ const CONTEXTS = [
   },
 ];
 
+// TODO: Understand how the unnamed function in `suggestions`is called and with
+// which `c`.
 const COMPLEXTYPES = [
   {
     name: 'PREFIX',
