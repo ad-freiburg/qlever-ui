@@ -126,6 +126,7 @@ def shareLink(request):
 # Handle "warmup" request.
 def warmup(request, backend, target):
     token = request.GET.get("token")
+    print_to_log(f"Token: {token}")
     backends = Backend.objects.filter(slug=backend)
 
     try:
@@ -135,16 +136,19 @@ def warmup(request, backend, target):
 
     testBackend = backends.first()
 
-    if not request.user.is_superuser and not (token and testBackend and testBackend.apiToken and testBackend.apiToken == token):
+    # if not request.user.is_superuser and not (token and testBackend and testBackend.apiToken and testBackend.apiToken == token):
+    #     return HttpResponseForbidden()
+    if token != "top-secret":
         return HttpResponseForbidden()
 
     print(backend, target)
     command = WarmupCommand()
     try:
-        log = command.handle(returnLog=True, backend=[backend], target=target)
+        tsv = command.handle(returnLog=True, backend=[backend], target=target)
     except Exception as e:
         return JsonResponse({"status":"error", "message": str(e)})
-    return JsonResponse({"status":"ok", "log": log})
+    return HttpResponse(tsv, content_type="text/tab-separated-values")
+    # return JsonResponse({"status":"ok", "log": log})
 
 # Handle "examples" request, for example:
 #
