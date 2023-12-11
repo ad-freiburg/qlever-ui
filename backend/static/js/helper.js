@@ -47,7 +47,11 @@ async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions =
       },
       ...fetchOptions
     });
-  } catch {
+  } catch (error) {
+    // Rethrow abort errors directly
+    if (error.name === "AbortError") {
+      throw error;
+    }
     throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
   }
   switch(response.status) {
