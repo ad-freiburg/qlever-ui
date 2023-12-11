@@ -683,7 +683,7 @@ async function handleStatsDisplay() {
     
     try {
       const response = await fetch(`${BASEURL}?cmd=stats`);
-      if (response.ok) {
+      if (!response.ok) {
         throw new Error(`Server returned ${response.status} ${response.statusText}.`);
       }
       const result = await response.json();

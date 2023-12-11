@@ -48,7 +48,7 @@ async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions =
       ...fetchOptions
     });
   } catch {
-    throw new Error(`Network error: Can't reach ${BASEURL}. Please check your internet connection.`);
+    throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
   }
   switch(response.status) {
     case 502:
