@@ -62,10 +62,21 @@ async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions =
     case 504:
       throw new Error("504 Gatway Timeout. The most common cause is that the query timed out. Please try again later and contact us if the error perists");
   }
+  let text;
   try {
-    return await response.json();
+    text = await response.text();
   } catch {
-    throw new Error(`Expected a JSON response, but got '${await response.text()}'`);
+    throw new Error('Server response was not valid UTF-8');
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    // If response is not valid JSON and status is not 2xx,
+    // treat the text as error message.
+    if (!response.ok) {
+      throw new Error(text);
+    }
+    throw new Error(`Expected a JSON response, but got '${text}'`);
   }
 }
 
