@@ -52,11 +52,11 @@ async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions =
   }
   switch(response.status) {
     case 502:
-      throw new Error("Could not reach the QLever engine. The server might be down for maintenance. Please try again later.");
+      throw new Error("502 Bad Gateway. The most common cause is a problem with the web server. Please try again later and contact us if the error perists");
     case 503:
-      throw new Error("Unable to handle the request. The server might be overloaded. Please try again later.");
+      throw new Error("503 Service Unavailable. The most common cause is that the QLever server is down. Please try again later and contact us if the error perists");
     case 504:
-      throw new Error("Qlever engine timed out. Please report this issue if it continues to persist.");
+      throw new Error("504 Gatway Timeout. The most common cause is that the query timed out. Please try again later and contact us if the error perists");
   }
   try {
     return await response.json();
