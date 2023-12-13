@@ -325,11 +325,8 @@ async function enhanceQueryByNameTriples(query) {
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
-      const result = await fetchQleverBackend(
-        { query: test_query },
-        { Accept: "application/sparql-results+json" }
-      );
-      if ("results" in result && result.results.bindings.length == 1) {
+      const result = await fetchQleverBackend({ query: test_query });
+      if (result?.res?.length === 1) {
         // HACK: For variable ?pred use name_template_alt (see above).
         new_vars[select_var] = select_var + new_var_suffix;
         new_triples[select_var] = select_var != "?pred"
