@@ -32,6 +32,54 @@ function normalizeQuery(query, escapeQuotes = false) {
               .trim();
 }
 
+
+// Wrapper for `fetch` that turns potential errors into
+// errors with user-friendly error messages.
+async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions = {}) {
+  let response;
+  try {
+    response = await fetch(BASEURL, {
+      method: "POST",
+      body: new URLSearchParams(params),
+      headers: {
+        Accept: "application/qlever-results+json",
+        ...additionalHeaders
+      },
+      ...fetchOptions
+    });
+  } catch (error) {
+    // Rethrow abort errors directly
+    if (error.name === "AbortError") {
+      throw error;
+    }
+    throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
+  }
+  switch(response.status) {
+    case 502:
+      throw new Error("502 Bad Gateway. The most common cause is a problem with the web server. Please try again later and contact us if the error perists");
+    case 503:
+      throw new Error("503 Service Unavailable. The most common cause is that the QLever server is down. Please try again later and contact us if the error perists");
+    case 504:
+      throw new Error("504 Gatway Timeout. The most common cause is that the query timed out. Please try again later and contact us if the error perists");
+  }
+  let text;
+  try {
+    text = await response.text();
+  } catch {
+    throw new Error('Server response was not valid UTF-8');
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    // If response is not valid JSON and status is not 2xx,
+    // treat the text as error message.
+    if (!response.ok) {
+      throw new Error(text);
+    }
+    throw new Error(`Expected a JSON response, but got '${text}'`);
+  }
+}
+
 // Append the given runtime information for the given query to the runtime log.
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
@@ -277,13 +325,8 @@ async function enhanceQueryByNameTriples(query) {
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
-      // console.log("TEST QUERY:", test_query);
-      const result = await fetch(BASEURL, {
-        method: "POST",
-        body: test_query,
-        headers: { "Content-type": "application/sparql-query" }
-      }).then(response => response.json());
-      if ("results" in result && result.results.bindings.length == 1) {
+      const result = await fetchQleverBackend({ query: test_query });
+      if (result?.res?.length === 1) {
         // HACK: For variable ?pred use name_template_alt (see above).
         new_vars[select_var] = select_var + new_var_suffix;
         new_triples[select_var] = select_var != "?pred"
@@ -335,65 +378,6 @@ async function enhanceQueryByNameTriples(query) {
   return new_query;
 }
 
-// Rewrite all SERVICE clauses in the query. For each such clause, launch the
-// respective query against the respective endpoint, and turn the result into a
-// VALUES clause, which then replaces the SERVICE clause.
-//
-// NOTE: Currently assumes that the SERVICE clause does not contain any "{ ... }.
-async function rewriteServiceClauses(query) {
-
-  query = escapeCurlyBracesOfUnionMinusOptional(query);
-
-  var service_query_parts;
-  var service_clause_re = /SERVICE\s*<([^>]+)>\s*\{\s*([^}]+?)\s*\}/;
-  while (true) {
-    var service_clause_match = query.match(service_clause_re);
-    if (!service_clause_match) break;
-    const service_url = service_clause_match[1];
-    const service_where_clause = service_clause_match[2];
-    // Build the skeleton of the SERVICE query (needed at most once).
-    if (!service_query_parts) {
-      service_query_parts = splitSparqlQueryIntoParts(query);
-      service_query_parts["select_clause"] = "*";
-      service_query_parts["group_by"] = "";
-      service_query_parts["footer"] = "";
-    }
-    service_query_parts["body"] =
-      unescapeCurlyBracesOfUnionMinusOptional(service_where_clause);
-    const service_query = createSparqlQueryFromParts(service_query_parts);
-    console.log("SERVICE match:", service_clause_match);
-    console.log("Endpoint:", service_url);
-    console.log("Query:", service_where_clause);
-    const result_json = await fetch(service_url, {
-      method: "POST",
-      body: service_query,
-      headers: {
-        "Content-type": "application/sparql-query",
-        "Accept": "application/qlever-results+json"
-        // "Accept": "text/tab-separated-values"
-      }
-    }).then(response => response.json());
-    console.log("RESULT:", result_json);
-    var values_clause = "";
-    if (result_json.selected.length >= 1) {
-      values_clause =
-        "VALUES (" + result_json.selected.join(" ") + ")"
-        + " { " +
-        result_json.res.map(tuple => "(" + tuple.join(" ") + ")").join("  ")
-        + " }";
-      console.log("VALUES clause:", values_clause);
-    } else {
-      console.log("ERROR in processing SERVICE clause: no variables found, SERVICE clause will be ignored");
-    }
-    query = query.replace(service_clause_re, values_clause);
-  }
-
-  query = unescapeCurlyBracesOfUnionMinusOptional(query);
-
-  return query;
-}
-
-
 // Rewrite query in various ways, where the first three are synchronous (in a
 // seperate function right below) and the fourth is asynchronous because it
 // launches queries itself. Note that the first three are all HACKs, which
@@ -420,17 +404,6 @@ async function rewriteQuery(query, kwargs = {}) {
       query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
     } catch(e) {
       console.log("ERROR in \"enhanceQueryByName\": " + e);
-      return query_rewritten;
-    }
-  }
-
-  // Resolve SERVICE clauses in the query.
-  const rewrite_service_clauses = false;
-  if (rewrite_service_clauses) {
-    try {
-      query_rewritten = await rewriteServiceClauses(query_rewritten);
-    } catch(e) {
-      console.log("ERROR in \"rewriteServiceClauses\": " + e);
       return query_rewritten;
     }
   }
@@ -753,18 +726,13 @@ function expandEditor() {
   }
 }
 
-function displayError(response, statusWithText = undefined, queryId = undefined) {
+function displayError(response, queryId = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
     response["exception"] = "Unknown error";
   }
   disp = "<h4><strong>Error processing query</strong></h4>";
-  // if (statusWithText) { disp += "<p>" + statusWithText + "</p>"; }
   disp += "<p>" + htmlEscape(response["exception"]) + "</p>";
-  // if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
-  //   result["Exception-Error-Message"] = "Unknown error";
-  // }
-  // disp = "<h3>Error:</h3><h4><strong>" + result["Exception-Error-Message"] + "</strong></h4>";
   // The query sometimes is a one-element array with the query TODO: find out why.
   if (Array.isArray(response.query)) {
     if (response.query.length >= 1) { response.query = response.query[0]; }
@@ -817,18 +785,6 @@ function displayStatus(str) {
   $("#errorBlock,#answerBlock,#warningBlock").hide();
   $("#info").html(str);
   $("#infoBlock").show();
-}
-
-// This is used only in commented out code in the function `processQuery` in
-// `qleverUI.js`.
-function showAllConcatsDeprecated(element, sep, column) {
-  data = $(element).parent().data('original-title');
-  html = "";
-  results = data.split(sep);
-  for (var k = 0; k < results.length; k++) {
-    html += getFormattedResultEntry(results[k], 50, column)[0] + "<br>";
-  }
-  $(element).parent().html(html);
 }
 
 function tsep(str) {

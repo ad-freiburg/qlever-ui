@@ -724,21 +724,14 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 // then only work for SPARQL enpoints supporting a "timeout" argument. Note that
 // Virtuoso does have such an argument, too, but the unit is milliseconds and not
 // seconds like for QLever.
-const fetchTimeout = (sparqlQuery, timeoutSeconds, { ...options } = {}) => {
+const fetchTimeout = (sparqlQuery, timeoutSeconds) => {
   const timeoutMilliseconds = timeoutSeconds * 1000;
   const controller = new AbortController();
-  // `BASEURL` is defined in backend/templates/partials/head.html . It's the
-  // base URL from the backend configuration.
-  const promise = fetch(BASEURL, {
-    method: "POST",
-    body: sparqlQuery,
-    signal: controller.signal,
-    headers: {
-      "Content-type": "application/sparql-query",
-      "Accept": "application/qlever-results+json"
-    },
-    ...options
-  });
+  const promise = fetchQleverBackend(
+    { query: sparqlQuery },
+    {},
+    { signal: controller.signal }
+  );
   if (timeoutMilliseconds > 0) {
     const timeout = setTimeout(() => controller.abort(), timeoutMilliseconds);
     return promise.finally(() => clearTimeout(timeout));
@@ -839,12 +832,7 @@ function getQleverSuggestions(
       }
 
       // Get the actual query result as `data`.
-      let data;
-      if (allQueriesHaveTimedOut) {
-        data = {exception: "The request was cancelled due to timeout"};
-      } else {
-        data = await response.json();
-      }
+      const data = allQueriesHaveTimedOut ? { exception: "The request was cancelled due to timeout" } : response;
 
       // Show the suggestions to the user.
       //
