@@ -1,0 +1,39 @@
+name: UI check
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  merge_group:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          # See https://docs.docker.com/engine/install/ubuntu/
+          sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+          sudo apt remove docker docker-engine docker.io containerd runc
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+          sudo apt update
+          sudo apt-cache policy docker-ce
+          sudo apt install docker-ce containerd.io
+          # Install packages for use of Selenium
+          pip3 install selenium
+
+      - name: Build docker image for QLever UI
+        run: sudo docker build -t qlever-ui ${{github.workspace}}
+
+      - name: Run docker image for QLever UI
+        run: docker run -it -d -p 7000:7000 -v $(pwd)/db:/app/db --name qlever-ui qlever-ui
+
+      - name: Test the QLever UI using Selenium
+        run: python3 end2end-test.py --url http://localhost:7000
+
+      - name: Remove the docker image 
+        run: docker rm -f qlever-ui
