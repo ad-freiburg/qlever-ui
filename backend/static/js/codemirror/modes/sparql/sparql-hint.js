@@ -5,14 +5,13 @@ var size = 40; // size for next auto completion call
 var resultSize = 0; // result size for counter badge
 var lastWidget = undefined; // last auto completion widget instance
 var activeLine; // the current active line that holds loader / counter badge
-var activeLineBadgeLine; // the bade holder in the current active line
+var activeLineBadgeLine; // the badge holder in the current active line
 var activeLineNumber; // the line number of the active line (replaced by loader)
 
 var sparqlCallback;
 var sparqlFrom;
 var sparqlTo;
 var sparqlTimeout;
-var sparqlRequest;
 var suggestions;
 
 (function (mod) {
@@ -148,30 +147,35 @@ var suggestions;
 
   }
 
+  // This function defines the CORE LOGIC OF THE QLEVER UI SUGGESTIONS
+  //
+  // TODO: explain how it works in this comment.
   CodeMirror.registerHelper("hint", "sparql", function (editor, callback, options) {
 
-
-    // ************************************************************************************
+    // If a previous AC query is still running, cancel it.
     //
-    //
-    //                        CORE LOGIC OF QLEVER UI SUGGESTIONS
-    //
-    //
-    // ************************************************************************************
-
-    // skip everything that is running by now
+    // NOTE: `sparqlTimeout` and `activeLine` are both set in the function
+    // `getQleverSuggestions` (which sends the AC query to the backend and turns
+    // the result into nice-looking suggestions).
     window.clearTimeout(sparqlTimeout);
-    if (sparqlRequest) { sparqlRequest.abort(); }
-
-    // reset the previous loader
     if (activeLine) {
       activeLine.html(activeLineNumber);
     }
 
-    var cur = editor.getCursor(); // current cursor position
-    var absolutePosition = editor.indexFromPos((cur)); // absolute cursor position in text
-    var context = getCurrentContext(absolutePosition); // get current context
-    suggestions = [];
+    // Get the current cursor position and its index in the whole query.
+    var cur = editor.getCursor();
+    var absolutePosition = editor.indexFromPos((cur));
+
+    // Get the element of the query tree at that position.
+    //
+    // TODO: This is currently a major bug, since for a typical SPARQL query,
+    // there are different tree elements for ordinary triples, the FILTER
+    // clauses (one element each), or the UNION or OPTIONAL clauses (again, one
+    // element each). That way, the sensitive AC queries do not work correctly
+    // when one of FILTER, UNION, or OPTIONAL is present, or after these
+    // clauses.
+    var context = getCurrentContext(absolutePosition);
+    // console.log("context", context);
 
     log('Position: ' + absolutePosition, 'suggestions');
     if (context) {
@@ -180,7 +184,7 @@ var suggestions;
       log('Context: None', 'suggestions');
     }
 
-    // get current token
+    // Get the token at the current cursor position.
     var line = editor.getLine(cur.line).slice(0, cur.ch);
     var token = getLastLineToken(line);
     var start, end;
@@ -189,15 +193,19 @@ var suggestions;
     } else {
       start = token.start;
       end = token.end;
-
     }
 
+    // Determine all types that potentially could (not necessarily actually do)
+    // occur in this context. These are all `TYPES` which contain the name of
+    // the current context in their `availableInContext`.
     types = getAvailableTypes(context);
+    // console.log("Types: ", types);
 
     sparqlCallback = callback;
     sparqlFrom = Pos(cur.line, start);
     sparqlTo = Pos(cur.line, end);
 
+    suggestions = []; // TODO: Why is this a global variable?
     var allTypeSuggestions = [];
     for (var i = 0; i < types.length; i++) {
       for (var suggestion of getTypeSuggestions(types[i], context)) {
@@ -236,10 +244,12 @@ function getAvailableTypes(context) {
   if (context) {
     contextName = context.w3name;
   }
+  // console.log(`getAvailableTypes -> contextName: ${contextName}`);
 
   // check for complex types that are valid in this context
   for (var i = 0; i < COMPLEXTYPES.length; i++) {
     if (COMPLEXTYPES[i].availableInContext.indexOf(contextName) != -1) {
+      // console.log(`getAvailableTypes -> type: ${COMPLEXTYPES[i].name}`);
       types.push(COMPLEXTYPES[i]);
     }
   }
@@ -268,6 +278,10 @@ function detectPropertyPath(predicate) {
   return propertyPath;
 }
 
+// Get suggestions for the given "context" (element of the query tree).
+//
+// NOTE: This function is only called via the `TRIPLE` type in `COMPLEXTYPES`
+// from `sparql.js`. It eventually calls `getQleverSuggestions`.
 function getDynamicSuggestions(context) {
   var cur = editor.getCursor();
   var line = editor.getLine(cur.line);
@@ -276,10 +290,10 @@ function getDynamicSuggestions(context) {
   word = getLastLineToken(line.slice(0, cur.ch));
   if (word.endsInWhitespace) { word = ""; } else { word = word.string; }
 
-  // get current line
+  // Get current line and split into `words` by whitespace.
   var words = line.slice(0, cur.ch).trimLeft().replace('  ', ' ').split(" ");
 
-  // Find words that are separated by whitespace but seem to be belong together
+  // Find words that are separated by whitespace but seem to belong together.
   var whiteSpaceWord = "";
   for (var i = words.length - 1; i >= 0; i--) {
     var prevWord = words[i]
@@ -317,6 +331,7 @@ function getDynamicSuggestions(context) {
 
   // Get editor lines and remove current line.
   var lines = context['content'].split('\n');
+  // console.log("lines", lines);
   for (var i = 0; i < lines.length; i++) {
     if (lines[i] == line) {
       lines.splice(i, 1);
@@ -358,7 +373,11 @@ function getDynamicSuggestions(context) {
 
   } else {
 
-    // find connected lines in given select clause
+    // Find part of query to plug in for %CONNECTED_TRIPLES% in AC query
+    // templates.
+    //
+    // TODO: Lines with FILTER on connected variables are missing,
+    // for example https://qlever.cs.uni-freiburg.de/wikidata/Z0FvRA
     const variableRegex = /\?\w+\b/g;
     let seenVariables = line.match(variableRegex);
     if (seenVariables) {
@@ -428,15 +447,23 @@ function getDynamicSuggestions(context) {
         }
         mode1Query = SUGGESTPREDICATES_CONTEXT_INSENSITIVE;
         mode2Query = SUGGESTPREDICATES;
-        
       } else if (words.length == 3) {
         predicateForObject = words[1];
         suggestVariables = "normal";
         appendToSuggestions = ' .';
         nameList = objectNames;
-        mode1Query = SUGGESTOBJECTS_CONTEXT_INSENSITIVE;
+        // TRYING STH OUT: Make object AC queries "half-sensitive" (ignore the
+        // context triples, but not the predicate, see head.html). If you want
+        // to restrict this to certain instances, use a condition like SLUG ==
+        // "pubchem".
+        if (SLUG != "uniprot") {
+          mode1Query = SUGGESTOBJECTS_CONTEXT_HALFSENSITIVE;
+        } else {
+          mode1Query = SUGGESTOBJECTS_CONTEXT_INSENSITIVE;
+        }
         mode2Query = SUGGESTOBJECTS;
-        // replace the prefixes
+
+        // Replace the prefixes.
         var propertyPath = detectPropertyPath(words[1]);
 
         for (var i in propertyPath) {
@@ -486,7 +513,10 @@ function getDynamicSuggestions(context) {
           var subjectVarName = subject.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
           var objectVarName = lastWord.split(/[.\/\#:]/g).slice(-1)[0]
             .replace(/@\w*$/, "").replace(/\s/g, "_")
-            .replace(/^has([A-Z_-])/, "$1$").replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
+            .replace(/^has([A-Z_-])/, "$1$")
+            .replace(/^([a-z]+)edBy/, "$1$")
+            .replace(/^(year)[A-Z_]\w*/, "$1$")
+            .replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
 
           response.push('?' + objectVarName + ' .');
           response.push('?' + subjectVarName + '_' + objectVarName + ' .');
@@ -684,22 +714,26 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
   return conditionSatisfied;
 }
 
-const fetchTimeout = (sparqlQuery, timeoutSeconds, { ...options } = {}) => {
-  const ms = timeoutSeconds * 1000;
+// Get result of SPARQL query with timeout.
+//
+// NOTE: The function returns immediately with a `fetch` promise. To wait for
+// the result of the `fetch` (or its failure), call `await fetchTimeout(...)`.
+//
+// TODO: Better use QLever's timeout, so that the query no longer burdens the
+// backend after the timeout. This would have the drawback that the code would
+// then only work for SPARQL enpoints supporting a "timeout" argument. Note that
+// Virtuoso does have such an argument, too, but the unit is milliseconds and not
+// seconds like for QLever.
+const fetchTimeout = (sparqlQuery, timeoutSeconds) => {
+  const timeoutMilliseconds = timeoutSeconds * 1000;
   const controller = new AbortController();
-  const promise = fetch(BASEURL, {
-    // BASEURL + "?query=" + encodeURIComponent(sparqlQuery), {
-    method: "POST",
-    body: sparqlQuery,
-    signal: controller.signal,
-    headers: { 
-      "Content-type": "application/sparql-query",
-      "Accept": "application/qlever-results+json"
-    },
-    ...options
-  });
-  if (ms > 0) {
-    const timeout = setTimeout(() => controller.abort(), ms);
+  const promise = fetchQleverBackend(
+    { query: sparqlQuery },
+    {},
+    { signal: controller.signal }
+  );
+  if (timeoutMilliseconds > 0) {
+    const timeout = setTimeout(() => controller.abort(), timeoutMilliseconds);
     return promise.finally(() => clearTimeout(timeout));
   } else {
     return promise;
@@ -728,16 +762,21 @@ function getSuggestionsSparqlQuery(sparqlQuery) {
     + sparqlQuery.replace(/^PREFIX.*/mg, ""), "requests");
 
   return sparqlQuery;
-  // let url = BASEURL + "?query=" + encodeURIComponent(sparqlQuery);
-  // return url;
 }
 
 
-function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList, predicateForObject, word, mixedModeQuery) {
-  /* mixedModeQuery is the case-insensitive query that is sent additionally to the case-sensitive query when mixed mode is enabled. */
+// Get suggestions from QLever backend and show them to the user.
+function getQleverSuggestions(
+  sparqlQuery,          // the main AC query
+  prefixes,             // prefixes used for abbreviating IRIs
+  appendix,
+  nameList,
+  predicateForObject,
+  word,
+  mixedModeQuery        // `mixedModeQuery` : the "backup" query when in mixed mode
+) {
 
-
-  // show the loading indicator and badge
+  // Show the loading indicator and badge
   activeLineBadgeLine = $('.CodeMirror-activeline-background');
   activeLine = $('.CodeMirror-activeline-gutter .CodeMirror-gutter-elt');
   activeLineNumber = activeLine.html();
@@ -749,33 +788,42 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
   const mixedModeSparqlQuery = getSuggestionsSparqlQuery(mixedModeQuery);
   var dynamicSuggestions = [];
 
+  // The actual code for getting the suggestions and showing them.
+  //
+  // TODO: Why is this wrapped in a `setTimeout` with a timeout of only 500
+  // milliseconds?
+  const sparqlTimeoutDuration = 500;
   sparqlTimeout = window.setTimeout(async function () {
+    // Issue AC query (or two when in mixed mode) and get `response`.
     try {
+      // When in mixed mode, first issue the alternative query (but don't wait
+      // for it to return, `fetchTimeout` returns a promise).
       let mixedModeQuery;
       if (mixedModeSparqlQuery) {
-        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT);  // start the mixed mode query, but async
+        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT);
       }
+      // Issue the main autocompletion query (and wait for it to return).
       const mainQueryTimeout = mixedModeSparqlQuery ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
       let response;
       let mainQueryHasTimedOut = false;
-      let showTimeoutError = false;
+      let allQueriesHaveTimedOut = false;
       try {
-        response = await fetchTimeout(lastSparqlQuery, mainQueryTimeout);  // start the main query and wait for it to return
+        response = await fetchTimeout(lastSparqlQuery, mainQueryTimeout);
       } catch (error) {
         if (error.name === "AbortError") {
           mainQueryHasTimedOut = true;
-          showTimeoutError = true;
+          allQueriesHaveTimedOut = true;
         } else {
           throw error;
         }
       }
+      // If the main query timed out (or failed for other reasons), and we are
+      // in mixed mode, take the result of the alternative query.
       if (mainQueryHasTimedOut && mixedModeSparqlQuery) {
-        // the main query timed out.
-        // get the mixedModeQuery's response and continue with that
         log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
         try {
           response = await mixedModeQuery;
-          showTimeoutError = false;
+          allQueriesHaveTimedOut = false;
         } catch (error) {
           if (error.name !== "AbortError") {
             throw error;
@@ -783,26 +831,18 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         }
       }
 
-      let data;
-      if (showTimeoutError) {
-        data = {exception: "The request was cancelled due to timeout"};
-      } else {
-        data = await response.json();
-      }
+      // Get the actual query result as `data`.
+      const data = allQueriesHaveTimedOut ? { exception: "The request was cancelled due to timeout" } : response;
 
-      if ($('#logRequests').is(':checked')) {
-        runtime_log[runtime_log.length] = data.runtimeInformation;
-        query_log[query_log.length] = data.query;
-        if (runtime_log.length - 10 >= 0) {
-          runtime_log[runtime_log.length - 10] = null;
-          query_log[query_log.length - 10] = null;
-        }
-      }
-
-      
+      // Show the suggestions to the user.
+      //
+      // NOTE: This involves some post-processing (for example, showing the
+      // suggestions with prefixes like `wdt:` and not with their full IRIs as
+      // returned by the backend) and several hacks (for example, when wdt:P31
+      // is a suggestion, also add wdt:P31/wdt:P279*).
       if (data.res) {
         log("Got suggestions from QLever.", 'other');
-        log("Query took " + data.time.total + " and found " + data.resultsize + " lines\nRuntime info is saved as [" + (query_log.length) + "]", 'requests');
+        log("Query took " + data.time.total + " and found " + data.resultsize + " lines", 'requests');
         var entityIndex = data.selected.indexOf(SUGGESTIONENTITYVARIABLE);
         var suggested = {};
         var ogc_contains_added = false;
@@ -827,15 +867,18 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
             }
           }
 
-          // add back the prefixes
+          // Abbreviate IRIs using the prefixes of the SPARQL query.
           var replacePrefix = "";
           var prefixName = "";
-          for (var prefix in prefixesRelation) {
-            if (entity.indexOf(prefixesRelation[prefix]) > 0 && prefixesRelation[prefix].length > replacePrefix.length) {
-              replacePrefix = prefixesRelation[prefix];
+          for (var prefix in prefixes) {
+            if (entity.indexOf(prefixes[prefix]) > 0 && prefixes[prefix].length > replacePrefix.length) {
+              replacePrefix = prefixes[prefix];
               prefixName = prefix;
             }
           }
+
+          // Repeat, using ALL prefixes from the backend configuraion
+          // (`FILLPREFIXES` is `fillPrefixes` from the backend configuration).
           if (FILLPREFIXES) {
             for (var prefix in COLLECTEDPREFIXES) {
               if (entity.indexOf(COLLECTEDPREFIXES[prefix]) > 0 && COLLECTEDPREFIXES[prefix].length > replacePrefix.length) {
@@ -856,7 +899,6 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
             }
           }
 
-          // console.log("URL: " + window.location);
           var nameIndex = data.selected.indexOf(SUGGESTIONNAMEVARIABLE);
           var altNameIndex = data.selected.indexOf(SUGGESTIONALTNAMEVARIABLE);
           var entityName = (nameIndex != -1) ? result[nameIndex] : "";
@@ -928,11 +970,11 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
         $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br><pre>' + data.exception + '</pre>')
         console.error(data.exception);
       }
-      // reset loading indicator
-      
+
+      // Reset loading indicator.
       $('#aBadge').remove();
 
-      // add badge
+      // Add badge that shows the total numbers of suggestions.
       if (data.resultsize != undefined && data.resultsize != null) {
         resultSize = data.resultsize;
         activeLineBadgeLine.prepend('<span class="badge badge-success pull-right" id="aBadge">' + data.resultsize + '</span>');
@@ -954,17 +996,26 @@ function getQleverSuggestions(sparqlQuery, prefixesRelation, appendix, nameList,
       return [];
     }
 
-  }, 500);
+  }, sparqlTimeoutDuration);
 
 
 }
 
 
-/**
- 
-Returns the suggestions defined for a given complex type
- 
-**/
+// Get all suggestions for the given `type`by computing the cross-product of the
+// elements in the array `type.suggestions`, see `COMPLEXTYPES` in `sparql.js`.
+//
+// For example, for the type `LIMIT`, the suggestion array is ['LIMIT ', [1, 10,
+// 100, 1000], '\n'], and the list of suggestions computed is hence
+//
+// LIMIT 1
+// LIMIT 10
+// LIMIT 100
+// LIMIT 1000
+//
+// An element of `type.suggestions` can also be a function. For example,
+// `TRIPLE` contains `function (c) { return getDynamicSuggestions(c); }`. These
+// functions are called with the given `context`.
 function getTypeSuggestions(type, context) {
 
   typeSuggestions = []
@@ -1052,11 +1103,16 @@ function getTypeSuggestions(type, context) {
   return typeSuggestions;
 }
 
-/**
- 
-Build a query tree
- 
-**/
+// Compute tree representation of the given (partial) SPARQL query.
+//
+// NOTE: The result is returned as an array of elements with fields `w3name`,
+// `content`, `start`, `end`, and optionally `children` (the latter giving this
+// a tree-like structure)giving this a tree-like structure). The values for
+// the fields `start` and `end` are absolute and not relative to the second
+// argument `start` of the function.
+//
+// NOTE: To get the tree for the whole query from the editor window,
+// call `buildQueryTree(editor.getValue(), 0)`.
 function buildQueryTree(content, start) {
 
   var tree = [];
@@ -1065,134 +1121,125 @@ function buildQueryTree(content, start) {
   var tempString = "";
   var tempElement = { w3name: 'PrefixDecl', start: start }
 
+  // Iteratively go through the query character by character.
   while (i < content.length) {
     tempString += content[i];
 
+    // Determine whether we should start a new tree element (`tempElement`) and
+    // finish the previous one. The following sequences (minus the quotes)
+    // start a new element:
+    //
+    // "SELECT ", "WHERE {", "OPTIONAL {",
+    //
+    // TODO: A lot of code duplication here and some mistakes. Also, why are the
+    // regexes hard-coded here and not part of the definitions of `CONTEXTS` in
+    // `sparql.js`?
     if (/SELECT $/i.test(tempString)) {
-
-      // shorten the end of prefix decl by what we needed to add to match SELECT 
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'SelectClause', suggestInSameLine: true, start: i + start }
-
     } else if (/WHERE \{$/i.test(tempString)) {
-
-      // shorten the end of the select clause by what we needed to add to match WHERE {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
-
     } else if (/OPTIONAL \{$/i.test(tempString)) {
-
-      // shorten the end of the previous clause by what we needed to add to match OPTIONAL {
-      tempElement['content'] = tempString.slice(0, tempString.length - 7);
-      tempElement['end'] = i + start - 3;
+      tempElement['content'] = tempString.slice(0, tempString.length - 10);
+      tempElement['end'] = i + start - 9;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
-
     } else if (/MINUS \{$/i.test(tempString)) {
-
-      // shorten the end of the previous clause by what we needed to add to match OPTIONAL {
-      tempElement['content'] = tempString.slice(0, tempString.length - 4);
-      tempElement['end'] = i + start - 3;
+      tempElement['content'] = tempString.slice(0, tempString.length - 7);
+      tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
-
-    } else if (/VALUES \(?$/i.test(tempString)) {
-
-      // shorten the end of the previous clause by what we needed to add to match VALUES {
-      tempElement['content'] = tempString.slice(0, tempString.length - 7);
-      tempElement['end'] = i + start - 6;
+    } else if (/VALUES $/i.test(tempString)) {
+      tempElement['content'] = tempString.slice(0, tempString.length - 8);
+      tempElement['end'] = i + start - 7;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'ValuesClause', suggestInSameLine: true, start: i + start }
-
-    } else if (/FILTER \(?$/i.test(tempString)) {
-
-      // shorten the end of the previous clause by what we needed to add to match VALUES {
+    } else if (/FILTER $/i.test(tempString)) {
+    // } else if (/FILTER \(?$/i.test(tempString)) {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'Filter', suggestInSameLine: true, start: i + start }
-
     } else if (tempElement.w3name == 'ValuesClause' && /{$/i.test(tempString)) {
-
-      // shorten the end of the previous clause by what we needed to add to match VALUES {
+      // TODO: How does this go together with the regex for VALUES above?
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'DataBlock', suggestInSameLine: true, start: i + start }
-
     } else if (/UNION \{$/i.test(tempString)) {
-
-      // shorten the end of the previous clause by what we needed to add to match UNION {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
       tempElement.w3name = 'WhereClause';
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'WhereClause', suggestInSameLine: true, start: i + start }
-
     } else if (tempString.endsWith('{')) {
 
-      // fast forward recursion
+      // Iterate to find the closing `}` or the end of `content`. Extend
+      // `tempString` until before the closing `}`, while `subString` is the
+      // part after the opening `{`.
       var depth = 1;
       var subStart = i;
       var subString = "";
-      while (depth != 0 && i <= content.length) {
-        i++;
+      i++;
+      while (i < content.length) { // NOTE: was <= content.length and i++ at beginning.
         if (content[i] == '}') {
           depth -= 1;
+          if (depth == 0) break;
         } else if (content[i] == '{') {
           depth += 1;
         }
-        if (depth != 0) {
-          subString += content[i];
-          tempString += content[i];
-        }
+        subString += content[i];
+        tempString += content[i];
+        i++;
       }
 
+      // Recursively build tree for the part in "{...}".
       if (tempElement['children']) {
         tempElement['children'] = tempElement['children'].concat(buildQueryTree(subString, subStart));
       } else {
         tempElement['children'] = buildQueryTree(subString, subStart);
       }
-
-    } else if (tempString.endsWith('}') || ((tempElement.w3name == "OrderCondition" || tempElement.w3name == "GroupCondition") && tempString.endsWith('\n'))) {
-
-      // shorten the whereclause by what we needed to add to match the }
+    }
+    // Solution modifiers at the end of the query.
+    else if (tempString.endsWith('}') || ((tempElement.w3name == "OrderCondition" || tempElement.w3name == "GroupCondition") && tempString.endsWith('\n'))) {
       tempElement['content'] = tempString.slice(0, tempString.length - 1);
       tempElement['end'] = i + start - 1;
       tree.push(tempElement);
       tempString = "";
-
       tempElement = { w3name: 'SolutionModifier', suggestInSameLine: true, start: i + start }
-
     }
 
+    // Go to the next character.
     i++;
   }
 
+  // Add the last element.
   tempElement['content'] = tempString;
   tempElement['end'] = content.length + start;
   tree.push(tempElement);
 
+  // Some post-processing for `OptionalClause`, `UnionClause`, and
+  // `SolutionModifier`.
+  //
+  // TODO: Why do we need to explicitly set the name of the first child of
+  // `OptionalClause` and `UnionClause` to `WhereClause`?
+  //
+  // TODO: Why the additional parsing of the `SolutionModifier` here? Is it
+  // because we have additional structure within a line here, whereas the code
+  // above assumes that new elements only start at new lines?
   for (var element of tree) {
     if (element.w3name == "OptionalClause" || element.w3name == "UnionClause") {
       if (element['children']) {
@@ -1261,33 +1308,35 @@ function printQueryTree(tree, absPosition, prefix) {
   return logString;
 }
 
-/**
- 
-Returns the current context
- 
-@params absPosition - absolute position in text
- 
-**/
+// Get the context (see `CONTEXTS` from sparql.js) of the given
+// position.
 function getCurrentContext(absPosition) {
   var tree = buildQueryTree(editor.getValue(), 0);
   log("\n" + printQueryTree(tree, absPosition, ""), 'parsing');
   return searchTree(tree, absPosition);
 }
 
+// TODO: This function appears to be unused.
 function getNextContext(absPosition) {
   var tree = buildQueryTree(editor.getValue(), 0);
   var current = searchTree(tree, absPosition);
   for (var i = absPosition; i < editor.getValue().length + 1; i++) {
     var found = searchTree(tree, i);
     if (current != found && found != undefined) {
-      console.log('Found ' + found.w3name);
+      // console.log('Found ' + found.w3name);
       return found;
     }
   }
   return false;
 }
 
+// For the given query tree, find the element (each element is a "context" from
+// sparql.js:CONTEXTS) that contains the given position and return it.
 function searchTree(tree, absPosition) {
+  // Iterate over all elements in the tree and return the first one that
+  // contains the given `absPosition`. If that position is contained within the
+  // children of an element, recurse (so that, effectively, we only return
+  // leaf elements).
   for (var element of tree) {
     if (absPosition >= element.start && absPosition <= element.end) {
       if (element.children && absPosition >= element.children[0].start && absPosition <= element.children[element.children.length - 1].end) {
@@ -1313,20 +1362,20 @@ function searchTree(tree, absPosition) {
       }
     }
   }
+  log("Could not find context for position " + absPosition, 'parsing');
   return undefined;
 }
 
-/**
- 
-Returns the context by its name
- 
-@params absPosition - absolute position in text
- 
-**/
+// Find the *first* occurrence of the given context (for example, `WhereClause`,
+// see `CONTEXTS` in sparql.js) in the content of the editor window.
+//
+// TODO: Why is it OK to always only find the first match? This is used a lot in
+// sparql.js:`COMPLEXTYPES` and seems to be central for the query parsing.
 function getContextByName(name) {
   var editorContent = editor.getValue()
   var foundContext = undefined;
 
+  // TODO: Should not `CONTEXTS` be an associative array if we use it like this?
   $(CONTEXTS).each(function (index, context) {
 
     if (context.w3name == name) {
@@ -1372,13 +1421,13 @@ function getPrefixLines() {
 }
 
 /**
- 
+
 Returns the value of the given context
- 
+
 @params context - the current context
- 
+
 - Excludes duplicate definitions if told to do so
- 
+
 **/
 function getValueOfContext(context) {
   var editorContent = editor.getValue();
@@ -1393,17 +1442,17 @@ function getValueOfContext(context) {
 }
 
 /**
- 
+
 Returns prefixes to suggest
- 
+
 @params context - the current context
 @params excludeAggregationVariables - excludes variables that are the result of an aggregation (SUM(?x) as ?aggregate_variable)
 @params variableType - can be "text" for text variables, "normal" for normal variables or "both" for both
 @params predicateResultType - only return variables of given type or higher
- 
+
 - Excludes duplicate definitions if told to do so
 - Add list with all unused variables as one suggestion
- 
+
 **/
 function getVariables(context, excludeAggregationVariables, variableType, predicateResultType) {
   var variables = [];
@@ -1463,13 +1512,13 @@ function getVariables(context, excludeAggregationVariables, variableType, predic
 }
 
 /**
- 
+
 Returns prefixes to suggest
- 
+
 @params context - the prefix context
- 
-- Excludes duplicate definitions 
- 
+
+- Excludes duplicate definitions
+
 **/
 function getPrefixSuggestions(context) {
   var prefixes = []
