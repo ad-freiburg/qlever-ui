@@ -430,8 +430,6 @@ function signalQueryStart(queryId, startTimeStamp, query) {
 function cancelActiveQuery() {
   if (currentlyActiveQueryWebSocket) {
     currentlyActiveQueryWebSocket.send("cancel");
-    currentlyActiveQueryWebSocket.close();
-    currentlyActiveQueryWebSocket = null;
     return true;
   }
   return false;
