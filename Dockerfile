@@ -23,6 +23,9 @@ ENV VIRTUAL_ENV /env
 ENV PATH /env/bin:$PATH
 ENV PYTHONUNBUFFERED 1
 
+# collect static resources
+RUN ./manage.py collectstatic
+
 CMD ["gunicorn", "--bind", ":7000", "--workers", "3", "--limit-request-line", "10000", "qlever.wsgi:application"]
 
 # QLever UI on port 7000 for QLever instance listening on port 7001
