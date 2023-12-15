@@ -32,41 +32,95 @@ function normalizeQuery(query, escapeQuotes = false) {
               .trim();
 }
 
+
+// Wrapper for `fetch` that turns potential errors into
+// errors with user-friendly error messages.
+async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions = {}) {
+  let response;
+  try {
+    response = await fetch(BASEURL, {
+      method: "POST",
+      body: new URLSearchParams(params),
+      headers: {
+        Accept: "application/qlever-results+json",
+        ...additionalHeaders
+      },
+      ...fetchOptions
+    });
+  } catch (error) {
+    // Rethrow abort errors directly
+    if (error.name === "AbortError") {
+      throw error;
+    }
+    throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
+  }
+  switch(response.status) {
+    case 502:
+      throw new Error("502 Bad Gateway. The most common cause is a problem with the web server. Please try again later and contact us if the error perists");
+    case 503:
+      throw new Error("503 Service Unavailable. The most common cause is that the QLever server is down. Please try again later and contact us if the error perists");
+    case 504:
+      throw new Error("504 Gatway Timeout. The most common cause is that the query timed out. Please try again later and contact us if the error perists");
+  }
+  let text;
+  try {
+    text = await response.text();
+  } catch {
+    throw new Error('Server response was not valid UTF-8');
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    // If response is not valid JSON and status is not 2xx,
+    // treat the text as error message.
+    if (!response.ok) {
+      throw new Error(text);
+    }
+    throw new Error(`Expected a JSON response, but got '${text}'`);
+  }
+}
+
 // Append the given runtime information for the given query to the runtime log.
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
 // query. See runtimeInfoForTreant in qleverUI.js.
-function appendRuntimeInformation(runtime_info, query, time) {
+function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   // Backwards compatability hack in case the info on the execution tree is
   // not in a separate "query_execution_tree" element yet.
-  if (runtime_info["query_execution_tree"] == undefined) {
+  if (runtime_info["query_execution_tree"] === undefined) {
     console.log("BACKWARDS compatibility hack: adding runtime_info[\"query_execution_tree\"]");
     runtime_info["query_execution_tree"] = structuredClone(runtime_info);
-    runtime_info["meta"] = { }
+    runtime_info["meta"] = {};
   }
 
   // Add query time to meta info.
   runtime_info["meta"]["total_time_computing"] =
-    parseInt(time["computeResult"].toString().replace(/ms/, ""))
+    parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
   runtime_info["meta"]["total_time"] =
-    parseInt(time["total"].toString().replace(/ms/, ""))
+    parseInt(time["total"].toString().replace(/ms/, ""), 10);
 
-  // Append to log and shorten log if too long (FIFO).
-  runtime_log[runtime_log.length] = runtime_info;
-  query_log[query_log.length] = query;
-  if (runtime_log.length - 10 >= 0) {
-    runtime_log[runtime_log.length - 10] = null;
-    query_log[query_log.length - 10] = null;
+  const previousTimeStamp = request_log.get(queryUpdate.queryId)?.timeStamp || Number.MIN_VALUE;
+  // If newer runtime info for existing query or new query.
+  if (previousTimeStamp < queryUpdate.updateTimeStamp) {
+    request_log.set(queryUpdate.queryId, {
+      timeStamp: queryUpdate.updateTimeStamp,
+      runtime_info: runtime_info,
+      query: query
+    });
+    if (request_log.size > 10) {
+      // Note: `keys().next()` is the key that was inserted first.
+      request_log.delete(request_log.keys().next().value);
+    }
   }
 }
 
-// Add "text" field to given `tree_node`, for display using Treant.js (in
-// function `visualise` in `qleverUI.js`). This function call itself recursively
-// on each child of `tree_node` (if any).
+// Add "text" field to given `tree_node`, for display using Treant.js
+// (in function `renderRuntimeInformationToDom` in `qleverUI.js`).
+// This function call itself recursively on each child of `tree_node` (if any).
 //
 // NOTE: The labels and the style can be found in backend/static/css/style.css .
 // The coloring of the boxes, which depends on the time and caching status, is
-// done in function `visualise` in `qleverUI.js`.
+// done in function `renderRuntimeInformationToDom` in `qleverUI.js`.
 function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cached = false) {
   if (tree_node["text"] == undefined) {
     var text = {};
@@ -92,8 +146,6 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     .replace(/AVAILABLE /, "").replace(/a all/, "all");
     // console.log("-> REWRITTEN TO:", text["name"])
 
-    text["status"] = tree_node["status"];
-    if (text["status"] == "fully materialized") { delete text["status"]; }
     text["cols"] = tree_node["column_names"].join(", ")
     .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
     .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
@@ -110,6 +162,8 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
       ? formatInteger(tree_node["operation_time"])
       : formatInteger(tree_node["original_operation_time"]);
     text["cost-estimate"] = "[~ " + formatInteger(tree_node["estimated_operation_cost"]) + "]"
+    text["status"] = tree_node["status"];
+    if (text["status"] == "not started") { text["status"] = "not yet started"; }
     text["total"] = text["time"];
     if (tree_node["details"]) {
       text["details"] = JSON.stringify(tree_node["details"]);
@@ -271,13 +325,8 @@ async function enhanceQueryByNameTriples(query) {
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
-      // console.log("TEST QUERY:", test_query);
-      const result = await fetch(BASEURL, {
-        method: "POST",
-        body: test_query,
-        headers: { "Content-type": "application/sparql-query" }
-      }).then(response => response.json());
-      if ("results" in result && result.results.bindings.length == 1) {
+      const result = await fetchQleverBackend({ query: test_query });
+      if (result?.res?.length === 1) {
         // HACK: For variable ?pred use name_template_alt (see above).
         new_vars[select_var] = select_var + new_var_suffix;
         new_triples[select_var] = select_var != "?pred"
@@ -329,65 +378,6 @@ async function enhanceQueryByNameTriples(query) {
   return new_query;
 }
 
-// Rewrite all SERVICE clauses in the query. For each such clause, launch the
-// respective query against the respective endpoint, and turn the result into a
-// VALUES clause, which then replaces the SERVICE clause.
-//
-// NOTE: Currently assumes that the SERVICE clause does not contain any "{ ... }.
-async function rewriteServiceClauses(query) {
-
-  query = escapeCurlyBracesOfUnionMinusOptional(query);
-
-  var service_query_parts;
-  var service_clause_re = /SERVICE\s*<([^>]+)>\s*\{\s*([^}]+?)\s*\}/;
-  while (true) {
-    var service_clause_match = query.match(service_clause_re);
-    if (!service_clause_match) break;
-    const service_url = service_clause_match[1];
-    const service_where_clause = service_clause_match[2];
-    // Build the skeleton of the SERVICE query (needed at most once).
-    if (!service_query_parts) {
-      service_query_parts = splitSparqlQueryIntoParts(query);
-      service_query_parts["select_clause"] = "*";
-      service_query_parts["group_by"] = "";
-      service_query_parts["footer"] = "";
-    }
-    service_query_parts["body"] =
-      unescapeCurlyBracesOfUnionMinusOptional(service_where_clause);
-    const service_query = createSparqlQueryFromParts(service_query_parts);
-    console.log("SERVICE match:", service_clause_match);
-    console.log("Endpoint:", service_url);
-    console.log("Query:", service_where_clause);
-    const result_json = await fetch(service_url, {
-      method: "POST",
-      body: service_query,
-      headers: {
-        "Content-type": "application/sparql-query",
-        "Accept": "application/qlever-results+json"
-        // "Accept": "text/tab-separated-values"
-      }
-    }).then(response => response.json());
-    console.log("RESULT:", result_json);
-    var values_clause = "";
-    if (result_json.selected.length >= 1) {
-      values_clause =
-        "VALUES (" + result_json.selected.join(" ") + ")"
-        + " { " +
-        result_json.res.map(tuple => "(" + tuple.join(" ") + ")").join("  ")
-        + " }";
-      console.log("VALUES clause:", values_clause);
-    } else {
-      console.log("ERROR in processing SERVICE clause: no variables found, SERVICE clause will be ignored");
-    }
-    query = query.replace(service_clause_re, values_clause);
-  }
-
-  query = unescapeCurlyBracesOfUnionMinusOptional(query);
-
-  return query;
-}
-
-
 // Rewrite query in various ways, where the first three are synchronous (in a
 // seperate function right below) and the fourth is asynchronous because it
 // launches queries itself. Note that the first three are all HACKs, which
@@ -418,17 +408,6 @@ async function rewriteQuery(query, kwargs = {}) {
     }
   }
 
-  // Resolve SERVICE clauses in the query.
-  const rewrite_service_clauses = false;
-  if (rewrite_service_clauses) {
-    try {
-      query_rewritten = await rewriteServiceClauses(query_rewritten);
-    } catch(e) {
-      console.log("ERROR in \"rewriteServiceClauses\": " + e);
-      return query_rewritten;
-    }
-  }
-
   return query_rewritten;
 }
 
@@ -438,19 +417,22 @@ async function rewriteQuery(query, kwargs = {}) {
 function rewriteQueryNoAsyncPart(query) {
   var query_rewritten = query;
 
-  // HACK 1: Rewrite FILTER CONTAINS(?title, "info* retr*") using
+  // HACK 1: Rewrite FILTER KEYWORDS(?title, "info* retr*") using
   // ql:contains-entity and ql:contains-word.
-  var num_rewrites_filter_contains = 0;
-  var m_var = "?qlm_";
-  var filter_contains_re = /FILTER\s+CONTAINS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
-  while (query_rewritten.match(filter_contains_re)) {
-    query_rewritten = query_rewritten.replace(filter_contains_re,
-         m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
-    m_var = m_var + "i";
-    num_rewrites_filter_contains += 1;
-  }
-  if (num_rewrites_filter_contains > 0) {
-    console.log("Rewrote query with \"FILTER CONTAINS\"");
+  const rewriteFilterKeywords = true;
+  if (rewriteFilterKeywords) {
+    var num_rewrites_filter_contains = 0;
+    var m_var = "?qlm_";
+    var filter_contains_re = /FILTER\s+KEYWORDS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
+    while (query_rewritten.match(filter_contains_re)) {
+      query_rewritten = query_rewritten.replace(filter_contains_re,
+           m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
+      m_var = m_var + "i";
+      num_rewrites_filter_contains += 1;
+    }
+    if (num_rewrites_filter_contains > 0) {
+      console.log("Rewrote query with \"FILTER KEYWORDS\"");
+    }
   }
 
   // HACK 2: Rewrite query to use ql:has-predicate if it fits a certain pattern
@@ -744,18 +726,13 @@ function expandEditor() {
   }
 }
 
-function displayError(response, statusWithText = undefined) {
+function displayError(response, queryId = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
     response["exception"] = "Unknown error";
   }
   disp = "<h4><strong>Error processing query</strong></h4>";
-  // if (statusWithText) { disp += "<p>" + statusWithText + "</p>"; }
   disp += "<p>" + htmlEscape(response["exception"]) + "</p>";
-  // if (result["Exception-Error-Message"] == undefined || result["Exception-Error-Message"] == "") {
-  //   result["Exception-Error-Message"] = "Unknown error";
-  // }
-  // disp = "<h3>Error:</h3><h4><strong>" + result["Exception-Error-Message"] + "</strong></h4>";
   // The query sometimes is a one-element array with the query TODO: find out why.
   if (Array.isArray(response.query)) {
     if (response.query.length >= 1) { response.query = response.query[0]; }
@@ -783,11 +760,13 @@ function displayError(response, statusWithText = undefined) {
   // If error response contains query and runtime info, append to runtime log.
   //
   // TODO: Show items from error responses in different color (how about "red").
-  if (response["query"] && response["runtimeInformation"]) {
+  if (response["query"] && response["runtimeInformation"] && queryId) {
     // console.log("DEBUG: Error response with runtime information found!");
     appendRuntimeInformation(response.runtimeInformation,
                              response.query,
-                             response.time);
+                             response.time,
+                             { queryId, updateTimeStamp: Number.MAX_VALUE });
+    renderRuntimeInformationToDom();
   }
 }
 
@@ -806,18 +785,6 @@ function displayStatus(str) {
   $("#errorBlock,#answerBlock,#warningBlock").hide();
   $("#info").html(str);
   $("#infoBlock").show();
-}
-
-// This is used only in commented out code in the function `processQuery` in
-// `qleverUI.js`.
-function showAllConcatsDeprecated(element, sep, column) {
-  data = $(element).parent().data('original-title');
-  html = "";
-  results = data.split(sep);
-  for (var k = 0; k < results.length; k++) {
-    html += getFormattedResultEntry(results[k], 50, column)[0] + "<br>";
-  }
-  $(element).parent().html(html);
 }
 
 function tsep(str) {
@@ -845,6 +812,38 @@ function htmlEscape(str) {
 // This is called in `processQuery` in `qleverUI.js` when filling the result
 // table.
 function getFormattedResultEntry(str, maxLength, column = undefined) {
+
+  // Get the variable name from the table header. TODO: it is inefficient to do
+  // this for every table entry.
+  var var_name = $($("#resTable").find("th")[column + 1]).html();
+
+  // If the entry is or contains a link, make it clickable (see where these
+  // variables are set in the following code).
+  let isLink = false;
+  let linkStart = "";
+  let linkEnd = "";
+
+  // HACK: If the variable ends in "_sparql" or "_mapview", consider the value
+  // as a SPARQL query, and show it in the QLever UI or on a map, respectively.
+  if (var_name.endsWith("_sparql") || var_name.endsWith("_mapview")) {
+    isLink = true;
+    if (var_name.endsWith("_sparql")) {
+      mapview_url = `https://qlever.cs.uni-freiburg.de/${SLUG}/` +
+                    `?query=${encodeURIComponent(str)}`;
+      icon_class = "glyphicon glyphicon-search";
+      str = "Query view";
+    } else {
+      mapview_url = `https://qlever.cs.uni-freiburg.de/mapui-petri/` +
+                    `?query=${encodeURIComponent(str)}` +
+                    `&mode=objects&backend=${BASEURL}`;
+      icon_class = "glyphicon glyphicon-globe";
+      str = "Map view";
+    }
+    linkStart = `<span style="white-space: nowrap;">` +
+                `<i class="${icon_class}"></i> ` +
+                `<a href="${mapview_url}" target="_blank">`;
+    linkEnd = '</a></span>';
+  }
 
   // TODO: Do we really want to replace each _ by a space right in the
   // beginning?
@@ -905,7 +904,6 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 
   // HACK Hannah 16.09.2021: Custom formatting depending on the variable name in
   // the column header.
-  var var_name = $($("#resTable").find("th")[column + 1]).html();
   // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
   if (var_name.endsWith("?note") || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
   if (var_name.endsWith("_per_paper")) str = parseFloat(str).toFixed(2).toString();
@@ -916,9 +914,6 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 
   pos = cpy.lastIndexOf("^^")
   pos_http = cpy.indexOf("http");
-  let isLink = false;
-  let linkStart = "";
-  let linkEnd = "";
 
   // For typed literals (with a ^^ part), prepend icon to header that links to
   // that type.
@@ -948,24 +943,27 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 
   // For IRIs that start with http display the item depending on the link type.
   // For images, a thumbnail of the image is shown. For other links, prepend a
-  // symbol that depends on the link tpye and links to the respective URL.
+  // symbol that depends on the link type and links to the respective URL.
   //
   // TODO: What if http occur somewhere inside a literal or a link?
   } else if (pos_http > 0) {
-    isLink = true;
     cpy = cpy.replace(/ /g, '_');
-    link = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g)[0];
-    checkLink = link.toLowerCase();
-    if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
-      str = "";
-      linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" >';
-      linkEnd = '</a>';
-    } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
-      linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-file"></i>&nbsp;';
-      linkEnd = '</a></span>';
-    } else {
-      linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-link"></i>&nbsp;';
-      linkEnd = '</a></span>';
+    link_match = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g);
+    if(link_match != null) {
+      isLink = true;
+      link = link_match[0];
+      checkLink = link.toLowerCase();
+      if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
+        str = "";
+        linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" >';
+        linkEnd = '</a>';
+      } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
+        linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-file"></i>&nbsp;';
+        linkEnd = '</a></span>';
+      } else {
+        linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-link"></i>&nbsp;';
+        linkEnd = '</a></span>';
+      }
     }
   }
 

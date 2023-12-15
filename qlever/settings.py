@@ -49,7 +49,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://*.uni-freiburg.de']
+CSRF_TRUSTED_ORIGINS = ['https://*.uni-freiburg.de',
+                        'http://ad-research.cs.uni-freiburg.de:18902']
 
 ROOT_URLCONF = 'qlever.urls'
 
