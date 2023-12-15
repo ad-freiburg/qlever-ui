@@ -814,6 +814,7 @@ function getQleverSuggestions(
       const data = mainQueryResult.res || mixedModeQuery === null
         ? mainQueryResult
         : await mixedModeQuery;
+      const isMixedModeSuggestion = !mainQueryResult.res && mixedModeQuery !== null;
       // Cancel queries that might still be pending. 
       activeAutoCompleteQueries.forEach(cancelQuery);
 
@@ -900,7 +901,7 @@ function getQleverSuggestions(
             completion: completion,
             name: entityName + (reversed ? " (reversed)" : ""),
             altname: altEntityName,
-            isMixedModeSuggestion: mainQueryHasTimedOut,
+            isMixedModeSuggestion: isMixedModeSuggestion,
           });
           // HACK Hannah 23.02.2021: Add transitive suggestions (for
           // hand-picked predicates only -> TODO: generalize this).
@@ -911,7 +912,7 @@ function getQleverSuggestions(
               completion: completion.trim() + "/wdt:P279* ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: isMixedModeSuggestion
             });
           }
           else if (displayText == "wdt:P131 ") {
@@ -920,7 +921,7 @@ function getQleverSuggestions(
               completion: "wdt:P131+ ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: isMixedModeSuggestion
             });
           }
           else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
@@ -931,7 +932,7 @@ function getQleverSuggestions(
               // completion: "ogc:contains_area*/ogc:contains_nonarea ",
               name: "",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: isMixedModeSuggestion
             });
             ogc_contains_added = true;
           }
@@ -941,7 +942,7 @@ function getQleverSuggestions(
               completion: completion.trim() + "/rdfs:subClassOf* ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: isMixedModeSuggestion
             });
           }
         }
