@@ -752,11 +752,10 @@ function getSuggestionsSparqlQuery(sparqlQuery) {
 }
 
 // Helper function that opens a websocket to cancel a single query.
-function cancelQuery(queryId) {
+function createWebSocket(queryId) {
   const ws = new WebSocket(getWebSocketUrl(queryId));
   ws.onopen = () => {
-    ws.send("cancel");
-    ws.close();
+    ws.send("cancel_on_close");
   };
   ws.onerror = () => log(`Failed to cancel query with id ${queryId}`, "other");
 }
@@ -789,33 +788,43 @@ function getQleverSuggestions(
   // TODO: Why is this wrapped in a `setTimeout` with a timeout of only 500
   // milliseconds?
   const sparqlTimeoutDuration = 500;
-  const activeAutoCompleteQueries = new Set();
+  const activeWebSockets = new Set();
   sparqlTimeout = window.setTimeout(async function () {
     // Issue AC query (or two when in mixed mode) and get `response`.
     try {
-      activeAutoCompleteQueries.forEach(cancelQuery);
+      activeWebSockets.forEach(ws => ws.close());
       // When in mixed mode, first issue the alternative query (but don't wait
       // for it to return, `fetchTimeout` returns a promise).
       let mixedModeQuery = null;
       if (mixedModeSparqlQuery) {
         const queryId = generateQueryId();
-        activeAutoCompleteQueries.add(queryId);
+        const ws = createWebSocket(queryId);
+        activeWebSockets.add(ws);
         mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT, queryId)
-          .finally(() => activeAutoCompleteQueries.delete(queryId));
+          .finally(() => {
+            ws.close();
+            activeWebSockets.delete(ws);
+          });
+        
       }
       // Issue the main autocompletion query (and wait for it to return).
       const mainQueryTimeout = mixedModeSparqlQuery ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
       const queryId = generateQueryId();
+      const ws = createWebSocket(queryId);
+      activeWebSockets.add(ws);
       const mainQueryResult = await fetchTimeout(lastSparqlQuery, mainQueryTimeout, queryId)
-        .finally(() => activeAutoCompleteQueries.delete(queryId));
+        .finally(() => {
+          ws.close();
+          activeWebSockets.delete(ws);
+        });
       
       // Get the actual query result as `data`.
       const data = mainQueryResult.res || mixedModeQuery === null
         ? mainQueryResult
         : await mixedModeQuery;
       const isMixedModeSuggestion = !mainQueryResult.res && mixedModeQuery !== null;
-      // Cancel queries that might still be pending. 
-      activeAutoCompleteQueries.forEach(cancelQuery);
+      // Cancel queries that might still be pending.
+      activeWebSockets.forEach(ws => ws.close());
 
       // Show the suggestions to the user.
       //
@@ -972,10 +981,7 @@ function getQleverSuggestions(
       console.error('Failed to load suggestions from QLever', err);
       activeLine.html(activeLineNumber);
     }
-
   }, sparqlTimeoutDuration);
-
-
 }
 
 
