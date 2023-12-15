@@ -718,26 +718,13 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 //
 // NOTE: The function returns immediately with a `fetch` promise. To wait for
 // the result of the `fetch` (or its failure), call `await fetchTimeout(...)`.
-//
-// TODO: Better use QLever's timeout, so that the query no longer burdens the
-// backend after the timeout. This would have the drawback that the code would
-// then only work for SPARQL enpoints supporting a "timeout" argument. Note that
-// Virtuoso does have such an argument, too, but the unit is milliseconds and not
-// seconds like for QLever.
-const fetchTimeout = (sparqlQuery, timeoutSeconds) => {
-  const timeoutMilliseconds = timeoutSeconds * 1000;
-  const controller = new AbortController();
-  const promise = fetchQleverBackend(
-    { query: sparqlQuery },
-    {},
-    { signal: controller.signal }
-  );
-  if (timeoutMilliseconds > 0) {
-    const timeout = setTimeout(() => controller.abort(), timeoutMilliseconds);
-    return promise.finally(() => clearTimeout(timeout));
-  } else {
-    return promise;
-  }
+const fetchTimeout = async (sparqlQuery, timeoutSeconds, queryId) => {
+  const parameters = {
+    query: sparqlQuery,
+    // Only add timeout if it's valid
+    ...(timeoutSeconds > 0 && { timeout: `${timeoutSeconds}s` })
+  };
+  return fetchQleverBackend(parameters, { "Query-Id": queryId });
 };
 
 function getSuggestionsSparqlQuery(sparqlQuery) {
@@ -762,6 +749,16 @@ function getSuggestionsSparqlQuery(sparqlQuery) {
     + sparqlQuery.replace(/^PREFIX.*/mg, ""), "requests");
 
   return sparqlQuery;
+}
+
+// Helper function that opens a websocket to cancel a single query.
+function cancelQuery(queryId) {
+  const ws = new WebSocket(getWebSocketUrl(queryId));
+  ws.onopen = () => {
+    ws.send("cancel");
+    ws.close();
+  };
+  ws.onerror = () => log(`Failed to cancel query with id ${queryId}`, "other");
 }
 
 
@@ -793,46 +790,32 @@ function getQleverSuggestions(
   // TODO: Why is this wrapped in a `setTimeout` with a timeout of only 500
   // milliseconds?
   const sparqlTimeoutDuration = 500;
+  const activeAutoCompleteQueries = new Set();
   sparqlTimeout = window.setTimeout(async function () {
     // Issue AC query (or two when in mixed mode) and get `response`.
     try {
+      activeAutoCompleteQueries.forEach(cancelQuery);
       // When in mixed mode, first issue the alternative query (but don't wait
       // for it to return, `fetchTimeout` returns a promise).
-      let mixedModeQuery;
+      let mixedModeQuery = null;
       if (mixedModeSparqlQuery) {
-        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT);
+        const queryId = generateQueryId();
+        activeAutoCompleteQueries.add(queryId);
+        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT, queryId)
+          .finally(() => activeAutoCompleteQueries.delete(queryId));
       }
       // Issue the main autocompletion query (and wait for it to return).
       const mainQueryTimeout = mixedModeSparqlQuery ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
-      let response;
-      let mainQueryHasTimedOut = false;
-      let allQueriesHaveTimedOut = false;
-      try {
-        response = await fetchTimeout(lastSparqlQuery, mainQueryTimeout);
-      } catch (error) {
-        if (error.name === "AbortError") {
-          mainQueryHasTimedOut = true;
-          allQueriesHaveTimedOut = true;
-        } else {
-          throw error;
-        }
-      }
-      // If the main query timed out (or failed for other reasons), and we are
-      // in mixed mode, take the result of the alternative query.
-      if (mainQueryHasTimedOut && mixedModeSparqlQuery) {
-        log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
-        try {
-          response = await mixedModeQuery;
-          allQueriesHaveTimedOut = false;
-        } catch (error) {
-          if (error.name !== "AbortError") {
-            throw error;
-          }
-        }
-      }
-
+      const queryId = generateQueryId();
+      const mainQueryResult = await fetchTimeout(lastSparqlQuery, mainQueryTimeout, queryId)
+        .finally(() => activeAutoCompleteQueries.delete(queryId));
+      
       // Get the actual query result as `data`.
-      const data = allQueriesHaveTimedOut ? { exception: "The request was cancelled due to timeout" } : response;
+      const data = mainQueryResult.res || mixedModeQuery === null
+        ? mainQueryResult
+        : await mixedModeQuery;
+      // Cancel queries that might still be pending. 
+      activeAutoCompleteQueries.forEach(cancelQuery);
 
       // Show the suggestions to the user.
       //
@@ -986,14 +969,11 @@ function getQleverSuggestions(
         to: sparqlTo,
         word: word
       });
-
-      return []
     } catch (err) {
-      // things went terribly wrong...
+      // Qlever didn't return proper result because of a network
+      // error or some other failure.
       console.error('Failed to load suggestions from QLever', err);
-      activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
       activeLine.html(activeLineNumber);
-      return [];
     }
 
   }, sparqlTimeoutDuration);
