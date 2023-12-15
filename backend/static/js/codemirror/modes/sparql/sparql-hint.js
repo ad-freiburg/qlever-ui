@@ -826,6 +826,8 @@ function getQleverSuggestions(
       const isMixedModeSuggestion = !mainQueryResult.res && mixedModeQuery !== null;
       // Cancel queries that might still be pending.
       activeWebSockets.forEach(ws => ws.close());
+      
+      const dynamicSuggestions = [];
 
       // Show the suggestions to the user.
       //
@@ -905,7 +907,6 @@ function getQleverSuggestions(
                             || result[reversedIndex].startsWith("\"1\"")))
           var displayText = (reversed ? "^" : "") + entity + appendix;
           var completion = (reversed ? "^" : "") + entity + appendix;
-          const dynamicSuggestions = [];
           dynamicSuggestions.push({
             displayText: displayText,
             completion: completion,
