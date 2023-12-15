@@ -783,7 +783,6 @@ function getQleverSuggestions(
 
   const lastSparqlQuery = getSuggestionsSparqlQuery(sparqlQuery);
   const mixedModeSparqlQuery = getSuggestionsSparqlQuery(mixedModeQuery);
-  var dynamicSuggestions = [];
 
   // The actual code for getting the suggestions and showing them.
   //
@@ -896,7 +895,8 @@ function getQleverSuggestions(
                             || result[reversedIndex].startsWith("\"1\"")))
           var displayText = (reversed ? "^" : "") + entity + appendix;
           var completion = (reversed ? "^" : "") + entity + appendix;
-            dynamicSuggestions.push({
+          const dynamicSuggestions = [];
+          dynamicSuggestions.push({
             displayText: displayText,
             completion: completion,
             name: entityName + (reversed ? " (reversed)" : ""),
@@ -914,8 +914,7 @@ function getQleverSuggestions(
               altname: altEntityName,
               isMixedModeSuggestion: isMixedModeSuggestion
             });
-          }
-          else if (displayText == "wdt:P131 ") {
+          } else if (displayText == "wdt:P131 ") {
             dynamicSuggestions.push({
               displayText: "wdt:P131+ ",
               completion: "wdt:P131+ ",
@@ -923,8 +922,7 @@ function getQleverSuggestions(
               altname: altEntityName,
               isMixedModeSuggestion: isMixedModeSuggestion
             });
-          }
-          else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
+          } else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
             dynamicSuggestions.splice(dynamicSuggestions.length - 1, 0, {
               displayText: "ogc:contains ",
               completion: "ogc:contains ",
@@ -935,8 +933,7 @@ function getQleverSuggestions(
               isMixedModeSuggestion: isMixedModeSuggestion
             });
             ogc_contains_added = true;
-          }
-          else if (displayText == "rdf:type " && window.location.href.match(/yago-2/)) {
+          } else if (displayText == "rdf:type " && window.location.href.match(/yago-2/)) {
             dynamicSuggestions.push({
               displayText: displayText.trim() + "/rdfs:subClassOf* ",
               completion: completion.trim() + "/rdfs:subClassOf* ",
@@ -948,7 +945,6 @@ function getQleverSuggestions(
         }
 
         activeLine.html(activeLineNumber);
-
       } else {
         activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red; cursor: pointer;" onclick="$(\'#suggestionErrorBlock\').parent().show()"></i>');
         $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br><pre>' + data.exception + '</pre>')
