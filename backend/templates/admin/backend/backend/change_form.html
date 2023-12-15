@@ -33,6 +33,19 @@ django.jQuery(".createApiToken").click(function() {
   django.jQuery("input[name=apiToken]").val(token);
 });
 
+if (!django.jQuery("#id_isDefault").is(":checked")) {
+    django.jQuery("#id_isNoSlugMode").attr("disabled", true);
+}
+
+django.jQuery("#id_isDefault").change(function (e) {
+    if (django.jQuery("#id_isDefault").is(":checked")) {
+        django.jQuery("#id_isNoSlugMode").removeAttr("disabled");
+    } else {
+        django.jQuery("#id_isNoSlugMode").attr("disabled", true);
+        django.jQuery("#id_isNoSlugMode").prop("checked", false);
+    }
+});
+
 </script>
 {% endblock %}
 

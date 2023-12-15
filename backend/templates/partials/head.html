@@ -25,6 +25,11 @@
   var LANGUAGELITERAL = 2;
   
   var BASEURL = "{{ backend.baseUrl }}";
+  {% if noSlugMode %}
+  var NO_SLUG_MODE = true;
+  {% else %}
+  var NO_SLUG_MODE = false;
+  {% endif %}
   var SLUG = "{{ backend.slug }}";
   var ENTITYNAMERELATIONS = {% autoescape off %}{{ backend.entityNameQueries }}{% endautoescape %}
   var SUBJECTNAME = ENTITYNAMERELATIONS["SUBJECTNAME"];

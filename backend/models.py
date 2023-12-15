@@ -42,8 +42,13 @@ class Backend(models.Model):
 
     isDefault = models.BooleanField(
         default=0,
-        help_text="Check if this should be the default backend for QLever UI",
+        help_text="Check if this should be the default backend for the QLever UI",
         verbose_name="Use as default")
+
+    isNoSlugMode = models.BooleanField(
+        default=0,
+        help_text="Check if this default backend should also be available without a slug in the QLever UI",
+        verbose_name="Enable no-slug mode")
 
     maxDefault = models.IntegerField(
         default=100,
@@ -59,17 +64,17 @@ class Backend(models.Model):
     dynamicSuggestions = models.IntegerField(
         default=2,
         choices=MODES,
-        help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
-        verbose_name="Default suggestion mode")
+        help_text="Default for how to compute autocompletion queries if any",
+        verbose_name="Default autocompletion mode")
     
     defaultModeTimeout = models.FloatField(
         default=0,
-        help_text="The timeout in seconds for autocomplete queries.",
+        help_text="Default timeout in seconds for autocompletion queries",
         verbose_name="Autocomplete timeout",
     )
     mixedModeTimeout = models.FloatField(
         default=1,
-        help_text="The timeout in seconds for the main query in mixed mode.",
+        help_text="Timeout in seconds for the sensitive autocompletion query in mixed mode",
         verbose_name="Mixed mode timeout",
     )
 
@@ -337,6 +342,7 @@ class Backend(models.Model):
 
         if self.isDefault == True:
             Backend.objects.exclude(pk=self.pk).update(isDefault=False)
+            Backend.objects.exclude(pk=self.pk).update(isNoSlugMode=False)
 
     def __str__(self):
         return self.name
