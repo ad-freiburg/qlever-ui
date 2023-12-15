@@ -224,11 +224,15 @@ $(document).ready(function () {
   // 1. Call processQuery (sends query to backend + displays results).
   // 2. Add query hash to URL.
   //
-  $("#exebtn").click(function() {
+  const exeButton = $("#exebtn");
+  exeButton.click(function() {
+    const buttonText = $("#exebtn > span");
     if (cancelActiveQuery()) {
+      exeButton.prop("disabled", true);
+      buttonText.text("Cancelling...");
       return;
     } else {
-      $("#exebtn > span").text("Cancel");
+      buttonText.text("Cancel");
     }
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
@@ -259,12 +263,15 @@ $(document).ready(function () {
     // Run the query and fetch the share link concurrently
     Promise.all([
       processQuery(parseInt($("#maxSendOnFirstRequest").html()))
-        .finally(() => $("#exebtn > span").text("Execute")),
+        .finally(() => {
+          exeButton.prop("disabled", false);
+          buttonText.text("Execute");
+        }),
       acquireShareLink()
     ]).catch(error => log(error.message, 'requests'));
 
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    $("#exebtn").focus();
+    exeButton.focus();
   });
 
   // CSV download (create link element, click on it, and remove the #csv from
