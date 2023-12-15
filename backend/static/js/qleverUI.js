@@ -7,6 +7,7 @@ var objectNames = {};
 var high_query_time_ms = 100;
 var very_high_query_time_ms = 1000;
 var request_log = new Map();
+var currentlyActiveQueryWebSocket = null;
 
 // Generates a random query id only known to this client.
 // We don't use consecutive ids to prevent clashes between
@@ -224,6 +225,11 @@ $(document).ready(function () {
   // 2. Add query hash to URL.
   //
   $("#exebtn").click(function() {
+    if (cancelActiveQuery()) {
+      return;
+    } else {
+      $("#exebtn > span").text("Cancel");
+    }
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
 
@@ -250,7 +256,8 @@ $(document).ready(function () {
 
     // Run the query and fetch the share link concurrently
     Promise.all([
-      processQuery(parseInt($("#maxSendOnFirstRequest").html())),
+      processQuery(parseInt($("#maxSendOnFirstRequest").html()))
+        .finally(() => $("#exebtn > span").text("Execute")),
       acquireShareLink()
     ]).catch(error => log(error.message, 'requests'));
 
@@ -420,13 +427,26 @@ function signalQueryStart(queryId, startTimeStamp, query) {
   renderRuntimeInformationToDom();
 }
 
+function cancelActiveQuery() {
+  if (currentlyActiveQueryWebSocket) {
+    currentlyActiveQueryWebSocket.send("cancel");
+    currentlyActiveQueryWebSocket.close();
+    currentlyActiveQueryWebSocket = null;
+    return true;
+  }
+  return false;
+}
+
 // Create a websocket object that listens for updates qlever
 // broadcasts during computation and update the current
 // runtime information in the log accordingly.
 function createWebSocketForQuery(queryId, startTimeStamp, query) {
   const ws = new WebSocket(getWebSocketUrl(queryId));
 
-  ws.onopen = () => log("Waiting for live updates", "other");
+  ws.onopen = () => {
+    log("Waiting for live updates", "other");
+    ws.send("cancel_on_close");
+  };
 
   ws.onmessage = (message) => {
     if (typeof message.data !== "string") {
@@ -490,10 +510,14 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   let ws = null;
   let queryId = undefined;
   if (!nothingToShow) {
+    if (currentlyActiveQueryWebSocket !== null) {
+      throw new Error("Started a new query before previous one finished!");
+    }
     queryId = generateQueryId();
     const startTimeStamp = Date.now();
     signalQueryStart(queryId, startTimeStamp, params["query"]);
     ws = createWebSocketForQuery(queryId, startTimeStamp, params["query"]);
+    currentlyActiveQueryWebSocket = ws;
     headers["Query-Id"] = queryId;
   }
   
@@ -667,6 +691,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     };
     displayError(errorContent, nothingToShow ? undefined : queryId);
   } finally {
+    currentlyActiveQueryWebSocket = null;
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
     // Make sure we have no socket that stays open forever
     if (ws) {
