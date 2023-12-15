@@ -13,6 +13,7 @@ var sparqlFrom;
 var sparqlTo;
 var sparqlTimeout;
 var suggestions;
+const activeWebSockets = new Set();
 
 (function (mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -758,6 +759,7 @@ function createWebSocket(queryId) {
     ws.send("cancel_on_close");
   };
   ws.onerror = () => log(`Failed to cancel query with id ${queryId}`, "other");
+  return ws;
 }
 
 
@@ -788,7 +790,6 @@ function getQleverSuggestions(
   // TODO: Why is this wrapped in a `setTimeout` with a timeout of only 500
   // milliseconds?
   const sparqlTimeoutDuration = 500;
-  const activeWebSockets = new Set();
   sparqlTimeout = window.setTimeout(async function () {
     // Issue AC query (or two when in mixed mode) and get `response`.
     try {
