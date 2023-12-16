@@ -35,7 +35,7 @@ function normalizeQuery(query, escapeQuotes = false) {
 
 // Wrapper for `fetch` that turns potential errors into
 // errors with user-friendly error messages.
-async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions = {}) {
+async function fetchQleverBackend(params, additionalHeaders = {}) {
   let response;
   try {
     response = await fetch(BASEURL, {
@@ -45,13 +45,8 @@ async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions =
         Accept: "application/qlever-results+json",
         ...additionalHeaders
       },
-      ...fetchOptions
     });
   } catch (error) {
-    // Rethrow abort errors directly
-    if (error.name === "AbortError") {
-      throw error;
-    }
     throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
   }
   switch(response.status) {
