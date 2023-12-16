@@ -249,13 +249,11 @@ $(document).ready(function () {
       if (response.ok) {
         const result = await response.json();
         log("Got pretty link from backend", "other");
-        if (window.location.search.indexOf(result.queryString) == -1) {
-          const pathWithSlug = window.location.pathname
-                                              .split("/").slice(0, 2).join("/");
-          const newUrl = window.location.origin
-                          + (NO_SLUG_MODE ? "" : pathWithSlug)
-                          + "/" + result.link;
-          window.history.pushState("html:index.html", "QLever", newUrl);
+        if (!window.location.search.includes(result.queryString)) {
+          const path = NO_SLUG_MODE
+            ? ""
+            : window.location.pathname.split("/").slice(0, 2).join("/");
+          window.history.pushState(window.history.state, "", `${path}/${result.link}`);
         }
       }
     };
