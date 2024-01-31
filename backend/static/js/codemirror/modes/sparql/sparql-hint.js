@@ -718,12 +718,14 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 
 // Get result of SPARQL query with timeout.
 //
-// NOTE: The function returns immediately with a `fetch` promise. To wait for
-// the result of the `fetch` (or its failure), call `await fetchTimeout(...)`.
+// TODO: Note that the QLever timeout can have a delay. In particular, this is
+// relevant for mixed AC queries. For example, when we specify a timeout of 1.0s
+// for the sensitive AC query, and QLever takes 1.7s before timing out, then the user
+// has to wait 1.7s for their suggestions.
 const fetchTimeout = async (sparqlQuery, timeoutSeconds, queryId) => {
   const parameters = {
     query: sparqlQuery,
-    // Only add timeout if it's valid
+    // Only add timeout if it's positive
     ...(timeoutSeconds > 0 && { timeout: `${timeoutSeconds}s` })
   };
   return fetchQleverBackend(parameters, { "Query-Id": queryId });
@@ -820,11 +822,11 @@ function getQleverSuggestions(
           activeWebSockets.delete(ws);
         });
       
+      const takeMainQueryResult = mainQueryResult.res || mixedModeQuery === null;
       // Get the actual query result as `data`.
-      const data = mainQueryResult.res || mixedModeQuery === null
+      const data = takeMainQueryResult
         ? mainQueryResult
         : await mixedModeQuery;
-      const isMixedModeSuggestion = !mainQueryResult.res && mixedModeQuery !== null;
       // Cancel queries that might still be pending.
       activeWebSockets.forEach(ws => ws.close());
       
@@ -913,7 +915,7 @@ function getQleverSuggestions(
             completion: completion,
             name: entityName + (reversed ? " (reversed)" : ""),
             altname: altEntityName,
-            isMixedModeSuggestion: isMixedModeSuggestion,
+            isMixedModeSuggestion: !takeMainQueryResult,
           });
           // HACK Hannah 23.02.2021: Add transitive suggestions (for
           // hand-picked predicates only -> TODO: generalize this).
@@ -924,7 +926,7 @@ function getQleverSuggestions(
               completion: completion.trim() + "/wdt:P279* ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: isMixedModeSuggestion
+              isMixedModeSuggestion: !takeMainQueryResult
             });
           } else if (displayText == "wdt:P131 ") {
             dynamicSuggestions.push({
@@ -932,7 +934,7 @@ function getQleverSuggestions(
               completion: "wdt:P131+ ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: isMixedModeSuggestion
+              isMixedModeSuggestion: !takeMainQueryResult
             });
           } else if (displayText == "geo:hasGeometry ") {
             dynamicSuggestions.push({
@@ -940,7 +942,7 @@ function getQleverSuggestions(
               completion: "geo:hasGeometry/geo:asWKT ",
               name: "geometry as WKT",
               altname: altEntityName,
-              isMixedModeSuggestion: isMixedModeSuggestion
+              isMixedModeSuggestion: !takeMainQueryResult
             });
           } else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
             dynamicSuggestions.splice(dynamicSuggestions.length - 1, 0, {
@@ -950,7 +952,7 @@ function getQleverSuggestions(
               // completion: "ogc:contains_area*/ogc:contains_nonarea ",
               name: "",
               altname: altEntityName,
-              isMixedModeSuggestion: isMixedModeSuggestion
+              isMixedModeSuggestion: !takeMainQueryResult
             });
             ogc_contains_added = true;
           } else if (displayText == "rdf:type " && window.location.href.match(/yago-2/)) {
@@ -959,7 +961,7 @@ function getQleverSuggestions(
               completion: completion.trim() + "/rdfs:subClassOf* ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: isMixedModeSuggestion
+              isMixedModeSuggestion: !takeMainQueryResult
             });
           }
         }
@@ -987,7 +989,7 @@ function getQleverSuggestions(
         word: word
       });
     } catch (err) {
-      // Qlever didn't return proper result because of a network
+      // Qlever didn't return a proper result because of a network
       // error or some other failure.
       console.error('Failed to load suggestions from QLever', err);
       activeLine.html(activeLineNumber);
