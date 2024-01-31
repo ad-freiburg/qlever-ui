@@ -229,7 +229,7 @@ $(document).ready(function () {
     const buttonText = $("#exebtn > span");
     if (cancelActiveQuery()) {
       exeButton.prop("disabled", true);
-      buttonText.text("Cancelling...");
+      buttonText.text("Cancelling");
       return;
     } else {
       buttonText.text("Cancel");
