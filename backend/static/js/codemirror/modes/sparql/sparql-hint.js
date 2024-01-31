@@ -517,6 +517,7 @@ function getDynamicSuggestions(context) {
             .replace(/^has([A-Z_-])/, "$1$")
             .replace(/^([a-z]+)edBy/, "$1$")
             .replace(/^(year)[A-Z_]\w*/, "$1$")
+            .replace(/^asWKT/, "geometry")
             .replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
 
           response.push('?' + objectVarName + ' .');
@@ -930,6 +931,14 @@ function getQleverSuggestions(
               displayText: "wdt:P131+ ",
               completion: "wdt:P131+ ",
               name: entityName + " (transitive)",
+              altname: altEntityName,
+              isMixedModeSuggestion: isMixedModeSuggestion
+            });
+          } else if (displayText == "geo:hasGeometry ") {
+            dynamicSuggestions.push({
+              displayText: "geo:hasGeometry/geo:asWKT ",
+              completion: "geo:hasGeometry/geo:asWKT ",
+              name: "geometry as WKT",
               altname: altEntityName,
               isMixedModeSuggestion: isMixedModeSuggestion
             });
