@@ -725,7 +725,7 @@ const fetchTimeout = (sparqlQuery, timeoutSeconds, queryId) => {
     // the nearest integer.
     ...(timeoutSeconds > 0 && { timeout: `${Math.ceil(timeoutSeconds)}s` })
   };
-  return Promise.any([
+  return Promise.race([
     // Don't wait for QLever after the timeout expired.
     new Promise((resolve) => setTimeout(resolve, timeoutSeconds * 1000, { exception: 'Timeout reached' })),
     fetchQleverBackend(parameters, { "Query-Id": queryId })
