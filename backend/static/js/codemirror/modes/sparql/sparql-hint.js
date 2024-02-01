@@ -717,18 +717,19 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 }
 
 // Get result of SPARQL query with timeout.
-//
-// TODO: Note that the QLever timeout can have a delay. In particular, this is
-// relevant for mixed AC queries. For example, when we specify a timeout of 1.0s
-// for the sensitive AC query, and QLever takes 1.7s before timing out, then the user
-// has to wait 1.7s for their suggestions.
-const fetchTimeout = async (sparqlQuery, timeoutSeconds, queryId) => {
+const fetchTimeout = (sparqlQuery, timeoutSeconds, queryId) => {
   const parameters = {
     query: sparqlQuery,
-    // Only add timeout if it's positive
-    ...(timeoutSeconds > 0 && { timeout: `${timeoutSeconds}s` })
+    // Only add timeout if it's positive. QLever only supports
+    // second-level precision for timeout values, so round up to
+    // the nearest integer.
+    ...(timeoutSeconds > 0 && { timeout: `${Math.ceil(timeoutSeconds)}s` })
   };
-  return fetchQleverBackend(parameters, { "Query-Id": queryId });
+  return Promise.any([
+    // Don't wait for QLever after the timeout expired.
+    new Promise((resolve) => setTimeout(resolve, timeoutSeconds * 1000, { exception: 'Timeout reached' })),
+    fetchQleverBackend(parameters, { "Query-Id": queryId })
+  ]);
 };
 
 function getSuggestionsSparqlQuery(sparqlQuery) {
@@ -797,6 +798,19 @@ function getQleverSuggestions(
     // Issue AC query (or two when in mixed mode) and get `response`.
     try {
       activeWebSockets.forEach(ws => ws.close());
+      const unregisterWebSocket = (ws) => {
+        // If still connecting, close once open.
+        if (ws.readyState === WebSocket.CONNECTING) {
+          const oldOnOpen = ws.onopen;
+          ws.onopen = () => {
+            oldOnOpen();
+            ws.close();
+          };
+        } else {
+          ws.close();
+        }
+        activeWebSockets.delete(ws);
+      };
       // When in mixed mode, first issue the alternative query (but don't wait
       // for it to return, `fetchTimeout` returns a promise).
       let mixedModeQuery = null;
@@ -805,10 +819,7 @@ function getQleverSuggestions(
         const ws = createWebSocket(queryId);
         activeWebSockets.add(ws);
         mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT, queryId)
-          .finally(() => {
-            ws.close();
-            activeWebSockets.delete(ws);
-          });
+          .finally(() => unregisterWebSocket(ws));
         
       }
       // Issue the main autocompletion query (and wait for it to return).
@@ -817,10 +828,7 @@ function getQleverSuggestions(
       const ws = createWebSocket(queryId);
       activeWebSockets.add(ws);
       const mainQueryResult = await fetchTimeout(lastSparqlQuery, mainQueryTimeout, queryId)
-        .finally(() => {
-          ws.close();
-          activeWebSockets.delete(ws);
-        });
+        .finally(() => unregisterWebSocket(ws));
       
       const takeMainQueryResult = mainQueryResult.res || mixedModeQuery === null;
       // Get the actual query result as `data`.
