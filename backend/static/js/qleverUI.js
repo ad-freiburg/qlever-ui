@@ -703,7 +703,15 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
     // Make sure we have no socket that stays open forever
     if (ws) {
-      ws.close();
+      if (ws.readyState === WebSocket.CONNECTING) {
+        const oldOnOpen = ws.onopen;
+        ws.onopen = () => {
+          oldOnOpen();
+          ws.close();
+        };
+      } else {
+        ws.close();
+      }
     }
   }
 }
