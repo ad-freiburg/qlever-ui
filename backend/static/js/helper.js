@@ -179,7 +179,7 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     text["total"] = text["time"];
     if (tree_node["details"]) {
       text["details"] = JSON.stringify(tree_node["details"]);
-      console.log("details:", text["details"]);
+      // console.log("details:", text["details"]);
     }
 
     // Delete all other keys except "children" (we only needed them here to
