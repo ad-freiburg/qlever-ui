@@ -32,10 +32,9 @@ function normalizeQuery(query, escapeQuotes = false) {
               .trim();
 }
 
-// Close the given websocket if the connection
-// has already been established, or if this is
-// not the case, once it is. This avoids warnings
-// in the browser console.
+// Close the given websocket. If the web socket is still connecting, make sure
+// that the close happens after the connection has been established.
+// This avoids warnings in the console.
 function closeWebSocket(ws) {
   if (ws.readyState === WebSocket.CONNECTING) {
     const oldOnOpen = ws.onopen;

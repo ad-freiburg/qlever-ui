@@ -721,15 +721,13 @@ const fetchTimeout = (sparqlQuery, timeoutSeconds, queryId) => {
   const milliseconds = Math.round(timeoutSeconds * 1000);
   const parameters = {
     query: sparqlQuery,
-    // Only add timeout if it's positive. QLever only supports
-    // second-level precision for timeout values, so round up to
-    // the nearest integer.
+    // Only add timeout in milliseconds if it's positive.
     ...(milliseconds > 0 && { timeout: `${milliseconds}ms` })
   };
   return Promise.race([
     // Don't wait for QLever after the timeout expired, sometimes QLever
     // might take a little bit longer to cancel, so there's no need
-    // let this latency slow things down.
+    // to let this latency slow things down.
     new Promise((resolve) => setTimeout(resolve, milliseconds, { exception: 'Timeout reached' })),
     fetchQleverBackend(parameters, { "Query-Id": queryId })
   ]);
