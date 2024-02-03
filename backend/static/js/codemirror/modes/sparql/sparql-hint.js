@@ -13,6 +13,7 @@ var sparqlFrom;
 var sparqlTo;
 var sparqlTimeout;
 var suggestions;
+const activeWebSockets = new Set();
 
 (function (mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -716,29 +717,20 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 }
 
 // Get result of SPARQL query with timeout.
-//
-// NOTE: The function returns immediately with a `fetch` promise. To wait for
-// the result of the `fetch` (or its failure), call `await fetchTimeout(...)`.
-//
-// TODO: Better use QLever's timeout, so that the query no longer burdens the
-// backend after the timeout. This would have the drawback that the code would
-// then only work for SPARQL enpoints supporting a "timeout" argument. Note that
-// Virtuoso does have such an argument, too, but the unit is milliseconds and not
-// seconds like for QLever.
-const fetchTimeout = (sparqlQuery, timeoutSeconds) => {
-  const timeoutMilliseconds = timeoutSeconds * 1000;
-  const controller = new AbortController();
-  const promise = fetchQleverBackend(
-    { query: sparqlQuery },
-    {},
-    { signal: controller.signal }
-  );
-  if (timeoutMilliseconds > 0) {
-    const timeout = setTimeout(() => controller.abort(), timeoutMilliseconds);
-    return promise.finally(() => clearTimeout(timeout));
-  } else {
-    return promise;
-  }
+const fetchTimeout = (sparqlQuery, timeoutSeconds, queryId) => {
+  const milliseconds = Math.round(timeoutSeconds * 1000);
+  const parameters = {
+    query: sparqlQuery,
+    // Only add timeout in milliseconds if it's positive.
+    ...(milliseconds > 0 && { timeout: `${milliseconds}ms` })
+  };
+  return Promise.race([
+    // Don't wait for QLever after the timeout expired, sometimes QLever
+    // might take a little bit longer to cancel, so there's no need
+    // to let this latency slow things down.
+    new Promise((resolve) => setTimeout(resolve, milliseconds, { exception: 'Timeout reached' })),
+    fetchQleverBackend(parameters, { "Query-Id": queryId })
+  ]);
 };
 
 function getSuggestionsSparqlQuery(sparqlQuery) {
@@ -765,6 +757,16 @@ function getSuggestionsSparqlQuery(sparqlQuery) {
   return sparqlQuery;
 }
 
+// Helper function that opens a websocket to cancel a single query.
+function createWebSocket(queryId) {
+  const ws = new WebSocket(getWebSocketUrl(queryId));
+  ws.onopen = () => {
+    ws.send("cancel_on_close");
+  };
+  ws.onerror = () => log(`Failed to cancel query with id ${queryId}`, "other");
+  return ws;
+}
+
 
 // Get suggestions from QLever backend and show them to the user.
 function getQleverSuggestions(
@@ -787,7 +789,6 @@ function getQleverSuggestions(
 
   const lastSparqlQuery = getSuggestionsSparqlQuery(sparqlQuery);
   const mixedModeSparqlQuery = getSuggestionsSparqlQuery(mixedModeQuery);
-  var dynamicSuggestions = [];
 
   // The actual code for getting the suggestions and showing them.
   //
@@ -797,43 +798,39 @@ function getQleverSuggestions(
   sparqlTimeout = window.setTimeout(async function () {
     // Issue AC query (or two when in mixed mode) and get `response`.
     try {
+      activeWebSockets.forEach(ws => ws.close());
+      const unregisterWebSocket = (ws) => {
+        closeWebSocket(ws);
+        activeWebSockets.delete(ws);
+      };
       // When in mixed mode, first issue the alternative query (but don't wait
       // for it to return, `fetchTimeout` returns a promise).
-      let mixedModeQuery;
+      let mixedModeQuery = null;
       if (mixedModeSparqlQuery) {
-        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT);
+        const queryId = generateQueryId();
+        const ws = createWebSocket(queryId);
+        activeWebSockets.add(ws);
+        mixedModeQuery = fetchTimeout(mixedModeSparqlQuery, DEFAULT_TIMEOUT, queryId)
+          .finally(() => unregisterWebSocket(ws));
+        
       }
       // Issue the main autocompletion query (and wait for it to return).
       const mainQueryTimeout = mixedModeSparqlQuery ? MIXED_MODE_TIMEOUT : DEFAULT_TIMEOUT;
-      let response;
-      let mainQueryHasTimedOut = false;
-      let allQueriesHaveTimedOut = false;
-      try {
-        response = await fetchTimeout(lastSparqlQuery, mainQueryTimeout);
-      } catch (error) {
-        if (error.name === "AbortError") {
-          mainQueryHasTimedOut = true;
-          allQueriesHaveTimedOut = true;
-        } else {
-          throw error;
-        }
-      }
-      // If the main query timed out (or failed for other reasons), and we are
-      // in mixed mode, take the result of the alternative query.
-      if (mainQueryHasTimedOut && mixedModeSparqlQuery) {
-        log("The main query timed out. Using the context-insensitive suggestions.", 'requests')
-        try {
-          response = await mixedModeQuery;
-          allQueriesHaveTimedOut = false;
-        } catch (error) {
-          if (error.name !== "AbortError") {
-            throw error;
-          }
-        }
-      }
-
+      const queryId = generateQueryId();
+      const ws = createWebSocket(queryId);
+      activeWebSockets.add(ws);
+      const mainQueryResult = await fetchTimeout(lastSparqlQuery, mainQueryTimeout, queryId)
+        .finally(() => unregisterWebSocket(ws));
+      
+      const takeMainQueryResult = mainQueryResult.res || mixedModeQuery === null;
       // Get the actual query result as `data`.
-      const data = allQueriesHaveTimedOut ? { exception: "The request was cancelled due to timeout" } : response;
+      const data = takeMainQueryResult
+        ? mainQueryResult
+        : await mixedModeQuery;
+      // Cancel queries that might still be pending.
+      activeWebSockets.forEach(ws => ws.close());
+      
+      const dynamicSuggestions = [];
 
       // Show the suggestions to the user.
       //
@@ -913,12 +910,12 @@ function getQleverSuggestions(
                             || result[reversedIndex].startsWith("\"1\"")))
           var displayText = (reversed ? "^" : "") + entity + appendix;
           var completion = (reversed ? "^" : "") + entity + appendix;
-            dynamicSuggestions.push({
+          dynamicSuggestions.push({
             displayText: displayText,
             completion: completion,
             name: entityName + (reversed ? " (reversed)" : ""),
             altname: altEntityName,
-            isMixedModeSuggestion: mainQueryHasTimedOut,
+            isMixedModeSuggestion: !takeMainQueryResult,
           });
           // HACK Hannah 23.02.2021: Add transitive suggestions (for
           // hand-picked predicates only -> TODO: generalize this).
@@ -929,28 +926,25 @@ function getQleverSuggestions(
               completion: completion.trim() + "/wdt:P279* ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: !takeMainQueryResult
             });
-          }
-          else if (displayText == "wdt:P131 ") {
+          } else if (displayText == "wdt:P131 ") {
             dynamicSuggestions.push({
               displayText: "wdt:P131+ ",
               completion: "wdt:P131+ ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: !takeMainQueryResult
             });
-          }
-          else if (displayText == "geo:hasGeometry ") {
+          } else if (displayText == "geo:hasGeometry ") {
             dynamicSuggestions.push({
               displayText: "geo:hasGeometry/geo:asWKT ",
               completion: "geo:hasGeometry/geo:asWKT ",
               name: "geometry as WKT",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: !takeMainQueryResult
             });
-          }
-          else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
+          } else if (!ogc_contains_added && displayText.startsWith("osm2rdf:contains_")) {
             dynamicSuggestions.splice(dynamicSuggestions.length - 1, 0, {
               displayText: "ogc:contains ",
               completion: "ogc:contains ",
@@ -958,23 +952,21 @@ function getQleverSuggestions(
               // completion: "ogc:contains_area*/ogc:contains_nonarea ",
               name: "",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: !takeMainQueryResult
             });
             ogc_contains_added = true;
-          }
-          else if (displayText == "rdf:type " && window.location.href.match(/yago-2/)) {
+          } else if (displayText == "rdf:type " && window.location.href.match(/yago-2/)) {
             dynamicSuggestions.push({
               displayText: displayText.trim() + "/rdfs:subClassOf* ",
               completion: completion.trim() + "/rdfs:subClassOf* ",
               name: entityName + " (transitive)",
               altname: altEntityName,
-              isMixedModeSuggestion: mainQueryHasTimedOut
+              isMixedModeSuggestion: !takeMainQueryResult
             });
           }
         }
 
         activeLine.html(activeLineNumber);
-
       } else {
         activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red; cursor: pointer;" onclick="$(\'#suggestionErrorBlock\').parent().show()"></i>');
         $('#suggestionErrorBlock').html('<strong>Error while collecting suggestions:</strong><br><pre>' + data.exception + '</pre>')
@@ -996,19 +988,13 @@ function getQleverSuggestions(
         to: sparqlTo,
         word: word
       });
-
-      return []
     } catch (err) {
-      // things went terribly wrong...
+      // Qlever didn't return a proper result because of a network
+      // error or some other failure.
       console.error('Failed to load suggestions from QLever', err);
-      activeLine.html('<i class="glyphicon glyphicon-remove" style="color:red;">');
       activeLine.html(activeLineNumber);
-      return [];
     }
-
   }, sparqlTimeoutDuration);
-
-
 }
 
 

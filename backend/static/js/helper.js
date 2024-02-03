@@ -32,10 +32,27 @@ function normalizeQuery(query, escapeQuotes = false) {
               .trim();
 }
 
+// Close the given websocket. If the web socket is still connecting, make sure
+// that the close happens after the connection has been established.
+// This avoids warnings in the console.
+function closeWebSocket(ws) {
+  if (ws.readyState === WebSocket.CONNECTING) {
+    const oldOnOpen = ws.onopen;
+    ws.onopen = () => {
+      // Do not replace the onopen callback,
+      // instead we append our call to it.
+      oldOnOpen();
+      ws.close();
+    };
+  } else {
+    ws.close();
+  }
+}
+
 
 // Wrapper for `fetch` that turns potential errors into
 // errors with user-friendly error messages.
-async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions = {}) {
+async function fetchQleverBackend(params, additionalHeaders = {}) {
   let response;
   try {
     response = await fetch(BASEURL, {
@@ -45,13 +62,8 @@ async function fetchQleverBackend(params, additionalHeaders = {}, fetchOptions =
         Accept: "application/qlever-results+json",
         ...additionalHeaders
       },
-      ...fetchOptions
     });
   } catch (error) {
-    // Rethrow abort errors directly
-    if (error.name === "AbortError") {
-      throw error;
-    }
     throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
   }
   switch(response.status) {
@@ -167,7 +179,7 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     text["total"] = text["time"];
     if (tree_node["details"]) {
       text["details"] = JSON.stringify(tree_node["details"]);
-      console.log("details:", text["details"]);
+      // console.log("details:", text["details"]);
     }
 
     // Delete all other keys except "children" (we only needed them here to

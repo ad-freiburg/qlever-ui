@@ -7,6 +7,7 @@ var objectNames = {};
 var high_query_time_ms = 100;
 var very_high_query_time_ms = 1000;
 var request_log = new Map();
+var currentlyActiveQueryWebSocket = null;
 
 // Generates a random query id only known to this client.
 // We don't use consecutive ids to prevent clashes between
@@ -223,7 +224,16 @@ $(document).ready(function () {
   // 1. Call processQuery (sends query to backend + displays results).
   // 2. Add query hash to URL.
   //
-  $("#exebtn").click(function() {
+  const exeButton = $("#exebtn");
+  exeButton.click(function() {
+    const buttonText = $("#exebtn > span");
+    if (cancelActiveQuery()) {
+      exeButton.prop("disabled", true);
+      buttonText.text("Cancelling");
+      return;
+    } else {
+      buttonText.text("Cancel");
+    }
     log("Start processing", "other");
     $("#suggestionErrorBlock").parent().hide();
 
@@ -239,25 +249,27 @@ $(document).ready(function () {
       if (response.ok) {
         const result = await response.json();
         log("Got pretty link from backend", "other");
-        if (window.location.search.indexOf(result.queryString) == -1) {
-          const pathWithSlug = window.location.pathname
-                                              .split("/").slice(0, 2).join("/");
-          const newUrl = window.location.origin
-                          + (NO_SLUG_MODE ? "" : pathWithSlug)
-                          + "/" + result.link;
-          window.history.pushState("html:index.html", "QLever", newUrl);
+        if (!window.location.search.includes(result.queryString)) {
+          const path = NO_SLUG_MODE
+            ? ""
+            : window.location.pathname.split("/").slice(0, 2).join("/");
+          window.history.pushState(window.history.state, "", `${path}/${result.link}`);
         }
       }
     };
 
     // Run the query and fetch the share link concurrently
     Promise.all([
-      processQuery(parseInt($("#maxSendOnFirstRequest").html())),
+      processQuery(parseInt($("#maxSendOnFirstRequest").html()))
+        .finally(() => {
+          exeButton.prop("disabled", false);
+          buttonText.text("Execute");
+        }),
       acquireShareLink()
     ]).catch(error => log(error.message, 'requests'));
 
     if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    $("#exebtn").focus();
+    exeButton.focus();
   });
 
   // CSV download (create link element, click on it, and remove the #csv from
@@ -425,13 +437,24 @@ function signalQueryStart(queryId, startTimeStamp, query) {
   renderRuntimeInformationToDom();
 }
 
+function cancelActiveQuery() {
+  if (currentlyActiveQueryWebSocket) {
+    currentlyActiveQueryWebSocket.send("cancel");
+    return true;
+  }
+  return false;
+}
+
 // Create a websocket object that listens for updates qlever
 // broadcasts during computation and update the current
 // runtime information in the log accordingly.
 function createWebSocketForQuery(queryId, startTimeStamp, query) {
   const ws = new WebSocket(getWebSocketUrl(queryId));
 
-  ws.onopen = () => log("Waiting for live updates", "other");
+  ws.onopen = () => {
+    log("Waiting for live updates", "other");
+    ws.send("cancel_on_close");
+  };
 
   ws.onmessage = (message) => {
     if (typeof message.data !== "string") {
@@ -495,10 +518,14 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   let ws = null;
   let queryId = undefined;
   if (!nothingToShow) {
+    if (currentlyActiveQueryWebSocket !== null) {
+      throw new Error("Started a new query before previous one finished!");
+    }
     queryId = generateQueryId();
     const startTimeStamp = Date.now();
     signalQueryStart(queryId, startTimeStamp, params["query"]);
     ws = createWebSocketForQuery(queryId, startTimeStamp, params["query"]);
+    currentlyActiveQueryWebSocket = ws;
     headers["Query-Id"] = queryId;
   }
   
@@ -672,10 +699,11 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     };
     displayError(errorContent, nothingToShow ? undefined : queryId);
   } finally {
+    currentlyActiveQueryWebSocket = null;
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
     // Make sure we have no socket that stays open forever
     if (ws) {
-      ws.close();
+      closeWebSocket(ws);
     }
   }
 }

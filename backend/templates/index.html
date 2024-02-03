@@ -153,9 +153,12 @@
               </div>
               <div class="col-md-9 buttonFlex">
                   
-                <!-- The run button -->
-                <button id="exebtn" class="btn btn-success">
-                  <i class="glyphicon glyphicon-refresh"></i> Execute
+                <!--
+                  The run button. Note: min-width keeps the same width regardless
+                  of the label (Execute, Cancel or Cancelling)
+                -->
+                <button id="exebtn" class="btn btn-success" style="min-width: 7.857em;">
+                  <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
                 </button>
                 
                 <!-- The download buttons -->
