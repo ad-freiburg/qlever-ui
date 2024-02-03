@@ -32,6 +32,24 @@ function normalizeQuery(query, escapeQuotes = false) {
               .trim();
 }
 
+// Close the given websocket if the connection
+// has already been established, or if this is
+// not the case, once it is. This avoids warnings
+// in the browser console.
+function closeWebSocket(ws) {
+  if (ws.readyState === WebSocket.CONNECTING) {
+    const oldOnOpen = ws.onopen;
+    ws.onopen = () => {
+      // Do not replace the onopen callback,
+      // instead we append our call to it.
+      oldOnOpen();
+      ws.close();
+    };
+  } else {
+    ws.close();
+  }
+}
+
 
 // Wrapper for `fetch` that turns potential errors into
 // errors with user-friendly error messages.

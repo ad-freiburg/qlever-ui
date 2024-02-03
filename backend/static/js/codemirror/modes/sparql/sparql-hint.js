@@ -718,16 +718,19 @@ function parseAndEvaluateCondition(condition, word, lines, words) {
 
 // Get result of SPARQL query with timeout.
 const fetchTimeout = (sparqlQuery, timeoutSeconds, queryId) => {
+  const milliseconds = Math.round(timeoutSeconds * 1000);
   const parameters = {
     query: sparqlQuery,
     // Only add timeout if it's positive. QLever only supports
     // second-level precision for timeout values, so round up to
     // the nearest integer.
-    ...(timeoutSeconds > 0 && { timeout: `${Math.ceil(timeoutSeconds)}s` })
+    ...(milliseconds > 0 && { timeout: `${milliseconds}ms` })
   };
   return Promise.race([
-    // Don't wait for QLever after the timeout expired.
-    new Promise((resolve) => setTimeout(resolve, timeoutSeconds * 1000, { exception: 'Timeout reached' })),
+    // Don't wait for QLever after the timeout expired, sometimes QLever
+    // might take a little bit longer to cancel, so there's no need
+    // let this latency slow things down.
+    new Promise((resolve) => setTimeout(resolve, milliseconds, { exception: 'Timeout reached' })),
     fetchQleverBackend(parameters, { "Query-Id": queryId })
   ]);
 };
@@ -799,16 +802,7 @@ function getQleverSuggestions(
     try {
       activeWebSockets.forEach(ws => ws.close());
       const unregisterWebSocket = (ws) => {
-        // If still connecting, close once open.
-        if (ws.readyState === WebSocket.CONNECTING) {
-          const oldOnOpen = ws.onopen;
-          ws.onopen = () => {
-            oldOnOpen();
-            ws.close();
-          };
-        } else {
-          ws.close();
-        }
+        closeWebSocket(ws);
         activeWebSockets.delete(ws);
       };
       // When in mixed mode, first issue the alternative query (but don't wait
