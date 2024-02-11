@@ -55,14 +55,14 @@ You can now exit the container as QLever UI is finally ready to run.
 ## Running a QLever UI Docker Container
 To run a QLever UI container use the following command:
 ```shell
-docker run -it -p 8000:8000 \
+docker run -it -p 7000:7000 \
            -v "$(pwd)/db:/app/db" \
            --name qleverui \
            qleverui
 ``` 
 __Note:__ If you already have a QLever UI database file `qleverui.sqlite3` you want to use, make sure it is located in the specified path or provide the correct path to it.  
 If you want the container to run in the background and restart automatically replace `-it` with `-d --restart=unless-stopped`  
-You should now be able to connect to QLever UI via <http://localhost:8000>. Continue with [configuring QLever UI](./configure_qleverui.md).
+You should now be able to connect to QLever UI via <http://localhost:7000>. Continue with [configuring QLever UI](./configure_qleverui.md).
 
 
 # Installing QLever UI without docker
@@ -94,9 +94,9 @@ When not using docker there are some additional steps to do. QLever UI is built 
 ## Running QLever UI without docker
 You can either start a development server by simply running
 ```shell
-./manage.py runserver localhost:8000
+./manage.py runserver localhost:7000
 ```
 or prepare a productive environment as described in the [Django documentation](https://docs.djangoproject.com/en/3.0/).
 
-You can start the development instance at any time with this single command and access your instance by opening http://localhost:8000. Feel free to change the port or hostname if needed. 
+You can start the development instance at any time with this single command and access your instance by opening http://localhost:7000. Feel free to change the port or hostname if needed.
 Read more about configuration in the [next chapter](./configure_qleverui.md).
