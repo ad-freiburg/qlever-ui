@@ -87,10 +87,10 @@ $(document).ready(function () {
   // Initialization done.
   log('Editor initialized', 'other');
 
-  // Do some custom activities on cursor activity
+  // When cursor moves, make sure that tooltips are closed.
   editor.on("cursorActivity", function (instance) {
     $('[data-tooltip=tooltip]').tooltip('hide');
-    cleanLines(instance);
+    // cleanLines(instance);
   });
 
   editor.on("update", function (instance, event) {
@@ -107,10 +107,12 @@ $(document).ready(function () {
   // Do some custom activities (overwrite codemirror behaviour)
   editor.on("keyup", function (instance, event) {
 
-    // For each prefix in COLLECTEDPREFIXES, check whether it occurs somewhere
-    // in the query and if so, add it before the first SELECT (and move
-    // the cursor accordingly).
-    if (FILLPREFIXES) {
+    // For each prefix in `COLLECTEDPREFIXES`, check whether it occurs
+    // somewhere in the query and if so, add it before the first `SELECT` or
+    // `CONSTRUCT` (and move the cursor accordingly). If there is no `SELECT`
+    // or `CONSTRUCT`, do nothing.
+    let select_or_construct_regex = /(^| )(SELECT|CONSTRUCT)/mi;
+    if (FILLPREFIXES && select_or_construct_regex.test(editor.getValue())) {
       let queryString = editor.getValue();
       let newCursor = editor.getCursor();
       let linesAdded = 0;
@@ -118,7 +120,7 @@ $(document).ready(function () {
         const fullPrefix = "PREFIX " + prefix + ": <" + COLLECTEDPREFIXES[prefix] + ">";
         if (doesQueryFragmentContainPrefix(queryString, prefix) &&
              queryString.indexOf(fullPrefix) == -1) {
-          queryString = queryString.replace(/(^| )(SELECT)/m, fullPrefix + "\n$1$2");
+          queryString = queryString.replace(select_or_construct_regex, fullPrefix + "\n$1$2");
           linesAdded += 1;
         }
       }
@@ -180,7 +182,7 @@ $(document).ready(function () {
 
     for (var line of lines) {
       if (line.trim().startsWith("PREFIX")) {
-        var match = /PREFIX (.*): ?<(.*)>/g.exec(line.trim());
+        var match = /PREFIX (.*): ?<(.*)>/gi.exec(line.trim());
         if (match) {
           prefixes += line.trim() + '\n';
         }

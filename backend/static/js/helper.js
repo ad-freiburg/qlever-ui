@@ -219,7 +219,7 @@ function splitSparqlQueryIntoParts(query) {
                               .replace(/\(\s+/g, "(").replace(/\s+\)/g, ")")
                               .replace(/\{\s*/g, "{ ").replace(/\s*\.?\s*\}$/g, " }");
   // console.log("SPLIT_SPARQL_QUERY_INTO_PARTS:", query_with_spaces_normalized)
-  const pattern = /^\s*(.*?)\s*SELECT\s+([^{]*\S)\s*WHERE\s*{\s*(\S.*\S)\s*}\s*(.*?)\s*$/m;
+  const pattern = /^\s*(.*?)\s*SELECT\s+([^{]*\S)\s*WHERE\s*{\s*(\S.*\S)\s*}\s*(.*?)\s*$/mi;
   var match = query_normalized.match(pattern);
   if (!match) {
     throw "ERROR: Query did not match regex for SELECT queries";
@@ -625,9 +625,9 @@ function cleanLines(cm) {
   cm.setSelection(selection.anchor, selection.head);
 }
 
-// Triggered when using TAB
+// Triggered when the `TAB` key is pressed; see `qleverUI`, search for
+// `extraKeys` in `CodeMirror` initialization.
 function switchStates(cm) {
-
   var cur = editor.getCursor(); // current cursor position
   var absolutePosition = editor.indexFromPos({ 'line': cur.line, 'ch': cur.ch + 1 }); // absolute cursor position in text
 
@@ -635,7 +635,7 @@ function switchStates(cm) {
 
   var gaps = [];
 
-  var gap1 = /WHERE/g
+  var gap1 = /WHERE/gi
   while ((match = gap1.exec(content)) != null) {
     gaps.push(match.index + match[0].length - 5);
   }
@@ -669,12 +669,13 @@ function switchStates(cm) {
 
   var newCursor = editor.posFromIndex(found);
   editor.setCursor(newCursor);
+
   var line = cm.getLine(newCursor.line);
 
   indentWhitespaces = (" ".repeat((line.length - line.trimStart().length)))
 
-  if (line.slice(newCursor.ch, newCursor.ch + 5) == "WHERE") {
-    // add empty whitespace in select if not present
+  if (line.slice(newCursor.ch, newCursor.ch + 5).toUpperCase() == "WHERE") {
+    // Add empty whitespace in select if not present
     log("Found SELECT-Placeholder on postion " + found, 'other');
     cm.setSelection({ 'line': newCursor.line, 'ch': line.length - 8 }, { 'line': newCursor.line, 'ch': line.length - 7 });
     cm.replaceSelection("  ");
@@ -701,6 +702,12 @@ function switchStates(cm) {
   }
 
   cm.setSelection(cm.getCursor(), cm.getCursor());
+
+  // Now that the cursor is set at a new position, clean up the query.
+  //
+  // NOTE: Previously, this was done after every cursor movement in
+  // `qleverUI.js`, where it says `editor.on("cursorActivity", ...)`.
+  cleanLines(cm);
 
   window.setTimeout(function () {
     CodeMirror.commands.autocomplete(editor);
@@ -918,6 +925,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   // the column header.
   // console.log("Check if \"" + str + "\" in column \"" + var_name + "\" is a float ...");
   if (var_name.endsWith("?note") || var_name.endsWith("_note")) str = parseFloat(str).toFixed(2).toString();
+  if (var_name.endsWith("?grade") || var_name.endsWith("_grade")) str = parseFloat(str).toFixed(2).toString();
   if (var_name.endsWith("_per_paper")) str = parseFloat(str).toFixed(2).toString();
   if (var_name.endsWith("_perc") || var_name.endsWith("percent")) str = parseFloat(str).toFixed(2).toString();
   if (var_name.endsWith("?lp_proz")) str = parseFloat(str).toFixed(0).toString();
