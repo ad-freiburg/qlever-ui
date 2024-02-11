@@ -420,11 +420,8 @@ function getDynamicSuggestions(context) {
       }
     }
 
-    // Do not launch AC query when current word starts with ? or for subject AC
-    // queries when the prefix has length < 3.
-    var sendSparql = !(word.startsWith('?'))
-                       && !(words.length == 1 && words[0].length < 3);
     sparqlQuery = "";
+    var sendSparql = !(word.startsWith('?'));
     var sparqlLines = "";
     var mode1Query = "";  // mode 1 is context-insensitive
     var mode2Query = "";  // mode 2 is context-sensitive
