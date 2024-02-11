@@ -967,7 +967,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       checkLink = link.toLowerCase();
       if (checkLink.endsWith('jpg') || checkLink.endsWith('png') || checkLink.endsWith('gif') || checkLink.endsWith('jpeg') || checkLink.endsWith('svg')) {
         str = "";
-        linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" >';
+        linkStart = '<a href="' + link + '" target="_blank"><img src="' + link + '" width="50" loading="lazy">';
         linkEnd = '</a>';
       } else if (checkLink.endsWith('pdf') || checkLink.endsWith('doc') || checkLink.endsWith('docx')) {
         linkStart = '<span style="white-space: nowrap;"><a href="' + link + '" target="_blank"><i class="glyphicon glyphicon-file"></i>&nbsp;';
