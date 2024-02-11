@@ -51,7 +51,7 @@ $(document).ready(function () {
       "Tab": function (cm) { switchStates(cm); },
       "Ctrl-Space": "autocomplete",
       "Ctrl-F": "findPersistent",
-      "Ctrl-R": "replace"
+      // "Ctrl-R": "replace"
     },
   });
 
