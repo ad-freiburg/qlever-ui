@@ -74,14 +74,14 @@ const CONTEXTS = [
 const COMPLEXTYPES = [
   {
     name: 'PREFIX',
-    definition: /PREFIX (.*)/g,
+    definition: /PREFIX (.*)/gi,
     suggestions: [['PREFIX ', function (c) { return getPrefixSuggestions(c); }, '\n']],
     availableInContext: ['PrefixDecl', 'undefined'],
     
   },
   {
     name: 'SELECT',
-    definition: /SELECT (.*)/g,
+    definition: /SELECT (.*)/gi,
     suggestions: [['SELECT * WHERE {\n  \n}\n']],
     availableInContext: ['PrefixDecl', 'undefined', 'SubQuery'],
     onlyOnce: true,
@@ -89,7 +89,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'DISTINCT',
-    definition: /DISTINCT|[?\w]+ [?\w]*/g,
+    definition: /DISTINCT|[?\w]+ [?\w]*/gi,
     suggestions: [['DISTINCT ']],
     availableInContext: ['SelectClause'],
     onlyOnce: true,
@@ -113,70 +113,70 @@ const COMPLEXTYPES = [
   },
   {
     name: 'TEXT',
-    definition: /TEXT\((.*)\)/g,
+    definition: /TEXT\((.*)\)/gi,
     suggestions: [['TEXT(', function (c) { var a = []; $(getVariables(c, true, "text")).each(function (k, v) { a.push(v) }); return a; }, ') ']],
     availableInContext: ['SelectClause'],
     
   },
   {
     name: 'SCORE',
-    definition: /SCORE\((.*)\)/g,
+    definition: /SCORE\((.*)\)/gi,
     suggestions: [['SCORE(', function (c) { var a = []; $(getVariables(c, true, "text")).each(function (k, v) { a.push(v) }); return a; }, ') ']],
     availableInContext: ['SelectClause', 'OrderCondition'],
     
   },
   {
     name: 'MIN',
-    definition: /\(MIN\((.*)\) as (.*)\)/g,
+    definition: /\(MIN\((.*)\) as (.*)\)/gi,
     suggestions: [['(MIN(', function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?min_{[0]}) ']],
     availableInContext: ['SelectClause', 'OrderCondition'],
     
   },
   {
     name: 'MAX',
-    definition: /\(MAX\((.*)\) as (.*)\)/g,
+    definition: /\(MAX\((.*)\) as (.*)\)/gi,
     suggestions: [['(MAX(', function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?max_{[0]}) ']],
     availableInContext: ['SelectClause', 'OrderCondition'],
     
   },
   {
     name: 'SUM',
-    definition: /\(SUM\((.*)\) as (.*)\)/g,
+    definition: /\(SUM\((.*)\) as (.*)\)/gi,
     suggestions: [['(SUM(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?sum_{[1]}) ']],
     availableInContext: ['SelectClause', 'OrderCondition'],
     
   },
   {
     name: 'AVG',
-    definition: /\(AVG\((.*)\) as (.*)\)/g,
+    definition: /\(AVG\((.*)\) as (.*)\)/gi,
     suggestions: [['(AVG(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?avg_{[1]}) ']],
     availableInContext: ['SelectClause', 'OrderCondition'],
     
   },
   {
     name: 'SAMPLE',
-    definition: /\(SAMPLE\((.*)\) as (.*)\)/g,
+    definition: /\(SAMPLE\((.*)\) as (.*)\)/gi,
     suggestions: [['(SAMPLE(', function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?sample_{[0]}) ']],
     availableInContext: ['SelectClause'],
     
   },
   {
     name: 'COUNT',
-    definition: /\(COUNT\((.*)\) as (.*)\)/g,
+    definition: /\(COUNT\((.*)\) as (.*)\)/gi,
     suggestions: [['(COUNT(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?count_{[1]}) ']],
     availableInContext: ['SelectClause'],
     
   },
   {
     name: 'GROUP_CONCAT',
-    definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/g,
+    definition: /\(GROUP_CONCAT\((.*)\) as (.*)\)/gi,
     suggestions: [['(GROUP_CONCAT(', ['DISTINCT ', ''], function (c) { if (getContextByName('SolutionModifier') && getContextByName('SolutionModifier')['content'].indexOf('GROUP BY') != -1) { return getVariables(c, true); } else { return false; } }, ') as ?concat_{[1]}) ']],
     availableInContext: ['SelectClause'],
     
   },
   {
     name: 'LIMIT',
-    definition: /\bLIMIT ([0-9+])/g,
+    definition: /\bLIMIT ([0-9+])/gi,
     suggestions: [['LIMIT ', [1, 10, 100, 1000], '\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
@@ -184,7 +184,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'TEXTLIMIT',
-    definition: /TEXTLIMIT ([0-9+])/g,
+    definition: /TEXTLIMIT ([0-9+])/gi,
     suggestions: [['TEXTLIMIT ', [2, 5, 10], '\n']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
@@ -192,21 +192,21 @@ const COMPLEXTYPES = [
   },
   {
     name: 'ASC',
-    definition: /ASC(\?.*)/g,
+    definition: /ASC(\?.*)/gi,
     suggestions: [['ASC(', function (c) { var a = getVariables(c); for (var v of getVariables(c, undefined, "text")) { a.push("SCORE(" + v + ")"); }; return a; }, ') ']],
     availableInContext: ['OrderCondition'],
     
   },
   {
     name: 'DESC',
-    definition: /DESC(\?.*)/g,
+    definition: /DESC(\?.*)/gi,
     suggestions: [['DESC(', function (c) { var a = getVariables(c); for (var v of getVariables(c, undefined, "text")) { a.push("SCORE(" + v + ")"); }; return a; }, ') ']],
     availableInContext: ['OrderCondition'],
     
   },
   {
     name: 'ORDER BY',
-    definition: /ORDER BY .*/g,
+    definition: /ORDER BY .*/gi,
     suggestions: [['ORDER BY ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
@@ -214,7 +214,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'GROUP BY',
-    definition: /GROUP BY \?(.+)/g,
+    definition: /GROUP BY \?(.+)/gi,
     suggestions: [['GROUP BY ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
@@ -222,7 +222,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'HAVING',
-    definition: /HAVING\?(.+)/g,
+    definition: /HAVING\?(.+)/gi,
     suggestions: [['HAVING(', function (c) { return getVariables(c); }, ' ']],
     availableInContext: ['SolutionModifier'],
     onlyOnce: true,
@@ -236,7 +236,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'REGEX',
-    definition: /REGEX(\?.*)/g,
+    definition: /REGEX(\?.*)/gi,
     suggestions: [['REGEX(', function (c) { return getVariables(c, true); }]],
     onlyOncePerVariation: true,
     availableInContext: ['Filter'],
@@ -244,7 +244,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'FILTER',
-    definition: /FILTER\((.*)/g,
+    definition: /FILTER\((.*)/gi,
     suggestions: [['FILTER ']],
     availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause'],
     requiresEmptyLine: true,
@@ -253,7 +253,7 @@ const COMPLEXTYPES = [
   },
   {
     name: 'FILTER LANGUAGE',
-    definition: /LANG(.*)/g,
+    definition: /LANG(.*)/gi,
     suggestions: [['(LANG(', function (c) { var a = []; for (var v of getVariables(c, undefined, undefined, LANGUAGELITERAL)) { if (editor.getValue().indexOf("FILTER(LANG(" + v) == -1) { a.push(v); } }; return a; }, ') = ', LANGUAGES, ') .\n']],
     availableInContext: ['Filter'],
   },
