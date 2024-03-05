@@ -59,7 +59,7 @@ Custom Elements
 }
 
 .tooltip .tooltip-inner { background-color: #82B36F; max-width: 600px; word-wrap: break-word; }
-.tooltip .tooltip-arrow { border-top-color: #82B36F !important; }
+.tooltip .tooltip-arrow { border-top-color: #82B36F !important; border-bottom-color: #82B36F !important; }
 
 
 .table > tbody > tr > td:first-child { color: #d3d3d3; }
