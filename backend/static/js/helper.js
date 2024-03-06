@@ -736,11 +736,11 @@ function changeTheme(theme = undefined) {
 }
 
 function expandEditor() {
-  if ($('#editorArea').hasClass("col-md-8")) {
-    $('#editorArea').removeClass("col-md-8").addClass("col-md-12");
+  if ($('#editorArea').hasClass("col-md-7")) {
+    $('#editorArea').removeClass("col-md-7").addClass("col-md-12");
     $('#help').hide();
   } else {
-    $('#editorArea').removeClass("col-md-12").addClass("col-md-8");
+    $('#editorArea').removeClass("col-md-12").addClass("col-md-7");
     $('#help').show();
   }
 }
