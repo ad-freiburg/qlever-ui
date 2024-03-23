@@ -62,3 +62,15 @@ function filterExamples(event) {
     $("#empty-examples-excuse").hide();
   }
 }
+
+// this is taken from here: https://www.geeksforgeeks.org/implement-search-box-with-debounce-in-javascript/
+// its a decorator that makes sure a function is only called once within the given delay
+function debounce(fn, delay=500) {
+  let timerId = null;
+  return (...args) => {
+    clearTimeout(timerId); // restart timer
+    timerId = setTimeout(() => fn(...args), delay);
+  };
+}
+
+const filterExamplesDebounced = debounce(filterExamples, 200);
