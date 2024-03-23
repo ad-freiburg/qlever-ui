@@ -20,16 +20,16 @@ function highlightWords(input_str, words) {
   }
   // consolidate overlapping sections
   matching_sections.sort((a,b) => a[0] - b[0]);
-  matching_sections = matching_sections.reduceRight((accu,elem) => {
+  matching_sections = matching_sections.reduce((accu,elem) => {
     const [last, ...rest] = accu;
-    if (elem[1] >= last[0]){
-      return [[elem[0], Math.max(elem[1], last[1])], ...rest]
+    if (elem[0] <= last[1]){
+      return [[last[0], Math.max(elem[1], last[1])], ...rest]
     }
     return [elem].concat(accu);
-  }, [matching_sections[matching_sections.length-1]]);
+  }, [matching_sections[0]]);
   // replace matching sections with highlighting span
   return_str = unHighlight(input_str);
-  matching_sections.reverse().forEach(([from, to]) => {
+  matching_sections.forEach(([from, to]) => {
     return_str = `${return_str.substring(0, from)}<span class="keyword-search-highlight">${return_str.substring(from,to)}</span>${return_str.substring(to)}`;
   });
   return return_str;
