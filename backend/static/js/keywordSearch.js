@@ -1,6 +1,6 @@
 // this function removes the highlight
 function unHighlight(input_str){
-  return input_str.replaceAll(/\<span class\=\"highlight\"\>(.*?)\<\/span\>/gi, "$1");
+  return input_str.replaceAll(/\<span class\=\"keyword-search-highlight\"\>(.*?)\<\/span\>/gi, "$1");
 }
 
 // this function highlights the matching sections
@@ -30,7 +30,7 @@ function highlightWords(input_str, words) {
   // replace matching sections with highlighting span
   return_str = unHighlight(input_str);
   matching_sections.reverse().forEach(([from, to]) => {
-    return_str = `${return_str.substring(0, from)}<span class="highlight">${return_str.substring(from,to)}</span>${return_str.substring(to)}`;
+    return_str = `${return_str.substring(0, from)}<span class="keyword-search-highlight">${return_str.substring(from,to)}</span>${return_str.substring(to)}`;
   });
   return return_str;
 }
