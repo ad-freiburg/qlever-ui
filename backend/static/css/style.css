@@ -63,6 +63,8 @@ Custom Elements
 
 .keyword-search-highlight {
 	text-decoration: underline;
+	text-decoration-color: #82B36F;
+	text-decoration-thickness: 3px;
 }
 
 
