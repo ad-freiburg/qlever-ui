@@ -395,7 +395,7 @@ class Backend(models.Model):
     def replacePredicatesList(self):
         data = {}
         for line in self.replacePredicates.split("\n"):
-            match = re.search("([\S]+)[\s]+([\S]+)", line)
+            match = re.search(r"([\S]+)[\s]+([\S]+)", line)
             if match:
                 predicate, replacement = match.groups()
                 data[predicate] = replacement
