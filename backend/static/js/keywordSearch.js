@@ -15,10 +15,10 @@ function unHighlight(input_str){
 }
 
 /**
-* Highlight words in a given string.
+* Highlights specified words or patterns within an input string by wrapping them with a <span> element with a specified class.
 *
 * @param {string} input_str - The input string to be highlighted.
-* @param {string} words - The list of words to be highlighted in the input string.
+* @param {Array<RegExp>} regexps - An array of regular expressions representing the patterns to be highlighted.
 * @returns {string} - The input string with the specified words highlighted using HTML <span> tags with the class "keyword-search-highlight".
 *
 * Algorithm:
@@ -32,19 +32,18 @@ function unHighlight(input_str){
 * - Overlapping sections are consolidated into a single highlighted section.
 * - The highlighting is done using the HTML <span> tag with the class "keyword-search-highlight".
 */
-function highlightWords(input_str, words) {
-  let return_str = unHighlight(input_str.toLowerCase());
+function highlightWords(input_str, regexps) {
+  let return_str = unHighlight(input_str);
   // find matching sections
   let matching_sections = [];
-  for (word of words){
-    let startIndex = 0;
-    while ((index = return_str.indexOf(word, startIndex)) > -1){
-      matching_sections.push([index, index + word.length]);
-      startIndex = index + word.length;
+  for (regexp of regexps){
+    const matches = input_str.matchAll(regexp);
+    for (const match of matches) {
+      matching_sections.push([match.index, match.index + match[0].length]);
     }
   }
   if (matching_sections.length === 0){
-    return input_str;
+    return return_str;
   }
   // consolidate overlapping sections
   matching_sections.sort((a,b) => a[0] - b[0]);
@@ -56,7 +55,6 @@ function highlightWords(input_str, words) {
     return [elem].concat(accu);
   }, [matching_sections[0]]);
   // replace matching sections with highlighting span
-  return_str = unHighlight(input_str);
   matching_sections.forEach(([from, to]) => {
     return_str = `${return_str.substring(0, from)}<span class="keyword-search-highlight">${return_str.substring(from,to)}</span>${return_str.substring(to)}`;
   });
@@ -71,14 +69,24 @@ function highlightWords(input_str, words) {
  */
 function filterExamples(event) {
   const keywords = event.target.value
-    .toLowerCase()
     .trim()
     .split(' ')
-    .filter((keyword) => keyword !== '');
+    .filter((keyword) => {
+      if(keyword == ''){
+        return false;
+      }
+      try{
+        new RegExp(keyword);
+      }catch (SyntaxError){
+        return false;
+      }
+      return true;
+    })
+    .map((word) => new RegExp(word, 'gi'));
   let hits = 0;
   const exampleItems = $("ul#exampleList .example-name").each(function(idx) {
     const exampleText = $(this).text().trim();
-    if (keywords.every((keyword) => exampleText.toLowerCase().includes(keyword))){
+    if (keywords.every((keyword) => exampleText.match(keyword) != null)){
       $(this).parent().parent().show();
       $(this).html(highlightWords(exampleText, keywords));
       hits++;
