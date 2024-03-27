@@ -1,3 +1,8 @@
+// Set focus on input when examples dropdown is clicked
+$('#exampleList').parent().on('shown.bs.dropdown', function () {
+  $("#exampleKeywordSearch").focus();
+})
+
 // this function removes the highlight
 function unHighlight(input_str){
   return input_str.replaceAll(/\<span class\=\"keyword-search-highlight\"\>(.*?)\<\/span\>/gi, "$1");
@@ -45,7 +50,7 @@ function filterExamples(event) {
     .split(' ')
     .filter((keyword) => keyword !== '');
   let hits = 0;
-  const exampleItems = $("ul#example-list .example-name").each(function(idx) {
+  const exampleItems = $("ul#exampleList .example-name").each(function(idx) {
     const exampleText = $(this).text().trim();
     if (keywords.every((keyword) => exampleText.toLowerCase().includes(keyword))){
       $(this).parent().parent().show();
