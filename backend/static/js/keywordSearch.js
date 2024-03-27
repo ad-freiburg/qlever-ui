@@ -3,12 +3,35 @@ $('#exampleList').parent().on('shown.bs.dropdown', function () {
   $("#exampleKeywordSearch").focus();
 })
 
-// this function removes the highlight
+/**
+ * Removes highlighting from the input string by replacing all occurrences of
+ * <span> elements with the class "keyword-search-highlight" with their inner content.
+ *
+ * @param {string} input_str - The input string possibly containing highlighted spans.
+ * @returns {string} - The input string with highlighting removed.
+ */
 function unHighlight(input_str){
   return input_str.replaceAll(/\<span class\=\"keyword-search-highlight\"\>(.*?)\<\/span\>/gi, "$1");
 }
 
-// this function highlights the matching sections
+/**
+* Highlight words in a given string.
+*
+* @param {string} input_str - The input string to be highlighted.
+* @param {string} words - The list of words to be highlighted in the input string.
+* @returns {string} - The input string with the specified words highlighted using HTML <span> tags with the class "keyword-search-highlight".
+*
+* Algorithm:
+* 1. Convert the input string to lowercase and remove any existing highlighting.
+* 2. Iterate over each word in the list of words to find matching sections in the input string.
+* 3. Consolidate overlapping sections if any.
+* 4. Replace the matching sections with HTML <span> tags for highlighting.
+* 5. Return the modified string with highlighted words.
+*
+* Note:
+* - Overlapping sections are consolidated into a single highlighted section.
+* - The highlighting is done using the HTML <span> tag with the class "keyword-search-highlight".
+*/
 function highlightWords(input_str, words) {
   let return_str = unHighlight(input_str.toLowerCase());
   // find matching sections
@@ -40,9 +63,12 @@ function highlightWords(input_str, words) {
   return return_str;
 }
 
-// this function gets triggered by the "oninput" event of the examples text input field id=example-keyword-search
-// it takes the input of this field and searches for the given keyword in the example queries
-// a example-query is a match if each keyword maches a substring of the example-name
+/**
+ * Filters a list of examples based on the input event value, hiding non-matching examples and highlighting matching ones.
+ *
+ * @param {Event} event - The input event triggered by user interaction.
+ * @returns {void}
+ */
 function filterExamples(event) {
   const keywords = event.target.value
     .toLowerCase()
@@ -68,8 +94,13 @@ function filterExamples(event) {
   }
 }
 
-// this is taken from here: https://www.geeksforgeeks.org/implement-search-box-with-debounce-in-javascript/
-// its a decorator that makes sure a function is only called once within the given delay
+/**
+ * Creates a debounced version of a function that delays its execution until after a certain amount of time has passed since the last call.
+ *
+ * @param {Function} fn - The function to debounce.
+ * @param {number} [delay=500] - The delay in milliseconds before invoking the debounced function.
+ * @returns {Function} - The debounced function.
+ */
 function debounce(fn, delay=500) {
   let timerId = null;
   return (...args) => {
