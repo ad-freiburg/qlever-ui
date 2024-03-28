@@ -61,6 +61,12 @@ Custom Elements
 .tooltip .tooltip-inner { background-color: #82B36F; max-width: 600px; word-wrap: break-word; }
 .tooltip .tooltip-arrow { border-top-color: #82B36F !important; }
 
+.keyword-search-highlight {
+	text-decoration: underline;
+	text-decoration-color: #82B36F;
+	text-decoration-thickness: 3px;
+}
+
 
 .table > tbody > tr > td:first-child { color: #d3d3d3; }
 th { color: #82B36F; white-space: nowrap; }
