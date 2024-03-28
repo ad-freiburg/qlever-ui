@@ -1,37 +1,24 @@
-// Set focus on input when examples dropdown is clicked
+// Set focus on input when examples dropdown is clicked.
 $('#exampleList').parent().on('shown.bs.dropdown', function () {
   $("#exampleKeywordSearch").focus();
 })
 
-/**
- * Removes highlighting from the input string by replacing all occurrences of
- * <span> elements with the class "keyword-search-highlight" with their inner content.
- *
- * @param {string} input_str - The input string possibly containing highlighted spans.
- * @returns {string} - The input string with highlighting removed.
- */
+
+// This removes highlighting from the input string by replacing all occurrences of
+// <span> elements with the class `keyword-search-highlight` with their inner content.
 function unHighlight(input_str){
   return input_str.replaceAll(/\<span class\=\"keyword-search-highlight\"\>(.*?)\<\/span\>/gi, "$1");
 }
 
-/**
-* Highlights specified words or patterns within an input string by wrapping them with a <span> element with a specified class.
-*
-* @param {string} input_str - The input string to be highlighted.
-* @param {Array<RegExp>} regexps - An array of regular expressions representing the patterns to be highlighted.
-* @returns {string} - The input string with the specified words highlighted using HTML <span> tags with the class "keyword-search-highlight".
-*
-* Algorithm:
-* 1. Convert the input string to lowercase and remove any existing highlighting.
-* 2. Iterate over each word in the list of words to find matching sections in the input string.
-* 3. Consolidate overlapping sections if any.
-* 4. Replace the matching sections with HTML <span> tags for highlighting.
-* 5. Return the modified string with highlighted words.
-*
-* Note:
-* - Overlapping sections are consolidated into a single highlighted section.
-* - The highlighting is done using the HTML <span> tag with the class "keyword-search-highlight".
-*/
+// This Highlights specified words or patterns within an input string by wrapping them with a <span> element
+// with the class `keyword-search-highlight`.
+//
+// Algorithm:
+// 1. Remove any existing highlighting.
+// 2. Iterate over each `regex` in the list of `regexes` to find matching sections in the input string.
+// 3. Consolidate overlapping sections if any.
+// 4. Replace the matching sections with HTML <span> tags for highlighting.
+// 5. Return the modified string with highlighted words.
 function highlightWords(input_str, regexps) {
   let return_str = unHighlight(input_str);
   // find matching sections
@@ -61,12 +48,8 @@ function highlightWords(input_str, regexps) {
   return return_str;
 }
 
-/**
- * Filters a list of examples based on the input event value, hiding non-matching examples and highlighting matching ones.
- *
- * @param {Event} event - The input event triggered by user interaction.
- * @returns {void}
- */
+// This filters the list of examples when the `input` event of the `exampleKeywordSearch` element fires,
+// hiding non-matching examples and highlighting matching ones.
 function filterExamples(event) {
   const keywords = event.target.value
     .trim()
@@ -102,17 +85,13 @@ function filterExamples(event) {
   }
 }
 
-/**
- * Creates a debounced version of a function that delays its execution until after a certain amount of time has passed since the last call.
- *
- * @param {Function} fn - The function to debounce.
- * @param {number} [delay=500] - The delay in milliseconds before invoking the debounced function.
- * @returns {Function} - The debounced function.
- */
+
+// This creates a debounced version of a function.
+// The "debouncing" is implemented by delaying the execution for a certain amount of time since the last call.
 function debounce(fn, delay=500) {
   let timerId = null;
   return (...args) => {
-    clearTimeout(timerId); // restart timer
+    clearTimeout(timerId);
     timerId = setTimeout(() => fn(...args), delay);
   };
 }
