@@ -1,6 +1,6 @@
 // Set focus on input when examples dropdown is clicked.
 $('#exampleList').parent().on('shown.bs.dropdown', function () {
-  $("#exampleKeywordSearch").focus();
+  $("#exampleKeywordSearchInput").focus();
 })
 
 
@@ -48,10 +48,11 @@ function highlightWords(input_str, regexps) {
   return return_str;
 }
 
-// This filters the list of examples when the `input` event of the `exampleKeywordSearch` element fires,
-// hiding non-matching examples and highlighting matching ones.
-function filterExamples(event) {
-  const keywords = event.target.value
+// This filters the list of examples given a string containing a space sperated list of regexes.
+// The filtering is accieved by hiding non-matching examples and highlighting matching ones.
+function filterExamples(regexes_str) {
+  selectedExample = -1;
+  const keywords = regexes_str
     .trim()
     .split(' ')
     .filter((keyword) => {
@@ -97,3 +98,7 @@ function debounce(fn, delay=500) {
 }
 
 const filterExamplesDebounced = debounce(filterExamples, 200);
+
+$('#exampleKeywordSearchInput').on("input", function (event) {
+  filterExamples(event.target.value);
+});
