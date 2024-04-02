@@ -64,9 +64,15 @@ Custom Elements
 .keyword-search-highlight {
 	text-decoration: underline;
 	text-decoration-color: #82B36F;
+	text-underline-position: under;
 	text-decoration-thickness: 3px;
 }
 
+.keyword-search-hover {
+  color: #262626;
+  text-decoration: none;
+  background-color: #f5f5f5;
+}
 
 .table > tbody > tr > td:first-child { color: #d3d3d3; }
 th { color: #82B36F; white-space: nowrap; }

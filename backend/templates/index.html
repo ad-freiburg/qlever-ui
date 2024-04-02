@@ -197,18 +197,18 @@
                   <button class="btn btn-default" onclick="showQueryPlanningTree();">
                     <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
                   </button>
-                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                  <button id="examplesDropdownToggle" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                     <i class="glyphicon glyphicon-align-left"></i> Examples
                     <span class="caret"></span>
                   </button>
-                  <ul id="exampleList" class="dropdown-menu" >
+                  <ul id="exampleList" class="dropdown-menu">
                     <div style="padding: 10px 20px;">
                       <input id="exampleKeywordSearchInput" type="text" placeholder="search for keywords" style="width: 100%"> </input>
                     </div>
                     <li class="divider"></li>
                     {% for example in examples %}
                       <li>
-                        <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);">
+                        <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);editor.focus()">
                           {% if request.user.is_authenticated %}
                           <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
                             <i class="glyphicon glyphicon-pencil"></i>

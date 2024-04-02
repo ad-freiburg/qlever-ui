@@ -1,11 +1,11 @@
-// Set focus on input when examples dropdown is clicked.
-$('#exampleList').parent().on('shown.bs.dropdown', function () {
-  $("#exampleKeywordSearchInput").focus();
-})
+// This variable contains the actual example spans that match the query.
+let exampleSpans = {};
+// This varibale keeps track of the selected example.
+let selectedExample = -1;
 
 
 // This removes highlighting from the input string by replacing all occurrences of
-// <span> elements with the class `keyword-search-highlight` with their inner content.
+// <  span> elements with the class `keyword-search-highlight` with their inner content.
 function unHighlight(input_str){
   return input_str.replaceAll(/\<span class\=\"keyword-search-highlight\"\>(.*?)\<\/span\>/gi, "$1");
 }
@@ -51,7 +51,6 @@ function highlightWords(input_str, regexps) {
 // This filters the list of examples given a string containing a space sperated list of regexes.
 // The filtering is accieved by hiding non-matching examples and highlighting matching ones.
 function filterExamples(regexes_str) {
-  selectedExample = -1;
   const keywords = regexes_str
     .trim()
     .split(' ')
@@ -68,9 +67,10 @@ function filterExamples(regexes_str) {
     })
     .map((word) => new RegExp(word, 'gi'));
   let hits = 0;
-  const exampleItems = $("ul#exampleList .example-name").each(function(idx) {
+  exampleSpans.each(function(idx) {
     const exampleText = $(this).text().trim();
     if (keywords.every((keyword) => exampleText.match(keyword) != null)){
+      $(this).addClass("keyword-search-match")
       $(this).parent().parent().show();
       $(this).html(highlightWords(exampleText, keywords));
       hits++;
@@ -78,6 +78,7 @@ function filterExamples(regexes_str) {
       $(this).parent().parent().hide();
     }
   });
+  exampleSpans = $(".keyword-search-match");
   if (hits === 0){
     $("#empty-examples-excuse").show();
   }
@@ -99,6 +100,63 @@ function debounce(fn, delay=500) {
 
 const filterExamplesDebounced = debounce(filterExamples, 200);
 
-$('#exampleKeywordSearchInput').on("input", function (event) {
+function cleanup() {
+  // Calculate the example spans.
+  exampleSpans = $("ul#exampleList .example-name");
+  // Reset the selected example to nothing.
+  selectedExample = -1;
+  // Remove artifacts from previous usage.
+  exampleSpans.each(function(idx) {
+    $(this).removeClass("keyword-search-match")
+    $(this).parent().parent().show();
+    $(this).parent().removeClass('keyword-search-hover');
+    $(this).text(unHighlight($(this).text()));
+  });
+}
+
+$("#exampleKeywordSearchInput").on( "keydown", function( event ) {
+  // The down key was pressed.
+  if (exampleSpans.length > 0){
+    if (event.which == 40){
+      if (exampleSpans.length > 0){
+        $(exampleSpans[selectedExample]).parent().removeClass('keyword-search-hover');
+        selectedExample = (selectedExample + 1) % exampleSpans.length;
+        $(exampleSpans[selectedExample]).parent().addClass('keyword-search-hover');
+      }
+    }
+    // The up key was pressed.
+    else if (event.which == 38){
+        $(exampleSpans[selectedExample]).parent().removeClass('keyword-search-hover');
+        selectedExample = selectedExample - 1;
+        if (selectedExample == -1){
+          selectedExample = exampleSpans.length - 1;
+        }
+        $(exampleSpans[selectedExample]).parent().addClass('keyword-search-hover');
+    }
+    // The enter key was pressed.
+    else if (event.which == 13 && selectedExample >=0){
+        setTimeout(() => {
+          $(exampleSpans[selectedExample]).parent().click();
+        }, 50);
+    }
+  }
+  // The escape key was pressed.
+  if (event.which == 27){
+    $('#examplesDropdownToggle').click();
+  }
+})
+
+$('#exampleKeywordSearchInput').on("input", debounce(function (event) {
+  cleanup();
   filterExamples(event.target.value);
-});
+}, 200));
+
+// This initializes the keyword search when the dropdown has loaded.
+$('#exampleList').parent().on('shown.bs.dropdown', function () {
+  // Clear value of the input field.
+  $("#exampleKeywordSearchInput").val('');
+  // Focus the input field.
+  $("#exampleKeywordSearchInput").focus();
+  // Cleanup keyword search.
+  cleanup();
+})
