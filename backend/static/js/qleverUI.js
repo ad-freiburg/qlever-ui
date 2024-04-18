@@ -821,11 +821,28 @@ function renderRuntimeInformationToDom(entry = undefined) {
   $("#visualisation").scrollTop(scrollTop);
   $("#result-tree").scrollLeft(scrollLeft);
 
-  // For each node, on mouseover show the details.
-  $("div.node").hover(function () {
-    $(this).children(".node-details").show();
-  }, function () {
-    $(this).children(".node-details").hide();
+  $("div.node").each(function () {
+    const details_childs = $(this).children(".node-details");
+    if (details_childs.length == 1) {
+      const top_pos = parseFloat($(this).css('top'));
+      $(this).attr("data-toggle", "tooltip" );
+      $(this).attr("data-html", "true" );
+      $(this).attr("data-placement",(top_pos>100?"top":"bottom"));
+      let detail_html = '';
+      const details = JSON.parse(details_childs[0].textContent);
+      for (const key in details) {
+        detail_html += `<span>${key}: <strong>${details[key]}</strong></span><br>`
+      }
+      $(this).attr("title",
+      `<div style="width: 250px">
+          <h5> Details </h5>
+          <hr style="margin-top: 0px; margin-bottom: 0px;">
+          <div style="margin-top: 10px; margin-bottom: 10px;">
+            ${detail_html}
+          </div>
+       </div>`);
+      $(this).tooltip();
+    }
   });
 
   $("p.node-time").
