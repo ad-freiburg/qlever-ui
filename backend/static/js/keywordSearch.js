@@ -70,8 +70,11 @@ function filterExamples(regexes_str) {
       }
       try {
         new RegExp(keyword);
-      } catch (SyntaxError) {
-        return false;
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          return false;
+        }
+        throw error;
       }
       return true;
     })
