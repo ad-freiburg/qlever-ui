@@ -1,5 +1,5 @@
 django==5.0.2
-requests==2.31.0
+requests==2.32.0
 django-import-export==3.3.7
 gunicorn==21.2.0
 whitenoise[brotli]==6.6.0
