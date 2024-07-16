@@ -24,7 +24,6 @@ RUN set -ex \
     && apk add bash bash-completion make sqlite
 
 COPY . /app
-# ADD . /app
 WORKDIR /app
 
 ENV VIRTUAL_ENV /env
