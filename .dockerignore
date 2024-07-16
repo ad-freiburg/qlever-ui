@@ -4,6 +4,7 @@
 # !manage.py
 db
 !db/master.sqlite3
+!db/qleverui.sqlite3
 !tests
 !requirements.txt
 !LICENSE
