@@ -1,13 +1,4 @@
-# *
-# !backend
-# !qlever
-# !manage.py
 db
-!db/master.sqlite3
-!tests
-!requirements.txt
-!LICENSE
-!README.md
+.git
 !.git/HEAD
 !.git/refs/heads
-!venv

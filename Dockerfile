@@ -1,4 +1,4 @@
-FROM docker.io/python:3.12.2-alpine3.19
+FROM index.docker.io/library/python:3.12.4-alpine3.20
 
 LABEL "org.opencontainers.image.url"="https://github.com/ad-freiburg/qlever-ui"
 LABEL "org.opencontainers.image.documentation"="https://github.com/ad-freiburg/qlever-ui"
@@ -6,7 +6,7 @@ LABEL "org.opencontainers.image.source"="https://github.com/ad-freiburg/qlever-u
 LABEL "org.opencontainers.image.licenses"="Apache-2.0"
 LABEL "org.opencontainers.image.title"="QLever UI"
 LABEL "org.opencontainers.image.description"="A user interface for QLever"
-LABEL "org.opencontainers.image.base"="docker.io/python:3.10.2-alpine3.15"
+LABEL "org.opencontainers.image.base"="index.docker.io/library/python:3.12.4-alpine3.20"
 
 ADD requirements.txt /app/requirements.txt
 
@@ -24,17 +24,16 @@ RUN set -ex \
     && apk add bash bash-completion make sqlite
 
 COPY . /app
-# ADD . /app
 WORKDIR /app
 
-ENV VIRTUAL_ENV /env
-ENV PATH /env/bin:$PATH
-ENV PYTHONUNBUFFERED 1
+ENV VIRTUAL_ENV="/env"
+ENV PATH="/env/bin:${PATH}"
+ENV PYTHONUNBUFFERED="1"
 
-# collect static resources
+# Collect static resources
 RUN ./manage.py collectstatic
 
-CMD ["gunicorn", "--bind", ":7000", "--workers", "3", "--limit-request-line", "10000", "qlever.wsgi:application"]
+CMD [ "gunicorn", "--bind", ":7000", "--workers", "3", "--limit-request-line", "10000", "qlever.wsgi:application" ]
 
 # QLever UI on port 7000 for QLever instance listening on port 7001
 #
