@@ -1,0 +1,63 @@
+name: Docker build and publish
+
+on:
+  push:
+    branches: [ master ]
+
+concurrency:
+  # When this is not a pull request, then we want all the docker containers to be pushed, we therefore
+  # directly fall back to the commit hash which will be distinct for each push to master.
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.sha}}'
+  cancel-in-progress: true
+
+jobs:
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Get short sha
+        id: sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get PR number
+        id: pr
+        run: echo "pr_num=$(git log --format=%s -n 1 | sed -nr 's/.*\(\#([0-9]+)\)/\1/p')" >> $GITHUB_OUTPUT
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        env:
+          # We build multiplatform images which have an image index above the
+          # image manifests. Attach the annotations directly to the image index.
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: "index"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+
+          # Push to dockerhub, reuse the cached steps from the previous build.
+          push: true
+
+          # If this is a push on master, publish with short commit sha
+          # else use the ref name, which has to be the tag in this case.
+          # We have to explicitly add the "qlever:latest" tag for it to work correctly,
+          # see e.g. https://stackoverflow.com/questions/27643017/do-i-need-to-manually-tag-latest-when-pushing-to-docker-public-repository
+          tags: >
+            adfreiburg/qlever-ui:latest,
+
+          # Set Annotations and Labels that conform to the OpenContainers
+          # Annotations Spec
+          annotations: ${{ steps.meta.outputs.annotations }}
+          labels: ${{ steps.meta.outputs.labels }}
+
