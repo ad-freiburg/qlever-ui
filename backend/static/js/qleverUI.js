@@ -458,27 +458,38 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
     ws.send("cancel_on_close");
   };
 
+  let latestMessage = null;
+  let timeoutHandle = null;
+
   ws.onmessage = (message) => {
     if (typeof message.data !== "string") {
       log("Unexpected message format", "other");
     } else {
-      const payload = JSON.parse(message.data);
-      appendRuntimeInformation(
-        {
-          query_execution_tree: payload,
-          meta: {}
-        },
-        query,
-        {
-          computeResult: `${payload["total_time"] || (Date.now() - startTimeStamp)}ms`,
-          total: `${Date.now() - startTimeStamp}ms`
-        },
-        {
-          queryId,
-          updateTimeStamp: Date.now()
-        }
-      );
-      renderRuntimeInformationToDom();
+      latestMessage = message.data;
+      if (timeoutHandle !== null) {
+        return;
+      }
+      // Only update UI every 50ms to avoid heavy load.
+      timeoutHandle = setTimeout(() => {
+        const payload = JSON.parse(latestMessage);
+        appendRuntimeInformation(
+          {
+            query_execution_tree: payload,
+            meta: {}
+          },
+          query,
+          {
+            computeResult: `${payload["total_time"] || (Date.now() - startTimeStamp)}ms`,
+            total: `${Date.now() - startTimeStamp}ms`
+          },
+          {
+            queryId,
+            updateTimeStamp: Date.now()
+          }
+        );
+        renderRuntimeInformationToDom();
+        timeoutHandle = null;
+      }, 50);
     }
   };
 
