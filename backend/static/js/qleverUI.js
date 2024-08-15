@@ -460,12 +460,14 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
 
   let latestMessage = null;
   let timeoutHandle = null;
+  let currentNow = null;
 
   ws.onmessage = (message) => {
     if (typeof message.data !== "string") {
       log("Unexpected message format", "other");
     } else {
       latestMessage = message.data;
+      currentNow = Date.now();
       if (timeoutHandle !== null) {
         return;
       }
@@ -479,12 +481,12 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
           },
           query,
           {
-            computeResult: `${payload["total_time"] || (Date.now() - startTimeStamp)}ms`,
-            total: `${Date.now() - startTimeStamp}ms`
+            computeResult: `${payload["total_time"] || (currentNow - startTimeStamp)}ms`,
+            total: `${currentNow - startTimeStamp}ms`
           },
           {
             queryId,
-            updateTimeStamp: Date.now()
+            updateTimeStamp: currentNow
           }
         );
         renderRuntimeInformationToDom();
