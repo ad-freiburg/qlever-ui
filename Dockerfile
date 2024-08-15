@@ -1,15 +1,4 @@
-ARG BASE_IMAGE=docker.io/python:3.12.5-alpine3.20
-
-FROM $BASE_IMAGE
-ARG BASE_IMAGE
-
-LABEL "org.opencontainers.image.url"="https://github.com/ad-freiburg/qlever-ui"
-LABEL "org.opencontainers.image.documentation"="https://github.com/ad-freiburg/qlever-ui"
-LABEL "org.opencontainers.image.source"="https://github.com/ad-freiburg/qlever-ui"
-LABEL "org.opencontainers.image.licenses"="Apache-2.0"
-LABEL "org.opencontainers.image.title"="QLever UI"
-LABEL "org.opencontainers.image.description"="A user interface for QLever"
-LABEL "org.opencontainers.image.base"="$BASE_IMAGE"
+FROM index.docker.io/library/python:3.12.4-alpine3.20
 
 ADD requirements.txt /app/requirements.txt
 
