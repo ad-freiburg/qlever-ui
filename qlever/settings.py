@@ -130,9 +130,14 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_VERSION = ""
 
 STORAGES = {
+    'default': {
+        # Django's default
+        'BACKEND': 'django.core.files.storage.FileSystemStorage'
+    },
     'staticfiles': {
+        # Use WhiteNoise (https://whitenoise.readthedocs.io) for static file serving
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    }
+    },
 }
 
 try:
