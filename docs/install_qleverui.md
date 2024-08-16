@@ -20,14 +20,14 @@ We assume [docker to be installed](https://docs.docker.com/get-docker/) on your 
     git clone https://github.com/ad-freiburg/qlever-ui.git qlever-ui
     cd qlever-ui
     ```
-2. Before building the Docker Image, move the [`.env.template`](.env.template) file to `.env` and adjust it to [fit your needs](https://docs.djangoproject.com/en/5.1/ref/settings/).
-    ```shell
-    mv .env.template .env
-    ```
-   Generate a secure `SECRET_KEY` with:
-   ```shell
-   python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
-   ```
+2. Optionally adjust settings
+   1. You can adjust some basic settings in [`.env`](.env). All the available options are listed there.
+      You should generate a secure `SECRET_KEY` with:
+      ```shell
+      python3 -c 'from django.core.management.utils import get_random_secret_key; print(f"SECRET_KEY={get_random_secret_key()}")' >> .env
+      ```
+   2. You can overwrite all settings in [`qlever/settings_local.py`](qlever/settings_local.py). Just set the setting to the value you want it to have.
+      See the [Django documentation](https://docs.djangoproject.com/en/5.1/ref/settings/) for the available settings.
 3. Finally, build the Docker image by running:
     ```shell
     docker build -t qleverui .
@@ -62,7 +62,6 @@ To run a QLever UI container use the following command:
 docker run -it -p 7000:7000 \
            -v "$(pwd)/db:/app/db" \
            --name qleverui \
-           --env-file .env
            qleverui
 ``` 
 __Note:__ If you already have a QLever UI database file `qleverui.sqlite3` you want to use, make sure it is located in the specified path or provide the correct path to it.  
@@ -79,14 +78,15 @@ When not using docker there are some additional steps to do. QLever UI is built 
     ```
     inside the project folder to automatically install all dependencies. Otherwise, you can find the list of dependencies in the `requirements.txt` file to install them manually.
 
-2. Next, you will need to adjust your individual settings in `.env.template` and rename it to `.env` You may want to edit the file to [fit your needs](https://docs.djangoproject.com/en/5.1/ref/settings/). 
-    ```shell
-    mv .env.template .env
-    ```
-   Generate a secure `SECRET_KEY` with:
-   ```shell
-   python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
-   ```
+2. Optionally adjust settings
+   1. You can adjust some basic settings in [`.env`](.env). All the available options are listed there.
+      You should generate a secure `SECRET_KEY` with:
+      ```shell
+      python3 -c 'from django.core.management.utils import get_random_secret_key; print(f"SECRET_KEY={get_random_secret_key()}")' >> .env
+      ```
+   2. You can overwrite all settings in [`qlever/settings_local.py`](qlever/settings_local.py).
+      See the [Django documentation](https://docs.djangoproject.com/en/5.1/ref/settings/) for the available settings.
+
 
 ## Setting up the database manually
 1. The QLever UI backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:

@@ -12,10 +12,9 @@
     <strong><a href="https://github.com/ad-freiburg/QLever">QLever Engine</a></strong>
 </p>
 <br>
-  <div style="text-align: center;">
+<div style="text-align: center;">
     <img src="docs/screenshot.png" alt="QLever UI">
 </div>
-</p>
 
 # What is QLever UI?
 **QLever UI** is an easy-to-use interactive **user interface** for the **SPARQL search engine QLever** that helps to discover the scopes and information in very large knowledge bases by providing **context-sensitive suggestions** and **auto-completion** while adding helpful information and additional views to the various outputs of the queries.

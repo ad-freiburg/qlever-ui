@@ -29,10 +29,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=True)
 # https://docs.djangoproject.com/en/5.1/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-SECRET_KEY = env.str('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY', default='!!super_secret!!')
 
 # Application definition
 
@@ -157,3 +157,9 @@ if not STATIC_VERSION:
         pass
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+try:
+    from .settings_local import *
+    print("Loaded settings_local.py")
+except ImportError:
+    pass
