@@ -1,4 +1,4 @@
-db
+!db
 .git
 !.git/HEAD
 !.git/refs/heads
