@@ -14,6 +14,7 @@ import os
 import subprocess
 import re
 import environ
+import qlever.settings_secret
 
 env = environ.FileAwareEnv()
 
@@ -31,8 +32,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 # https://docs.djangoproject.com/en/5.1/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+
+# For backwards compatibility set ALLOWED_HOSTS and SECRET KEY to the value specified in settings_secret.py if a non-default value is set there.
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+if qlever.settings_secret.ALLOWED_HOSTS != ['*']:
+    print("Using override from settings_secret.py for ALLOWED_HOSTS.")
+    print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
+    ALLOWED_HOSTS = qlever.settings_secret.ALLOWED_HOSTS
+
 SECRET_KEY = env.str('SECRET_KEY', default='!!super_secret!!')
+# This is not the default, because someone accidentally commited their local SECRET_KEY to the settings_secret.py.
+if qlever.settings_secret.SECRET_KEY != 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy':
+    print("Using override from settings_secret.py for SECRET_KEY.")
+    print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
+    SECRET_KEY = qlever.settings_secret.SECRET_KEY
 
 # Application definition
 
