@@ -86,6 +86,10 @@
 
   <script src="{% static "js/codemirror/modes/sparql/sparql.js" %}"></script>
   <script src="{% static "js/codemirror/modes/sparql/sparql-hint.js" %}"></script>
+  
+  <!-- WASM formatter -->
+  <script src="{% static "js/formatter\index.js" %}"></script>
+
 
   {% if request.GET.test %}
     <!-- Jasemine JS Testing Framework -->
