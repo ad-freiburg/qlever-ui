@@ -6,6 +6,12 @@ module.exports = {
 	output: {
 		path: path.resolve(__dirname, './backend/static/js/formatter/'),
 		filename: 'index.js',
+		globalObject: 'this',
+		library: {
+			name: 'formatter',
+			type: 'umd',
+
+		}
 	},
 	mode: 'development',
 	experiments: {
