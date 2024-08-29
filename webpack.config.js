@@ -12,7 +12,7 @@ module.exports = {
 
 		}
 	},
-	mode: 'development',
+	mode: 'production',
 	experiments: {
 		asyncWebAssembly: true
 	}
