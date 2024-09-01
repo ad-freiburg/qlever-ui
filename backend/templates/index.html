@@ -163,7 +163,6 @@
                       <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
                     </button>
 
-                    
                     <!-- The download buttons -->
                     <div class="btn-group" role="group">
                       <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
@@ -191,9 +190,9 @@
                     
                     <!-- The context setting buttons -->
                     <div class="btn-group" role="group" style="margin-left:auto;">
-                      <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
-                        <i class="glyphicon glyphicon-trash"></i> Reset
-                      </button>
+                    <button id="formatButton" class="btn btn-default">
+                      <i class="glyphicon glyphicon-align-left"></i> Format
+                    </button>
                       <button class="btn btn-default" onclick="processQuery(-1, this).catch(error => log(error.message, 'requests'));">
                         <i class="glyphicon glyphicon-refresh"></i> Clear cache
                       </button>
@@ -232,11 +231,6 @@
                         {% endif %}
                       </ul>
                     </div>
-                  </div>
-                  <div class="col-md-3" style="margin-top:5px">
-                    <button id="formatButton" class="btn btn-success" style="min-width: 7.857em;">
-                      <i class="glyphicon glyphicon-align-left"></i> <span>Format</span>
-                    </button>
                   </div>
                 </div>
               </div>
