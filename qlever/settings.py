@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'qlever.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db(default=f'sqlite:////{os.path.join(BASE_DIR, "db", "qleverui.sqlite3")}')
+    'default': env.db("QLEVERUI_DATABASE_URL", default=f'sqlite:////{os.path.join(BASE_DIR, "db", "qleverui.sqlite3")}')
 }
 
 # Password validation

@@ -112,7 +112,7 @@ You can start the development instance at any time with this single command and 
 Read more about configuration in the [next chapter](./configure_qleverui.md).
 
 # Configuration
-The precedence of the Django settings is:
+The precedence (the top item has the highest precedence) of the Django settings is:
 1. [`settings_local.py`](../qlever/settings_local.py)
 2. *Deprecated*: `settings_secret.py` (only applied for non-default values)
 3. Environment variables
