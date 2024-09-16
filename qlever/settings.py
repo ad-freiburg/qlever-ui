@@ -14,7 +14,13 @@ import os
 import subprocess
 import re
 import environ
-import qlever.settings_secret
+try:
+    import qlever.settings_secret.ALLOWED_HOSTS as ALLOWED_HOSTS_OLD
+    import qlever.settings_secret.SECRET_KEY as SECRET_KEY_OLD
+except ImportError:
+    # The old default values. Their value is only used if they are set to a non-default value.
+    ALLOWED_HOSTS_OLD = ['*']
+    SECRET_KEY_OLD = 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy'
 
 env = environ.FileAwareEnv()
 
@@ -35,17 +41,17 @@ DEBUG = env.bool('QLEVERUI_DEBUG', default=True)
 
 # For backwards compatibility set ALLOWED_HOSTS and SECRET KEY to the value specified in settings_secret.py if a non-default value is set there.
 ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=['*'])
-if qlever.settings_secret.ALLOWED_HOSTS != ['*']:
+if ALLOWED_HOSTS_OLD != ['*']:
     print("Using override from settings_secret.py for ALLOWED_HOSTS.")
     print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
-    ALLOWED_HOSTS = qlever.settings_secret.ALLOWED_HOSTS
+    ALLOWED_HOSTS = ALLOWED_HOSTS_OLD
 
 SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default='!!super_secret!!')
 # This is not the default, because someone accidentally committed their local SECRET_KEY to the settings_secret.py.
-if qlever.settings_secret.SECRET_KEY != 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy':
+if SECRET_KEY_OLD != 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy':
     print("Using override from settings_secret.py for SECRET_KEY.")
     print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
-    SECRET_KEY = qlever.settings_secret.SECRET_KEY
+    SECRET_KEY = SECRET_KEY_OLD
 
 # Application definition
 
