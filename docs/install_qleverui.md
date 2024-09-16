@@ -21,14 +21,7 @@ We assume [docker to be installed](https://docs.docker.com/get-docker/) on your 
     git clone https://github.com/ad-freiburg/qlever-ui.git qlever-ui
     cd qlever-ui
     ```
-2. Optionally adjust settings
-   1. You can adjust some basic settings in [`.env`](../.env). All the available options are listed there.
-      You should generate a secure `SECRET_KEY` with:
-      ```shell
-      python3 -c 'from django.core.management.utils import get_random_secret_key; print(f"SECRET_KEY={get_random_secret_key()}")' >> .env
-      ```
-   2. You can overwrite all settings in [`qlever/settings_local.py`](../qlever/settings_local.py). Just set the setting to the value you want it to have.
-      See the [Django documentation](https://docs.djangoproject.com/en/5.1/ref/settings/) for the available settings.
+2. Optionally [adjust settings](#configuration)
 3. Finally, build the Docker image by running:
     ```shell
     docker build -t qleverui .
@@ -79,15 +72,7 @@ When not using docker there are some additional steps to do. QLever UI is built 
     ```
     inside the project folder to automatically install all dependencies. Otherwise, you can find the list of dependencies in the `requirements.txt` file to install them manually.
 
-2. Optionally adjust settings
-   1. You can adjust some basic settings in [`.env`](../.env). All the available options are listed there.
-      You should generate a secure `SECRET_KEY` with:
-      ```shell
-      python3 -c 'from django.core.management.utils import get_random_secret_key; print(f"SECRET_KEY={get_random_secret_key()}")' >> .env
-      ```
-   2. You can overwrite all settings in [`qlever/settings_local.py`](../qlever/settings_local.py).
-      See the [Django documentation](https://docs.djangoproject.com/en/5.1/ref/settings/) for the available settings.
-
+2. Optionally [adjust settings](#configuration)
 
 ## Setting up the database manually
 1. The QLever UI backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:
@@ -112,6 +97,16 @@ You can start the development instance at any time with this single command and 
 Read more about configuration in the [next chapter](./configure_qleverui.md).
 
 # Configuration
+
+- You can adjust some basic settings in [`.env`](../.env) or using environment variables. All the available options are listed in [`.env`](../.env).
+  You can generate a secure `SECRET_KEY` with:
+  ```shell
+  python3 -c 'from django.core.management.utils import get_random_secret_key; print(f"SECRET_KEY={get_random_secret_key()}")' >> .env
+  ```
+- You can overwrite all settings in [`qlever/settings_local.py`](../qlever/settings_local.py). Just set the setting to the value you want it to have.
+   See the [Django documentation](https://docs.djangoproject.com/en/5.1/ref/settings/) for the available settings.
+
+## Configuration Precedence
 The precedence (the top item has the highest precedence) of the Django settings is:
 1. [`settings_local.py`](../qlever/settings_local.py)
 2. *Deprecated*: `settings_secret.py` (only applied for non-default values)
