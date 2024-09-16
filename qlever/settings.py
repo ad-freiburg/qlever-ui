@@ -41,7 +41,7 @@ if qlever.settings_secret.ALLOWED_HOSTS != ['*']:
     ALLOWED_HOSTS = qlever.settings_secret.ALLOWED_HOSTS
 
 SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default='!!super_secret!!')
-# This is not the default, because someone accidentally commited their local SECRET_KEY to the settings_secret.py.
+# This is not the default, because someone accidentally committed their local SECRET_KEY to the settings_secret.py.
 if qlever.settings_secret.SECRET_KEY != 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy':
     print("Using override from settings_secret.py for SECRET_KEY.")
     print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
