@@ -30,17 +30,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = env.bool('QLEVERUI_DEBUG', default=True)
 # https://docs.djangoproject.com/en/5.1/ref/settings/#allowed-hosts
 
 # For backwards compatibility set ALLOWED_HOSTS and SECRET KEY to the value specified in settings_secret.py if a non-default value is set there.
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=['*'])
 if qlever.settings_secret.ALLOWED_HOSTS != ['*']:
     print("Using override from settings_secret.py for ALLOWED_HOSTS.")
     print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
     ALLOWED_HOSTS = qlever.settings_secret.ALLOWED_HOSTS
 
-SECRET_KEY = env.str('SECRET_KEY', default='!!super_secret!!')
+SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default='!!super_secret!!')
 # This is not the default, because someone accidentally commited their local SECRET_KEY to the settings_secret.py.
 if qlever.settings_secret.SECRET_KEY != 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy':
     print("Using override from settings_secret.py for SECRET_KEY.")
@@ -68,7 +68,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://*.uni-freiburg.de'])
+CSRF_TRUSTED_ORIGINS = env.list('QLEVERUI_CSRF_TRUSTED_ORIGINS', default=['https://*.uni-freiburg.de'])
 
 ROOT_URLCONF = 'qlever.urls'
 
