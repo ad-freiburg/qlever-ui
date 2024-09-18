@@ -12,6 +12,6 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@ioannisnezis/sparql-language-server": "0.1.5"
+    "@ioannisnezis/sparql-language-server": "0.1.8"
   }
 }
