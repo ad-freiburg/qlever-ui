@@ -15,12 +15,11 @@ import subprocess
 import re
 import environ
 try:
-    import qlever.settings_secret.ALLOWED_HOSTS as ALLOWED_HOSTS_OLD
-    import qlever.settings_secret.SECRET_KEY as SECRET_KEY_OLD
+    from .settings_secret import *
+    print("settings_secret.py is deprecated. Please migrate to using settings_local.py. "
+          "To this rename the file. You can also remove all assignments to the default value.")
 except ImportError:
-    # The old default values. Their value is only used if they are set to a non-default value.
-    ALLOWED_HOSTS_OLD = ['*']
-    SECRET_KEY_OLD = 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy'
+    pass
 
 env = environ.FileAwareEnv()
 
@@ -39,19 +38,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 DEBUG = env.bool('QLEVERUI_DEBUG', default=True)
 # https://docs.djangoproject.com/en/5.1/ref/settings/#allowed-hosts
 
-# For backwards compatibility set ALLOWED_HOSTS and SECRET KEY to the value specified in settings_secret.py if a non-default value is set there.
-ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=['*'])
-if ALLOWED_HOSTS_OLD != ['*']:
-    print("Using override from settings_secret.py for ALLOWED_HOSTS.")
-    print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
-    ALLOWED_HOSTS = ALLOWED_HOSTS_OLD
+# The values set in settings_secret.py have a higher precedence than the default values.
+# They may or may not be set. If they are set we use them instead of the default value.
+# Otherwise, we get a NameError and use the default value in the except branch
+try:
+    ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=ALLOWED_HOSTS)
+    print("Using value from settings_secret.py for ALLOWED_HOSTS.")
+except NameError:
+    ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=['*'])
 
-SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default='!!super_secret!!')
-# This is not the default, because someone accidentally committed their local SECRET_KEY to the settings_secret.py.
-if SECRET_KEY_OLD != 'RlQNe1rnd6XbGoHilGusDD0NhhCktURy':
-    print("Using override from settings_secret.py for SECRET_KEY.")
-    print("settings_secret.py is deprecated. Please delete all assignments to the default value and rename settings_secret.py to settings_local.py")
-    SECRET_KEY = SECRET_KEY_OLD
+try:
+    SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default=SECRET_KEY)
+    print("Using value from settings_secret.py for SECRET_KEY.")
+except NameError:
+    SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default='!!super_secret!!')
 
 # Application definition
 

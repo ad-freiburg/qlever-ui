@@ -99,7 +99,7 @@ Read more about configuration in the [next chapter](./configure_qleverui.md).
 # Configuration
 
 - You can adjust some basic settings in [`.env`](../.env) or using environment variables. All the available options are listed in [`.env`](../.env).
-  You can generate a secure `SECRET_KEY` with:
+- You can generate a secure `SECRET_KEY` and write it into `.env` with:
   ```shell
   python3 -c 'from django.core.management.utils import get_random_secret_key; print(f"SECRET_KEY={get_random_secret_key()}")' >> .env
   ```
@@ -108,8 +108,8 @@ Read more about configuration in the [next chapter](./configure_qleverui.md).
 
 ## Configuration Precedence
 The precedence (the top item has the highest precedence) of the Django settings is:
-1. [`settings_local.py`](../qlever/settings_local.py)
-2. *Deprecated*: `settings_secret.py` (only applied for non-default values)
-3. Environment variables
-4. [`.env`](../.env)
+1. [`qlever/settings_local.py`](../qlever/settings_local.py)
+2. Environment variables
+3. [`.env`](../.env)
+4. *Deprecated*: `settings_secret.py` (only applied for non-default values)
 5. Default values in [`qlever/settings.py`](../qlever/settings.py)
