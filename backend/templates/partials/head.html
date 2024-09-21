@@ -25,6 +25,8 @@
   var LANGUAGELITERAL = 2;
   
   var BASEURL = "{{ backend.baseUrl }}";
+  var PETRI_BASEURL = "http://localhost:9090/"; // TODO: would be var PETRI_BASEURL = "{{ backend.petriBaseUrl }}"
+  var PETRI_ALLOWED_REPOS = "ign" // TODO: would be var PETRI_ALLOWED_REPOS = "{{ backend.petriAllowedRepos }}"
   {% if noSlugMode %}
   var NO_SLUG_MODE = true;
   {% else %}

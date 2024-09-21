@@ -54,7 +54,7 @@ jobs:
           # We have to explicitly add the "qlever:latest" tag for it to work correctly,
           # see e.g. https://stackoverflow.com/questions/27643017/do-i-need-to-manually-tag-latest-when-pushing-to-docker-public-repository
           tags: >
-            adfreiburg/qlever-ui:latest,
+            makingsenseinfo/qlever-ui:latest,
 
           # Set Annotations and Labels that conform to the OpenContainers
           # Annotations Spec
