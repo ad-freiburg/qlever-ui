@@ -66,6 +66,8 @@
   {% for example in examples %}
   examples.push(`{{ example.query|safe }}`);
   {% endfor %}
+  var enableMapView = {% if backend.enableMapView %}true{% else %}false{% endif %};
+  var mapViewBaseURL = "{{ backend.mapViewBaseURL }}";
   </script>
 
   <!-- Bootstraps JavaScript -->

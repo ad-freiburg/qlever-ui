@@ -852,7 +852,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       icon_class = "glyphicon glyphicon-search";
       str = "Query view";
     } else {
-      mapview_url = `https://qlever.cs.uni-freiburg.de/mapui-petri/` +
+      mapview_url = mapViewBaseURL +
                     `?query=${encodeURIComponent(str)}` +
                     `&mode=objects&backend=${BASEURL}`;
       icon_class = "glyphicon glyphicon-globe";

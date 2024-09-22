@@ -57,6 +57,9 @@ class BackendAdmin(ImportExportModelAdmin):
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
         }),
+        ('Map view', {
+            'fields': ('enableMapView', 'mapViewBaseURL')
+        })
     )
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

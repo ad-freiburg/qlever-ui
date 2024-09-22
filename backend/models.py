@@ -329,6 +329,19 @@ class Backend(models.Model):
         help_text="The query for <em>context-insensitive</em> object autocompletion",
         verbose_name="Context-insensitive object autocompletion query")
 
+    enableMapView = models.BooleanField(
+        default=False,
+        help_text="Show the 'Map view' button for this dataset if the last column of the results contains WKT literals.",
+        verbose_name="Enable 'Map view' button"
+    )
+    mapViewBaseURL = models.CharField(
+        default="https://qlever.cs.uni-freiburg.de/mapui-petri/",
+        blank=True,
+        max_length=2048, # URLs don't have a length limit, but this should be plenty long
+        verbose_name="Map view base URL",
+        help_text="The base URL for the Map view including a trailing slash (/).",
+    )
+
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
         for field in (
