@@ -12,6 +12,23 @@ If everything worked correctly you should see backend details displayed on the t
 
 You can also import the respective `*-sample.csv` file for the example backend or manually create examples in the "Examples" section in the admin panel that will be shown in the user interface later on.
 
+# Configure the Map view
+
+Geometry objects ([WKT literals](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry) to be exact) can be displayed on a map using [qlever-petrimaps](https://github.com/ad-freiburg/qlever-petrimaps). The objects can be visualized as a heatmap or discrete objects.
+qlever-petrimaps is the tool that does the heavy-lifting for visualizing the data on the map. You can also host it yourself.
+
+## Configuration
+- Enable the `Map view` for the backend in the Admin settings. It is found under `Map view`/`Enable 'Map view' button`.
+- *Optionally* set `Map view base URL` to the location of your own qlever-petrimaps instance.
+
+## Usage
+There are currently two requirements for using the Map view:
+
+- the geometry objects must be in the **last column**
+- the column must contain literals with the datatype `http://www.opengis.net/ont/geosparql#wktLiteral`
+
+If you have configured the Map view and the query satisfies the requirement, a button will be available in the Query results section that opens the Map view for that query.
+
 # Configure the autocompletion queries
 QLever UI offers several settings that can be used to configure the autocompletion. They are separated into five categories:
 - [Variable Names](#variable-names)
