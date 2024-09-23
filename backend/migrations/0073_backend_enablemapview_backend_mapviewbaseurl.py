@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 default="",
-                help_text="The base URL for the Map view including a trailing slash (/).",
+                help_text="The base URL for the Map view.",
                 max_length=2048,
                 verbose_name="Map view base URL",
             ),

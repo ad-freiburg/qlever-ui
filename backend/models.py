@@ -334,7 +334,7 @@ class Backend(models.Model):
         blank=True,
         max_length=2048, # URLs don't have a length limit, but this should be plenty long
         verbose_name="Map view base URL",
-        help_text="The base URL for the Map view including a trailing slash (/).",
+        help_text="The base URL for the Map view.",
     )
 
     def save(self, *args, **kwargs):

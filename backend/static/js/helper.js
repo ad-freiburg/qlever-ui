@@ -853,7 +853,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       str = "Query view";
     } else {
       mapview_url = MAP_VIEW_BASE_URL +
-                    `?query=${encodeURIComponent(str)}` +
+                    `/?query=${encodeURIComponent(str)}` +
                     `&mode=objects&backend=${BASEURL}`;
       icon_class = "glyphicon glyphicon-globe";
       str = "Map view";
