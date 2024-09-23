@@ -329,6 +329,14 @@ class Backend(models.Model):
         help_text="The query for <em>context-insensitive</em> object autocompletion",
         verbose_name="Context-insensitive object autocompletion query")
 
+    mapViewBaseURL = models.CharField(
+        default="",
+        blank=True,
+        max_length=2048, # URLs don't have a length limit, but this should be plenty long
+        verbose_name="Map view base URL",
+        help_text="The base URL of the https://github.com/ad-freiburg/qlever-petrimaps instance; if empty, no Map View button will appear",
+    )
+
     def save(self, *args, **kwargs):
         # We need to replace \r because QLever can't handle them very well
         for field in (
