@@ -846,6 +846,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   // as a SPARQL query, and show it in the QLever UI or on a map, respectively.
   if (var_name.endsWith("_sparql") || var_name.endsWith("_mapview")) {
     isLink = true;
+    str = str.replace(/^"/, "").replace(/"$/, "");
     if (var_name.endsWith("_sparql")) {
       mapview_url = `https://qlever.cs.uni-freiburg.de/${SLUG}/` +
                     `?query=${encodeURIComponent(str)}`;
