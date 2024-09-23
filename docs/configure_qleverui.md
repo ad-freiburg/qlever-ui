@@ -19,12 +19,10 @@ qlever-petrimaps is the tool that does the heavy-lifting for visualizing the dat
 
 - Enable the Map view by setting the field `Map view base URL` to the location of your own qlever-petrimaps instance.
 
-There are currently two requirements for using the Map view:
+The "Map view" button appears for a query if and only the following two requirements are met:
 
 - the geometry objects must be in the **last column**
 - the column must contain literals with the datatype `http://www.opengis.net/ont/geosparql#wktLiteral`
-
-If you have configured the Map view and the query satisfies the requirement, a button will be available in the Query results section that opens the Map view for that query.
 
 # Configure the autocompletion queries
 QLever UI offers several settings that can be used to configure the autocompletion. They are separated into five categories:

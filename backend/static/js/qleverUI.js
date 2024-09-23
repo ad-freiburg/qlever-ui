@@ -584,7 +584,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
       let params = new URLSearchParams({ query: normalizeQuery(query), backend: BASEURL });
       mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-      mapViewButtonPetri = `<a class="btn btn-default" href="${mapViewBaseURL}?${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+      mapViewButtonPetri = `<a class="btn btn-default" href="${MAP_VIEW_BASE_URL}?${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
     }
 
     // Show the buttons (if there are any).
@@ -594,7 +594,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // the Django configuration of the respective backend).
     var res = "<div id=\"res\">";
     if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-      if (mapViewBaseURL.length > 0) {
+      if (MAP_VIEW_BASE_URL.length > 0) {
         res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
       } else {
         res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;

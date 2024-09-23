@@ -852,7 +852,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       icon_class = "glyphicon glyphicon-search";
       str = "Query view";
     } else {
-      mapview_url = mapViewBaseURL +
+      mapview_url = MAP_VIEW_BASE_URL +
                     `?query=${encodeURIComponent(str)}` +
                     `&mode=objects&backend=${BASEURL}`;
       icon_class = "glyphicon glyphicon-globe";
