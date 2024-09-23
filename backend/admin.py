@@ -24,7 +24,7 @@ class BackendAdmin(ImportExportModelAdmin):
     }
     fieldsets = (
         ("General", {
-            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'isDefault', 'isNoSlugMode', 'apiToken')
+            'fields': ('name', 'slug', 'sortKey', 'baseUrl', 'mapViewBaseURL', 'isDefault', 'isNoSlugMode', 'apiToken')
         }),
         ('UI Suggestions', {
             'fields': ('maxDefault', 'fillPrefixes', 'filterEntities', 'filteredLanguage', 'supportedKeywords', 'supportedFunctions', 'suggestPrefixnamesForPredicates', 'supportedPredicateSuggestions', 'suggestedPrefixes'),
@@ -57,9 +57,6 @@ class BackendAdmin(ImportExportModelAdmin):
         ('Showing names', {
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
         }),
-        ('Map view', {
-            'fields': ('mapViewBaseURL',),
-        })
     )
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
