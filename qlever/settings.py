@@ -42,16 +42,18 @@ DEBUG = env.bool('QLEVERUI_DEBUG', default=True)
 # They may or may not be set. If they are set we use them instead of the default value.
 # Otherwise, we get a NameError and use the default value in the except branch
 try:
-    ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=ALLOWED_HOSTS)
+    ALLOWED_HOSTS_DEFAULT = ALLOWED_HOSTS
     print("Using value from settings_secret.py for ALLOWED_HOSTS.")
 except NameError:
-    ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=['*'])
+    ALLOWED_HOSTS_DEFAULT = ['*']
+ALLOWED_HOSTS = env.list('QLEVERUI_ALLOWED_HOSTS', default=ALLOWED_HOSTS_DEFAULT)
 
 try:
-    SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default=SECRET_KEY)
+    SECRET_KEY_DEFAULT = SECRET_KEY
     print("Using value from settings_secret.py for SECRET_KEY.")
 except NameError:
-    SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default='!!super_secret!!')
+    SECRET_KEY_DEFAULT = '!!super_secret!!'
+SECRET_KEY = env.str('QLEVERUI_SECRET_KEY', default=SECRET_KEY_DEFAULT)
 
 # Application definition
 
