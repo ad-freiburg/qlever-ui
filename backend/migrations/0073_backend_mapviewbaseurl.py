@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 default="",
-                help_text="The base URL for the Map view.",
+                help_text="The base URL of the https://github.com/ad-freiburg/qlever-petrimaps instance; if empty, no Map View button will appear",
                 max_length=2048,
                 verbose_name="Map view base URL",
             ),

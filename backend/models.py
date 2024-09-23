@@ -334,7 +334,7 @@ class Backend(models.Model):
         blank=True,
         max_length=2048, # URLs don't have a length limit, but this should be plenty long
         verbose_name="Map view base URL",
-        help_text="The base URL for the Map view.",
+        help_text="The base URL of the https://github.com/ad-freiburg/qlever-petrimaps instance; if empty, no Map View button will appear",
     )
 
     def save(self, *args, **kwargs):
