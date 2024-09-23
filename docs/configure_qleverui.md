@@ -15,13 +15,10 @@ You can also import the respective `*-sample.csv` file for the example backend o
 # Configure the Map view
 
 Geometry objects ([WKT literals](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry) to be exact) can be displayed on a map using [qlever-petrimaps](https://github.com/ad-freiburg/qlever-petrimaps). The objects can be visualized as a heatmap or discrete objects.
-qlever-petrimaps is the tool that does the heavy-lifting for visualizing the data on the map. You can also host it yourself.
+qlever-petrimaps is the tool that does the heavy-lifting for visualizing the data on the map. You have to host your own instance of qlever-petrimaps.
 
-## Configuration
-- Enable the `Map view` for the backend in the Admin settings. It is found under `Map view`/`Enable 'Map view' button`.
-- *Optionally* set `Map view base URL` to the location of your own qlever-petrimaps instance.
+- Enable the Map view by setting the field `Map view base URL` to the location of your own qlever-petrimaps instance.
 
-## Usage
 There are currently two requirements for using the Map view:
 
 - the geometry objects must be in the **last column**

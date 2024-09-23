@@ -594,7 +594,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     // the Django configuration of the respective backend).
     var res = "<div id=\"res\">";
     if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-      if (enableMapView) {
+      if (mapViewBaseURL.length > 0) {
         res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
       } else {
         res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;

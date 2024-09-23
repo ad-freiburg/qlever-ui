@@ -329,13 +329,8 @@ class Backend(models.Model):
         help_text="The query for <em>context-insensitive</em> object autocompletion",
         verbose_name="Context-insensitive object autocompletion query")
 
-    enableMapView = models.BooleanField(
-        default=False,
-        help_text="Show the 'Map view' button for this dataset if the last column of the results contains WKT literals.",
-        verbose_name="Enable 'Map view' button"
-    )
     mapViewBaseURL = models.CharField(
-        default="https://qlever.cs.uni-freiburg.de/mapui-petri/",
+        default="",
         blank=True,
         max_length=2048, # URLs don't have a length limit, but this should be plenty long
         verbose_name="Map view base URL",
