@@ -58,7 +58,7 @@ class BackendAdmin(ImportExportModelAdmin):
             'fields': ('subjectName', 'alternativeSubjectName', 'predicateName', 'alternativePredicateName', 'objectName', 'alternativeObjectName'),
         }),
         ('Map view', {
-            'fields': ('enableMapView', 'mapViewBaseURL')
+            'fields': 'mapViewBaseURL'
         })
     )
 
