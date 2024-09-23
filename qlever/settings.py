@@ -17,7 +17,7 @@ import environ
 try:
     from .settings_secret import *
     print("settings_secret.py is deprecated. Please migrate to using settings_local.py. "
-          "To this rename the file. You can also remove all assignments to the default value.")
+          "To do this rename the file. You can also remove all assignments to the default value.")
 except ImportError:
     pass
 
