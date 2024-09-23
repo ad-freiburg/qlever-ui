@@ -12,19 +12,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="backend",
-            name="enableMapView",
-            field=models.BooleanField(
-                default=False,
-                help_text="Show the 'Map view' button for this dataset if the last column of the results contains WKT literals.",
-                verbose_name="Enable 'Map view' button",
-            ),
-        ),
-        migrations.AddField(
-            model_name="backend",
             name="mapViewBaseURL",
             field=models.CharField(
                 blank=True,
-                default="https://qlever.cs.uni-freiburg.de/mapui-petri/",
+                default="",
                 help_text="The base URL for the Map view including a trailing slash (/).",
                 max_length=2048,
                 verbose_name="Map view base URL",
