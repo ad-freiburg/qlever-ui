@@ -1,7 +1,6 @@
 *.pyc
 *.tmp
 *.swp
-qlever/settings_secret.py
 backend/static/admin/
 django.log
 .vscode
@@ -12,3 +11,4 @@ backend/static/js/qleverUI.js
 .DS_Store
 staticfiles
 node_modules/
+.env

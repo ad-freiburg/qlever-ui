@@ -846,14 +846,15 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   // as a SPARQL query, and show it in the QLever UI or on a map, respectively.
   if (var_name.endsWith("_sparql") || var_name.endsWith("_mapview")) {
     isLink = true;
+    str = str.replace(/^"/, "").replace(/"$/, "");
     if (var_name.endsWith("_sparql")) {
       mapview_url = `https://qlever.cs.uni-freiburg.de/${SLUG}/` +
                     `?query=${encodeURIComponent(str)}`;
       icon_class = "glyphicon glyphicon-search";
       str = "Query view";
     } else {
-      mapview_url = `https://qlever.cs.uni-freiburg.de/mapui-petri/` +
-                    `?query=${encodeURIComponent(str)}` +
+      mapview_url = MAP_VIEW_BASE_URL +
+                    `/?query=${encodeURIComponent(str)}` +
                     `&mode=objects&backend=${BASEURL}`;
       icon_class = "glyphicon glyphicon-globe";
       str = "Map view";

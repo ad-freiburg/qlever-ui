@@ -26,7 +26,7 @@ class Command(BaseCommand):
                             help="Slug of the destination backend (must be new)")
 
     # This defined the actual behavior. See here for how to update the database:
-    # https://docs.djangoproject.com/en/4.1/topics/db/queries/
+    # https://docs.djangoproject.com/en/5.1/topics/db/queries/
     def handle(self, *args, returnLog=False, **options):
         self.log()
         try:

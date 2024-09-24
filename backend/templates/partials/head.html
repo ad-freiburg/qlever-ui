@@ -66,6 +66,7 @@
   {% for example in examples %}
   examples.push(`{{ example.query|safe }}`);
   {% endfor %}
+  var MAP_VIEW_BASE_URL = "{{ backend.mapViewBaseURL }}";
   </script>
 
   <!-- Bootstraps JavaScript -->
