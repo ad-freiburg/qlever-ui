@@ -939,10 +939,11 @@ function getQleverSuggestions(
               altname: altEntityName,
               isMixedModeSuggestion: !takeMainQueryResult
             });
-          } else if (displayText == "geo:hasGeometry ") {
+          } else if (displayText == "geo:hasGeometry " || displayText == "geo:hasCentroid ") {
+            displayTextWithoutSpaces = displayText.replace(/ /g, "");
             dynamicSuggestions.push({
-              displayText: "geo:hasGeometry/geo:asWKT ",
-              completion: "geo:hasGeometry/geo:asWKT ",
+              displayText: displayTextWithoutSpaces + "/geo:asWKT ",
+              completion: displayTextWithoutSpaces + "/geo:asWKT ",
               name: "geometry as WKT",
               altname: altEntityName,
               isMixedModeSuggestion: !takeMainQueryResult
