@@ -221,6 +221,16 @@ $(document).ready(function () {
     return true;
   }
 
+  // Attach format funtion to formatButton.
+  const formatButton = $("#formatButton");
+  formatButton.click(async function() {
+    formatter.then((formatter_fulfilled) => {
+      editor.setValue(formatter_fulfilled.format(editor.getValue()));
+    }).catch(() => {
+      console.error("Could not load formatter library");
+    });
+  })
+
   // When clicking "Execute", do the following:
   //
   // 1. Call processQuery (sends query to backend + displays results).
