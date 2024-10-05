@@ -78,17 +78,8 @@ def index(request, backend=None, short=None):
         # safe to session
         request.session['backend'] = activeBackend.pk
 
-        # Get examples, ordered by `sortKey`. Examples with empty sort key (the
-        # default) come last (unless an example has a sort key that starts with
-        # an exotic character larger than '~').
-        maxSortKey = models.Value("~" * 100)
-        examples = Example.objects.filter(backend=activeBackend).annotate(
-            sortKeyModified=models.Case(
-                models.When(sortKey="", then=maxSortKey),
-                default=models.F('sortKey'),
-                output_field=models.CharField()
-            )
-        ).order_by("sortKeyModified")
+        # Get examples ordered by `sortKey`.
+        examples = Example.objects.filter(backend=activeBackend).order_by("sortKey")
 
     # collect shortlink data
     if short is not None:

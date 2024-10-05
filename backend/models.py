@@ -489,10 +489,9 @@ class Example(models.Model):
     query = models.TextField()
     sortKey = models.CharField(
             max_length=100,
-            default="",
-            blank=True,
+            default="~",
             help_text=("Sort key, according to which example queries are ordered lexicographically"
-                       "; example queries with empty sort key come last"),
+                       "; default is '~', which is larger than most characters"),
             verbose_name="Sort key")
 
     def __str__(self):
