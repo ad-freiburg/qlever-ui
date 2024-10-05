@@ -491,7 +491,8 @@ class Example(models.Model):
             max_length=100,
             default="",
             blank=True,
-            help_text="Sort key, according to which examples are ordered lexicographically for a backend",
+            help_text=("Sort key, according to which example queries are ordered lexicographically"
+                       "; example queries with empty sort key come last"),
             verbose_name="Sort key")
 
     def __str__(self):

@@ -78,7 +78,9 @@ def index(request, backend=None, short=None):
         # safe to session
         request.session['backend'] = activeBackend.pk
 
-        # Get examples, ordered by `sortKey` (examples with empty `sortKey` last)
+        # Get examples, ordered by `sortKey`. Examples with empty sort key (the
+        # default) come last (unless an example has a sort key that starts with
+        # an exotic character larger than '~').
         maxSortKey = models.Value("~" * 100)
         examples = Example.objects.filter(backend=activeBackend).annotate(
             sortKeyModified=models.Case(
