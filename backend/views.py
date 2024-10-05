@@ -78,8 +78,15 @@ def index(request, backend=None, short=None):
         # safe to session
         request.session['backend'] = activeBackend.pk
 
-        # get examples
-        examples = Example.objects.filter(backend=activeBackend)
+        # Get examples, ordered by `sortKey` (examples with empty `sortKey` last)
+        maxSortKey = models.Value("~" * 100)
+        examples = Example.objects.filter(backend=activeBackend).annotate(
+            sortKeyModified=models.Case(
+                models.When(sortKey="", then=maxSortKey),
+                default=models.F('sortKey'),
+                output_field=models.CharField()
+            )
+        ).order_by("sortKeyModified")
 
     # collect shortlink data
     if short is not None:
