@@ -863,6 +863,13 @@ function renderRuntimeInformationToDom(entry = undefined) {
   $("p.node-status").filter(function() { return $(this).text() === "not yet started"}).parent().addClass("not-started");
   $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
 
+  // For each <p>...</p> in #result-tree with class node-name or node-cols, add
+  // a title tag with the content of the <p>...</p> (to show the full text on
+  // hover).
+  $("#result-tree p.node-name, #result-tree p.node-cols").each(function () {
+    $(this).attr("title", $(this).text());
+  });
+
   if ($('#logRequests').is(':checked')) {
     const queryHistoryList = $("<ul/>", { class: "pagination" });
     // Note: when we later iterate over this `Map`, we get the key-value
