@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <title>Find missing types</title>
+  </head>
+  <body>
+    <h1>Find missing types</h1>
+    <p>Types from <a id="types_url" target="_blank"></a> (reload to refresh):</p>
+    <textarea id="types" rows="10" cols="50" style="overflow-y: scroll"></textarea>
+    <p>A click on the following button will open a new tab with a SPARQL query
+    that finds all entities, ordered by number of sitelinks, that have no type
+    from the list in the text area (manual changes of that list in the in the
+    text are are considered).</p>
+    <p><input type="button" value="Find missing types" onclick="findMissingTypes()"></p>
+    <script>
+      // Get types and write them in the `types` textarea.
+      const github_repo = "simon-ging/world-modal"
+      const types_path = "main/misc/world/manual_entities.csv"
+      const github_url = ["https://github.com", github_repo, "blob", types_path].join("/")
+      const proxy_url = ["/github-proxy", github_repo, "refs/heads", types_path].join("/")
+      document.getElementById("types_url").href = github_url
+      document.getElementById("types_url").textContent = github_url
+      fetch(proxy_url)
+        .then((response) => response.text())
+        .then((text) => {
+          document.getElementById("types").value = text
+        })
+      // Template for SPARQL query.
+      const missing_types_query = `
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+SELECT ?subject ?subject_label ?sitelinks WHERE {
+  { SELECT *  WHERE { ?subject ^schema:about/wikibase:sitelinks ?sitelinks FILTER (?sitelinks > 10) } }
+  MINUS {
+    VALUES ?type { %TYPES% }
+	?subject wdt:P31/wdt:P279* ?type
+  }
+  ?subject @en@rdfs:label ?subject_label
+}
+ORDER BY DESC(?sitelinks)
+      `
+      // Find missing types.
+      function findMissingTypes() {
+        // Get Wikidata IDs from text area (first column, except first line,
+        // comment lines, and empty lines), prepend `wd:` to each ID, and
+        // join them with spaces.
+        const types_from_textarea = document.getElementById("types").value
+          .split("\n").slice(1).filter((line) => line && !line.startsWith("#"))
+          .map((line) => "wd:" + line.split(",")[0].trim()).join(" ");
+        console.log(types_from_textarea);
+        // Replace `%TYPES%` in the SPARQL query with the types from the text
+        // area, url-encode the query, and open a new tab with the query.
+        const query = missing_types_query.replace("%TYPES%",
+                                                  types_from_textarea);
+        const query_url = "https://qlever.cs.uni-freiburg.de/wikidata/?query="
+                            + encodeURIComponent(query) + "&exec=true";
+        window.open(query_url, "_blank")
+      }
+    </script>
+  </body>
+</html>
