@@ -64,7 +64,7 @@
   var MIXED_MODE_TIMEOUT = {{ backend.mixedModeTimeout }};
   var examples = [];
   {% for example in examples %}
-  examples.push(`{{ example.query|safe }}`);
+  examples.push(`{{ example.query|addslashes|safe }}`);
   {% endfor %}
   var MAP_VIEW_BASE_URL = "{{ backend.mapViewBaseURL }}";
   </script>
