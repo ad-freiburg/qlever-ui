@@ -151,92 +151,95 @@
                   </table>
                 </div>
               </div>
-              <div class="col-md-9 buttonFlex">
+              <div class="col-md-9">
                   
-                <!--
-                  The run button. Note: min-width keeps the same width regardless
-                  of the label (Execute, Cancel or Cancelling)
-                -->
-                <button id="exebtn" class="btn btn-success" style="min-width: 7.857em;">
-                  <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
-                </button>
-                
-                <!-- The download buttons -->
-                <div class="btn-group" role="group">
-                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                      <i class="glyphicon glyphicon-download"></i> Download
-                      <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li>
-                      <a class="dropdown-item" id="csvbtn" href="#csv">
-                        <i class="glyphicon glyphicon-file"></i> Download results as CSV
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" id="tsvbtn" href="#tsv">
-                        <i class="glyphicon glyphicon-file"></i> Download results as TSV
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+                <div class="row">
+                  <div class="col-md-12 buttonFlex">
+                    <!--
+                      The run button. Note: min-width keeps the same width regardless
+                      of the label (Execute, Cancel or Cancelling)
+                    -->
+                    <button id="exebtn" class="btn btn-success" style="min-width: 7.857em;">
+                      <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
+                    </button>
 
-                <!-- The share button -->
-                <button id="sharebtn" class="btn btn-default">
-                  <i class="glyphicon glyphicon-share-alt"></i> Share
-                </button>
-                
-                <!-- The context setting buttons -->
-                <div class="btn-group" role="group" style="margin-left:auto;">
-                  <button class="btn btn-default" onclick="window.location=location.protocol + '//' + location.host">
-                    <i class="glyphicon glyphicon-trash"></i> Reset
-                  </button>
-                  <button class="btn btn-default" onclick="processQuery(-1, this).catch(error => log(error.message, 'requests'));">
-                    <i class="glyphicon glyphicon-refresh"></i> Clear cache
-                  </button>
-                  <button class="btn btn-default" onclick="showQueryPlanningTree();">
-                    <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
-                  </button>
-                  <button id="examplesDropdownToggle" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    <i class="glyphicon glyphicon-align-left"></i> Examples
-                    <span class="caret"></span>
-                  </button>
-                  <ul id="exampleList" class="dropdown-menu">
-                    <div style="padding: 10px 20px;">
-                      <input id="exampleKeywordSearchInput" type="text" placeholder="search for keywords" style="width: 100%"> </input>
+                    <!-- The download buttons -->
+                    <div class="btn-group" role="group">
+                      <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                          <i class="glyphicon glyphicon-download"></i> Download
+                          <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <a class="dropdown-item" id="csvbtn" href="#csv">
+                            <i class="glyphicon glyphicon-file"></i> Download results as CSV
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" id="tsvbtn" href="#tsv">
+                            <i class="glyphicon glyphicon-file"></i> Download results as TSV
+                          </a>
+                        </li>
+                      </ul>
                     </div>
-                    <li class="divider"></li>
-                    {% for example in examples %}
-                      <li>
-                        <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);editor.focus()">
-                          {% if request.user.is_authenticated %}
-                          <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
-                            <i class="glyphicon glyphicon-pencil"></i>
-                          </span>
-                          {% endif %}
-                          <span class="example-name" style="margin-right: 30px">{{ example.name }}</span>
-                        </a>
-                      </li>
-                    {% endfor %}
-                    <li id="empty-examples-excuse" style="display: none">
-                          <span style="padding: 3px 20px;">Sorry, no examples found :(</span>
-                    </li>
-                    {% if request.user.is_authenticated %}
-                      <li class="divider"></li>
-                      <li>
-                        <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
-                          <i class="glyphicon glyphicon-check"></i> Add current query as example
-                        </a>
-                      </li>
-                      <li>
-                        <a href="/admin/backend/example/add/?backend={{ backend.pk }}" target="_blank">
-                          <i class="glyphicon glyphicon-edit"></i> Add new example
-                        </a>
-                      </li>
-                    {% endif %}
-                  </ul>
+
+                    <!-- The share button -->
+                    <button id="sharebtn" class="btn btn-default">
+                      <i class="glyphicon glyphicon-share-alt"></i> Share
+                    </button>
+                    
+                    <!-- The context setting buttons -->
+                    <div class="btn-group" role="group" style="margin-left:auto;">
+                    <button id="formatButton" class="btn btn-default">
+                      <i class="glyphicon glyphicon-align-left"></i> Format
+                    </button>
+                      <button class="btn btn-default" onclick="processQuery(-1, this).catch(error => log(error.message, 'requests'));">
+                        <i class="glyphicon glyphicon-refresh"></i> Clear cache
+                      </button>
+                      <button class="btn btn-default" onclick="showQueryPlanningTree();">
+                        <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
+                      </button>
+                      <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                        <i class="glyphicon glyphicon-align-left"></i> Examples
+                        <span class="caret"></span>
+                      </button>
+                      <ul id="exampleList" class="dropdown-menu">
+                        <div style="padding: 10px 20px;">
+                          <input id="exampleKeywordSearchInput" type="text" placeholder="search for keywords" style="width: 100%"> </input>
+                        </div>
+                        <li class="divider"></li>
+                        {% for example in examples %}
+                          <li>
+                            <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);editor.focus()">
+                              {% if request.user.is_authenticated %}
+                              <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');" style="float: right;">
+                                <i class="glyphicon glyphicon-pencil"></i>
+                              </span>
+                              {% endif %}
+                              <span class="example-name" style="margin-right: 30px">{{ example.name }}</span>
+                            </a>
+                          </li>
+                        {% endfor %}
+                        <li id="empty-examples-excuse" style="display: none">
+                              <span style="padding: 3px 20px;">Sorry, no examples found :(</span>
+                        </li>
+                        {% if request.user.is_authenticated %}
+                          <li class="divider"></li>
+                          <li>
+                            <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
+                              <i class="glyphicon glyphicon-check"></i> Add current query as example
+                            </a>
+                          </li>
+                          <li>
+                            <a href="/admin/backend/example/add/?backend={{ backend.pk }}" target="_blank">
+                              <i class="glyphicon glyphicon-edit"></i> Add new example
+                            </a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                  
               </div>
               <div class="col-md-3">
                 <select class="form-control" id="dynamicSuggestions">

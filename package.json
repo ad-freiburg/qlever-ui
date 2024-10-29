@@ -1,0 +1,17 @@
+{
+  "name": "qlever-ui",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "description": "",
+  "devDependencies": {
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@ioannisnezis/sparql-language-server": "0.1.9"
+  }
+}

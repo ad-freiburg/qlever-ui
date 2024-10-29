@@ -160,6 +160,25 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     },
 }
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = (
+    "wasm",
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp",
+    "zip",
+    "gz",
+    "tgz",
+    "bz2",
+    "tbz",
+    "xz",
+    "br",
+    "swf",
+    "flv",
+    "woff",
+    "woff2",
+)
 
 try:
     # Get git info from files in .git
