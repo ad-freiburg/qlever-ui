@@ -1,0 +1,14 @@
+[project]
+name = "qlever-ui"
+version = "0.1.0"
+description = "Interactive user interface for the SPARQL search engine QLever."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django-environ==0.11.2",
+    "django-import-export==3.3.7",
+    "django==5.0.3",
+    "gunicorn==22.0.0",
+    "requests==2.32.0",
+    "whitenoise[brotli]==6.6.0",
+]

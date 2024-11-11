@@ -11,3 +11,4 @@ backend/static/js/qleverUI.js
 .DS_Store
 staticfiles
 .env
+node_modules

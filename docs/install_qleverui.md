@@ -64,11 +64,11 @@ You should now be able to connect to QLever UI via <http://localhost:7000>. Cont
 
 
 # Installing QLever UI without docker
-When not using docker there are some additional steps to do. QLever UI is built upon a [Python 3](https://www.python.org/downloads/) / [Django 5](https://www.djangoproject.com/) backend so you will need to have Python 3 installed in order to run QLever UI. It's strongly recommended to use [virtual environments](https://docs.python.org/3/library/venv.html) to manage the project's dependencies when not using the docker build. In order to manage the dependencies, we use pip.
+When not using docker there are some additional steps to do. QLever UI is built upon a [Python 3](https://www.python.org/downloads/) / [Django 5](https://www.djangoproject.com/) backend so you will need to have Python 3 installed in order to run QLever UI. It's strongly recommended to use [virtual environments](https://docs.python.org/3/library/venv.html) to manage the project's dependencies when not using the docker build. In order to manage the dependencies, we use uv.
 
-1. If "[pip](https://pypi.org/project/pip/)" is installed on your system / in your virtual environment you can simply use 
+1. If "[uv](https://docs.astral.sh/uv/)" is installed on your system you can simply use
     ```shell
-    pip install -r requirements.txt
+    uv sync
     ```
     inside the project folder to automatically install all dependencies. Otherwise, you can find the list of dependencies in the `requirements.txt` file to install them manually.
 
@@ -77,19 +77,19 @@ When not using docker there are some additional steps to do. QLever UI is built 
 ## Setting up the database manually
 1. The QLever UI backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:
     ```shell
-    python manage.py makemigrations --merge && python manage.py migrate
+    uv manage.py makemigrations --merge && python manage.py migrate
     ```
     inside the project folder in order to do so. You will only need to do this once. If you prefer you can also overwrite the database [settings](https://docs.djangoproject.com/en/5.1/ref/settings/) to use some other database management system in your `.env`.
 
 2. For configuring your QLever UI backend you will need an administrative user for the QLever UI administration panel. You can create an admin account by simply running the following command in your project folder: 
     ```shell
-    ./manage.py createsuperuser
+    uv manage.py createsuperuser
     ```
     and following the instructions in your terminal.  
 ## Running QLever UI without docker
 You can either start a development server by simply running
 ```shell
-./manage.py runserver localhost:7000
+uv manage.py runserver localhost:7000
 ```
 or prepare a productive environment as described in the [Django documentation](https://docs.djangoproject.com/en/5.1/).
 
