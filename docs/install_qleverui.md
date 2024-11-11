@@ -77,7 +77,7 @@ When not using docker there are some additional steps to do. QLever UI is built 
 ## Setting up the database manually
 1. The QLever UI backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:
     ```shell
-    python manage.py makemigrations —-merge && python manage.py migrate
+    python manage.py makemigrations --merge && python manage.py migrate
     ```
     inside the project folder in order to do so. You will only need to do this once. If you prefer you can also overwrite the database [settings](https://docs.djangoproject.com/en/5.1/ref/settings/) to use some other database management system in your `.env`.
 

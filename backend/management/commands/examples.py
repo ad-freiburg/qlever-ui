@@ -48,11 +48,10 @@ class Command(BaseCommand):
         # self.log()
         # self.log(f"Keys of Example table: {Example._meta.fields}")
         result = []
-        for example in Example.objects.all():
-            if example.backend.pk == backend.pk:
-                query_name = example.name
-                query_string = self.normalize_query(example.query)
-                result.append(f"{query_name}\t{query_string}")
+        for example in Example.objects.filter(backend=backend).order_by("sortKey"):
+            query_name = example.name
+            query_string = self.normalize_query(example.query)
+            result.append(f"{query_name}\t{query_string}")
         self.log(f"Returning {len(result)} example queries for backend \"{slug}\"")
         return "\n".join(result) + "\n"
 

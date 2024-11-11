@@ -487,6 +487,12 @@ class Example(models.Model):
     name = models.CharField(
         max_length=100, help_text="Name of this example to show in the user interface")
     query = models.TextField()
+    sortKey = models.CharField(
+            max_length=100,
+            default="~",
+            help_text=("Sort key, according to which example queries are ordered lexicographically"
+                       "; default is '~', which is larger than most characters"),
+            verbose_name="Sort key")
 
     def __str__(self):
         return self.name

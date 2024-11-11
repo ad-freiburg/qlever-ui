@@ -297,6 +297,7 @@ li.CodeMirror-hint-active {
 
 #result-tree .node > p { margin: 0; white-space: nowrap; }
 #result-tree .node-name { font-weight: bold; }
+#result-tree p.node-name { width: 30em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #result-tree .node-status { font-size: 90%; color: #000099; }
 #result-tree .node.not-started { color: #999; }
 #result-tree p.fully-materialized { display: none; }
@@ -307,6 +308,7 @@ li.CodeMirror-hint-active {
 #result-tree .node-status.optimized-out { color: blue; }
 #result-tree .node-status.lazily-materialized { color: blue; }
 #result-tree .node-cols:before { content: "Cols: "; }
+#result-tree p.node-cols { width: 30em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #result-tree .node-size:before { content: "Size: "; }
 #result-tree .node-size { display: inline; }
 #result-tree .node-size-estimate { display: inline; padding-left: 1em; }

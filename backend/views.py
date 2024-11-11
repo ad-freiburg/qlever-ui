@@ -78,8 +78,8 @@ def index(request, backend=None, short=None):
         # safe to session
         request.session['backend'] = activeBackend.pk
 
-        # get examples
-        examples = Example.objects.filter(backend=activeBackend)
+        # Get examples ordered by `sortKey`.
+        examples = Example.objects.filter(backend=activeBackend).order_by("sortKey")
 
     # collect shortlink data
     if short is not None:
