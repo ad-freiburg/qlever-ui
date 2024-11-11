@@ -21,6 +21,7 @@ RUN set -ex \
 
 # install js deps
 RUN npm ci
+RUN npm run build
 
 ENV VIRTUAL_ENV="/env"
 ENV PATH="/env/bin:${PATH}"
