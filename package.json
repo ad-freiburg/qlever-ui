@@ -1,17 +1,20 @@
 {
   "name": "qlever-ui",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "build": "webpack"
+    "build": "rollup -c"
   },
   "keywords": [],
   "author": "",
   "description": "",
   "devDependencies": {
-    "webpack": "^5.93.0",
-    "webpack-cli": "^5.1.4"
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-wasm": "^6.2.2"
   },
   "dependencies": {
-    "@ioannisnezis/sparql-language-server": "0.1.9"
+    "rollup": "^4.26.0",
+    "sparql-language-server": "npm:@ioannisnezis/sparql-language-server@~0.1.12"
   }
 }

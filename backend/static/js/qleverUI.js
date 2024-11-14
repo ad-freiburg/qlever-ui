@@ -223,12 +223,8 @@ $(document).ready(function () {
 
   // Attach format funtion to formatButton.
   const formatButton = $("#formatButton");
-  formatButton.click(async function() {
-    formatter.then((formatter_fulfilled) => {
-      editor.setValue(formatter_fulfilled.format(editor.getValue()));
-    }).catch(() => {
-      console.error("Could not load formatter library");
-    });
+  formatButton.click(function() {
+    editor.setValue(format(editor.getValue()));
   })
 
   // When clicking "Execute", do the following:
