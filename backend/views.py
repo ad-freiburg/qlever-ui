@@ -108,7 +108,6 @@ def index(request, backend=None, short=None):
             else "{}",
             "backends": Backend.objects.all(),
             "examples": examples,
-            "prefixes": Backend.suggestedPrefixes,
             "prefill": prefill,
         },
     )
