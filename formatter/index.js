@@ -10,7 +10,6 @@ wasmModule().then((mod) => {
 function format(text) {
 
 	return format_raw(text);
-	// return "foo"
 }
 
 export { format }
