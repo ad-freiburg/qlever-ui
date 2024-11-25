@@ -73,7 +73,10 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
   <!-- WASM formatter -->
-  <script src="{% static "js/formatter/index.js" %}"></script>
+  <script type="module">
+    import { format } from "{% static '/wasm/formatter/index.js' %}";
+    window.format = format;
+  </script>
 
   <!-- Our own JavaScript code for this demo -->
   <script src="{% static "js/helper.js" %}"></script>
