@@ -188,7 +188,7 @@ def examples(request, backend):
         examples_tsv = command.handle(returnLog=True, slug=[backend])
     except Exception as e:
         return HttpResponse("Error: " + str(e), status=500)
-    return HttpResponse(tsv, content_type="text/tab-separated-values")
+    return HttpResponse(examples_tsv, content_type="text/tab-separated-values")
 
 
 # Handle API request like https://qlever.cs.uni-freiburg.de/api/prefixes/wikidata
