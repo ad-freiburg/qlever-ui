@@ -182,13 +182,19 @@ def warmup(request, backend, target):
 
 # Handle API request like https://qlever.cs.uni-freiburg.de/api/examples/wikidata
 def examples(request, backend):
-    print_to_log(f'Call of "examples" in views.py with backend = "{backend}"')
+    output_format = request.GET.get("format", "tsv")
+    print_to_log(f"Call of `examples` in `views.py` with backend={backend}"
+                 f" and output_format={output_format}")
     command = ExamplesCommand()
     try:
-        examples_tsv = command.handle(returnLog=True, slug=[backend])
+        examples_tsv = command.handle(returnLog=True, slug=[backend],
+                                      output_format=output_format)
     except Exception as e:
         return HttpResponse("Error: " + str(e), status=500)
-    return HttpResponse(examples_tsv, content_type="text/tab-separated-values")
+    if output_format == "yaml":
+        return HttpResponse(examples_tsv, content_type="text/yaml")
+    else:
+        return HttpResponse(examples_tsv, content_type="text/tab-separated-values")
 
 
 # Handle API request like https://qlever.cs.uni-freiburg.de/api/prefixes/wikidata
