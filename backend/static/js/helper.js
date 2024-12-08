@@ -407,6 +407,16 @@ async function rewriteQuery(query, kwargs = {}) {
   // been replaced by constructs know to QLever.
   var query_rewritten = rewriteQueryNoAsyncPart(query);
 
+  // Look for comments of the form `#!TEMPLATE PLACEHOLDER=VALUE` and replace 
+  // all occurrences of `%PLACEHOLDER%` in the query with `VALUE`.
+  const template_regex = /#!TEMPLATE\s+([A-Z_]+)\s*=\s*(.*)/g;
+  while ((match = template_regex.exec(query_rewritten)) != null) {
+    const placeholder = "%"+ match[1] + "%";
+    const value = match[2];
+    console.log("TEMPLATE: " + placeholder + " -> " + value);
+    query_rewritten = query_rewritten.replace(new RegExp(placeholder, "g"), value);
+  }
+
   // If certain conditions are met, rewrite query with name service. This asks
   // queries to the backend, and is hence asynchronous.
   const apply_name_service = kwargs["name_service" == "always"] ||
