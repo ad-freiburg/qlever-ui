@@ -9,10 +9,10 @@
   "author": "",
   "description": "",
   "dependencies": {
-    "rollup": "^4.26.0",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-wasm": "^6.2.2",
-    "sparql-language-server": "npm:@ioannisnezis/sparql-language-server@~0.1.12"
+    "qlue-ls": "npm:qlue-ls-web@~0.2.3",
+    "rollup": "^4.26.0"
   }
 }
