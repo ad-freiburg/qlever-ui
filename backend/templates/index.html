@@ -241,7 +241,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-3" style="margin-bottom: 16px">
                 <select class="form-control" id="dynamicSuggestions">
                   <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
                     1. Syntax & keywords only
@@ -256,19 +256,33 @@
                     4. Mixed mode
                   </option>
                 </select>
-                <div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" id="name_service"> Automatically add names to result
-                    </label>
-                  </div>
-                  <div class="checkbox" style="display: none">
-                    <label>
-                      <input type="checkbox" id="clear"> Clear the cache before every request
-                    </label>
-                  </div>
-                </div>
              </div>
+
+                <div class="col-md-2 mt-2">
+                    <select class="form-control" id="operationType">
+                        <option value="query">
+                            Query
+                        </option>
+                        <option value="update">
+                            Update
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control" type="text" id="access_token" placeholder="Access Token"/>
+                </div>
+                <div class="col-md-3 col-md-offset-3">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="name_service"> Automatically add names to result
+                        </label>
+                    </div>
+                    <div class="checkbox" style="display: none">
+                        <label>
+                            <input type="checkbox" id="clear"> Clear the cache before every request
+                        </label>
+                    </div>
+                </div>
             </div>
           </div>
 

@@ -509,11 +509,23 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   // in the definition of the `oncklick` action for the "Clear cache" button.
   // TODO: super ugly, find a better solution.
   let nothingToShow = false;
-  var params = {};
+  let params = {};
+  let headers = {};
   if (sendLimit >= 0) {
     var original_query = editor.getValue();
     var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
-    params["query"] = query;
+    let operationType = $("#operationType").val();
+    switch (operationType) {
+      case "query":
+        params["query"] = query;
+        break;
+      case "update":
+        params["update"] = query;
+        headers["Authorization"] = `Bearer ${$("#access_token").val()}`;
+        break
+      default:
+        console.log("Unknown operation type", operationType);
+    }
     if (sendLimit > 0) {
       params["send"] = sendLimit;
     }
@@ -522,7 +534,6 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     nothingToShow = true;
   }
 
-  const headers = {};
   let ws = null;
   let queryId = undefined;
   if (!nothingToShow) {
