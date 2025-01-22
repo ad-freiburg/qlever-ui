@@ -88,6 +88,48 @@ const COMPLEXTYPES = [
     
   },
   {
+    name: 'INSERT DATA',
+    definition: /INSERT DATA/gi,
+    suggestions: [['INSERT DATA {\n  \n}\n']],
+    availableInContext: ['PrefixDecl', 'undefined'],
+    onlyOnce: true
+  },
+  {
+    name: 'DELETE DATA',
+    definition: /DELETE DATA/gi,
+    suggestions: [['DELETE DATA {\n  \n}\n']],
+    availableInContext: ['PrefixDecl', 'undefined'],
+    onlyOnce: true
+  },
+  {
+    name: 'DELETE WHERE',
+    definition: /DELETE WHERE/gi,
+    suggestions: [['DELETE WHERE {\n  \n}\n']],
+    availableInContext: ['PrefixDecl', 'undefined'],
+    onlyOnce: true
+  },
+  {
+    name: 'DELETE INSERT WHERE',
+    definition: /DELETE/gi,
+    suggestions: [['DELETE {\n  \n} INSERT {\n \n} WHERE {\n \n}\n']],
+    availableInContext: ['PrefixDecl', 'undefined'],
+    onlyOnce: true
+  },
+  {
+    name: 'DELETE WHERE',
+    definition: /DELETE/gi,
+    suggestions: [['DELETE {\n  \n} WHERE {\n \n}\n']],
+    availableInContext: ['PrefixDecl', 'undefined'],
+    onlyOnce: true
+  },
+  {
+    name: 'INSERT WHERE',
+    definition: /DELETE/gi,
+    suggestions: [['INSERT {\n \n} WHERE {\n \n}\n']],
+    availableInContext: ['PrefixDecl', 'undefined'],
+    onlyOnce: true
+  },
+  {
     name: 'DISTINCT',
     definition: /DISTINCT|[?\w]+ [?\w]*/gi,
     suggestions: [['DISTINCT ']],
