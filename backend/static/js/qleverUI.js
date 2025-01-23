@@ -568,7 +568,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         break;
       case "Update":
         params["update"] = query;
-        headers["Authorization"] = `Bearer ${$("#access_token").val()}`;
+        const access_token = $.trim($("#access_token").val());
+        if (access_token.length > 0)
+          headers["Authorization"] = `Bearer ${access_token}`;
         break
       default:
         console.log("Unknown operation type", operationType);
