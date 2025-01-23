@@ -493,6 +493,52 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
   return ws;
 }
 
+// Determines the type of the operation (Query or Update) and also subtype
+// (Select, Insert Data, etc.) as an object `{type: ..., subtype: ...}`.
+function determineOperationType(operation) {
+  // Strip all PREFIX, BASE and WITH statements from the beginning of the query
+  const strippedOp = operation
+      .replace(/BASE\s+<[^<]*>\s*/gi, "")
+      .replace(/PREFIX\s+\w+:\s+<[^<]*>\s*/gi, "")
+      .replace(/WITH\s+((<[^<]*>)|(\w*:\w*))\s*/gi, "");
+  const words = strippedOp.split(/\s+/).map(word => word.toUpperCase())
+  // Determine the query type based on the first keywords
+  switch (words[0]) {
+    case "SELECT":
+      return {type: "Query", subtype: "Select"};
+    case "CONSTRUCT":
+      return {type: "Query", subtype: "Construct"};
+    case "DESCRIBE":
+      return {type: "Query", subtype: "Describe"};
+    case "ASK":
+      return {type: "Query", subtype: "Ask"};
+    case "LOAD":
+      return {type: "Update", subtype: "Load"};
+    case "CLEAR":
+      return {type: "Update", subtype: "Clear"};
+    case "DROP":
+      return {type: "Update", subtype: "Drop"};
+    case "CREATE":
+      return {type: "Update", subtype: "Create"};
+    case "ADD":
+      return {type: "Update", subtype: "Add"};
+    case "MOVE":
+      return {type: "Update", subtype: "Move"};
+    case "COPY":
+      return {type: "Update", subtype: "Copy"};
+    case "INSERT":
+      if (words[1] === "DATA") {
+        return {type: "Update", subtype: "Insert Data"};
+      }
+      return {type: "Update", subtype: "Modify"};
+    case "DELETE":
+      if (words[1] === "DATA") {
+        return {type: "Update", subtype: "Delete Data"};
+      }
+      return {type: "Update", subtype: "Modify"};
+  }
+}
+
 // Process the given query.
 async function processQuery(sendLimit=0, element=$("#exebtn")) {
   log('Preparing query...', 'other');
@@ -514,12 +560,13 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   if (sendLimit >= 0) {
     var original_query = editor.getValue();
     var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
-    let operationType = $("#operationType").val();
-    switch (operationType) {
-      case "query":
+    const operationType = determineOperationType(query);
+    console.log(`Determined operation type: ${JSON.stringify(operationType)}`);
+    switch (operationType.type) {
+      case "Query":
         params["query"] = query;
         break;
-      case "update":
+      case "Update":
         params["update"] = query;
         headers["Authorization"] = `Bearer ${$("#access_token").val()}`;
         break
