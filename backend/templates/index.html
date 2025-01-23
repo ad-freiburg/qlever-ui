@@ -91,6 +91,10 @@
                     <tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
                     <tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
                     <tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
+                    <tr>
+                        <th>Access Token</th>
+                        <td><input class="form-control" type="text" id="access_token" placeholder="Access Token"/></td>
+                    </tr>
                 </table>
               </div>
               <div class="col-md-6" style="word-break: break-all;">
@@ -267,9 +271,6 @@
                             Update
                         </option>
                     </select>
-                </div>
-                <div class="col-md-4">
-                    <input class="form-control" type="text" id="access_token" placeholder="Access Token"/>
                 </div>
                 <div class="col-md-3 col-md-offset-3">
                     <div class="checkbox">
