@@ -535,6 +535,9 @@ function determineOperationType(operation) {
       if (words[1] === "DATA") {
         return {type: "Update", subtype: "Delete Data"};
       }
+      else if (words[1] === "WHERE") {
+        return {type: "Update", subtype: "Delete Where"};
+      }
       return {type: "Update", subtype: "Modify"};
   }
 }
