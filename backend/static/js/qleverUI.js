@@ -560,10 +560,11 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   let nothingToShow = false;
   let params = {};
   let headers = {};
+  let operationType;
   if (sendLimit >= 0) {
     var original_query = editor.getValue();
     var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
-    const operationType = determineOperationType(query);
+    operationType = determineOperationType(query);
     console.log(`Determined operation type: ${JSON.stringify(operationType)}`);
     switch (operationType.type) {
       case "Query":
@@ -573,7 +574,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         params["update"] = query;
         const access_token = $.trim($("#access_token").val());
         if (access_token.length > 0)
-          headers["Authorization"] = `Bearer ${access_token}`;
+          headers["Authorization"] = `Basic ${btoa(":"+access_token)}`;
         break
       default:
         console.log("Unknown operation type", operationType);
@@ -618,147 +619,159 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
     if (result["warnings"].length > 0) { displayWarning(result); }
 
-    // Show some statistics (on top of the table).
-    //
-    // NOTE: The result size reported by QLever (in the
-    // application/qlever-results+json format) is the result size without
-    // without LIMIT.
-    var nofRows = result.res.length;
-    const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
-    let resultSize = result.resultsize;
-    let limitMatch = result.query.match(/\bLIMIT\s+(\d+)\s*$/);
-    if (limitMatch) { resultSize = parseInt(limitMatch[1]); }
-    let resultSizeString = tsep(resultSize.toString());
-    $('#resultSize').html(resultSizeString);
-    $('#totalTime').html(totalTime);
-    $('#computationTime').html(computeTime);
-    $('#jsonTime').html(resolveTime);
+    switch (operationType.type) {
+      case "Update":
+        $('#answerBlock, #infoBlock, #errorBlock').hide();
+        $('#updatedBlock').show();
+        break
+      case "Query":
 
-    const columns = result.selected;
-
-    // If more than predefined number of results, create "Show all" button
-    // (onclick action defined further down). 
-    let showAllButton = "";
-    if (nofRows < parseInt(resultSize)) {
-      showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
-        + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
-        + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
-    }
-
-    // If the last column of the first result row contains a WKT literal,
-    // create "Map View" buttons.
-    let mapViewButtonVanilla = '';
-    let mapViewButtonPetri = '';
-    if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
-      let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
-      let params = new URLSearchParams({ query: normalizeQuery(query), backend: BASEURL });
-      mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-      mapViewButtonPetri = `<a class="btn btn-default" href="${MAP_VIEW_BASE_URL}/?${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
-    }
-
-    // Show the buttons (if there are any).
-    //
-    // TODO: Exactly which "MapView" buttons are shown depends on the
-    // instance. How is currently hard-coded. This should be configurable (in
-    // the Django configuration of the respective backend).
-    var res = "<div id=\"res\">";
-    if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
-      if (MAP_VIEW_BASE_URL.length > 0) {
-        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
-      } else {
-        res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;
-      }
-    }
-
-    // Optionally show links to other SPARQL endpoints.
-    // NOTE: we want the *original* query here, as it appears in the editor,
-    // without the QLever-specific rewrites (see above).
-    if (SLUG.startsWith("wikidata")) {
-      const queryEncoded = encodeURIComponent(original_query);
-      const wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
-      const wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
-      const virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
-      const virtuosoParams = new URLSearchParams({
-        "default-graph-uri": "http://www.wikidata.org/",
-        "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-        "format": "text/html",
-        "timeout": 0,
-        "signal_void": "on"
-      });
-      const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-      res += `<div class="pull-right">${wdqsButton}</div>`;
-      res += `<div class="pull-right">${virtuosoButton}</div>`;
-    }
-    if (SLUG.startsWith("uniprot")) {
-      const virtuosoUrl = "http://sparql.uniprot.org/sparql?";
-      const virtuosoParams = new URLSearchParams({
-        "qtxt": original_query,
-        "format": "text/html",
-        "timeout": 0,
-        "signal_void": "on"
-      });
-      const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-      res += `<div class="pull-right">${virtuosoButton}</div>`;
-    }
-    if (SLUG.startsWith("dbpedia")) {
-      const virtuosoUrl = "https://dbpedia.org/sparql?";
-      const virtuosoParams = new URLSearchParams({
-        "default-graph-uri": "http://dbpedia.org",
-        "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
-        "format": "text/html",
-        "timeout": 0,
-        "signal_void": "on"
-      });
-      const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-      res += `<div class="pull-right">${virtuosoButton}</div>`;
-    }
-
-    // Leave some space to the actual result table.
-    res += "</div><br><br>";
-
-    $("#answer").html(res);
-    $("#show-all").click(() => processQuery().catch(error => log(error.message, "requests")));
-
-    var tableHead = $('#resTable thead');
-    var head = "<tr><th></th>";
-    for (var column of columns) {
-      if (column) { head += "<th>" + column + "</th>"; }
-    }
-    head += "</tr>";
-    tableHead.html(head);
-    var tableBody = $('#resTable tbody');
-    tableBody.html("");
-    var i = 1;
-    for (var resultLine of result.res) {
-      var row = "<tr>";
-      row += "<td>" + i + "</td>";
-      var j = 0;
-      for (var resultEntry of resultLine) {
-        if (resultEntry) {
-          const [formattedResultEntry, rightAlign] = getFormattedResultEntry(resultEntry, 50, j);
-          const tooltipText = htmlEscape(resultEntry).replace(/\"/g, "&quot;");
-          row += "<td" + (rightAlign ? " align=\"right\"" : "") + ">"
-                 + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
-                 + formattedResultEntry + "</span></td>";
-        } else {
-          row += "<td><span>-</span></td>";
+        // Show some statistics (on top of the table).
+        //
+        // NOTE: The result size reported by QLever (in the
+        // application/qlever-results+json format) is the result size without
+        // without LIMIT.
+        var nofRows = result.res.length;
+        const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
+        let resultSize = result.resultsize;
+        let limitMatch = result.query.match(/\bLIMIT\s+(\d+)\s*$/);
+        if (limitMatch) {
+          resultSize = parseInt(limitMatch[1]);
         }
-        j++;
-      }
-      row += "</tr>";
-      tableBody.append(row);
-      i++;
+        let resultSizeString = tsep(resultSize.toString());
+        $('#resultSize').html(resultSizeString);
+        $('#totalTime').html(totalTime);
+        $('#computationTime').html(computeTime);
+        $('#jsonTime').html(resolveTime);
+
+        const columns = result.selected;
+
+        // If more than predefined number of results, create "Show all" button
+        // (onclick action defined further down).
+        let showAllButton = "";
+        if (nofRows < parseInt(resultSize)) {
+          showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
+              + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
+              + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
+        }
+
+        // If the last column of the first result row contains a WKT literal,
+        // create "Map View" buttons.
+        let mapViewButtonVanilla = '';
+        let mapViewButtonPetri = '';
+        if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
+          let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
+          let params = new URLSearchParams({query: normalizeQuery(query), backend: BASEURL});
+          mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+          mapViewButtonPetri = `<a class="btn btn-default" href="${MAP_VIEW_BASE_URL}/?${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
+        }
+
+        // Show the buttons (if there are any).
+        //
+        // TODO: Exactly which "MapView" buttons are shown depends on the
+        // instance. How is currently hard-coded. This should be configurable (in
+        // the Django configuration of the respective backend).
+        var res = "<div id=\"res\">";
+        if (showAllButton || (mapViewButtonVanilla && mapViewButtonPetri)) {
+          if (MAP_VIEW_BASE_URL.length > 0) {
+            res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton} ${mapViewButtonPetri}</div>`;
+          } else {
+            res += `<div class="pull-right" style="margin-left: 1em;">${showAllButton}</div>`;
+          }
+        }
+
+        // Optionally show links to other SPARQL endpoints.
+        // NOTE: we want the *original* query here, as it appears in the editor,
+        // without the QLever-specific rewrites (see above).
+        if (SLUG.startsWith("wikidata")) {
+          const queryEncoded = encodeURIComponent(original_query);
+          const wdqsUrl = `https://query.wikidata.org/#${queryEncoded}`;
+          const wdqsButton = `<a class="btn btn-default" href="${wdqsUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query WDQS</a>`;
+          const virtuosoUrl = "http://wikidata.demo.openlinksw.com/sparql?";
+          const virtuosoParams = new URLSearchParams({
+            "default-graph-uri": "http://www.wikidata.org/",
+            "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+            "format": "text/html",
+            "timeout": 0,
+            "signal_void": "on"
+          });
+          const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+          res += `<div class="pull-right">${wdqsButton}</div>`;
+          res += `<div class="pull-right">${virtuosoButton}</div>`;
+        }
+        if (SLUG.startsWith("uniprot")) {
+          const virtuosoUrl = "http://sparql.uniprot.org/sparql?";
+          const virtuosoParams = new URLSearchParams({
+            "qtxt": original_query,
+            "format": "text/html",
+            "timeout": 0,
+            "signal_void": "on"
+          });
+          const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+          res += `<div class="pull-right">${virtuosoButton}</div>`;
+        }
+        if (SLUG.startsWith("dbpedia")) {
+          const virtuosoUrl = "https://dbpedia.org/sparql?";
+          const virtuosoParams = new URLSearchParams({
+            "default-graph-uri": "http://dbpedia.org",
+            "qtxt": original_query, // use "query" instead of "qtxt" to execute query directly
+            "format": "text/html",
+            "timeout": 0,
+            "signal_void": "on"
+          });
+          const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
+          res += `<div class="pull-right">${virtuosoButton}</div>`;
+        }
+
+        // Leave some space to the actual result table.
+        res += "</div><br><br>";
+
+        $("#answer").html(res);
+        $("#show-all").click(() => processQuery().catch(error => log(error.message, "requests")));
+
+        var tableHead = $('#resTable thead');
+        var head = "<tr><th></th>";
+        for (var column of columns) {
+          if (column) {
+            head += "<th>" + column + "</th>";
+          }
+        }
+        head += "</tr>";
+        tableHead.html(head);
+        var tableBody = $('#resTable tbody');
+        tableBody.html("");
+        var i = 1;
+        for (var resultLine of result.res) {
+          var row = "<tr>";
+          row += "<td>" + i + "</td>";
+          var j = 0;
+          for (var resultEntry of resultLine) {
+            if (resultEntry) {
+              const [formattedResultEntry, rightAlign] = getFormattedResultEntry(resultEntry, 50, j);
+              const tooltipText = htmlEscape(resultEntry).replace(/\"/g, "&quot;");
+              row += "<td" + (rightAlign ? " align=\"right\"" : "") + ">"
+                  + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
+                  + formattedResultEntry + "</span></td>";
+            } else {
+              row += "<td><span>-</span></td>";
+            }
+            j++;
+          }
+          row += "</tr>";
+          tableBody.append(row);
+          i++;
+        }
+        $('[data-toggle="tooltip"]').tooltip();
+        $('#infoBlock,#errorBlock,#updatedBlock').hide();
+        $('#answerBlock').show();
+        $("html, body").animate({
+          scrollTop: $("#resTable").scrollTop() + 500
+        }, 500);
+
+        // MAX_VALUE ensures this always has priority over the websocket updates
+        appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
+        renderRuntimeInformationToDom();
     }
-    $('[data-toggle="tooltip"]').tooltip();
-    $('#infoBlock,#errorBlock').hide();
-    $('#answerBlock').show();
-    $("html, body").animate({
-      scrollTop: $("#resTable").scrollTop() + 500
-    }, 500);
-    
-    // MAX_VALUE ensures this always has priority over the websocket updates
-    appendRuntimeInformation(result.runtimeInformation, result.query, result.time, { queryId, updateTimeStamp: Number.MAX_VALUE });
-    renderRuntimeInformationToDom();
   } catch (error) {
     $(element).find('.glyphicon').removeClass('glyphicon-refresh');
     $(element).find('.glyphicon').addClass('glyphicon-remove');

@@ -784,7 +784,7 @@ function displayError(response, queryId = undefined) {
   disp += "Your query was: " + "<br><pre>" + queryToDisplay + "</pre>";
   $('#errorReason').html(disp);
   $('#errorBlock').show();
-  $('#answerBlock, #infoBlock').hide();
+  $('#answerBlock, #infoBlock, #updatedBlock').hide();
 
   // If error response contains query and runtime info, append to runtime log.
   //
@@ -811,7 +811,7 @@ function displayWarning(result) {
 }
 
 function displayStatus(str) {
-  $("#errorBlock,#answerBlock,#warningBlock").hide();
+  $("#errorBlock,#answerBlock,#warningBlock,#updatedBlock").hide();
   $("#info").html(str);
   $("#infoBlock").show();
 }
