@@ -1,5 +1,5 @@
-import init, { format_raw } from 'sparql-language-server/sparql_language_server_web.js';
-import wasmModule from 'sparql-language-server/sparql_language_server_web_bg.wasm';
+import init, { format_raw } from 'qlue-ls';
+import wasmModule from 'qlue-ls/qlue_ls_bg.wasm'
 
 console.info("Loading WebAssembly module...")
 wasmModule().then((mod) => {
@@ -8,7 +8,6 @@ wasmModule().then((mod) => {
 });
 
 function format(text) {
-
 	return format_raw(text);
 }
 
