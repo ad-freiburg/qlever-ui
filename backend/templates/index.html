@@ -95,6 +95,22 @@
                         <th>Access Token</th>
                         <td><input class="form-control" type="text" id="access_token" placeholder="Access Token"/></td>
                     </tr>
+                    <tr>
+                        <th></th>
+                        <td>
+                            <button id="btnClearDeltaTriples" class="btn btn-default" onclick="executeBackendCommand('clear-delta-triples', this)"><i
+                                    class="glyphicon glyphicon-trash"></i> Clear Delta Triples
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <td>
+                            <button id="btnClearCacheComplete" class="btn btn-default" onclick="executeBackendCommand('clear-cache-complete', this)"><i
+                                    class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
+                            </button>
+                        </td>
+                    </tr>
                 </table>
               </div>
               <div class="col-md-6" style="word-break: break-all;">
@@ -197,7 +213,7 @@
                     <button id="formatButton" class="btn btn-default">
                       <i class="glyphicon glyphicon-align-left"></i> Format
                     </button>
-                      <button class="btn btn-default" onclick="processQuery(-1, this).catch(error => log(error.message, 'requests'));">
+                      <button class="btn btn-default" onclick="executeBackendCommand('clear-cache', this)">
                         <i class="glyphicon glyphicon-refresh"></i> Clear cache
                       </button>
                       <button class="btn btn-default" onclick="showQueryPlanningTree();">

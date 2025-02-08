@@ -542,6 +542,28 @@ function determineOperationType(operation) {
   }
 }
 
+// Executes a backend command (e.g. `clear-cache`).
+async function executeBackendCommand(command, element) {
+  log("Executing command: " + command);
+  let headers = {};
+  const access_token = $.trim($("#access_token").val());
+  if (access_token.length > 0)
+    headers["Authorization"] = `Bearer ${access_token}`;
+  const params = {"cmd": command};
+  $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
+  $(element).find('.glyphicon').removeClass('glyphicon-remove');
+  $(element).find('.glyphicon').css('color', $(element).css('color'));
+  try {
+    await fetchQleverBackend(params, headers);
+  } catch (error) {
+    $(element).find('.glyphicon').removeClass('glyphicon-refresh');
+    $(element).find('.glyphicon').addClass('glyphicon-remove');
+    $(element).find('.glyphicon').css('color', 'red');
+  } finally {
+    $(element).find('.glyphicon').removeClass('glyphicon-spin');
+  }
+}
+
 // Process the given query.
 async function processQuery(sendLimit=0, element=$("#exebtn")) {
   log('Preparing query...', 'other');
@@ -553,65 +575,46 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   log('Sending request...', 'other');
 
-  // A negative value for `sendLimit` has the special meaning: clear the cache
-  // (without issuing a query). This is used in `backend/templates/index.html`,
-  // in the definition of the `oncklick` action for the "Clear cache" button.
-  // TODO: super ugly, find a better solution.
-  let nothingToShow = false;
   let params = {};
   let headers = {};
   let operationType;
-  if (sendLimit >= 0) {
-    var original_query = editor.getValue();
-    var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
-    operationType = determineOperationType(query);
-    console.log(`Determined operation type: ${JSON.stringify(operationType)}`);
-    switch (operationType.type) {
-      case "Query":
-        params["query"] = query;
-        break;
-      case "Update":
-        params["update"] = query;
-        const access_token = $.trim($("#access_token").val());
-        if (access_token.length > 0)
-          headers["Authorization"] = `Bearer ${access_token}`;
-        break
-      default:
-        console.log("Unknown operation type", operationType);
-    }
-    if (sendLimit > 0) {
-      params["send"] = sendLimit;
-    }
-  } else {
-    params["cmd"] = "clear-cache";
-    nothingToShow = true;
+  console.assert(sendLimit >= 0);
+  var original_query = editor.getValue();
+  var query = await rewriteQuery(original_query, {"name_service": "if_checked"});
+  operationType = determineOperationType(query);
+  console.log(`Determined operation type: ${JSON.stringify(operationType)}`);
+  switch (operationType.type) {
+    case "Query":
+      params["query"] = query;
+      break;
+    case "Update":
+      params["update"] = query;
+      const access_token = $.trim($("#access_token").val());
+      if (access_token.length > 0) headers["Authorization"] = `Bearer ${access_token}`;
+      break
+    default:
+      console.log("Unknown operation type", operationType);
+  }
+  if (sendLimit > 0) {
+    params["send"] = sendLimit;
   }
 
   let ws = null;
   let queryId = undefined;
-  if (!nothingToShow) {
-    if (currentlyActiveQueryWebSocket !== null) {
-      throw new Error("Started a new query before previous one finished!");
-    }
-    queryId = generateQueryId();
-    const startTimeStamp = Date.now();
-    signalQueryStart(queryId, startTimeStamp, params["query"]);
-    ws = createWebSocketForQuery(queryId, startTimeStamp, params["query"]);
-    currentlyActiveQueryWebSocket = ws;
-    headers["Query-Id"] = queryId;
+  if (currentlyActiveQueryWebSocket !== null) {
+    throw new Error("Started a new query before previous one finished!");
   }
-  
+  queryId = generateQueryId();
+  const startTimeStamp = Date.now();
+  signalQueryStart(queryId, startTimeStamp, params["query"]);
+  ws = createWebSocketForQuery(queryId, startTimeStamp, params["query"]);
+  currentlyActiveQueryWebSocket = ws;
+  headers["Query-Id"] = queryId;
+
   try {
     const result = await fetchQleverBackend(params, headers);
     
     log('Evaluating and displaying results...', 'other');
-
-    // For non-query commands like "cmd=clear-cache" just remove the "Waiting
-    // for response box" and that's it.
-    if (nothingToShow) {
-      $("#infoBlock").hide();
-        return;
-    }
 
     if (result.status == "ERROR") {
       displayError(result, queryId);
@@ -622,6 +625,16 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     switch (operationType.type) {
       case "Update":
         $('#answerBlock, #infoBlock, #errorBlock').hide();
+        let updateMessage = "Update successful.";
+        const inserted = result["delta-triples"].difference.inserted;
+        const deleted = result["delta-triples"].difference.deleted;
+        if (inserted > 0) {
+          updateMessage += ` Inserted ${inserted} triples.`;
+        }
+        if (deleted > 0) {
+          updateMessage += ` Deleted ${deleted} triples.`;
+        }
+        $('#updateMetadata').html(updateMessage);
         $('#updatedBlock').show();
         $("html, body").animate({
           scrollTop: $("#updatedBlock").scrollTop() + 500
@@ -790,7 +803,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       "exception" : error.message || "Unknown error",
       "query": query
     };
-    displayError(errorContent, nothingToShow ? undefined : queryId);
+    displayError(errorContent, queryId);
   } finally {
     currentlyActiveQueryWebSocket = null;
     $(element).find('.glyphicon').removeClass('glyphicon-spin');
