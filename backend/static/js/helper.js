@@ -106,8 +106,10 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate) {
   }
 
   // Add query time to meta info.
-  runtime_info["meta"]["total_time_computing"] =
-    parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
+  if ("computeResult" in time) {
+    runtime_info["meta"]["total_time_computing"] =
+        parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
+  }
   runtime_info["meta"]["total_time"] =
     parseInt(time["total"].toString().replace(/ms/, ""), 10);
 

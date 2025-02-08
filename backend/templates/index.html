@@ -245,7 +245,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-3" style="margin-bottom: 16px">
+              <div class="col-md-3">
                 <select class="form-control" id="dynamicSuggestions">
                   <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
                     1. Syntax & keywords only
@@ -334,7 +334,7 @@
           </div>
 
             <div class="alert alert-success" id="updatedBlock" style="display: none">
-                <p>Update successful!</p>
+                <p id="updateMetadata">Update successful!</p>
             </div>
 
           {% comment %}

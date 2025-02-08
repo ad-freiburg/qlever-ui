@@ -623,6 +623,16 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       case "Update":
         $('#answerBlock, #infoBlock, #errorBlock').hide();
         $('#updatedBlock').show();
+        $("html, body").animate({
+          scrollTop: $("#updatedBlock").scrollTop() + 500
+        }, 500);
+
+        // MAX_VALUE ensures this always has priority over the websocket updates
+        appendRuntimeInformation(result.runtimeInformation, result.update, result.time, {
+          queryId,
+          updateTimeStamp: Number.MAX_VALUE
+        });
+        renderRuntimeInformationToDom();
         break
       case "Query":
 
@@ -874,7 +884,7 @@ function renderRuntimeInformationToDom(entry = undefined) {
   const time_index_scans_query_planning = "time_index_scans_query_planning" in meta_info
                                 ? formatInteger(meta_info["time_index_scans_query_planning"]) + " ms"
                                 : "[not available]";
-  const total_time_computing = formatInteger(meta_info["total_time_computing"]);
+  const total_time_computing = meta_info["total_time_computing"] ? formatInteger(meta_info["total_time_computing"]): "N/A";
   $("#meta-info").html(
     "<p>Time for query planning: " + time_query_planning +
     "<br/>Time for index scans during query planning: " + time_index_scans_query_planning +
