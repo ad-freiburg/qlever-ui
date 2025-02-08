@@ -9,7 +9,7 @@ LANGUAGE DEFINITIONS
 const CONTEXTS = [
   {
     w3name: 'PrefixDecl',
-    definition: /^([\s\S]*?)SELECT/gi,
+    definition: /^([\s\S]*?)(SELECT|DELETE|INSERT)/gi,
   },
   {
     w3name: 'SelectClause',
@@ -25,6 +25,31 @@ const CONTEXTS = [
   {
     w3name: 'SubQuery',
     definition: /^\s+\{([\s]*)\}/gm,
+  },
+  {
+    w3name: 'DeleteWhere',
+    definition: /DELETE WHERE \{([\s\S]*)\}/gi,
+    suggestInSameLine: true,
+  },
+  {
+    w3name: 'InsertData',
+    definition: /INSERT DATA \{([\s\S]*)\}/gi,
+    suggestInSameLine: true,
+  },
+  {
+    w3name: 'DeleteData',
+    definition: /DELETE DATA \{([\s\S]*)\}/gi,
+    suggestInSameLine: true,
+  },
+  {
+    w3name: 'InsertClause',
+    definition: /INSERT \{([\s\S]*)\}/gi,
+    suggestInSameLine: true,
+  },
+  {
+    w3name: 'DeleteClause',
+    definition: /DELETE \{([\s\S]*)\}/gi,
+    suggestInSameLine: true,
   },
   {
     w3name: 'WhereClause',
@@ -150,7 +175,7 @@ const COMPLEXTYPES = [
     name: 'VARIABLE',
     definition: /\?([a-zA-Z]*)/g,
     suggestions: [[function (c) { var a = []; $(getVariables(c, true)).each(function (k, v) { a.push(v + ' ') }); return a; }]],
-    availableInContext: ['SelectClause', 'OrderCondition', 'GroupCondition', 'ValuesClause', 'Filter'],
+    availableInContext: ['SelectClause', 'OrderCondition', 'GroupCondition', 'ValuesClause', 'Filter', 'DeleteWhere', 'InsertClause', 'DeleteClause'],
     
   },
   {
@@ -273,7 +298,7 @@ const COMPLEXTYPES = [
   {
     name: 'TRIPLE',
     suggestions: [[function (c) { return getDynamicSuggestions(c); }]],
-    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause', 'SubQuery'],
+    availableInContext: ['WhereClause', 'OptionalClause', 'UnionClause', 'SubQuery', 'DeleteWhere', 'InsertData', 'DeleteData', 'InsertClause', 'DeleteClause'],
     onlyOncePerVariation: false,
   },
   {

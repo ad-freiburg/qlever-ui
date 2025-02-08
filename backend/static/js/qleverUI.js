@@ -111,7 +111,7 @@ $(document).ready(function () {
     // somewhere in the query and if so, add it before the first `SELECT` or
     // `CONSTRUCT` (and move the cursor accordingly). If there is no `SELECT`
     // or `CONSTRUCT`, do nothing.
-    let select_or_construct_regex = /(^| )(SELECT|CONSTRUCT)/mi;
+    let select_or_construct_regex = /(^| )(SELECT|CONSTRUCT|DELETE|INSERT)/mi;
     if (FILLPREFIXES && select_or_construct_regex.test(editor.getValue())) {
       let queryString = editor.getValue();
       let newCursor = editor.getCursor();
