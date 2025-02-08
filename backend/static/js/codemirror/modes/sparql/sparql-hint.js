@@ -512,6 +512,8 @@ function getDynamicSuggestions(context) {
         } else if (lastWord == "ql:contains-word") {
           sendSparql = false;
           suggestVariables = false;
+        } else if (["InsertData", "DeleteData"].includes(context.w3name)) {
+            suggestVariables = false;
         } else {
           var subject = (subjectNames[words[0]] != "" && subjectNames[words[0]] != undefined) ? subjectNames[words[0]] : words[0];
           var subjectVarName = subject.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
