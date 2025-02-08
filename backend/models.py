@@ -459,7 +459,7 @@ class BackendDefaults(Backend):
                           "predicateNameAndAliasPatternWithoutContextDefault", "predicateNameAndAliasPatternWithContextDefault",
                           "warmupQuery1", "warmupQuery2", "warmupQuery3", "warmupQuery4", "warmupQuery5",
                           'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive',
-                          'apiToken')
+                          'apiToken', 'supportedKeywords')
 
     class Meta:
         verbose_name_plural = "Backend defaults"
@@ -471,7 +471,7 @@ class BackendDefaults(Backend):
         self.sortKey = "0"
         self.baseUrl = ""
         self.isDefault = False
-        super(BackendDefaults, self).save(*args, kwargs)
+        super(BackendDefaults, self).save(*args, **kwargs)
 
     def __getattribute__(self, name, forceUseDefault=False):
         return super(models.Model, self).__getattribute__(name)
