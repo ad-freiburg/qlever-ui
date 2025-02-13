@@ -59,17 +59,13 @@ class Command(BaseCommand):
             self.log(f'Returning {len(result)} example queries for backend "{slug}"')
             return "\n".join(result) + "\n"
         else:
-            result = [f"kb: {backend.slug}", "queries:"]
+            result = [f"kb: {backend.slug}\n", "queries:\n"]
             for example in Example.objects.filter(backend=backend).order_by("sortKey"):
-                query_name = example.name
-                # Indent each line by four spaces.
+                query_name = re.sub(r"^", "    ", example.name, flags=re.MULTILINE)
                 query_string = re.sub(r"^", "    ", example.query, flags=re.MULTILINE)
-                result.append(f"- name: {query_name}\n"
-                              f"  query: |\n"
-                              f"{query_string}")
-            return "\n".join(result) + "\n"
-
-
+                result.append(f"- query: |-\n{query_name}\n"
+                              f"  sparql: |-\n{query_string}\n")
+            return "".join(result)
 
     # Helper function for normalizing a query (translated from
     # static/js/helper.js).

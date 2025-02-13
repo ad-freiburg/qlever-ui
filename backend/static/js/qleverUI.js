@@ -333,13 +333,18 @@ $(document).ready(function () {
 
         // The default media type for the curl command line link is TSV, but for
         // CONSTRUCT queries use Turtle.
-        var mediaType = "text/tab-separated-values";
-        var apiCallCommandLineLabel = "Command line for TSV export (using curl)";
+        var mediaTypePost = "application/sparql-results+json";
+        var mediaTypeGet = "application/qlever-results+json";
         if (queryRewrittenAndNormalizedAndWithEscapedQuotes.match(/CONSTRUCT \{/)) {
-          mediaType = "text/turtle";
-          apiCallCommandLineLabel = apiCallCommandLineLabel.replace(/TSV/, "Turtle");
+          mediaTypePost = "text/turtle";
+          mediaTypeGet = "text/turtle";
         }
-        $("#apiCallCommandLineLabel").html(apiCallCommandLineLabel);
+        var apiCallCommandLineLabelPost =
+          "cURL command line for POST request (" + mediaTypePost + "):";
+        var apiCallCommandLineLabelGet =
+          "cURL command line for GET request (" + mediaTypeGet + "):";
+        $("#apiCallCommandLineLabelPost").html(apiCallCommandLineLabelPost);
+        $("#apiCallCommandLineLabelGet").html(apiCallCommandLineLabelGet);
 
         $(".ok-text").collapse("hide");
         $("#share").modal("show");
@@ -347,10 +352,13 @@ $(document).ready(function () {
         $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
         $("#queryStringLink").val(baseLocation + "?" + result.queryString);
         $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
-        $("#apiCallCommandLine").val("curl -s " + BASEURL.replace(/-proxy$/, "")
-          + " -H \"Accept: " + mediaType + "\""
+        $("#apiCallCommandLinePost").val("curl -s " + BASEURL.replace(/-proxy$/, "")
+          + " -H \"Accept: " + mediaTypePost + "\""
           + " -H \"Content-type: application/sparql-query\""
           + " --data \"" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
+        $("#apiCallCommandLineGet").val("curl -s " + BASEURL.replace(/-proxy$/, "")
+          + " -H \"Accept: " + mediaTypeGet + "\""
+          + " --data-urlencode \"query=" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
         $("#queryStringUnescaped").val(queryRewrittenAndNormalizedAndWithEscapedQuotes);
       }
     } catch (error) {
@@ -623,8 +631,29 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         "signal_void": "on"
       });
       const virtuosoButton = `<a class="btn btn-default" href="${virtuosoUrl}${virtuosoParams}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Virtuoso</a>`;
-      res += `<div class="pull-right">${wdqsButton}</div>`;
+      const milleniumdbUrl = `https://wikidata.imfd.cl/#query=${queryEncoded}`;
+      const milleniumdbButton = `<a class="btn btn-default" href="${milleniumdbUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Mill.DB</a>`;
+      res += `<div class="pull-right">${milleniumdbButton}</div>`;
       res += `<div class="pull-right">${virtuosoButton}</div>`;
+      res += `<div class="pull-right">${wdqsButton}</div>`;
+    }
+    if (SLUG.startsWith("lindas")) {
+      const queryEncoded = encodeURIComponent(original_query);
+      const stardogUrl = `https://yasgui.org/#query=${queryEncoded}&endpoint=https%3A%2F%2Fqlever.cs.uni-freiburg.de%2Fapi%2F${SLUG}-stardog&tabTitle=${SLUG}-stardog`;
+      const stardogButton = `<a class="btn btn-default" href="${stardogUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Stardog</a>`;
+      const graphdbUrl = `https://yasgui.org/#query=${queryEncoded}&endpoint=https%3A%2F%2Fqlever.cs.uni-freiburg.de%2Fapi%2F${SLUG}-graphdb&tabTitle=${SLUG}-graphdb`;
+      const graphdbButton = `<a class="btn btn-default" href="${graphdbUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query GraphDB</a>`;
+      res += `<div class="pull-right">${graphdbButton}</div>`;
+      res += `<div class="pull-right">${stardogButton}</div>`;
+    }
+    if (SLUG.startsWith("dblp")) {
+      const queryEncoded = encodeURIComponent(original_query);
+      const stardogUrl = `https://yasgui.org/#query=${queryEncoded}&endpoint=https%3A%2F%2Fqlever.cs.uni-freiburg.de%2Fapi%2F${SLUG}-stardog&tabTitle=${SLUG}-stardog`;
+      const stardogButton = `<a class="btn btn-default" href="${stardogUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query Stardog</a>`;
+      const graphdbUrl = `https://yasgui.org/#query=${queryEncoded}&endpoint=https%3A%2F%2Fqlever.cs.uni-freiburg.de%2Fapi%2F${SLUG}-graphdb&tabTitle=${SLUG}-graphdb`;
+      const graphdbButton = `<a class="btn btn-default" href="${graphdbUrl}" target="_blank"><i class="glyphicon glyphicon-link"></i> Query GraphDB</a>`;
+      res += `<div class="pull-right">${graphdbButton}</div>`;
+      res += `<div class="pull-right">${stardogButton}</div>`;
     }
     if (SLUG.startsWith("uniprot")) {
       const virtuosoUrl = "http://sparql.uniprot.org/sparql?";
