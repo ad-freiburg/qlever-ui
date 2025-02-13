@@ -625,15 +625,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     switch (operationType.type) {
       case "Update":
         $('#answerBlock, #infoBlock, #errorBlock').hide();
-        let updateMessage = "Update successful.";
         const inserted = result["delta-triples"].difference.inserted;
         const deleted = result["delta-triples"].difference.deleted;
-        if (inserted > 0) {
-          updateMessage += ` Inserted ${inserted} triples.`;
-        }
-        if (deleted > 0) {
-          updateMessage += ` Deleted ${deleted} triples.`;
-        }
+        let updateMessage = `Update successful. (insert triples: ${inserted}, delete triples: ${deleted})`;
         $('#updateMetadata').html(updateMessage);
         $('#updatedBlock').show();
         $("html, body").animate({
