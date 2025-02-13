@@ -550,7 +550,7 @@ async function executeBackendCommand(command, element) {
   if (access_token.length > 0)
     headers["Authorization"] = `Bearer ${access_token}`;
   const params = {"cmd": command};
-  $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
+  $(element).find('.glyphicon').addClass('glyphicon-spin');
   $(element).find('.glyphicon').removeClass('glyphicon-remove');
   $(element).find('.glyphicon').css('color', $(element).css('color'));
   try {
