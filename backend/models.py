@@ -147,7 +147,7 @@ class Backend(models.Model):
     )
 
     supportedKeywords = models.TextField(
-        default='prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate, minus, values',
+        default='as, base, bind, by, construct, contains-entity, contains-word, data, delete, distinct, filter, from, graph, group, has-predicate, having, insert, internal, keywords, limit, minus, named, not, offset, optional, optional, order, prefix, select, service, sort, textlimit, union, using, values, where, with',
         blank=True,
         help_text="Comma separated list of SPARQL keywords supported by the backend. Will be used for keyword highlighting.",
         verbose_name="Supported keywords")
@@ -459,7 +459,7 @@ class BackendDefaults(Backend):
                           "predicateNameAndAliasPatternWithoutContextDefault", "predicateNameAndAliasPatternWithContextDefault",
                           "warmupQuery1", "warmupQuery2", "warmupQuery3", "warmupQuery4", "warmupQuery5",
                           'suggestSubjectsContextInsensitive', 'suggestPredicatesContextInsensitive', 'suggestObjectsContextInsensitive',
-                          'apiToken')
+                          'apiToken', 'supportedKeywords')
 
     class Meta:
         verbose_name_plural = "Backend defaults"
@@ -471,7 +471,7 @@ class BackendDefaults(Backend):
         self.sortKey = "0"
         self.baseUrl = ""
         self.isDefault = False
-        super(BackendDefaults, self).save(*args, kwargs)
+        super(BackendDefaults, self).save(*args, **kwargs)
 
     def __getattribute__(self, name, forceUseDefault=False):
         return super(models.Model, self).__getattribute__(name)
