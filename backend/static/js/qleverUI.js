@@ -365,6 +365,14 @@ $(document).ready(function () {
     document.execCommand("copy");
     $(this).parent().parent().parent().find(".ok-text").collapse("show");
   });
+
+  $("#access_token").on("input", function () {
+    if($(this).val().trim() === "") {
+        $("#backend_commands").hide();
+    } else {
+      $("#backend_commands").show();
+    }
+  });
   
 });
 
@@ -556,7 +564,6 @@ async function executeBackendCommand(command, element) {
   try {
     await fetchQleverBackend(params, headers);
   } catch (error) {
-    $(element).find('.glyphicon').removeClass('glyphicon-refresh');
     $(element).find('.glyphicon').addClass('glyphicon-remove');
     $(element).find('.glyphicon').css('color', 'red');
   } finally {
