@@ -366,12 +366,19 @@ $(document).ready(function () {
     $(this).parent().parent().parent().find(".ok-text").collapse("show");
   });
 
-  $("#access_token").on("input", function () {
-    if($(this).val().trim() === "") {
-        $("#backend_commands").hide();
+  const accessToken = $("#access_token");
+
+  function updateBackendCommandVisibility() {
+    if (accessToken.val().trim() === "") {
+      $("#backend_commands").hide();
     } else {
       $("#backend_commands").show();
     }
+  }
+
+  updateBackendCommandVisibility();
+  accessToken.on("input", function () {
+    updateBackendCommandVisibility();
   });
   
 });
@@ -506,6 +513,7 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
 function determineOperationType(operation) {
   // Strip all PREFIX, BASE and WITH statements from the beginning of the query
   const strippedOp = operation
+      .trim()
       .replace(/BASE\s+<[^<]*>\s*/gi, "")
       .replace(/PREFIX\s+\w+:\s+<[^<]*>\s*/gi, "")
       .replace(/WITH\s+((<[^<]*>)|(\w*:\w*))\s*/gi, "");
@@ -547,7 +555,31 @@ function determineOperationType(operation) {
         return {type: "Update", subtype: "Delete Where"};
       }
       return {type: "Update", subtype: "Modify"};
+    default:
+      return {type: "Unknown", subtype: "Unknown"};
   }
+}
+
+function setRunningIndicator(element) {
+  const icon = $(element).find('.glyphicon');
+  icon.addClass('glyphicon-spin glyphicon-refresh');
+  icon.removeClass('glyphicon-remove');
+  icon.css('color', $(element).css('color'));
+}
+
+function removeRunningIndicator(element) {
+  const icon = $(element).find('.glyphicon');
+  icon.removeClass('glyphicon-spin');
+  if (icon.css("color") !== 'rgb(255, 0, 0)') {
+    icon.css('color', '');
+  }
+}
+
+function setErrorIndicator(element) {
+  const icon = $(element).find('.glyphicon');
+  icon.removeClass('glyphicon-refresh');
+  icon.addClass('glyphicon-remove');
+  icon.css('color', 'red');
 }
 
 // Executes a backend command (e.g. `clear-cache`).
@@ -558,16 +590,13 @@ async function executeBackendCommand(command, element) {
   if (access_token.length > 0)
     headers["Authorization"] = `Bearer ${access_token}`;
   const params = {"cmd": command};
-  $(element).find('.glyphicon').addClass('glyphicon-spin');
-  $(element).find('.glyphicon').removeClass('glyphicon-remove');
-  $(element).find('.glyphicon').css('color', $(element).css('color'));
+  setRunningIndicator(element);
   try {
     await fetchQleverBackend(params, headers);
   } catch (error) {
-    $(element).find('.glyphicon').addClass('glyphicon-remove');
-    $(element).find('.glyphicon').css('color', 'red');
+    setErrorIndicator(element)
   } finally {
-    $(element).find('.glyphicon').removeClass('glyphicon-spin');
+    removeRunningIndicator(element);
   }
 }
 
@@ -577,9 +606,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   log('Element: ' + element, 'other');
   if (sendLimit >= 0) { displayStatus("Waiting for response..."); }
 
-  $(element).find('.glyphicon').addClass('glyphicon-spin glyphicon-refresh');
-  $(element).find('.glyphicon').removeClass('glyphicon-remove');
-  $(element).find('.glyphicon').css('color', $(element).css('color'));
+  setRunningIndicator(element);
   log('Sending request...', 'other');
 
   let params = {};
@@ -601,6 +628,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       break
     default:
       console.log("Unknown operation type", operationType);
+      disp = "<h4><strong>Error processing operation</strong></h4>";
+      disp += "Could not determine operation type (Query or Update). Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this operation to us.";
+      displayInErrorBlock(disp);
+      setErrorIndicator(element);
+      removeRunningIndicator(element);
+      return;
   }
   if (sendLimit > 0) {
     params["send"] = sendLimit;
@@ -797,9 +830,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         renderRuntimeInformationToDom();
     }
   } catch (error) {
-    $(element).find('.glyphicon').removeClass('glyphicon-refresh');
-    $(element).find('.glyphicon').addClass('glyphicon-remove');
-    $(element).find('.glyphicon').css('color', 'red');
+    setErrorIndicator(element);
     const errorContent = {
       "exception" : error.message || "Unknown error",
       "query": query
@@ -807,7 +838,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     displayError(errorContent, queryId);
   } finally {
     currentlyActiveQueryWebSocket = null;
-    $(element).find('.glyphicon').removeClass('glyphicon-spin');
+    removeRunningIndicator(element);
     // Make sure we have no socket that stays open forever
     if (ws) {
       closeWebSocket(ws);

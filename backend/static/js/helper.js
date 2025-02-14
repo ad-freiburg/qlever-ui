@@ -757,6 +757,12 @@ function expandEditor() {
   }
 }
 
+function displayInErrorBlock(message) {
+  $('#errorReason').html(message);
+  $('#errorBlock').show();
+  $('#answerBlock, #infoBlock, #updatedBlock').hide();
+}
+
 function displayError(response, queryId = undefined) {
   console.error("Either the GET request failed or the backend returned an error:", response);
   if (response["exception"] == undefined || response["exception"] == "") {
@@ -784,9 +790,7 @@ function displayError(response, queryId = undefined) {
       queryToDisplay = htmlEscape(queryToDisplay);
   }
   disp += "Your query was: " + "<br><pre>" + queryToDisplay + "</pre>";
-  $('#errorReason').html(disp);
-  $('#errorBlock').show();
-  $('#answerBlock, #infoBlock, #updatedBlock').hide();
+  displayInErrorBlock(disp);
 
   // If error response contains query and runtime info, append to runtime log.
   //

@@ -93,12 +93,12 @@
                     <tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
                     <tr>
                         <th>Access Token</th>
-                        <td><input class="form-control" type="text" id="access_token" placeholder="Access Token"/>
-                            <div id="backend_commands" style="display: none">
+                        <td><input class="form-control" type="text" id="access_token" placeholder="Access Token" style="margin-bottom: 8px"/>
+                            <div id="backend_commands" style="display:none">
                                 <button id="btnClearDeltaTriples" class="btn btn-default"
-                                        onclick="executeBackendCommand('clear-delta-triples', this)"><i
+                                        onclick="executeBackendCommand('clear-delta-triples', this)" style="margin-bottom: 8px"><i
                                         class="glyphicon glyphicon-refresh"></i> Clear Delta Triples
-                                </button>
+                                </button><br>
                                 <button id="btnClearCacheComplete" class="btn btn-default"
                                         onclick="executeBackendCommand('clear-cache-complete', this)"><i
                                         class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
