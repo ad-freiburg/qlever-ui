@@ -69,9 +69,26 @@
           </div>
           <br>
           <div>
-            <label id="apiCallCommandLineLabel">Command line for TSV export (using curl)</label>
+            <label id="apiCallCommandLineLabelPost">Command line for POST query
+              using curl (%MEDIA_TYPE%)</label>
             <div class="input-group">
-              <input type="text" id="apiCallCommandLine" class="form-control" readonly>
+              <input type="text" id="apiCallCommandLinePost" class="form-control" readonly>
+              <span class="input-group-btn">
+                <button class="btn btn-default copy-clipboard-button">
+                  <i class="glyphicon glyphicon-copy"></i> Copy
+                </button>
+              </span>
+            </div>
+            <div class="ok-text collapse">
+              <i class="glyphicon glyphicon-ok"></i> Copied URL to clipboard
+            </div>
+          </div>
+          <br>
+          <div>
+            <label id="apiCallCommandLineLabelGet">Command line for GET query
+              using curl (%MEDIA_TYPE%)</label>
+            <div class="input-group">
+              <input type="text" id="apiCallCommandLineGet" class="form-control" readonly>
               <span class="input-group-btn">
                 <button class="btn btn-default copy-clipboard-button">
                   <i class="glyphicon glyphicon-copy"></i> Copy
