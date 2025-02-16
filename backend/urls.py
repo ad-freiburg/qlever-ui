@@ -16,4 +16,5 @@ urlpatterns = [
     ),
     re_path(r"^api/examples/(?P<backend>[^/]+)$", views.examples, name="examples"),
     re_path(r"^api/prefixes/(?P<backend>[^/]+)$", views.prefixes, name="prefixes"),
+    re_path(r"^api/update/(?P<backend>[^/]+)$", views.update, name="update"),
 ]
