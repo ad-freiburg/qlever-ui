@@ -680,8 +680,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     switch (operationType.type) {
       case "Update":
         $('#answerBlock, #infoBlock, #errorBlock').hide();
-        const inserted = result["operation"].difference.inserted;
-        const deleted = result["operation"].difference.deleted;
+        const inserted = result["delta-triples"].operation.inserted;
+        const deleted = result["delta-triples"].operation.deleted;
         let updateMessage = `Update successful (insert triples: ${inserted}, delete triples: ${deleted})`;
         $('#updateMetadata').html(updateMessage);
         $('#updatedBlock').show();
