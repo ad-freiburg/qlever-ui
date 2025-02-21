@@ -91,6 +91,21 @@
                     <tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
                     <tr><th>Default maximum</th><td><span id="maxSendOnFirstRequest">{{ backend.maxDefault }}</span> rows</td></tr>
                     <tr><th>Default mode:</th><td> {% if backend.dynamicSuggestions == 0 %}1. SPARQL syntax & keywords only{% elif backend.dynamicSuggestions == 1 %}2. SPARQL & context insensitive entities{% else %}3. SPARQL & context sensitive entities{% endif %}</td></tr>
+                    <tr>
+                        <th>Access Token</th>
+                        <td><input class="form-control" type="text" id="access_token" placeholder="Access Token" style="margin-bottom: 8px"/>
+                            <div id="backend_commands" style="display:none">
+                                <button id="btnClearDeltaTriples" class="btn btn-default"
+                                        onclick="executeBackendCommand('clear-delta-triples', this)" style="margin-bottom: 8px"><i
+                                        class="glyphicon glyphicon-refresh"></i> Clear Delta Triples
+                                </button><br>
+                                <button id="btnClearCacheComplete" class="btn btn-default"
+                                        onclick="executeBackendCommand('clear-cache-complete', this)"><i
+                                        class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 </table>
               </div>
               <div class="col-md-6" style="word-break: break-all;">
@@ -193,7 +208,7 @@
                     <button id="formatButton" class="btn btn-default">
                       <i class="glyphicon glyphicon-align-left"></i> Format
                     </button>
-                      <button class="btn btn-default" onclick="processQuery(-1, this).catch(error => log(error.message, 'requests'));">
+                      <button class="btn btn-default" onclick="executeBackendCommand('clear-cache', this)">
                         <i class="glyphicon glyphicon-refresh"></i> Clear cache
                       </button>
                       <button class="btn btn-default" onclick="showQueryPlanningTree();">
@@ -256,19 +271,20 @@
                     4. Mixed mode
                   </option>
                 </select>
-                <div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" id="name_service"> Automatically add names to result
-                    </label>
-                  </div>
-                  <div class="checkbox" style="display: none">
-                    <label>
-                      <input type="checkbox" id="clear"> Clear the cache before every request
-                    </label>
-                  </div>
-                </div>
              </div>
+
+                <div class="col-md-3 col-md-offset-9">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="name_service"> Automatically add names to result
+                        </label>
+                    </div>
+                    <div class="checkbox" style="display: none">
+                        <label>
+                            <input type="checkbox" id="clear"> Clear the cache before every request
+                        </label>
+                    </div>
+                </div>
             </div>
           </div>
 
@@ -327,7 +343,11 @@
           <div class="alert alert-danger" id="errorBlock" style="display: none">
             <div id="errorReason"><h3>Error:</h3></div>
           </div>
-      
+
+            <div class="alert alert-success" id="updatedBlock" style="display: none">
+                <p id="updateMetadata">Update successful!</p>
+            </div>
+
           {% comment %}
               Comment this in in to re-enable the cheat sheet, disabled 2019
               {% include 'partials/help.html' %}
