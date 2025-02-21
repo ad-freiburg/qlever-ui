@@ -66,13 +66,20 @@ You should now be able to connect to QLever UI via <http://localhost:7000>. Cont
 # Installing QLever UI without docker
 When not using docker there are some additional steps to do. QLever UI is built upon a [Python 3](https://www.python.org/downloads/) / [Django 5](https://www.djangoproject.com/) backend so you will need to have Python 3 installed in order to run QLever UI. It's strongly recommended to use [virtual environments](https://docs.python.org/3/library/venv.html) to manage the project's dependencies when not using the docker build. In order to manage the dependencies, we use pip.
 
-1. If "[pip](https://pypi.org/project/pip/)" is installed on your system / in your virtual environment you can simply use 
+1. Setup formatter
+
+    ```shell
+    npm install
+    npm run build
+    ```
+
+2. If "[pip](https://pypi.org/project/pip/)" is installed on your system / in your virtual environment you can simply use
     ```shell
     pip install -r requirements.txt
     ```
     inside the project folder to automatically install all dependencies. Otherwise, you can find the list of dependencies in the `requirements.txt` file to install them manually.
 
-2. Optionally [adjust settings](#configuration)
+3. Optionally [adjust settings](#configuration)
 
 ## Setting up the database manually
 1. The QLever UI backend needs a database connection - by default SQLite is used and no further configuration is required. Simply run:
