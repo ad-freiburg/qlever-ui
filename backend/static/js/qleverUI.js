@@ -568,6 +568,13 @@ function determineOperationType(operation) {
   }
 }
 
+function resetIndicator(element) {
+  const icon = $(element).find('.glyphicon');
+  icon.addClass('glyphicon-refresh');
+  icon.removeClass('glyphicon-remove');
+  icon.css('color', '');
+}
+
 function setRunningIndicator(element) {
   const icon = $(element).find('.glyphicon');
   icon.addClass('glyphicon-spin glyphicon-refresh');
@@ -688,6 +695,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
           updateTimeStamp: Number.MAX_VALUE
         });
         renderRuntimeInformationToDom();
+        // Reset any error state of the backend command buttons
+        resetIndicator($("#btnClearDeltaTriples"));
+        resetIndicator($("#btnClearCacheComplete"));
         break
       case "Query":
 
