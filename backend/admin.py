@@ -96,9 +96,8 @@ class BackendDefaultsAdmin(ImportExportModelAdmin):
     #  - Autocomplete Settings
     #  - Autocomplete Queries (context-sensitive)
     #  - Autocomplete Queries (context-insensitive)
-    fieldsets = (("General", {
-            'fields': ('apiToken', )
-        }),) + BackendAdmin.fieldsets[2:9]
+    fieldsets = (("General", {'fields': ('apiToken',)}),
+                 ("UI Suggestions", {'fields': ('supportedKeywords',)})) + BackendAdmin.fieldsets[2:9]
 
 
 class ExampleAdmin(ImportExportModelAdmin):

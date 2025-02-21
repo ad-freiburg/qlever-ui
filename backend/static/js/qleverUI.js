@@ -111,7 +111,7 @@ $(document).ready(function () {
     // somewhere in the query and if so, add it before the first `SELECT` or
     // `CONSTRUCT` (and move the cursor accordingly). If there is no `SELECT`
     // or `CONSTRUCT`, do nothing.
-    let select_or_construct_regex = /(^| )(SELECT|CONSTRUCT)/mi;
+    let select_or_construct_regex = /(^| )(SELECT|CONSTRUCT|DELETE|INSERT)/mi;
     if (FILLPREFIXES && select_or_construct_regex.test(editor.getValue())) {
       let queryString = editor.getValue();
       let newCursor = editor.getCursor();
@@ -333,13 +333,18 @@ $(document).ready(function () {
 
         // The default media type for the curl command line link is TSV, but for
         // CONSTRUCT queries use Turtle.
-        var mediaType = "text/tab-separated-values";
-        var apiCallCommandLineLabel = "Command line for TSV export (using curl)";
+        var mediaTypePost = "application/sparql-results+json";
+        var mediaTypeGet = "application/qlever-results+json";
         if (queryRewrittenAndNormalizedAndWithEscapedQuotes.match(/CONSTRUCT \{/)) {
-          mediaType = "text/turtle";
-          apiCallCommandLineLabel = apiCallCommandLineLabel.replace(/TSV/, "Turtle");
+          mediaTypePost = "text/turtle";
+          mediaTypeGet = "text/turtle";
         }
-        $("#apiCallCommandLineLabel").html(apiCallCommandLineLabel);
+        var apiCallCommandLineLabelPost =
+          "cURL command line for POST request (" + mediaTypePost + "):";
+        var apiCallCommandLineLabelGet =
+          "cURL command line for GET request (" + mediaTypeGet + "):";
+        $("#apiCallCommandLineLabelPost").html(apiCallCommandLineLabelPost);
+        $("#apiCallCommandLineLabelGet").html(apiCallCommandLineLabelGet);
 
         $(".ok-text").collapse("hide");
         $("#share").modal("show");
@@ -347,10 +352,13 @@ $(document).ready(function () {
         $("#prettyLinkExec").val(baseLocation + result.link + '?exec=true');
         $("#queryStringLink").val(baseLocation + "?" + result.queryString);
         $("#apiCallUrl").val(BASEURL + "?" + result.queryString);
-        $("#apiCallCommandLine").val("curl -s " + BASEURL.replace(/-proxy$/, "")
-          + " -H \"Accept: " + mediaType + "\""
+        $("#apiCallCommandLinePost").val("curl -s " + BASEURL.replace(/-proxy$/, "")
+          + " -H \"Accept: " + mediaTypePost + "\""
           + " -H \"Content-type: application/sparql-query\""
           + " --data \"" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
+        $("#apiCallCommandLineGet").val("curl -s " + BASEURL.replace(/-proxy$/, "")
+          + " -H \"Accept: " + mediaTypeGet + "\""
+          + " --data-urlencode \"query=" + queryRewrittenAndNormalizedAndWithEscapedQuotes + "\"");
         $("#queryStringUnescaped").val(queryRewrittenAndNormalizedAndWithEscapedQuotes);
       }
     } catch (error) {

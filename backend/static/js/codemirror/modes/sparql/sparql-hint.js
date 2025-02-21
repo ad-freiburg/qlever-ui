@@ -512,6 +512,8 @@ function getDynamicSuggestions(context) {
         } else if (lastWord == "ql:contains-word") {
           sendSparql = false;
           suggestVariables = false;
+        } else if (["InsertData", "DeleteData"].includes(context.w3name)) {
+            suggestVariables = false;
         } else {
           var subject = (subjectNames[words[0]] != "" && subjectNames[words[0]] != undefined) ? subjectNames[words[0]] : words[0];
           var subjectVarName = subject.split(/[.\/\#:]/g).slice(-1)[0].replace(/@\w*$/, '').replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
@@ -1139,7 +1141,37 @@ function buildQueryTree(content, start) {
       tempElement['end'] = i + start - 6;
       tree.push(tempElement);
       tempString = "";
-      tempElement = { w3name: 'SelectClause', suggestInSameLine: true, start: i + start }
+      tempElement = {w3name: 'SelectClause', suggestInSameLine: true, start: i + start}
+    } else if (/DELETE WHERE \{$/i.test(tempString)) {
+      tempElement['content'] = tempString.slice(0, tempString.length - 14);
+      tempElement['end'] = i + start - 13;
+      tree.push(tempElement);
+      tempString = "";
+      tempElement = {w3name: 'DeleteWhere', suggestInSameLine: true, start: i + start}
+    } else if (/INSERT DATA \{$/i.test(tempString)) {
+      tempElement['content'] = tempString.slice(0, tempString.length - 13);
+      tempElement['end'] = i + start - 12;
+      tree.push(tempElement);
+      tempString = "";
+      tempElement = {w3name: 'InsertData', suggestInSameLine: true, start: i + start}
+    } else if (/DELETE DATA \{$/i.test(tempString)) {
+      tempElement['content'] = tempString.slice(0, tempString.length - 13);
+      tempElement['end'] = i + start - 12;
+      tree.push(tempElement);
+      tempString = "";
+      tempElement = {w3name: 'DeleteData', suggestInSameLine: true, start: i + start}
+    } else if (/INSERT \{$/i.test(tempString)) {
+      tempElement['content'] = tempString.slice(0, tempString.length - 8);
+      tempElement['end'] = i + start - 7;
+      tree.push(tempElement);
+      tempString = "";
+      tempElement = {w3name: 'InsertClause', suggestInSameLine: true, start: i + start}
+    } else if (/DELETE \{$/i.test(tempString)) {
+      tempElement['content'] = tempString.slice(0, tempString.length - 8);
+      tempElement['end'] = i + start - 7;
+      tree.push(tempElement);
+      tempString = "";
+      tempElement = {w3name: 'DeleteClause', suggestInSameLine: true, start: i + start}
     } else if (/WHERE \{$/i.test(tempString)) {
       tempElement['content'] = tempString.slice(0, tempString.length - 7);
       tempElement['end'] = i + start - 6;
