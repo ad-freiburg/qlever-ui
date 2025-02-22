@@ -7,7 +7,7 @@ from .models import *
 from backend.management.commands.warmup import Command as WarmupCommand
 from backend.management.commands.examples import Command as ExamplesCommand
 from backend.management.commands.prefixes import Command as PrefixesCommand
-from backend.management.commands.update import Command as UpdateCommand
+from backend.management.commands.config import Command as ConfigCommand
 
 import json
 import urllib
@@ -208,21 +208,21 @@ def prefixes(request, backend):
         return HttpResponse("Error: " + str(e), status=500)
     return HttpResponse(prefixes_text, content_type="text/plain")
 
-# Handle API request like https://qlever.cs.uni-freiburg.de/api/update/...
-def update(request, backend):
-    print_to_log("API call to `update` in `views.py`")
+# Handle API request like https://qlever.cs.uni-freiburg.de/api/config/...
+def config(request, backend):
+    print_to_log("API call to `config` in `views.py`")
     field = request.GET.get("field", None)
     value = request.GET.get("value", None)
     command = UpdateCommand()
     is_authenticated = request.user.is_authenticated
     if not is_authenticated:
         return HttpResponseForbidden(
-                "You need to be authenticated for `update`\n",
+                "You need to be authenticated for `config`\n",
                 content_type="text/plain")
     result = command.handle(backend_slug=backend, field=field, value=value)
-    # result = (f"API call to `update` with the following parameters:\n"
+    # result = (f"API call to `config` with the following parameters:\n"
     #           f"backend = {backend}\nfield = {field}\nvalue = {value}\n"
-    #           f"Log from `update` command:\n"
+    #           f"Log from `config` command:\n"
     #           f"{'\n'.join(log_messages)}\n")
     return HttpResponse(f"{result}\n", content_type="text/plain")
 
