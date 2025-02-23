@@ -104,9 +104,9 @@ def index(request, backend=None, short=None):
         {
             "backend": activeBackend,
             "noSlugMode": noSlugMode,
-            # "prefixes": json.dumps(activeBackend.availablePrefixes)
-            # if activeBackend
-            # else "{}",
+            "prefixes": json.dumps(activeBackend.availablePrefixes)
+            if activeBackend
+            else "{}",
             "backends": Backend.objects.all(),
             "examples": examples,
             "prefill": prefill,
