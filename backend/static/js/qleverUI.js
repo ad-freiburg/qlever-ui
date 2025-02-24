@@ -521,10 +521,11 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
 function determineOperationType(operation) {
   // Strip all PREFIX, BASE and WITH statements from the beginning of the query
   const strippedOp = operation
-      .trim()
-      .replace(/BASE\s+<[^<]*>\s*/gi, "")
-      .replace(/PREFIX\s+\w+:\s+<[^<]*>\s*/gi, "")
-      .replace(/WITH\s+((<[^<]*>)|(\w*:\w*))\s*/gi, "");
+      .replaceAll(/BASE\s+<[^<]*>\s*/gi, "")
+      .replaceAll(/PREFIX\s+\w*:\s+<[^<]*>\s*/gi, "")
+      .replaceAll(/WITH\s+((<[^<]*>)|(\w*:\w*))\s*/gi, "")
+      .replaceAll(/^\s*#.*/gmi, "")
+      .trim();
   const words = strippedOp.split(/\s+/).map(word => word.toUpperCase())
   // Determine the query type based on the first keywords
   switch (words[0]) {
