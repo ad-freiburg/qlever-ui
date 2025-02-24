@@ -27,7 +27,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "config_file",
             nargs="?",
-            help="If provided, set the backend config " "according to this YAML file",
+            help="If provided, set the backend config according to this YAML file",
         )
         parser.add_argument(
             "--hide-all-other-backends",
