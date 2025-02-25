@@ -592,7 +592,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     default:
       console.log("Unknown operation type");
       disp = "<h4><strong>Error processing operation</strong></h4>";
-      disp += "Could not determine operation type (Query or Update). This is most likely not valid SPARQL. Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this operation to us.";
+      disp += "Could not determine operation type (Query or Update). This is most likely not valid SPARQL. Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this if you belive it is an error.";
       displayInErrorBlock(disp);
       setErrorIndicator(element);
       removeRunningIndicator(element);
