@@ -516,59 +516,6 @@ function createWebSocketForQuery(queryId, startTimeStamp, query) {
   return ws;
 }
 
-// Determines the type of the operation (Query or Update) and also subtype
-// (Select, Insert Data, etc.) as an object `{type: ..., subtype: ...}`.
-function determineOperationType(operation) {
-  // Strip all PREFIX, BASE and WITH statements from the beginning of the query
-  const strippedOp = operation
-      .replaceAll(/BASE\s+<[^<]*?>\s*/gi, "")
-      .replaceAll(/PREFIX\s+\w*:\s+<[^<]*?>\s*/gi, "")
-      .replaceAll(/WITH\s+((<[^<]*?>)|(\w*?:\w*?))\s*/gi, "")
-      .replaceAll(/^\s*#.*$/gmi, "")
-      .trim();
-  const words = strippedOp.split(/\s+/).map(word => word.toUpperCase())
-  // Determine the query type based on the first keywords
-  switch (words[0]) {
-    case "SELECT":
-      return {type: "Query", subtype: "Select"};
-    case "CONSTRUCT":
-      return {type: "Query", subtype: "Construct"};
-    case "DESCRIBE":
-      return {type: "Query", subtype: "Describe"};
-    case "ASK":
-      return {type: "Query", subtype: "Ask"};
-    case "LOAD":
-      return {type: "Update", subtype: "Load"};
-    case "CLEAR":
-      return {type: "Update", subtype: "Clear"};
-    case "DROP":
-      return {type: "Update", subtype: "Drop"};
-    case "CREATE":
-      return {type: "Update", subtype: "Create"};
-    case "ADD":
-      return {type: "Update", subtype: "Add"};
-    case "MOVE":
-      return {type: "Update", subtype: "Move"};
-    case "COPY":
-      return {type: "Update", subtype: "Copy"};
-    case "INSERT":
-      if (words[1] === "DATA") {
-        return {type: "Update", subtype: "Insert Data"};
-      }
-      return {type: "Update", subtype: "Modify"};
-    case "DELETE":
-      if (words[1] === "DATA") {
-        return {type: "Update", subtype: "Delete Data"};
-      }
-      else if (words[1] === "WHERE") {
-        return {type: "Update", subtype: "Delete Where"};
-      }
-      return {type: "Update", subtype: "Modify"};
-    default:
-      return {type: "Unknown", subtype: "Unknown"};
-  }
-}
-
 function resetIndicator(element) {
   const icon = $(element).find('.glyphicon');
   icon.addClass('glyphicon-refresh');
@@ -632,8 +579,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   var original_query = editor.getValue();
   var query = await rewriteQuery(original_query, {"name_service": "if_checked"});
   operationType = determineOperationType(query);
-  console.log(`Determined operation type: ${JSON.stringify(operationType)}`);
-  switch (operationType.type) {
+  console.log(`Determined operation type: ${operationType}`);
+  switch (operationType) {
     case "Query":
       params["query"] = query;
       break;
@@ -643,9 +590,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       if (access_token.length > 0) headers["Authorization"] = `Bearer ${access_token}`;
       break
     default:
-      console.log("Unknown operation type", operationType);
+      console.log("Unknown operation type");
       disp = "<h4><strong>Error processing operation</strong></h4>";
-      disp += "Could not determine operation type (Query or Update). Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this operation to us.";
+      disp += "Could not determine operation type (Query or Update). This is most likely not valid SPARQL. Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this operation to us.";
       displayInErrorBlock(disp);
       setErrorIndicator(element);
       removeRunningIndicator(element);
@@ -678,7 +625,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
     if (result["warnings"].length > 0) { displayWarning(result); }
 
-    switch (operationType.type) {
+    switch (operationType) {
       case "Update":
         $('#answerBlock, #infoBlock, #errorBlock').hide();
         const inserted = result["delta-triples"].operation.inserted;
@@ -706,7 +653,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         //
         // NOTE: The result size reported by QLever (in the
         // application/qlever-results+json format) is the result size without
-        // without LIMIT.
+        // LIMIT.
         var nofRows = result.res.length;
         const [totalTime, computeTime, resolveTime] = getResultTime(result.time);
         let resultSize = result.resultsize;
