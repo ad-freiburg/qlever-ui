@@ -581,6 +581,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   operationType = determineOperationType(query);
   console.log(`Determined operation type: ${operationType}`);
   switch (operationType) {
+      // If we don't know the operation type, we assume it's a query.
+    case "Unknown":
     case "Query":
       params["query"] = query;
       break;
@@ -592,7 +594,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     default:
       console.log("Unknown operation type");
       disp = "<h4><strong>Error processing operation</strong></h4>";
-      disp += "Could not determine operation type (Query or Update). This is most likely not valid SPARQL. Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this if you belive it is an error.";
+      disp += "This should not happen. Please <a href='https://github.com/ad-freiburg/qlever-ui/issues/new'>report</a> this with the operation that triggered it.";
       displayInErrorBlock(disp);
       setErrorIndicator(element);
       removeRunningIndicator(element);
@@ -619,9 +621,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     
     log('Evaluating and displaying results...', 'other');
 
-    if (result.status == "ERROR") {
+    if (result.status === "ERROR") {
       displayError(result, queryId);
       return;
+    }
+    if (operationType === "Unknown" && Array.isArray(result["warnings"])) {
+      result["warnings"].push("Could not determine operation type, assuming query.");
     }
     if (result["warnings"].length > 0) { displayWarning(result); }
 
@@ -647,6 +652,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         resetIndicator($("#btnClearDeltaTriples"));
         resetIndicator($("#btnClearCacheComplete"));
         break
+        // The operation type wasn't detected. It was most likely syntactically invalid and resulted in an error while parsing. Display the result anyway in case some valid queries were not identified.
+      case "Unknown":
       case "Query":
 
         // Show some statistics (on top of the table).
