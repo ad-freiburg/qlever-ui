@@ -12,7 +12,7 @@
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-wasm": "^6.2.2",
-    "qlue-ls": "npm:qlue-ls-web@~0.3.5",
+    "qlue-ls": "npm:qlue-ls-web@~0.4.0",
     "rollup": "^4.26.0"
   }
 }
