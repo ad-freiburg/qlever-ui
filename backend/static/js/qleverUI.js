@@ -626,7 +626,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       return;
     }
     if (operationType === "Unknown" && Array.isArray(result["warnings"])) {
-      result["warnings"].push("Could not determine operation type, assuming query.");
+      result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
     }
     if (result["warnings"].length > 0) { displayWarning(result); }
 
