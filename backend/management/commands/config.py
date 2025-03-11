@@ -16,10 +16,12 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
         self.log_messages = []
 
-    # Custom log function.
-    def log(self, msg=""):
-        print(msg)
-        self.log_messages.append(msg)
+    # Custom log function. Remember the log messages in case we want to return
+    # them later (in case this command is called via a view).
+    def log(self, message, remember=True):
+        print(message)
+        if remember:
+            self.log_messages.append(message)
 
     # Command line arguments.
     def add_arguments(self, parser):
@@ -42,11 +44,12 @@ class Command(BaseCommand):
         # Custom representer for yaml, which uses the "|" style only for
         # multiline strings.
         #
-        # NOTE: We eeplace all `\r\n` with `\n` because otherwise the `|` style
-        # does not work as expected.
+        # NOTE: We replace all `\r\n` with `\n` because otherwise the `|` style
+        # does not work as expected. The same goes for occurrences of `\t`.
         class MultiLineDumper(yaml.Dumper):
             def represent_scalar(self, tag, value, style=None):
                 value = value.replace("\r\n", "\n")
+                value = value.replace("\t", "  ")
                 if isinstance(value, str) and "\n" in value:
                     style = "|"
                 return super().represent_scalar(tag, value, style)
@@ -180,52 +183,49 @@ class Command(BaseCommand):
         )
 
     # Handle the command.
-    def handle(self, *args, returnLog=False, **options):
-        backend_slug = options["backend_slug"]
-
-        # If a `config_file` is provided, set the backend config according to
-        # this YAML file.
-        if options["config_file"]:
-            config_file = options["config_file"]
-            with open(config_file) as f:
-                config_yaml = f.read()
-            try:
-                self.set_backend_config(backend_slug, config_yaml)
-            except Exception as e:
-                print(f"ERROR: {e}")
-                return
-
-            # If `--hide-all-other-backends` is provided, hide all other
-            # backends.
-            if options["hide_all_other_backends"]:
-                try:
-                    for other_backend in Backend.objects.exclude(slug=backend_slug):
-                        other_backend.sortKey = 0
-                        other_backend.save()
-                    print(f"All backends other than `{backend_slug}` are hidden "
-                          f"(sort key set to 0)")
-                except Exception as e:
-                    self.log(f"ERROR: {e}")
-
+    def handle(self, *args, returnOutput=False, **options):
+        # Get the backend slug (required).
+        backend_slug = options.get("backend_slug", None)
+        if backend_slug is None:
+            self.log("ERROR: No backend slug provided")
             return
 
-        # Otherwise, get the backend config as a YAML string.
-        config_yaml = self.get_backend_config(backend_slug)
-        print(config_yaml)
-        return
+        # Get the config file. If not provided, get the backend
+        # config and print it as a YAML string.
+        config_file = options.get("config_file", None)
+        if config_file is None:
+            config_yaml = self.get_backend_config(backend_slug)
+            if returnOutput:
+                self.log("Returning config as YAML string")
+                return config_yaml
+            else:
+                self.log(config_yaml)
+                return
 
-        # self.log(f"Updating {connection.settings_dict['NAME']} ...")
-        # self.log("Handling `update` command ...")
-        # field = options["field"]
-        # value = options["value"]
+        # Otherwise, set the backend config according to the provided
+        # YAML file.
+        with open(config_file) as f:
+            config_yaml = f.read()
+        try:
+            self.log(f"Setting backend config for `{backend_slug}`")
+            self.set_backend_config(backend_slug, config_yaml)
+        except Exception as e:
+            print(f"ERROR: {e}")
+            return
 
-        # Get all available fields of the backend.
-        # fields = [f.name for f in Backend._meta.get_fields()]
-        # return f"Available fields: {', '.join(fields)}"
+        # If `--hide-all-other-backends` is provided, hide all other
+        # backends.
+        if options["hide_all_other_backends"]:
+            try:
+                for other_backend in Backend.objects.exclude(slug=backend_slug):
+                    other_backend.sortKey = 0
+                    other_backend.save()
+                self.log(
+                    f"All backends other than `{backend_slug}` are hidden "
+                    f"(sort key set to 0)"
+                )
+            except Exception as e:
+                self.log(f"ERROR: {e}")
 
-        # self.log(f"Fetching value of field `{field}` from backend `{backend.slug}` ...")
-        # value_before = getattr(backend, field, None)
-        # if value_before is None:
-        #     return [f"Field `{field}` does not exist in backend `{backend.slug}`"]
-        # self.log(f"Value of field `{field}` before update: {value_before}")
-        # return self.log_messages
+        if returnOutput:
+            return "\n".join(self.log_messages) + "\n"

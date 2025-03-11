@@ -2,6 +2,7 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 from .models import *
 from backend.management.commands.warmup import Command as WarmupCommand
@@ -198,9 +199,9 @@ def examples(request, backend):
         return HttpResponse(examples_tsv, content_type="text/tab-separated-values")
 
 
-# Handle API request like https://qlever.cs.uni-freiburg.de/api/prefixes/wikidata
+# Handle API request to /api/prefixes/<backend-slug>
 def prefixes(request, backend):
-    print_to_log(f'Call of "prefixes" in views.py with backend = "{backend}"')
+    print_to_log(f'API call to `prefixes` with backend `{backend}`')
     command = PrefixesCommand()
     try:
         prefixes_text = command.handle(returnLog=True, slug=[backend])
@@ -208,23 +209,16 @@ def prefixes(request, backend):
         return HttpResponse("Error: " + str(e), status=500)
     return HttpResponse(prefixes_text, content_type="text/plain")
 
-# Handle API request like https://qlever.cs.uni-freiburg.de/api/config/...
+# Handle API request to /api/config/<backend-slug>
+@login_required
 def config(request, backend):
-    print_to_log("API call to `config` in `views.py`")
-    field = request.GET.get("field", None)
-    value = request.GET.get("value", None)
-    command = UpdateCommand()
-    is_authenticated = request.user.is_authenticated
-    if not is_authenticated:
-        return HttpResponseForbidden(
-                "You need to be authenticated for `config`\n",
-                content_type="text/plain")
-    result = command.handle(backend_slug=backend, field=field, value=value)
-    # result = (f"API call to `config` with the following parameters:\n"
-    #           f"backend = {backend}\nfield = {field}\nvalue = {value}\n"
-    #           f"Log from `config` command:\n"
-    #           f"{'\n'.join(log_messages)}\n")
-    return HttpResponse(f"{result}\n", content_type="text/plain")
+    print_to_log(f"API call to `config` with backend `{backend}`")
+    command = ConfigCommand()
+    try:
+        config_yaml = command.handle(backend_slug=backend, returnOutput=True)
+    except Exception as e:
+        return HttpResponse("Error: " + str(e), status=500)
+    return HttpResponse(config_yaml, content_type="text/yaml")
 
 # Helpers
 def print_to_log(msg, output=print):
