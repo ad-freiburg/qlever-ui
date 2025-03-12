@@ -2,11 +2,13 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 from .models import *
 from backend.management.commands.warmup import Command as WarmupCommand
 from backend.management.commands.examples import Command as ExamplesCommand
 from backend.management.commands.prefixes import Command as PrefixesCommand
+from backend.management.commands.config import Command as ConfigCommand
 
 import json
 import urllib
@@ -197,9 +199,9 @@ def examples(request, backend):
         return HttpResponse(examples_tsv, content_type="text/tab-separated-values")
 
 
-# Handle API request like https://qlever.cs.uni-freiburg.de/api/prefixes/wikidata
+# Handle API request to /api/prefixes/<backend-slug>
 def prefixes(request, backend):
-    print_to_log(f'Call of "prefixes" in views.py with backend = "{backend}"')
+    print_to_log(f'API call to `prefixes` with backend `{backend}`')
     command = PrefixesCommand()
     try:
         prefixes_text = command.handle(returnLog=True, slug=[backend])
@@ -207,6 +209,16 @@ def prefixes(request, backend):
         return HttpResponse("Error: " + str(e), status=500)
     return HttpResponse(prefixes_text, content_type="text/plain")
 
+# Handle API request to /api/config/<backend-slug>
+@login_required
+def config(request, backend):
+    print_to_log(f"API call to `config` with backend `{backend}`")
+    command = ConfigCommand()
+    try:
+        config_yaml = command.handle(backend_slug=backend, returnOutput=True)
+    except Exception as e:
+        return HttpResponse("Error: " + str(e), status=500)
+    return HttpResponse(config_yaml, content_type="text/yaml")
 
 # Helpers
 def print_to_log(msg, output=print):

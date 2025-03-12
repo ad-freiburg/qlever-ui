@@ -203,6 +203,8 @@ if not STATIC_VERSION:
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
+LOGIN_URL = "/admin/login/"
+
 try:
     from .settings_local import *
     print("Loaded settings_local.py")
