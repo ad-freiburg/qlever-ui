@@ -46,10 +46,12 @@ class Command(BaseCommand):
         #
         # NOTE: We replace all `\r\n` with `\n` because otherwise the `|` style
         # does not work as expected. The same goes for occurrences of `\t`.
+        # Furthermore we remove trailing whitespace from each line.
         class MultiLineDumper(yaml.Dumper):
             def represent_scalar(self, tag, value, style=None):
                 value = value.replace("\r\n", "\n")
                 value = value.replace("\t", "  ")
+                value = "\n".join(line.rstrip() for line in value.split("\n"))
                 if isinstance(value, str) and "\n" in value:
                     style = "|"
                 return super().represent_scalar(tag, value, style)
