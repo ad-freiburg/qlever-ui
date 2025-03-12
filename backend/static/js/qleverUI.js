@@ -628,14 +628,23 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     if (operationType === "Unknown" && Array.isArray(result["warnings"])) {
       result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
     }
-    if (result["warnings"].length > 0) { displayWarning(result); }
 
     switch (operationType) {
       case "Update":
+        // Collect warnings from all updates and display the unique ones.
+        const uniqueWarnings = [...new Set(result.map(result => result["warnings"]).flat())];
+        displayWarnings(uniqueWarnings);
+
+        const operationMetadata = result.map(result => result["delta-triples"].operation);
         $('#answerBlock, #infoBlock, #errorBlock').hide();
-        const inserted = result["delta-triples"].operation.inserted;
-        const deleted = result["delta-triples"].operation.deleted;
-        let updateMessage = `Update successful (insert triples: ${inserted}, delete triples: ${deleted})`;
+        const totalInserted = operationMetadata.reduce((acc, elem) => acc + elem.inserted, 0);
+        const totalDeleted = operationMetadata.reduce((acc, elem) => acc + elem.deleted, 0);
+        let updateMessage;
+        if (result.length > 1) {
+          updateMessage = `${result.length} updates successful (total insert triples: ${totalInserted}, total delete triples: ${totalDeleted})`;
+        } else {
+         updateMessage = `Update successful (insert triples: ${totalInserted}, delete triples: ${totalDeleted})`;
+        }
         $('#updateMetadata').html(updateMessage);
         $('#updatedBlock').show();
         $("html, body").animate({
@@ -643,7 +652,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         }, 500);
 
         // MAX_VALUE ensures this always has priority over the websocket updates
-        appendRuntimeInformation(result.runtimeInformation, result.update, result.time, {
+        appendRuntimeInformation(result.at(-1).runtimeInformation, result.at(-1).update, result.at(-1).time, {
           queryId,
           updateTimeStamp: Number.MAX_VALUE
         });
@@ -655,6 +664,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         // The operation type wasn't detected. It was most likely syntactically invalid and resulted in an error while parsing. Display the result anyway in case some valid queries were not identified.
       case "Unknown":
       case "Query":
+        // Display warnings.
+        displayWarnings(result["warnings"]);
 
         // Show some statistics (on top of the table).
         //

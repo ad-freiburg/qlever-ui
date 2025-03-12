@@ -805,13 +805,13 @@ function displayError(response, queryId = undefined) {
   }
 }
 
-function displayWarning(result) {
-  console.warn('QLever returned warnings while processing request', result);
+function displayWarnings(warnings) {
+  console.warn('QLever returned warnings while processing request', warnings);
 
-  disp = "<h3>Warnings:</h3><ul>";
-  $(result['warnings']).each((el) => {
-    disp += '<li>' + result['warnings'][el] + '</li>';
-  })
+  let disp = "<h3>Warnings:</h3><ul>";
+  warnings.forEach(warning => {
+    disp += '<li>' + warning + '</li>';
+  });
   $('#warningReason').html(disp + '</ul>');
   $('#warningBlock').show();
 }
