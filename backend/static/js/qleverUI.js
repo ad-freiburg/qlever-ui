@@ -617,7 +617,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   headers["Query-Id"] = queryId;
 
   try {
-    const result = await fetchQleverBackend(params, headers);
+    let result = await fetchQleverBackend(params, headers);
     
     log('Evaluating and displaying results...', 'other');
 
@@ -625,12 +625,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       displayError(result, queryId);
       return;
     }
-    if (operationType === "Unknown" && Array.isArray(result["warnings"])) {
-      result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
-    }
 
     switch (operationType) {
       case "Update":
+        if (!Array.isArray(result)) {
+          result = [result];
+        }
         // Collect warnings from all updates and display the unique ones.
         const uniqueWarnings = [...new Set(result.map(result => result["warnings"]).flat())];
         displayWarnings(uniqueWarnings);
@@ -663,6 +663,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         break
         // The operation type wasn't detected. It was most likely syntactically invalid and resulted in an error while parsing. Display the result anyway in case some valid queries were not identified.
       case "Unknown":
+        if (Array.isArray(result["warnings"])) {
+          result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
+        }
       case "Query":
         // Display warnings.
         displayWarnings(result["warnings"]);
