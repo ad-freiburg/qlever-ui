@@ -6,7 +6,7 @@ from django.contrib.sessions.models import Session
 from django.db import connection, transaction
 
 class Command(BaseCommand):
-    help = ("Usage: python manage.py cleaup <backends to keep>\n"
+    help = ("Usage: python manage.py cleanup <backends to keep>\n"
             "\n"
             "Removes all data from the sqlite3 database, except "
             "the core data needed by data and all data associated "
