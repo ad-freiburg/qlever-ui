@@ -93,10 +93,6 @@ th { color: #82B36F; white-space: nowrap; }
 	display: none;
 }
 
-#dynamicSuggestions {
-	margin-top: 10px;
-}
-
 @media (min-width: 990px) {
 	.d,
 	#help,
@@ -111,6 +107,17 @@ th { color: #82B36F; white-space: nowrap; }
 
 .pb-1 {
     padding-bottom: 1em;
+}
+
+.btn-group-flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+.btn-group-flex .btn {
+    flex: 1;
+}
+.btn-group-flex .btn-group {
+    flex: 1;
 }
 
 /**
