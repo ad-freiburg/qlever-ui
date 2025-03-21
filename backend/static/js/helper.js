@@ -808,7 +808,7 @@ function displayError(response, queryId = undefined) {
   }
 }
 
-function displayWarnings(warnings) {
+function displayWarningsIfPresent(warnings) {
   if (warnings.length === 0) {
     return;
   }

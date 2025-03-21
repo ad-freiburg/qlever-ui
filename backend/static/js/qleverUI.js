@@ -633,7 +633,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         }
         // Collect warnings from all updates and display the unique ones.
         const uniqueWarnings = [...new Set(result.map(result => result["warnings"]).flat())];
-        displayWarnings(uniqueWarnings);
+        displayWarningsIfPresent(uniqueWarnings);
 
         const operationMetadata = result.map(result => result["delta-triples"].operation);
         $('#answerBlock, #infoBlock, #errorBlock').hide();
@@ -675,7 +675,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         }
       case "Query":
         // Display warnings.
-        displayWarnings(result["warnings"]);
+        displayWarningsIfPresent(result["warnings"]);
 
         // Show some statistics (on top of the table).
         //
