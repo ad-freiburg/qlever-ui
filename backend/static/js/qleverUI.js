@@ -639,11 +639,11 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         $('#answerBlock, #infoBlock, #errorBlock').hide();
         const totalInserted = operationMetadata.reduce((acc, elem) => acc + elem.inserted, 0);
         const totalDeleted = operationMetadata.reduce((acc, elem) => acc + elem.deleted, 0);
-        let updateMessage;
+        let updateMessage = `Update successful (insert triples: ${totalInserted}, delete triples: ${totalDeleted}`;
         if (result.length > 1) {
-          updateMessage = `${result.length} updates successful (total insert triples: ${totalInserted}, total delete triples: ${totalDeleted})`;
+          updateMessage += `, aggregated from ${result.length} updates)`;
         } else {
-         updateMessage = `Update successful (insert triples: ${totalInserted}, delete triples: ${totalDeleted})`;
+          updateMessage += ")";
         }
         $('#updateMetadata').html(updateMessage);
         $('#updatedBlock').show();
@@ -652,10 +652,17 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         }, 500);
 
         // MAX_VALUE ensures this always has priority over the websocket updates
-        appendRuntimeInformation(result.at(-1).runtimeInformation, result.at(-1).update, result.at(-1).time, {
-          queryId,
-          updateTimeStamp: Number.MAX_VALUE
-        });
+        if (result.length > 0) {
+          appendRuntimeInformation(result.at(-1).runtimeInformation, result.at(-1).update, result.at(-1).time, {
+            queryId,
+            updateTimeStamp: Number.MAX_VALUE
+          });
+        } else {
+          appendRuntimeInformation({}, query, {}, {
+            queryId,
+            updateTimeStamp: Number.MAX_VALUE
+          }, true);
+        }
         renderRuntimeInformationToDom();
         // Reset any error state of the backend command buttons
         resetIndicator($("#btnClearDeltaTriples"));
@@ -896,8 +903,19 @@ function renderRuntimeInformationToDom(entry = undefined) {
   // Get the right entries from the runtime log.
   const {
     runtime_info,
-    query
+    query,
+    noop
   } = entry || Array.from(request_log.values()).pop();
+
+  // When the last operation was a noop, no runtime info is available.
+  if (noop) {
+    $("#result-query").text("");
+    $("#meta-info").text("");
+    const resultTree = $("#result-tree");
+    resultTree.text("No query analysis available, because the operation has no effect and was optimized out.");
+    resultTree.css("color", "green");
+    return;
+  }
 
   if (runtime_info["query_execution_tree"] === null) {
     $("#result-query").text("");
