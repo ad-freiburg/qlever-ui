@@ -5,7 +5,7 @@ class Command(BaseCommand):
     help = ("Usage: python manage.py configure <backend slug> <backend_url>\n"
             "\n"
             "Make the specified backend the default and set the specified URL."
-            "Mak all all other backends invisible (but they are still there "
+            "Make all all other backends invisible (but they are still there "
             "and can be edited at wish in the admin panel). ")
 
     # Copied from warmup.py, is this really needed?
