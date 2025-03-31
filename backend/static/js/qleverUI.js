@@ -617,7 +617,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   headers["Query-Id"] = queryId;
 
   try {
-    const result = await fetchQleverBackend(params, headers);
+    let result = await fetchQleverBackend(params, headers);
     
     log('Evaluating and displaying results...', 'other');
 
@@ -625,17 +625,26 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
       displayError(result, queryId);
       return;
     }
-    if (operationType === "Unknown" && Array.isArray(result["warnings"])) {
-      result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
-    }
-    if (result["warnings"].length > 0) { displayWarning(result); }
 
     switch (operationType) {
       case "Update":
+        if (!Array.isArray(result)) {
+          result = [result];
+        }
+        // Collect warnings from all updates and display the unique ones.
+        const uniqueWarnings = [...new Set(result.map(result => result["warnings"]).flat())];
+        displayWarningsIfPresent(uniqueWarnings);
+
+        const operationMetadata = result.map(result => result["delta-triples"].operation);
         $('#answerBlock, #infoBlock, #errorBlock').hide();
-        const inserted = result["delta-triples"].operation.inserted;
-        const deleted = result["delta-triples"].operation.deleted;
-        let updateMessage = `Update successful (insert triples: ${inserted}, delete triples: ${deleted})`;
+        const totalInserted = operationMetadata.reduce((acc, elem) => acc + elem.inserted, 0);
+        const totalDeleted = operationMetadata.reduce((acc, elem) => acc + elem.deleted, 0);
+        let updateMessage = `Update successful (insert triples: ${totalInserted}, delete triples: ${totalDeleted}`;
+        if (result.length > 1) {
+          updateMessage += `, aggregated from ${result.length} updates)`;
+        } else {
+          updateMessage += ")";
+        }
         $('#updateMetadata').html(updateMessage);
         $('#updatedBlock').show();
         $("html, body").animate({
@@ -643,10 +652,17 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         }, 500);
 
         // MAX_VALUE ensures this always has priority over the websocket updates
-        appendRuntimeInformation(result.runtimeInformation, result.update, result.time, {
-          queryId,
-          updateTimeStamp: Number.MAX_VALUE
-        });
+        if (result.length > 0) {
+          appendRuntimeInformation(result.at(-1).runtimeInformation, result.at(-1).update, result.at(-1).time, {
+            queryId,
+            updateTimeStamp: Number.MAX_VALUE
+          });
+        } else {
+          appendRuntimeInformation({}, query, {}, {
+            queryId,
+            updateTimeStamp: Number.MAX_VALUE
+          }, true);
+        }
         renderRuntimeInformationToDom();
         // Reset any error state of the backend command buttons
         resetIndicator($("#btnClearDeltaTriples"));
@@ -654,7 +670,12 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         break
         // The operation type wasn't detected. It was most likely syntactically invalid and resulted in an error while parsing. Display the result anyway in case some valid queries were not identified.
       case "Unknown":
+        if (Array.isArray(result["warnings"])) {
+          result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
+        }
       case "Query":
+        // Display warnings.
+        displayWarningsIfPresent(result["warnings"]);
 
         // Show some statistics (on top of the table).
         //
@@ -882,8 +903,19 @@ function renderRuntimeInformationToDom(entry = undefined) {
   // Get the right entries from the runtime log.
   const {
     runtime_info,
-    query
+    query,
+    isNoop
   } = entry || Array.from(request_log.values()).pop();
+
+  // When the last operation was a noop, no runtime info is available.
+  if (isNoop) {
+    $("#result-query").text("");
+    $("#meta-info").text("");
+    const resultTree = $("#result-tree");
+    resultTree.text("No query analysis available, because the operation has no effect and was optimized out");
+    resultTree.css("color", "green");
+    return;
+  }
 
   if (runtime_info["query_execution_tree"] === null) {
     $("#result-query").text("");
