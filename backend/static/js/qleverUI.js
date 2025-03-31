@@ -904,15 +904,15 @@ function renderRuntimeInformationToDom(entry = undefined) {
   const {
     runtime_info,
     query,
-    noop
+    isNoop
   } = entry || Array.from(request_log.values()).pop();
 
   // When the last operation was a noop, no runtime info is available.
-  if (noop) {
+  if (isNoop) {
     $("#result-query").text("");
     $("#meta-info").text("");
     const resultTree = $("#result-tree");
-    resultTree.text("No query analysis available, because the operation has no effect and was optimized out.");
+    resultTree.text("No query analysis available, because the operation has no effect and was optimized out");
     resultTree.css("color", "green");
     return;
   }

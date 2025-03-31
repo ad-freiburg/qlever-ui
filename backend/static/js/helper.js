@@ -96,7 +96,7 @@ async function fetchQleverBackend(params, additionalHeaders = {}) {
 //
 // NOTE: A click on "Analysis" will show the runtime information from the last
 // query. See runtimeInfoForTreant in qleverUI.js.
-function appendRuntimeInformation(runtime_info, query, time, queryUpdate, noop = false) {
+function appendRuntimeInformation(runtime_info, query, time, queryUpdate, isNoop = false) {
   // Backwards compatability hack in case the info on the execution tree is
   // not in a separate "query_execution_tree" element yet.
   if (runtime_info["query_execution_tree"] === undefined) {
@@ -122,7 +122,7 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate, noop =
       timeStamp: queryUpdate.updateTimeStamp,
       runtime_info: runtime_info,
       query: query,
-      noop: noop,
+      isNoop: isNoop,
     });
     if (request_log.size > 10) {
       // Note: `keys().next()` is the key that was inserted first.
