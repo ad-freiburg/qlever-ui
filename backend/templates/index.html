@@ -156,7 +156,7 @@
                   </table>
                 </div>
               </div>
-                <div class="col-lg-6 pb-1">
+                <div class="col-lg-4 pb-1">
                     <div class="btn-group btn-group-flex" role="group">
                         <!--
                          The run button. Note: min-width keeps the same width regardless
@@ -192,7 +192,20 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-lg-3 pb-1">
+                <div class="col-lg-4 col-sm-8 pb-1">
+                    <div class="btn-group btn-group-flex" role="group" id="backend_commands" style="visibility: hidden">
+                        <button type="button" id="btnClearDeltaTriples" class="btn btn-default"
+                                onclick="executeBackendCommand('clear-delta-triples', this)">
+                            <i class="glyphicon glyphicon-refresh"></i> Reset Updates
+                        </button>
+                        <button type="button" id="btnClearCacheComplete" class="btn btn-default"
+                                onclick="executeBackendCommand('clear-cache-complete', this)"><i
+                                class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-lg-offset-1 col-sm-4 pb-1">
                     <select class="form-control" id="dynamicSuggestions">
                         <option value="0" {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
                             1. Syntax & keywords only
@@ -209,20 +222,7 @@
                     </select>
                 </div>
 
-                <div class="col-sm-6 col-lg-3 pb-1">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="name_service"> Automatically add names to result
-                        </label>
-                    </div>
-                    <div class="checkbox" style="display: none">
-                        <label>
-                            <input type="checkbox" id="clear"> Clear the cache before every request
-                        </label>
-                    </div>
-                </div>
-
-                <div class="col-lg-6 pb-1">
+                <div class="col-lg-6 col-sm-8 pb-1">
                     <!-- The context setting buttons -->
                     <div class="btn-group btn-group-flex" role="group">
                         <button id="formatButton" class="btn btn-default">
@@ -278,16 +278,16 @@
                     </div>
                 </div>
 
-                <div class="col-lg-6">
-                    <div class="btn-group btn-group-flex" role="group" id="backend_commands" style="display: none">
-                        <button type="button" id="btnClearDeltaTriples" class="btn btn-default"
-                                onclick="executeBackendCommand('clear-delta-triples', this)">
-                            <i class="glyphicon glyphicon-refresh"></i> Reset Updates
-                        </button>
-                        <button type="button" id="btnClearCacheComplete" class="btn btn-default"
-                                onclick="executeBackendCommand('clear-cache-complete', this)"><i
-                                class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
-                        </button>
+                <div class="col-lg-3 col-lg-offset-3 col-sm-4 pb-1">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="name_service"> Automatically add names to result
+                        </label>
+                    </div>
+                    <div class="checkbox" style="display: none">
+                        <label>
+                            <input type="checkbox" id="clear"> Clear the cache before every request
+                        </label>
                     </div>
                 </div>
             </div>
