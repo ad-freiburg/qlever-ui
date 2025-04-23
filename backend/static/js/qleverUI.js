@@ -378,9 +378,9 @@ $(document).ready(function () {
 
   function updateBackendCommandVisibility() {
     if (accessToken.val().trim() === "") {
-      $("#backend_commands").css("visibility", "hidden");
+      $("#backend_commands").hide();
     } else {
-      $("#backend_commands").css("visibility", "");
+      $("#backend_commands").show();
     }
   }
 

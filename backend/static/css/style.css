@@ -106,7 +106,7 @@ th { color: #82B36F; white-space: nowrap; }
 }
 
 .pb-1 {
-    padding-bottom: 1em;
+    padding-bottom: 0.5em;
 }
 
 .btn-group-flex {
