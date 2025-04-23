@@ -93,18 +93,6 @@ th { color: #82B36F; white-space: nowrap; }
 	display: none;
 }
 
-.buttonFlex {
-  display: flex;
-  align-items: end;
-  flex-wrap: wrap;
-}
-
-.buttonFlex>button, .buttonFlex>.btn-group { margin-right: 5px; }
-
-#dynamicSuggestions {
-	margin-top: 10px;
-}
-
 @media (min-width: 990px) {
 	.d,
 	#help,
@@ -115,6 +103,21 @@ th { color: #82B36F; white-space: nowrap; }
 	#dynamicSuggestions {
 		margin-top: 0px;
 	}
+}
+
+.pb-1 {
+    padding-bottom: 0.5em;
+}
+
+.btn-group-flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+.btn-group-flex .btn {
+    flex: 1;
+}
+.btn-group-flex .btn-group {
+    flex: 1;
 }
 
 /**
