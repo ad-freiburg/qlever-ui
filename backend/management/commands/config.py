@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from backend.models import Backend
 from backend.models import Example
 import yaml
@@ -69,12 +69,15 @@ class Command(BaseCommand):
         backend = Backend.objects.filter(slug=backend_slug).get()
         backend_id = backend.id
 
-        # Get the `Backend` config for this backend.
+        # Get the `Backend` config for this backend. Do not include the `id`
+        # field, which we consider an internal implementation detail that
+        # should not be exposed to the user.
         backend_config = {}
         for field in Backend._meta.get_fields():
-            value = getattr(backend, field.name, None)
-            if value is not None:
-                backend_config[field.name] = str(value)
+            if field.name != "id":
+                value = getattr(backend, field.name, None)
+                if value is not None:
+                    backend_config[field.name] = str(value)
 
         # Get all `Example` queries for this backend.
         backend_examples = []
@@ -109,8 +112,9 @@ class Command(BaseCommand):
         except Exception as e:
             raise Exception(f"Error parsing YAML: {e}")
 
-        # Check that the `config_yaml` has a top-level `config` key, with
-        # exactly two keys: `backend` and `examples`.
+        # Check that the YAML has a top-level key `config` key, with child keys
+        # `backend` and `examples`, the values of which are a dictionary and a
+        # list.
         if "config" not in config:
             raise Exception("No `config` key found in YAML")
         if not isinstance(config["config"], dict):
@@ -126,14 +130,19 @@ class Command(BaseCommand):
         backend_config = config["config"]["backend"]
         backend_examples = config["config"]["examples"]
 
-        # Check that all the keys in `backend_config` are valid fields of the
-        # `Backend` model and that all the `backend_examples` are dictionaries
-        # with the fields `name`, `sort_key`, and `query`.
+        # Check that all keys in `backend_config` are valid fields of the
+        # `Backend` model and that `id` is not included (for the reasons
+        # explained for `get_backend_config` above). Check that all the
+        # `backend_examples` are dicts with the fields `name`, `sort_key`, and
+        # `query`.
         for key in backend_config:
             if not hasattr(backend, key):
                 raise Exception(
-                    f"Field `{key}` is not a valid field of the `Backend` model"
+                    f"The YAML contains a key `{key}` under `backend`, "
+                    f"but this is not a valid field of the `Backend` model"
                 )
+        if "id" in config["config"]["backend"]:
+            raise Exception("Key `id` must not be present in `backend`")
         for index, example in enumerate(config["config"]["examples"]):
             if not isinstance(example, dict):
                 raise Exception(f"Example #{index} is not a dictionary")
@@ -144,23 +153,14 @@ class Command(BaseCommand):
             if "query" not in example:
                 raise Exception(f"No `query` key found in example #{index}")
 
-        # Check that the `id` and `slug` of the backend match `backend_id` and
-        # `backend_slug`, respectively.
-        backend_config_id = backend_config.get("id", None)
+        # Check that the `slug` specified in the YAML file matches the slug
+        # with which this command was called.
         backend_config_slug = backend_config.get("slug", None)
-        try:
-            backend_config_id = int(backend_config_id)
-        except Exception:
-            raise Exception(f"Id `{backend_config_id}` is not an integer")
-        if backend_config_id != backend_id:
-            raise Exception(
-                f"Id {backend_config_id} from YAML does not match backend id "
-                f"{backend_id} obtained via slug `{backend_slug}`"
-            )
         if backend_config_slug != backend_slug:
             raise Exception(
-                f"Slug {backend_config_slug} from YAML does not match backend "
-                f"slug `{backend_slug}`"
+                f"This command was called for backend slug `{backend_slug}`, "
+                f"but the value for `slug` in the YAML file is "
+                f"`{backend_config_slug}`; the two slugs must match"
             )
 
         # Update the backend config.
@@ -189,8 +189,7 @@ class Command(BaseCommand):
         # Get the backend slug (required).
         backend_slug = options.get("backend_slug", None)
         if backend_slug is None:
-            self.log("ERROR: No backend slug provided")
-            return
+            raise CommandError("No backend slug provided")
 
         # Get the config file. If not provided, get the backend
         # config and print it as a YAML string.
@@ -212,8 +211,7 @@ class Command(BaseCommand):
             self.log(f"Setting backend config for `{backend_slug}`")
             self.set_backend_config(backend_slug, config_yaml)
         except Exception as e:
-            print(f"ERROR: {e}")
-            return
+            raise CommandError(e)
 
         # If `--hide-all-other-backends` is provided, hide all other
         # backends.
@@ -227,7 +225,7 @@ class Command(BaseCommand):
                     f"(sort key set to 0)"
                 )
             except Exception as e:
-                self.log(f"ERROR: {e}")
+                raise CommandError(f"Error hiding all other backends: {e}")
 
         if returnOutput:
             return "\n".join(self.log_messages) + "\n"
