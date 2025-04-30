@@ -893,6 +893,8 @@ function showQueryPlanningTree(entry = undefined) {
   renderRuntimeInformationToDom(entry);
 }
 
+let currentTree = null;
+
 // Uses the information inside of request_log
 // to populate the DOM with the current runtime information.
 function renderRuntimeInformationToDom(entry = undefined) {
@@ -958,7 +960,11 @@ function renderRuntimeInformationToDom(entry = undefined) {
   // Draw the (new) tree, but retain the scrollbar position.
   const scrollTop = $("#visualisation").scrollTop();
   const scrollLeft = $("#result-tree").scrollLeft();
-  new Treant(treant_tree);
+  // Make sure that we are not leaking memory
+  if (currentTree !== null) {
+    currentTree.destroy();
+  }
+  currentTree = new Treant(treant_tree);
   $("#visualisation").scrollTop(scrollTop);
   $("#result-tree").scrollLeft(scrollLeft);
 
