@@ -66,7 +66,13 @@ class Command(BaseCommand):
     # Get backend config and examples for the given `backend_slug`. Return the
     # result as a nicely formatted YAML string.
     def get_backend_config(self, backend_slug):
-        backend = Backend.objects.filter(slug=backend_slug).get()
+        try:
+            backend = Backend.objects.get(slug=backend_slug)
+        except Backend.DoesNotExist:
+            raise CommandError(f"Backend `{backend_slug}` does not exist")
+        except Backend.MultipleObjectsReturned:
+            # TODO: once the slug is unique this case shouldn't occur anymore
+            raise CommandError(f"Backend identifier `{backend_slug}` is not unique")
         backend_id = backend.id
 
         # Get the `Backend` config for this backend. Do not include the `id`
