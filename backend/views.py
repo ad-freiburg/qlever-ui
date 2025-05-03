@@ -2,7 +2,7 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 
 from .models import *
 from backend.management.commands.warmup import Command as WarmupCommand
@@ -185,12 +185,15 @@ def warmup(request, backend, target):
 # Handle API request like https://qlever.cs.uni-freiburg.de/api/examples/wikidata
 def examples(request, backend):
     output_format = request.GET.get("format", "tsv")
-    print_to_log(f"Call of `examples` in `views.py` with backend={backend}"
-                 f" and output_format={output_format}")
+    print_to_log(
+        f"Call of `examples` in `views.py` with backend={backend}"
+        f" and output_format={output_format}"
+    )
     command = ExamplesCommand()
     try:
-        examples_tsv = command.handle(returnLog=True, slug=[backend],
-                                      output_format=output_format)
+        examples_tsv = command.handle(
+            returnLog=True, slug=[backend], output_format=output_format
+        )
     except Exception as e:
         return HttpResponse("Error: " + str(e), status=500)
     if output_format == "yaml":
@@ -201,7 +204,7 @@ def examples(request, backend):
 
 # Handle API request to /api/prefixes/<backend-slug>
 def prefixes(request, backend):
-    print_to_log(f'API call to `prefixes` with backend `{backend}`')
+    print_to_log(f"API call to `prefixes` with backend `{backend}`")
     command = PrefixesCommand()
     try:
         prefixes_text = command.handle(returnLog=True, slug=[backend])
@@ -209,8 +212,15 @@ def prefixes(request, backend):
         return HttpResponse("Error: " + str(e), status=500)
     return HttpResponse(prefixes_text, content_type="text/plain")
 
+
 # Handle API request to /api/config/<backend-slug>
-@login_required
+#
+# NOTE: This used to require a login, but none of the information in the config
+# is really secret + it is practical for users who want to set up their own
+# instance of the QLever UI to be able to easily access the config of existing
+# instances of the QLever UI.
+#
+# @login_required
 def config(request, backend):
     print_to_log(f"API call to `config` with backend `{backend}`")
     command = ConfigCommand()
@@ -219,6 +229,7 @@ def config(request, backend):
     except Exception as e:
         return HttpResponse("Error: " + str(e), status=500)
     return HttpResponse(config_yaml, content_type="text/yaml")
+
 
 # Helpers
 def print_to_log(msg, output=print):
