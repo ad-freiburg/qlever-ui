@@ -1,18 +1,32 @@
-import init, { format_raw, determine_operation_type } from 'qlue-ls';
-import wasmModule from 'qlue-ls/qlue_ls_bg.wasm'
+// QLUE-LS
+import init1, { format_raw, determine_operation_type } from 'qlue-ls';
+import wasmModule1 from 'qlue-ls/qlue_ls_bg.wasm'
 
-console.info("Loading WebAssembly module...")
-wasmModule().then((mod) => {
-	console.info("Initializing WebAssembly module...")
-	init(mod).then(() => console.log("WebAssembly module ready!"))
+wasmModule1().then((mod) => {
+  console.debug("Initializing WebAssembly module...")
+  init1({"module_or_path": mod})
 });
 
 function format(text) {
-	return format_raw(text);
+  return format_raw(text);
 }
 
 function determineOperationType(text) {
-	return determine_operation_type(text);
+  return determine_operation_type(text);
 }
 
-export { format, determineOperationType }
+
+// LL-SPARQL-PARSER
+import init2, { get_parse_tree } from 'll-sparql-parser';
+import wasmModule2 from 'll-sparql-parser/ll_sparql_parser_bg.wasm'
+
+wasmModule2().then((mod) => {
+  console.debug("Initializing WebAssembly module...")
+  init2({"module_or_path": mod})
+});
+
+function parse(text) {
+  return get_parse_tree(text);
+}
+
+export { format, determineOperationType, parse };
