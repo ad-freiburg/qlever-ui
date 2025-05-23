@@ -224,6 +224,9 @@ $(document).ready(function () {
   // Attach format funtion to formatButton.
   const formatButton = $("#formatButton");
   formatButton.click(function() {
+    console.log("Formatting query");
+    const parseTree = parse(editor.getValue());
+    console.log("Parse tree: ", parseTree);
     editor.setValue(format(editor.getValue()));
   })
 
