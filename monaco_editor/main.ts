@@ -6,7 +6,7 @@ import { MonacoEditorLanguageClientWrapper } from 'monaco-editor-wrapper';
 
 async function setup() {
 	const wrapper = new MonacoEditorLanguageClientWrapper();
-	const wrapperConfig = await buildWrapperConfig(document.getElementById('editor')!, "Hello World!");
+	const wrapperConfig = await buildWrapperConfig(document.getElementById('editor')!, "");
 	await wrapper.initAndStart(wrapperConfig);
 }
 
