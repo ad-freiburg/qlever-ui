@@ -32,7 +32,7 @@ export async function buildWrapperConfig(container: HTMLElement, initial: string
   const wrapperConfig: WrapperConfig = {
     $type: 'extended',
     htmlContainer: container,
-    logLevel: LogLevel.Debug,
+    logLevel: LogLevel.Info,
     languageClientConfigs: {
       configs: {
         sparql: {
