@@ -15,7 +15,7 @@
   "dependencies": {
     "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@17.1.2",
     "monaco-editor-wrapper": "~6.8.0",
-    "qlue-ls": "^0.7.1",
+    "qlue-ls": "^0.7.2",
     "vite-plugin-wasm": "^3.4.1"
   }
 }
