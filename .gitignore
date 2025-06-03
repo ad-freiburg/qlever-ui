@@ -7,7 +7,6 @@ django.log
 venv
 db/qleverui.sqlite3
 db/qleverui.sqlite3.BACKUP*
-backend/static/js/qleverUI.js
 .DS_Store
 staticfiles
 node_modules/

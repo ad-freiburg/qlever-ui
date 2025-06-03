@@ -14,6 +14,10 @@
   <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}">
   <link rel="stylesheet" type="text/css" href="{% static "css/codemirror.css" %}">
 
+  <!-- monaco editor + language client + language server -->
+  <script type="module" crossorigin src="{% static '/editor/editor.js' %}" defer> </script>
+  <link rel="stylesheet" crossorigin href="{% static "/editor/editor.css" %}">
+
   <!-- The basic jQuery library & jQuery UI library -->
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -72,29 +76,12 @@
   <!-- Bootstraps JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-  <!-- WASM formatter -->
-  <script type="module">
-    import { format, determineOperationType } from "{% static '/wasm/formatter/index.js' %}";
-    window.format = format;
-    window.determineOperationType = determineOperationType;
-  </script>
-
   <!-- Our own JavaScript code for this demo -->
   <script src="{% static "js/helper.js" %}"></script>
   <script src="{% static "js/raphael.js" %}"></script>
   <script src="{% static "js/treant.js" %}"></script>
   <script src="{% static "js/qleverUI.js" %}"></script>
   <script src="{% static "js/keywordSearch.js" %}" defer></script>
-
-  <!-- CodeMirror and it's modules and language mode -->
-  <script src="{% static "js/codemirror/codemirror.js" %}"></script>
-  <script src="{% static "js/codemirror/modules/autocomplete.js" %}"></script>
-  <script src="{% static "js/codemirror/modules/active-line.js" %}"></script>
-  <script src="{% static "js/codemirror/modules/show-hint.js" %}"></script>
-  <script src="{% static "js/codemirror/modules/search.js" %}"></script>
-
-  <script src="{% static "js/codemirror/modes/sparql/sparql.js" %}"></script>
-  <script src="{% static "js/codemirror/modes/sparql/sparql-hint.js" %}"></script>
 
   {% if request.GET.test %}
     <!-- Jasemine JS Testing Framework -->
