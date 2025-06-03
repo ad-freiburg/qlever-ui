@@ -175,8 +175,8 @@
                                     </div>
                                     <li class="divider"></li>
                                     {% for example in examples %}
-                                        <li>
-                                            <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);editor.focus()">
+                                      <li class="queryExample" value="{{example.query}}">
+                                            <a>
                                                 {% if request.user.is_authenticated %}
                                                     <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"
                                                           style="float: right;">
