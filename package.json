@@ -1,18 +1,21 @@
 {
-  "name": "qlever-ui",
-  "version": "1.0.0",
+  "name": "monaco_editor",
+  "module": "monaco_editor/main.ts",
   "type": "module",
   "scripts": {
-    "build": "rollup -c"
+    "build": "vite build",
+    "dev": "vite build --watch"
   },
   "keywords": [],
-  "author": "",
   "description": "",
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  },
   "dependencies": {
-    "@rollup/plugin-commonjs": "^28.0.1",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-wasm": "^6.2.2",
-    "qlue-ls": "npm:qlue-ls-web@~0.5.3",
-    "rollup": "^4.26.0"
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@17.1.2",
+    "monaco-editor-wrapper": "~6.8.0",
+    "qlue-ls": "^0.7.1",
+    "vite-plugin-wasm": "^3.4.1"
   }
 }

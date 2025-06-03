@@ -108,54 +108,10 @@
               </div>
             </div>
           </div>
-          
           <!-- The query block -->
           <div class="well" id="queryBlock">
             <div class="row">
-              <div id="editorArea" class="col-md-12">
-                <!-- The main editor (code mirror textarea) -->
-                <textarea id="query" class="form-control" placeholder="Start by typing SELECT or PREFIX ...">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
-              </div>
-              <div class="col-md-4" id="help" style="display:none;">
-                <div id="uiHelp">  
-                  <!-- The UI help box -->
-                  <h4 style="margin-top: 0px;">QLever UI Shortcuts:</h4>
-                  <table class="table" style="margin-bottom: 9px;">
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
-                      <td><em>Send query to backend</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>tab</kbd></td>
-                      <td><em>Jump to the next placeholder</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
-                      <td><em>Invoke auto suggestions</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
-                      <td><em>Move through suggestions</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd onclick="$()">enter</kbd></td>
-                      <td><em>Choose the selected suggestion</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>esc</kbd></td>
-                      <td><em>Close suggestion window</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>f</kbd></td>
-                      <td><em>Search in editor (supports RegEx)</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>r</kbd></td>
-                      <td><em>Search and replace in editor</em></td>
-                    </tr>
-                  </table>
-                </div>
-              </div>
+                <div id="editor"> </div>
                 <div class="col-lg-9 col-xs-12">
                     <div class="row">
 
