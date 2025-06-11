@@ -1,4 +1,5 @@
 import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
+import { IdentifyOperationTypeResult, OperationType } from "../types/lsp_messages";
 
 declare const NO_SLUG_MODE: boolean;
 declare function processQuery(query: string, operationType: string, sendLimit: number, element: HTMLElement): Promise<void>;
@@ -7,12 +8,10 @@ declare function cancelActiveQuery(): boolean;
 // 1. Call processQuery (sends query to backend + displays results).
 // 2. Add query hash to URL.
 export async function executeQuery(wrapper: MonacoEditorLanguageClientWrapper) {
-        log("Start processing", "other");
         const executeButton = document.getElementById("exebtn")!;
         const buttonText = document.querySelector("#exebtn span")!;
         const query = wrapper.getEditor()!.getValue();
-        const operationType = (await wrapper.getLanguageClient("sparql")!
-                .sendRequest("qlueLs/identifyOperationType", { textDocument: { uri: wrapper.getEditor()?.getModel()?.uri.toString() } })).operationType
+        const operationType = await getOperationType(wrapper);
         if (cancelActiveQuery()) {
                 executeButton.toggleAttribute("disabled")
                 buttonText.textContent = "Cancelling";
@@ -20,10 +19,7 @@ export async function executeQuery(wrapper: MonacoEditorLanguageClientWrapper) {
         } else {
                 buttonText.textContent = "Cancel";
         }
-        log("Start processing", "other");
 
-
-        // document.getElementById("#suggestionErrorBlock")!.parentElement()!.hide();
 
         // Add query hash to URL (we need Django for this, hence the POST request),
         // unless this is a URL with ?query=...
@@ -36,7 +32,6 @@ export async function executeQuery(wrapper: MonacoEditorLanguageClientWrapper) {
                 });
                 if (response.ok) {
                         const result = await response.json();
-                        log("Got pretty link from backend", "other");
                         if (!window.location.search.includes(result.queryString)) {
                                 const path = NO_SLUG_MODE
                                         ? ""
@@ -54,7 +49,17 @@ export async function executeQuery(wrapper: MonacoEditorLanguageClientWrapper) {
                                 buttonText.textContent = "Execute";
                         }),
                 acquireShareLink()
-        ]).catch(error => log(error.message, 'requests'));
+        ]).catch(error => console.error(error.message, 'requests'));
 
         executeButton.focus();
+}
+
+async function getOperationType(wrapper: MonacoEditorLanguageClientWrapper): Promise<OperationType> {
+        const params = {
+                textDocument: { uri: wrapper.getEditor()?.getModel()?.uri.toString() }
+        };
+        return wrapper.getLanguageClient("sparql")!.sendRequest("qlueLs/identifyOperationType", params).then((result) => {
+                const typedResult = result as IdentifyOperationTypeResult;
+                return typedResult.operationType;
+        });
 }
