@@ -5,7 +5,7 @@
 // └─────────────────────────────────┘ \\
 
 import { init } from "./monaco_editor/editor.ts"
-import { setup_buttons } from "./qleverUI.ts";
+import { setup_buttons } from "./buttons.ts";
 
 init("editor").then((wrapper) => {
 	setup_buttons(wrapper);

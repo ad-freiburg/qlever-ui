@@ -5,7 +5,7 @@ export default defineConfig({
 	base: "/static/editor/",
 	build: {
 		rollupOptions: {
-			input: 'monaco_editor/main.ts',
+			input: 'qlever_ui/main.ts',
 			output: {
 				entryFileNames: 'editor.js'
 			},

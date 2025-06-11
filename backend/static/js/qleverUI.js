@@ -85,59 +85,6 @@ function initialize() {
     return true;
   }
 
-  // When clicking "Execute", do the following:
-  //
-  // 1. Call processQuery (sends query to backend + displays results).
-  // 2. Add query hash to URL.
-  //
-  const exeButton = $("#exebtn");
-  exeButton.click(function() {
-    const buttonText = $("#exebtn > span");
-    if (cancelActiveQuery()) {
-      exeButton.prop("disabled", true);
-      buttonText.text("Cancelling");
-      return;
-    } else {
-      buttonText.text("Cancel");
-    }
-    log("Start processing", "other");
-    $("#suggestionErrorBlock").parent().hide();
-
-    // Add query hash to URL (we need Django for this, hence the POST request),
-    // unless this is a URL with ?query=...
-    const acquireShareLink = async () => {
-      const response = await fetch("/api/share", {
-        method: "POST",
-        body: new URLSearchParams({
-          "content": editor.getValue()
-        })
-      });
-      if (response.ok) {
-        const result = await response.json();
-        log("Got pretty link from backend", "other");
-        if (!window.location.search.includes(result.queryString)) {
-          const path = NO_SLUG_MODE
-            ? ""
-            : window.location.pathname.split("/").slice(0, 2).join("/");
-          window.history.pushState(window.history.state, "", `${path}/${result.link}`);
-        }
-      }
-    };
-
-    // Run the query and fetch the share link concurrently
-    Promise.all([
-      processQuery(parseInt($("#maxSendOnFirstRequest").html()))
-        .finally(() => {
-          exeButton.prop("disabled", false);
-          buttonText.text("Execute");
-        }),
-      acquireShareLink()
-    ]).catch(error => log(error.message, 'requests'));
-
-    if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    exeButton.focus();
-  });
-
   // CSV download (create link element, click on it, and remove the #csv from
   // the URL, which is added by clicking; see index.html).
   $("#csvbtn").click(async function() {
@@ -422,7 +369,7 @@ async function executeBackendCommand(command, element) {
 }
 
 // Process the given query.
-async function processQuery(sendLimit = 0, element = $("#exebtn")) {
+async function processQuery(original_query, operationType, sendLimit = 0, element = $("#exebtn")) {
   log('Preparing query...', 'other');
   log('Element: ' + element, 'other');
   if (sendLimit >= 0) { displayStatus("Waiting for response..."); }
@@ -432,11 +379,8 @@ async function processQuery(sendLimit = 0, element = $("#exebtn")) {
 
   let params = {};
   let headers = {};
-  let operationType;
   console.assert(sendLimit >= 0);
-  var original_query = editor.getValue();
   var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
-  operationType = determineOperationType(query);
   console.log(`Determined operation type: ${operationType}`);
   switch (operationType) {
     // If we don't know the operation type, we assume it's a query.

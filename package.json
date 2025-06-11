@@ -1,6 +1,6 @@
 {
-  "name": "monaco_editor",
-  "module": "monaco_editor/main.ts",
+  "name": "qlever_ui",
+  "module": "qlever_ui/main.ts",
   "type": "module",
   "scripts": {
     "build": "vite build",
