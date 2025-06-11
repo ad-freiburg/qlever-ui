@@ -4,7 +4,7 @@
 // │ Licensed under the MIT license. │ \\
 // └─────────────────────────────────┘ \\
 
-import languageServerWorkerUrl from "../languageServer.worker?worker&url";
+import languageServerWorkerUrl from "./languageServer.worker?worker&url";
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import { configureDefaultWorkerFactory } from 'monaco-editor-wrapper/workers/workerLoaders';
 import sparqlTextmateGrammar from './sparql.tmLanguage.json?raw';

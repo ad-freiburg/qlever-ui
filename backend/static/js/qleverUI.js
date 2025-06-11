@@ -28,14 +28,11 @@ function getWebSocketUrl(queryId) {
 }
 
 
-// $(document).ready(initialize)
+$(document).ready(initialize);
 function initialize() {
 
   // Load the backends statistics.
   handleStatsDisplay();
-
-  // Initialization done.
-  log('Editor initialized', 'other');
 
   function showRealName(element) {
 

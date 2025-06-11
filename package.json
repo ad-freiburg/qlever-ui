@@ -1,6 +1,7 @@
 {
   "name": "qlever_ui",
   "module": "qlever_ui/main.ts",
+  "author": "Ioannis Nezis<ioannis@nezis.de",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -11,7 +12,8 @@
   "devDependencies": {
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
-    "vite-plugin-wasm": "^3.4.1"
+    "vite-plugin-wasm": "^3.4.1",
+    "yaml": "^2.8.0"
   },
   "dependencies": {
     "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@17.1.2",

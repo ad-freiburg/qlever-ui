@@ -10,6 +10,7 @@ import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import { buildWrapperConfig } from './config/config';
 import { MonacoEditorLanguageClientWrapper } from 'monaco-editor-wrapper';
 import { setup_key_bindings } from './keys';
+import { setup_commands } from './commands';
 
 export async function init(container_id: string): Promise<MonacoEditorLanguageClientWrapper> {
 	const editorContainer = document.getElementById(container_id);
@@ -18,6 +19,7 @@ export async function init(container_id: string): Promise<MonacoEditorLanguageCl
 		const wrapperConfig = await buildWrapperConfig(editorContainer, "");
 		await wrapper.initAndStart(wrapperConfig);
 		setup_key_bindings(wrapper);
+		setup_commands(wrapper);
 		return wrapper;
 	} else {
 		throw new Error(`No element with id: "${container_id}" found`);
