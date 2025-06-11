@@ -2,6 +2,7 @@
 *.tmp
 *.swp
 backend/static/admin/
+backend/static/editor/
 django.log
 .vscode
 venv
