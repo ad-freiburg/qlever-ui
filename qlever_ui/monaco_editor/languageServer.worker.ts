@@ -1,3 +1,9 @@
+// ┌────────────────────────────────────────────────────────────────────┐ \\
+// │ Copyright © 2025 Ioannis Nezis                                     │ \\
+// ├────────────────────────────────────────────────────────────────────┤ \\
+// │ Licensed under the MIT (http://raphaeljs.com/license.html) license.│ \\
+// └────────────────────────────────────────────────────────────────────┘ \\
+
 import init, { init_language_server, listen } from 'qlue-ls?init';
 
 init().then(() => {
