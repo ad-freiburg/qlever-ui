@@ -60,8 +60,6 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
 }
 
 function initialize_ui(settings: Settings) {
-  console.log(settings);
-
   // NOTE: format settings
   setBoolValue("alignPrefixes", settings.format.alignPredicates);
   setBoolValue("alignPredicates", settings.format.alignPredicates);
