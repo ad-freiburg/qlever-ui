@@ -51,7 +51,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
   document.getElementById("resetSettings")!.addEventListener("click", () => {
     languageClient.sendRequest("qlueLs/defaultSettings").then((response) => {
       const settings = response as Settings;
-      initialize_ui(settings);
+      initialize_ui(response as Settings);
       languageClient.sendNotification("qlueLs/changeSettings", settings).then(() => {
         localStorage.setItem("Qlue-ls settings", JSON.stringify(settings));
       });
@@ -60,30 +60,43 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
 }
 
 function initialize_ui(settings: Settings) {
+  console.log(settings);
+
   // NOTE: format settings
-  document.getElementById("alignPrefixes")?.toggleAttribute("checked", settings.format.alignPrefixes);
-  document.getElementById("alignPredicates")?.toggleAttribute("checked", settings.format.alignPredicates);
-  document.getElementById("separatePrologue")?.toggleAttribute("checked", settings.format.separatePrologue);
-  document.getElementById("capitalizeKeywords")?.toggleAttribute("checked", settings.format.capitalizeKeywords);
-  document.getElementById("insertSpaces")?.toggleAttribute("checked", settings.format.insertSpaces);
-  document.getElementById("tabSize")?.setAttribute("value", settings.format.tabSize.toString());
-  document.getElementById("whereNewLine")?.toggleAttribute("checked", settings.format.whereNewLine);
-  document.getElementById("filterSameLine")?.toggleAttribute("checked", settings.format.filterSameLine);
+  setBoolValue("alignPrefixes", settings.format.alignPredicates);
+  setBoolValue("alignPredicates", settings.format.alignPredicates);
+  setBoolValue("separatePrologue", settings.format.separatePrologue);
+  setBoolValue("capitalizeKeywords", settings.format.capitalizeKeywords);
+  setBoolValue("insertSpaces", settings.format.insertSpaces);
+  setNumValue("tabSize", settings.format.tabSize);
+  setBoolValue("whereNewLine", settings.format.whereNewLine);
+  setBoolValue("filterSameLine", settings.format.filterSameLine);
 
   // NOTE: completion settings
-  document.getElementById("timeoutMs")?.setAttribute("value", settings.completion.timeoutMs.toString());
-  document.getElementById("resultSizeLimit")?.setAttribute("value", settings.completion.resultSizeLimit.toString());
+  setNumValue("timeoutMs", settings.completion.timeoutMs);
+  setNumValue("resultSizeLimit", settings.completion.resultSizeLimit);
 
   // NOTE: prefix settings
-  document.getElementById("addMissing")?.toggleAttribute("checked", settings.prefixes.addMissing);
-  document.getElementById("removeUnused")?.toggleAttribute("checked", settings.prefixes.removeUnused);
+  setBoolValue("addMissing", settings.prefixes.addMissing);
+  setBoolValue("removeUnused", settings.prefixes.removeUnused);
 }
 
+
+function setBoolValue(id: string, value: boolean) {
+  const checkbox = document.getElementById(id) as HTMLInputElement;
+  return checkbox.checked = value;
+}
+
+function setNumValue(id: string, value: number) {
+  const checkbox = document.getElementById(id) as HTMLInputElement;
+  return checkbox.valueAsNumber = value;
+}
 
 function getBoolValue(id: string): boolean {
   const checkbox = document.getElementById(id) as HTMLInputElement;
   return checkbox.checked;
 }
+
 function getNumValue(id: string): number {
   const input = document.getElementById(id) as HTMLInputElement;
   const value = input.valueAsNumber;
