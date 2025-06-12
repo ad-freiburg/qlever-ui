@@ -11,6 +11,7 @@ import { buildWrapperConfig } from './config/config';
 import { MonacoEditorLanguageClientWrapper } from 'monaco-editor-wrapper';
 import { setup_key_bindings } from './keys';
 import { setup_commands } from './commands';
+import { setup_settings } from './settings';
 
 export async function init(container_id: string): Promise<MonacoEditorLanguageClientWrapper> {
 	const editorContainer = document.getElementById(container_id);
@@ -20,6 +21,7 @@ export async function init(container_id: string): Promise<MonacoEditorLanguageCl
 		await wrapper.initAndStart(wrapperConfig);
 		setup_key_bindings(wrapper);
 		setup_commands(wrapper);
+		setup_settings(wrapper);
 		return wrapper;
 	} else {
 		throw new Error(`No element with id: "${container_id}" found`);

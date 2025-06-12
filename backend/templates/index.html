@@ -18,14 +18,14 @@
           <!-- The theme / help block -->
           <div class="pull-right">
               <div class="btn-group" role="group" >
-                  <button onclick="$('#stats').slideToggle();$('#bStats').hide();" class="btn btn-default" id="statsButton">
+                  <button onclick="$('#stats').slideToggle();$('#bStats').hide();$('#settings').hide();" class="btn btn-default" id="statsButton">
                       <i class="glyphicon glyphicon-stats"></i> <span class="d">Loading information...</span>
                   </button>
-                  <button onclick="$('#bStats').slideToggle();$('#stats').hide();" class="btn btn-default">
-                      <i class="glyphicon glyphicon-cog"></i> <span class="d">Backend Information</span>
+                  <button onclick="$('#bStats').slideToggle();$('#stats').hide();$('#settings').hide();" class="btn btn-default">
+                      <i class="glyphicon glyphicon-info-sign"></i> <span class="d">Backend Information</span>
                   </button>
-                  <button class="btn btn-default" onclick="expandEditor();" id="helpButton">
-                      <i class="glyphicon glyphicon-question-sign"></i> <span class="d">Shortcuts / Help</span>
+                  <button onclick="$('#settings').slideToggle();$('#stats').hide();$('#bStats').hide();"  class="btn btn-default" >
+                      <i class="glyphicon glyphicon-cog"></i> <span class="d">Editor Settings</span>
                   </button>
               </div>
           </div>
@@ -88,6 +88,102 @@
                   <tr><th><strong>Supported Keywords:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedKeywords }}</code></b></div></td></tr>
                   <tr><th><strong>Supported Functions:</strong></th><td><div style="margin-left: 20px;"><b><small><code>{{ backend.supportedFunctions }}</code></b></div></td></tr>
                 </table>
+              </div>
+            </div>
+          </div>
+          <div id="settings" class="well" style="display: none;">
+            <br>
+            <div class="row">
+              <div class="col-md-6">
+                <h3>Format settings</h3>
+                <br>
+                <table class="table">
+                    <tr><th>Align prefixes</th><td>
+                        <label class="switch">
+                          <input id="alignPrefixes" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Align predicates</th><td>
+                        <label class="switch">
+                          <input id="alignPredicates" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Seperate Prolouge</th><td>
+                        <label class="switch">
+                          <input id="separateProlouge" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Capitalize keywords</th><td>
+                        <label class="switch">
+                          <input id="capitalizeKeywords" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Insert spaces</th><td>
+                        <label class="switch">
+                          <input id="insertSpaces" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Tab size</th><td>
+                        <input id="tabSize" type="number" name="tabSize" min="1" max="10" > 
+                    </td></tr>
+                    <tr><th>Linebreak after WHERE</th><td>
+                        <label class="switch">
+                          <input id="whereNewLine" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Trailing Filter</th><td>
+                        <label class="switch">
+                          <input id="filterSameLine" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                </table>
+              </div>
+              <div class="col-md-6" style="word-break: break-all;">
+                <h3>Completion settings</h3>
+                <br>
+                <table class="table">
+                    <tr><th>Query timeout (ms)</th><td>
+                        <input id="timeoutMs" type="number" name="timeout" min="0" max="60000" value="5000"> 
+                    </td></tr>
+                    <tr><th>Result size</th><td>
+                        <input id="resultSizeLimit" type="number" name="resultSize" min="0" max="1000" value="100"> 
+                    </td></tr>
+                </table>
+                <h3>Prefixes management</h3>
+                <br>
+                <table class="table">
+                    <tr><th>Add missing</th><td>
+                        <label class="switch">
+                          <input id="addMissing" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Remove unused</th><td>
+                        <label class="switch">
+                          <input id="removeUnused" type="checkbox">
+                          <span class="slider round"></span>
+                        </label>
+                    </td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-10"></div>
+              <div class="col-sm-2">
+                <div class="row">
+                  <div class="btn-group btn-group-flex" role="group">
+                    <button id="resetSettings" class="btn">
+                      Reset
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
