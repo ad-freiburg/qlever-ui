@@ -50,7 +50,6 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
   // NOTE: reset settings
   document.getElementById("resetSettings")!.addEventListener("click", () => {
     languageClient.sendRequest("qlueLs/defaultSettings").then((response) => {
-      console.log(response);
       const settings = response as Settings;
       initialize_ui(settings);
       languageClient.sendNotification("qlueLs/changeSettings", settings).then(() => {
@@ -61,8 +60,6 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
 }
 
 function initialize_ui(settings: Settings) {
-  console.log(settings);
-
   // NOTE: format settings
   document.getElementById("alignPrefixes")?.toggleAttribute("checked", settings.format.alignPrefixes);
   document.getElementById("alignPredicates")?.toggleAttribute("checked", settings.format.alignPredicates);
