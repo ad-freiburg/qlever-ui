@@ -17,7 +17,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
   };
 
   // NOTE:change settings on ui changes
-  const ids = ["alignPrefixes", "alignPredicates", "separateProlouge", "capitalizeKeywords", "insertSpaces", "tabSize", "whereNewLine", "filterSameLine", "timeoutMs", "resultSizeLimit", "addMissing", "removeUnused"];
+  const ids = ["alignPrefixes", "alignPredicates", "separatePrologue", "capitalizeKeywords", "insertSpaces", "tabSize", "whereNewLine", "filterSameLine", "timeoutMs", "resultSizeLimit", "addMissing", "removeUnused"];
   ids.forEach((id) => {
     document.getElementById(id)!.addEventListener("change", () => {
 
@@ -28,7 +28,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
           capitalizeKeywords: getBoolValue("capitalizeKeywords"),
           filterSameLine: getBoolValue("filterSameLine"),
           insertSpaces: getBoolValue("insertSpaces"),
-          separateProlouge: getBoolValue("separateProlouge"),
+          separatePrologue: getBoolValue("separatePrologue"),
           tabSize: getNumValue("tabSize"),
           whereNewLine: getBoolValue("whereNewLine"),
         },
@@ -63,7 +63,7 @@ function initialize_ui(settings: Settings) {
   // NOTE: format settings
   document.getElementById("alignPrefixes")?.toggleAttribute("checked", settings.format.alignPrefixes);
   document.getElementById("alignPredicates")?.toggleAttribute("checked", settings.format.alignPredicates);
-  document.getElementById("separateProlouge")?.toggleAttribute("checked", settings.format.separateProlouge);
+  document.getElementById("separatePrologue")?.toggleAttribute("checked", settings.format.separatePrologue);
   document.getElementById("capitalizeKeywords")?.toggleAttribute("checked", settings.format.capitalizeKeywords);
   document.getElementById("insertSpaces")?.toggleAttribute("checked", settings.format.insertSpaces);
   document.getElementById("tabSize")?.setAttribute("value", settings.format.tabSize.toString());

@@ -1,7 +1,7 @@
 export interface FormatSettings {
   alignPrefixes: boolean;
   alignPredicates: boolean;
-  separateProlouge: boolean;
+  separatePrologue: boolean;
   capitalizeKeywords: boolean;
   insertSpaces: boolean;
   tabSize: number
