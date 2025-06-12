@@ -25,11 +25,11 @@ function log(message, kind) {
 //
 function normalizeQuery(query, escapeQuotes = false) {
   return query.replace(/(<[^>]+)#/g, "$1%23")
-              .replace(/#.*\n/mg, " ")
-              .replace(/(<[^>]+)%23/g, "$1#")
-              .replace(/\s+/g, " ")
-              .replace(/\s*\.\s*}/g, " }")
-              .trim();
+    .replace(/#.*\n/mg, " ")
+    .replace(/(<[^>]+)%23/g, "$1#")
+    .replace(/\s+/g, " ")
+    .replace(/\s*\.\s*}/g, " }")
+    .trim();
 }
 
 // Close the given websocket. If the web socket is still connecting, make sure
@@ -66,7 +66,7 @@ async function fetchQleverBackend(params, additionalHeaders = {}) {
   } catch (error) {
     throw new Error(`Cannot reach ${BASEURL}. The most common cause is that the QLever server is down. Please try again later and contact us if the error persists`);
   }
-  switch(response.status) {
+  switch (response.status) {
     case 502:
       throw new Error("502 Bad Gateway. The most common cause is a problem with the web server. Please try again later and contact us if the error perists");
     case 503:
@@ -108,11 +108,11 @@ function appendRuntimeInformation(runtime_info, query, time, queryUpdate, isNoop
   // Add query time to meta info.
   if ("computeResult" in time) {
     runtime_info["meta"]["total_time_computing"] =
-        parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
+      parseInt(time["computeResult"].toString().replace(/ms/, ""), 10);
   }
   if ("total" in time) {
     runtime_info["meta"]["total_time"] =
-        parseInt(time["total"].toString().replace(/ms/, ""), 10);
+      parseInt(time["total"].toString().replace(/ms/, ""), 10);
   }
 
   const previousTimeStamp = request_log.get(queryUpdate.queryId)?.timeStamp || Number.MIN_VALUE;
@@ -154,27 +154,27 @@ function addTextElementsToQueryExecutionTreeForTreant(tree_node, is_ancestor_cac
     // 7. Abbreviate long QLever-internal variable names
     //
     text["name"] = tree_node["description"]
-    .replace(/<[^>]*[#\/\.]([^>]*)>/g, "<$1>")
-    .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
-    .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); })
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/^([a-zA-Z-])*/, function (match) { return match.toUpperCase(); })
-    .replace(/([A-Z])-([A-Z])/g, "$1 $2")
-    .replace(/AVAILABLE /, "").replace(/a all/, "all");
+      .replace(/<[^>]*[#\/\.]([^>]*)>/g, "<$1>")
+      .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
+      .replace(/\?[A-Z_]*/g, function(match) { return match.toLowerCase(); })
+      .replace(/([a-z])([A-Z])/g, "$1-$2")
+      .replace(/^([a-zA-Z-])*/, function(match) { return match.toUpperCase(); })
+      .replace(/([A-Z])-([A-Z])/g, "$1 $2")
+      .replace(/AVAILABLE /, "").replace(/a all/, "all");
     // console.log("-> REWRITTEN TO:", text["name"])
 
     text["cols"] = tree_node["column_names"].join(", ")
-    .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
-    .replace(/\?[A-Z_]*/g, function (match) { return match.toLowerCase(); });
+      .replace(/qlc_/g, "").replace(/_qlever_internal_variable_query_planner/g, "")
+      .replace(/\?[A-Z_]*/g, function(match) { return match.toLowerCase(); });
     text["size"] = formatInteger(tree_node["result_rows"]) + " x " + formatInteger(tree_node["result_cols"])
     text["size-estimate"] = "[~ " + formatInteger(tree_node["estimated_size"]) + "]";
     text["cache-status"] = is_ancestor_cached
       ? "ancestor_cached"
       : tree_node["cache_status"]
-          ? tree_node["cache_status"]
-          : tree_node["was_cached"]
-              ? "cached_not_pinned"
-              : "computed";
+        ? tree_node["cache_status"]
+        : tree_node["was_cached"]
+          ? "cached_not_pinned"
+          : "computed";
     text["time"] = tree_node["cache_status"] == "computed" || tree_node["was_cached"] == false
       ? formatInteger(tree_node["operation_time"])
       : formatInteger(tree_node["original_operation_time"]);
@@ -221,8 +221,8 @@ function doesQueryFragmentContainPrefix(query_fragment, prefix) {
 // these keys: prefixes (is an array), select_clause, select_vars, body, group_by, footer.
 function splitSparqlQueryIntoParts(query) {
   var query_normalized = query.replace(/\s+/g, " ")
-                              .replace(/\(\s+/g, "(").replace(/\s+\)/g, ")")
-                              .replace(/\{\s*/g, "{ ").replace(/\s*\.?\s*\}$/g, " }");
+    .replace(/\(\s+/g, "(").replace(/\s+\)/g, ")")
+    .replace(/\{\s*/g, "{ ").replace(/\s*\.?\s*\}$/g, " }");
   // console.log("SPLIT_SPARQL_QUERY_INTO_PARTS:", query_with_spaces_normalized)
   const pattern = /^\s*(.*?)\s*SELECT\s+([^{]*\S)\s*WHERE\s*{\s*(\S.*\S)\s*}\s*(.*?)\s*$/mi;
   var match = query_normalized.match(pattern);
@@ -261,11 +261,11 @@ function createSparqlQueryFromParts(query_parts) {
   var select_clause = query_parts["group_by"] != ""
     ? query_parts["select_clause"]
     : query_parts["select_clause"]
-        .replace(/\(.+\s*[aA][sS]\s*(\?\S+)\s*\)/g, "$1");
+      .replace(/\(.+\s*[aA][sS]\s*(\?\S+)\s*\)/g, "$1");
   var query =
     query_parts["prefixes"].join("\n") + "\n" +
     "SELECT " + select_clause + " WHERE {\n" +
-  query_parts["body"].replace(/^/mg, ">>") + "\n" + "}" +
+    query_parts["body"].replace(/^/mg, ">>") + "\n" + "}" +
     (" " + query_parts["group_by"] + " " + query_parts["footer"])
       .replace(/ +/g, " ").replace(/ $/, "");
   query = query.replace(/ +/g, " ").replace(/^>>/mg, "  ").replace(/ *\. *}/, " }")
@@ -277,32 +277,32 @@ async function enhanceQueryByNameTriples(query) {
 
   // CONFIG depending on instance. TODO: this should be configurable in the QLever UI.
   if (BASEURL.match(/api\/wikidata$/)) {
-    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-                       "PREFIX wikibase: <http://wikiba.se/ontology#>"];
-    name_template="%ENTITY% rdfs:label %NAME% FILTER(LANG(%NAME%) = \"en\")";
-    name_template_alt="%ENTITY% ^wikibase:directClaim/@en@rdfs:label %NAME%";
-    predicate_exists_regex="(@[a-z]+@)?rdfs:label";
-    new_var_suffix="_label";
+    prefix_definitions = ["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+      "PREFIX wikibase: <http://wikiba.se/ontology#>"];
+    name_template = "%ENTITY% rdfs:label %NAME% FILTER(LANG(%NAME%) = \"en\")";
+    name_template_alt = "%ENTITY% ^wikibase:directClaim/@en@rdfs:label %NAME%";
+    predicate_exists_regex = "(@[a-z]+@)?rdfs:label";
+    new_var_suffix = "_label";
   } else if (BASEURL.match(/api\/osm(-[a-z]+)?$/)) {
-    prefix_definitions=["PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>"];
-    name_template="%ENTITY% osmkey:name %NAME%",
-    predicate_exists_regex="osmkey:name",
-    new_var_suffix="_name";
+    prefix_definitions = ["PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>"];
+    name_template = "%ENTITY% osmkey:name %NAME%",
+      predicate_exists_regex = "osmkey:name",
+      new_var_suffix = "_name";
   } else if (BASEURL.match(/api\/pubchem$/)) {
-    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
-    name_template="%ENTITY% rdfs:label %NAME%";
-    predicate_exists_regex="rdfs:label";
-    new_var_suffix="_label";
+    prefix_definitions = ["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
+    name_template = "%ENTITY% rdfs:label %NAME%";
+    predicate_exists_regex = "rdfs:label";
+    new_var_suffix = "_label";
   } else if (BASEURL.match(/api\/dblp$/)) {
-    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
-    name_template="%ENTITY% rdfs:label %NAME%";
-    predicate_exists_regex="rdfs:label";
-    new_var_suffix="_label";
+    prefix_definitions = ["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
+    name_template = "%ENTITY% rdfs:label %NAME%";
+    predicate_exists_regex = "rdfs:label";
+    new_var_suffix = "_label";
   } else if (BASEURL.match(/api\/vvz$/)) {
-    prefix_definitions=["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
-    name_template="%ENTITY% rdfs:label %NAME%";
-    predicate_exists_regex="rdfs:label";
-    new_var_suffix="_label";
+    prefix_definitions = ["PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"];
+    name_template = "%ENTITY% rdfs:label %NAME%";
+    predicate_exists_regex = "rdfs:label";
+    new_var_suffix = "_label";
   } else {
     return query;
   }
@@ -314,8 +314,8 @@ async function enhanceQueryByNameTriples(query) {
   }
 
   // STEP 2: Check which triples to add.
-  var new_vars = { }
-  var new_triples = { };
+  var new_vars = {}
+  var new_triples = {};
   var new_prefix_definitions = query_parts["prefixes"];
   if (new_prefix_definitions.length > 50) {
     console.log("WARNING: Query with many prefix definitions, the name service" +
@@ -330,15 +330,15 @@ async function enhanceQueryByNameTriples(query) {
       test_query_parts["select_clause"] = "*";
       // TODO: The ORDER BY is a workaround for Qlever Issue #729.
       test_query_parts["body"] =
-          "{ SELECT " + query_parts["select_clause"] + " WHERE " +
-          " { " + query_parts["body"] + " } " + query_parts["group_by"] +
-          " ORDER BY " + select_var + " } " +
-          // HACK: For variable ?pred use name_template_alt (see above).
-          (select_var != "?pred"
-            ?  name_template.replace(/%ENTITY%/g, select_var)
-                            .replace(/%NAME%/g, "?qleverui_tmp")
-            :  name_template_alt.replace(/%ENTITY%/g, select_var)
-                                .replace(/%NAME%/g, "?qleverui_tmp"));
+        "{ SELECT " + query_parts["select_clause"] + " WHERE " +
+        " { " + query_parts["body"] + " } " + query_parts["group_by"] +
+        " ORDER BY " + select_var + " } " +
+        // HACK: For variable ?pred use name_template_alt (see above).
+        (select_var != "?pred"
+          ? name_template.replace(/%ENTITY%/g, select_var)
+            .replace(/%NAME%/g, "?qleverui_tmp")
+          : name_template_alt.replace(/%ENTITY%/g, select_var)
+            .replace(/%NAME%/g, "?qleverui_tmp"));
       test_query_parts["group_by"] = "";
       test_query_parts["footer"] = "LIMIT 1";
       test_query = createSparqlQueryFromParts(test_query_parts);
@@ -347,10 +347,10 @@ async function enhanceQueryByNameTriples(query) {
         // HACK: For variable ?pred use name_template_alt (see above).
         new_vars[select_var] = select_var + new_var_suffix;
         new_triples[select_var] = select_var != "?pred"
-          ?  name_template.replace(/%ENTITY%/g, select_var)
-                          .replace(/%NAME%/g, new_vars[select_var])
-          :  name_template_alt.replace(/%ENTITY%/g, select_var)
-                              .replace(/%NAME%/g, new_vars[select_var]);
+          ? name_template.replace(/%ENTITY%/g, select_var)
+            .replace(/%NAME%/g, new_vars[select_var])
+          : name_template_alt.replace(/%ENTITY%/g, select_var)
+            .replace(/%NAME%/g, new_vars[select_var]);
         for (const prefix_definition of prefix_definitions) {
           if (!new_prefix_definitions.includes(prefix_definition)) {
             new_prefix_definitions.push(prefix_definition);
@@ -381,10 +381,10 @@ async function enhanceQueryByNameTriples(query) {
   new_query_parts["select_clause"] = select_clause;
   // TODO: The ORDER BY is a workaround for Qlever Issue #729.
   new_query_parts["body"] =
-      "{ SELECT " + query_parts["select_clause"] + " WHERE" +
-      " { " + query_parts["body"] + " } " + query_parts["group_by"] +
-      " ORDER BY " + Object.keys(new_vars)[0] + " }\n" +
-      Object.values(new_triples).join(" .\n");
+    "{ SELECT " + query_parts["select_clause"] + " WHERE" +
+    " { " + query_parts["body"] + " } " + query_parts["group_by"] +
+    " ORDER BY " + Object.keys(new_vars)[0] + " }\n" +
+    Object.values(new_triples).join(" .\n");
   // console.log("BODY:\n" + new_query_parts["body"]);
   new_query_parts["group_by"] = "";
   new_query_parts["footer"] = query_parts["footer"];
@@ -416,7 +416,7 @@ async function rewriteQuery(query, kwargs = {}) {
   // all occurrences of `%PLACEHOLDER%` in the query with `VALUE`.
   const template_regex = /#!TEMPLATE\s+([A-Z_]+)\s*=\s*(.*)/g;
   while ((match = template_regex.exec(query_rewritten)) != null) {
-    const placeholder = "%"+ match[1] + "%";
+    const placeholder = "%" + match[1] + "%";
     const value = match[2];
     console.log("TEMPLATE: " + placeholder + " -> " + value);
     query_rewritten = query_rewritten.replace(new RegExp(placeholder, "g"), value);
@@ -429,7 +429,7 @@ async function rewriteQuery(query, kwargs = {}) {
   if (apply_name_service) {
     try {
       query_rewritten = await enhanceQueryByNameTriples(query_rewritten);
-    } catch(e) {
+    } catch (e) {
       console.log("ERROR in \"enhanceQueryByName\": " + e);
       return query_rewritten;
     }
@@ -453,7 +453,7 @@ function rewriteQueryNoAsyncPart(query) {
     var filter_contains_re = /FILTER\s+KEYWORDS\((\?[\w_]+),\s*(\"[^\"]+\")\)\s*\.?\s*/i;
     while (query_rewritten.match(filter_contains_re)) {
       query_rewritten = query_rewritten.replace(filter_contains_re,
-           m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
+        m_var + ' ql:contains-entity $1 . ' + m_var + ' ql:contains-word $2 . ');
       m_var = m_var + "i";
       num_rewrites_filter_contains += 1;
     }
@@ -475,11 +475,11 @@ function rewriteQueryNoAsyncPart(query) {
     var body_without_match = query_parts["body"].replace(body_re, "");
     var group_by_match = query_parts["group_by"].match(group_by_re);
     if (select_clause_match && body_match && group_by_match &&
-        select_clause_match[1] == body_match[2] &&
-        select_clause_match[2] == body_match[1] &&
-        select_clause_match[1] == group_by_match[1] &&
-        !body_without_match.includes(body_match[2] + " ") &&
-        !body_without_match.includes(body_match[3] + " ")
+      select_clause_match[1] == body_match[2] &&
+      select_clause_match[2] == body_match[1] &&
+      select_clause_match[1] == group_by_match[1] &&
+      !body_without_match.includes(body_match[2] + " ") &&
+      !body_without_match.includes(body_match[3] + " ")
     ) {
       const subject = body_match[1];
       const predicate = body_match[2];
@@ -663,7 +663,7 @@ function switchStates(cm) {
   gaps.push(content.length - 1);
 
   gaps = Array.from(new Set(gaps));
-  gaps.sort(function (a, b) { return a - b });
+  gaps.sort(function(a, b) { return a - b });
 
   var found = false;
   for (gap of gaps) {
@@ -700,7 +700,7 @@ function switchStates(cm) {
     if (editor.getLine(newCursor.line + 1) == undefined || editor.getLine(newCursor.line + 1) != "") {
       log("Adding a line at the end of the input", 'other');
       cm.setSelection({ 'line': newCursor.line, 'ch': line.length }, { 'line': newCursor.line, 'ch': line.length });
-      cm.replaceSelection('\n'+ indentWhitespaces);
+      cm.replaceSelection('\n' + indentWhitespaces);
     }
     cm.setCursor(newCursor.line + 1, 0);
   } else {
@@ -724,7 +724,7 @@ function switchStates(cm) {
   // `qleverUI.js`, where it says `editor.on("cursorActivity", ...)`.
   cleanLines(cm);
 
-  window.setTimeout(function () {
+  window.setTimeout(function() {
     CodeMirror.commands.autocomplete(editor);
   }, 100);
 }
@@ -750,16 +750,6 @@ function changeTheme(theme = undefined) {
   }
 }
 
-function expandEditor() {
-  if ($('#editorArea').hasClass("col-md-8")) {
-    $('#editorArea').removeClass("col-md-8").addClass("col-md-12");
-    $('#help').hide();
-  } else {
-    $('#editorArea').removeClass("col-md-12").addClass("col-md-8");
-    $('#help').show();
-  }
-}
-
 function displayInErrorBlock(message) {
   $('#errorReason').html(message);
   $('#errorBlock').show();
@@ -782,15 +772,15 @@ function displayError(response, queryId = undefined) {
   // If the error response contains metadata about position of parse error,
   // highlight that part.
   if ("metadata" in response && "startIndex" in response.metadata
-                             && "stopIndex" in response.metadata) {
+    && "stopIndex" in response.metadata) {
     let start = response.metadata.startIndex;
     let stop = response.metadata.stopIndex;
     queryToDisplay = htmlEscape(queryToDisplay.substring(0, start))
-                       + "<b><u style=\"color: red\">"
-                       + htmlEscape(queryToDisplay.substring(start, stop + 1))
-                       + "</u></b>" + htmlEscape(queryToDisplay.substring(stop + 1));
+      + "<b><u style=\"color: red\">"
+      + htmlEscape(queryToDisplay.substring(start, stop + 1))
+      + "</u></b>" + htmlEscape(queryToDisplay.substring(stop + 1));
   } else {
-      queryToDisplay = htmlEscape(queryToDisplay);
+    queryToDisplay = htmlEscape(queryToDisplay);
   }
   disp += "Your query was: " + "<br><pre>" + queryToDisplay + "</pre>";
   displayInErrorBlock(disp);
@@ -801,9 +791,9 @@ function displayError(response, queryId = undefined) {
   if (response["query"] && response["runtimeInformation"] && queryId) {
     // console.log("DEBUG: Error response with runtime information found!");
     appendRuntimeInformation(response.runtimeInformation,
-                             response.query,
-                             response.time,
-                             { queryId, updateTimeStamp: Number.MAX_VALUE });
+      response.query,
+      response.time,
+      { queryId, updateTimeStamp: Number.MAX_VALUE });
     renderRuntimeInformationToDom();
   }
 }
@@ -872,19 +862,19 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
     str = str.replace(/^"/, "").replace(/"$/, "");
     if (var_name.endsWith("_sparql")) {
       mapview_url = `https://qlever.cs.uni-freiburg.de/${SLUG}/` +
-                    `?query=${encodeURIComponent(str)}`;
+        `?query=${encodeURIComponent(str)}`;
       icon_class = "glyphicon glyphicon-search";
       str = "Query view";
     } else {
       mapview_url = MAP_VIEW_BASE_URL +
-                    `/?query=${encodeURIComponent(str)}` +
-                    `&mode=objects&backend=${BASEURL}`;
+        `/?query=${encodeURIComponent(str)}` +
+        `&mode=objects&backend=${BASEURL}`;
       icon_class = "glyphicon glyphicon-globe";
       str = "Map view";
     }
     linkStart = `<span style="white-space: nowrap;">` +
-                `<i class="${icon_class}"></i> ` +
-                `<a href="${mapview_url}" target="_blank">`;
+      `<i class="${icon_class}"></i> ` +
+      `<a href="${mapview_url}" target="_blank">`;
     linkEnd = '</a></span>';
   }
 
@@ -905,7 +895,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       var paraOpen = cpy.lastIndexOf('(', paraClose);
       if (paraOpen > 0 && paraOpen < pos) {
         pos = Math.max(cpy.lastIndexOf('/', paraOpen),
-                       cpy.lastIndexOf('#', paraOpen));
+          cpy.lastIndexOf('#', paraOpen));
       }
     }
     if (pos < 0) {
@@ -916,8 +906,8 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       str = str.substring(0, maxLength - 1) + "[...]"
     }
 
-  // For literals, remove everything after the final " and abbreviate what
-  // remains if it is longer than `maxLength`.
+    // For literals, remove everything after the final " and abbreviate what
+    // remains if it is longer than `maxLength`.
   } else if (cpy.charAt(0) == '\"') {
     pos = cpy.lastIndexOf('\"');
     if (pos !== 0) {
@@ -927,8 +917,8 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       str = str.substring(0, maxLength - 1) + "[...]\""
     }
 
-  // For entries that are neither IRIs nor literals (TODO: are these text
-  // records?), abbreviate them if they are longer than `veryLongLength`.
+    // For entries that are neither IRIs nor literals (TODO: are these text
+    // records?), abbreviate them if they are longer than `veryLongLength`.
   } else {
     const veryLongLength = 500;
     if (cpy.length > veryLongLength) {
@@ -985,15 +975,15 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
       }
     }
 
-  // For IRIs that start with http display the item depending on the link type.
-  // For images, a thumbnail of the image is shown. For other links, prepend a
-  // symbol that depends on the link type and links to the respective URL.
-  //
-  // TODO: What if http occur somewhere inside a literal or a link?
+    // For IRIs that start with http display the item depending on the link type.
+    // For images, a thumbnail of the image is shown. For other links, prepend a
+    // symbol that depends on the link type and links to the respective URL.
+    //
+    // TODO: What if http occur somewhere inside a literal or a link?
   } else if (pos_http > 0) {
     cpy = cpy.replace(/ /g, '_');
     link_match = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g);
-    if(link_match != null) {
+    if (link_match != null) {
       isLink = true;
       link = link_match[0];
       checkLink = link.toLowerCase();
@@ -1034,7 +1024,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
 }
 
 // Cookie helpers
-var createCookie = function (name, value, days) {
+var createCookie = function(name, value, days) {
   var expires = "";
   if (days) {
     var date = new Date();
@@ -1060,7 +1050,7 @@ function getCookie(c_name) {
 }
 
 // Compatibility helpers
-String.prototype.trimLeft = String.prototype.trimLeft || function () {
+String.prototype.trimLeft = String.prototype.trimLeft || function() {
   var start = -1;
   while (this.charCodeAt(++start) < 33);
   return this.slice(start, this.length);

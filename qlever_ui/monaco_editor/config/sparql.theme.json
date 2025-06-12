@@ -1,0 +1,83 @@
+{
+  "name": "Qlever-UI Custom Theme",
+  "type": "light",
+  "colors": {
+    "editor.foreground": "#928364",
+    "editor.background": "#F5F5F5",
+    "editor.selectionBackground": "#EBDBB2",
+    "editor.lineHighlightBackground": "#D9D9D9",
+    "editorCursor.foreground": "#000000",
+    "editorWhitespace.foreground": "#3B3A32",
+    "editorIndentGuide.activeBackground": "#9D550FB0",
+    "editor.selectionHighlightBorder": "#222218"
+  },
+  "tokenColors": [
+    {
+      "scope": "keyword.control.sparql",
+      "settings": {
+        "foreground": "#98971a",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.operator.function.sparql",
+      "settings": {
+        "foreground": "#d65d0e",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.operator.prefixdecl.sparql",
+      "settings": {
+        "foreground": "#689d6a",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "variable.prefix.sparql",
+      "settings": {
+        "foreground": "#cc241d",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "variable.reference.sparql",
+      "settings": {
+        "foreground": "#d65d0e",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "variable.other.sparql",
+      "settings": {
+        "foreground": "#282828"
+      }
+    },
+    {
+      "scope": "constant.other.iri.sparql",
+      "settings": {
+        "foreground": "#d79921"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#689d6a"
+      }
+    },
+    {
+      "scope": "string",
+      "settings": {
+        "foreground": "#d79921",
+        "fontStyle": "bold italic"
+      }
+    },
+    {
+      "scope": "keyword.symbol",
+      "settings": {
+        "foreground": "#fe8019",
+        "fontStyle": "italic bold"
+      }
+    }
+  ]
+}
