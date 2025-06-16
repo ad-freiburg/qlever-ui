@@ -22,6 +22,8 @@ export async function init(container_id: string): Promise<MonacoEditorLanguageCl
 		setup_key_bindings(wrapper);
 		setup_commands(wrapper);
 		setup_settings(wrapper);
+		editorContainer.style.removeProperty("display")
+		document.getElementById("loadingScreen")?.remove();
 		return wrapper;
 	} else {
 		throw new Error(`No element with id: "${container_id}" found`);
