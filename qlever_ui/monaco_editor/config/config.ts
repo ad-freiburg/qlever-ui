@@ -8,7 +8,7 @@ import languageServerWorkerUrl from "./languageServer.worker?worker&url";
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import { configureDefaultWorkerFactory } from 'monaco-editor-wrapper/workers/workerLoaders';
 import sparqlTextmateGrammar from './sparql.tmLanguage.json?raw';
-import sparqlLanguateConfig from './sparql.configuration.json?raw';
+import sparqlLanguageConfig from './sparql.configuration.json?raw';
 import sparqlTheme from './sparql.theme.json?raw';
 import type { WrapperConfig } from 'monaco-editor-wrapper';
 import { LogLevel, Uri } from 'vscode';
@@ -31,7 +31,7 @@ export async function buildWrapperConfig(container: HTMLElement, initial: string
   const worker = await workerPromise;
 
   const extensionFilesOrContents = new Map<string, string | URL>();
-  extensionFilesOrContents.set('/sparql-configuration.json', sparqlLanguateConfig);
+  extensionFilesOrContents.set('/sparql-configuration.json', sparqlLanguageConfig);
   extensionFilesOrContents.set('/sparql-grammar.json', sparqlTextmateGrammar);
   extensionFilesOrContents.set('/sparql-theme.json', sparqlTheme);
 
@@ -108,7 +108,8 @@ export async function buildWrapperConfig(container: HTMLElement, initial: string
           'editor.experimental.asyncTokenization': true,
           'editor.tabSize': 2,
           'editor.insertSpaces': true,
-          'editor.detectIndentation': false
+          'editor.detectIndentation': false,
+          'files.eol': '\n'
         })
       },
     },
