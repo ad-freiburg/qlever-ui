@@ -256,114 +256,111 @@
                     </div>
                   </div>
                 <div id="editor" style="display: none"></div>
+                <div id="statusBar" style="padding-left: 20px"></div>
                 <div class="col-lg-9 col-xs-12">
-                    <div class="row">
-                        <div class="col-lg-5 col-md-5 col-xs-12 pb-1">
-                            <div class="btn-group btn-group-flex" role="group">
-                                <!--
-                                 The run button. Note: min-width keeps the same width regardless
-                                 of the label (Execute, Cancel or Cancelling)
-                               -->
-                                <button id="exebtn" class="btn btn-success btn-block">
-                                    <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
-                                </button>
-                                <!-- The download buttons -->
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-default btn-block dropdown-toggle" type="button"
-                                            data-toggle="dropdown">
-                                        <i class="glyphicon glyphicon-download"></i> Download
-                                        <span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item" id="csvbtn" href="#csv">
-                                                <i class="glyphicon glyphicon-file"></i> Download results as CSV
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" id="tsvbtn" href="#tsv">
-                                                <i class="glyphicon glyphicon-file"></i> Download results as TSV
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <!-- The share button -->
-                                <button id="sharebtn" class="btn btn-default">
-                                    <i class="glyphicon glyphicon-share-alt"></i> Share
-                                </button>
-                            </div>
+                  <div class="row">
+                    <div class="col-lg-5 col-md-5 col-xs-12 pb-1">
+                      <div class="btn-group btn-group-flex" role="group">
+                        <!--
+                         The run button. Note: min-width keeps the same width regardless
+                         of the label (Execute, Cancel or Cancelling)
+                        -->
+                        <button id="exebtn" class="btn btn-success btn-block">
+                            <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
+                        </button>
+                        <!-- The download buttons -->
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-default btn-block dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="glyphicon glyphicon-download"></i> Download
+                            <span class="caret"></span>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a class="dropdown-item" id="csvbtn" href="#csv">
+                                <i class="glyphicon glyphicon-file"></i> Download results as CSV
+                              </a>
+                            </li>
+                            <li>
+                              <a class="dropdown-item" id="tsvbtn" href="#tsv">
+                                <i class="glyphicon glyphicon-file"></i> Download results as TSV
+                              </a>
+                            </li>
+                          </ul>
                         </div>
-
-                        <div class="col-lg-7 col-md-7 col-xs-12 pb-1">
-                            <!-- The context setting buttons -->
-                            <div class="btn-group btn-group-flex" role="group">
-                                <button id="formatButton" class="btn btn-default">
-                                    <i class="glyphicon glyphicon-align-left"></i> Format
-                                </button>
-                                <button class="btn btn-default" onclick="executeBackendCommand('clear-cache', this)">
-                                    <i class="glyphicon glyphicon-refresh"></i> Clear cache
-                                </button>
-                                <button class="btn btn-default" onclick="showQueryPlanningTree();">
-                                    <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
-                                </button>
-                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                                    <i class="glyphicon glyphicon-align-left"></i> Examples
-                                    <span class="caret"></span>
-                                </button>
-                                <ul id="exampleList" class="dropdown-menu">
-                                    <div style="padding: 10px 20px;">
-                                        <input id="exampleKeywordSearchInput" type="text"
-                                               placeholder="search for keywords"
-                                               style="width: 100%">
-                                    </div>
-                                    <li class="divider"></li>
-                                    {% for example in examples %}
-                                      <li class="queryExample" value="{{example.query}}">
-                                            <a>
-                                                {% if request.user.is_authenticated %}
-                                                    <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"
-                                                          style="float: right;">
-                                <i class="glyphicon glyphicon-pencil"></i>
-                              </span>
-                                                {% endif %}
-                                                <span class="example-name"
-                                                      style="margin-right: 30px">{{ example.name }}</span>
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                    <li id="empty-examples-excuse" style="display: none">
-                                        <span style="padding: 3px 20px;">Sorry, no examples found :(</span>
-                                    </li>
-                                    {% if request.user.is_authenticated %}
-                                        <li class="divider"></li>
-                                        <li>
-                                            <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
-                                                <i class="glyphicon glyphicon-check"></i> Add current query as example
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/admin/backend/example/add/?backend={{ backend.pk }}"
-                                               target="_blank">
-                                                <i class="glyphicon glyphicon-edit"></i> Add new example
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-6 col-md-5 col-xs-12" id="backend_commands" style="display: none">
-                            <button type="button" id="btnClearDeltaTriples" class="btn btn-default"
-                                    onclick="executeBackendCommand('clear-delta-triples', this)">
-                                <i class="glyphicon glyphicon-refresh"></i> Reset Updates
-                            </button>
-                            <button type="button" id="btnClearCacheComplete" class="btn btn-default"
-                                    onclick="executeBackendCommand('clear-cache-complete', this)"><i
-                                    class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
-                            </button>
-                        </div>
-
+                        <!-- The share button -->
+                        <button id="sharebtn" class="btn btn-default">
+                            <i class="glyphicon glyphicon-share-alt"></i> Share
+                        </button>
+                      </div>
                     </div>
+                    <div class="col-lg-7 col-md-7 col-xs-12 pb-1">
+                        <!-- The context setting buttons -->
+                        <div class="btn-group btn-group-flex" role="group">
+                          <button id="formatButton" class="btn btn-default">
+                              <i class="glyphicon glyphicon-align-left"></i> Format
+                          </button>
+                          <button class="btn btn-default" onclick="executeBackendCommand('clear-cache', this)">
+                              <i class="glyphicon glyphicon-refresh"></i> Clear cache
+                          </button>
+                          <button class="btn btn-default" onclick="showQueryPlanningTree();">
+                              <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
+                          </button>
+                          <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                              <i class="glyphicon glyphicon-align-left"></i> Examples
+                              <span class="caret"></span>
+                          </button>
+                          <ul id="exampleList" class="dropdown-menu">
+                              <div style="padding: 10px 20px;">
+                                  <input id="exampleKeywordSearchInput" type="text"
+                                         placeholder="search for keywords"
+                                         style="width: 100%">
+                              </div>
+                              <li class="divider"></li>
+                              {% for example in examples %}
+                                <li class="queryExample" value="{{example.query}}">
+                                      <a>
+                                          {% if request.user.is_authenticated %}
+                                              <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"
+                                                    style="float: right;">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                              </span>
+                                          {% endif %}
+                                          <span class="example-name" style="margin-right: 30px">{{ example.name }}</span>
+                                      </a>
+                                  </li>
+                              {% endfor %}
+                              <li id="empty-examples-excuse" style="display: none">
+                                  <span style="padding: 3px 20px;">Sorry, no examples found :(</span>
+                              </li>
+                              {% if request.user.is_authenticated %}
+                                  <li class="divider"></li>
+                                  <li>
+                                      <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
+                                          <i class="glyphicon glyphicon-check"></i> Add current query as example
+                                      </a>
+                                  </li>
+                                  <li>
+                                      <a href="/admin/backend/example/add/?backend={{ backend.pk }}"
+                                         target="_blank">
+                                          <i class="glyphicon glyphicon-edit"></i> Add new example
+                                      </a>
+                                  </li>
+                              {% endif %}
+                          </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-5 col-xs-12" id="backend_commands" style="display: none">
+                        <button type="button" id="btnClearDeltaTriples" class="btn btn-default"
+                                onclick="executeBackendCommand('clear-delta-triples', this)">
+                            <i class="glyphicon glyphicon-refresh"></i> Reset Updates
+                        </button>
+                        <button type="button" id="btnClearCacheComplete" class="btn btn-default"
+                                onclick="executeBackendCommand('clear-cache-complete', this)"><i
+                                class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
+                        </button>
+                    </div>
+
+                  </div>
                 </div>
             </div>
           </div>
