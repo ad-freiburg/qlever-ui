@@ -1,3 +1,7 @@
+:root {
+	--switch_size: 23px;
+}
+
 /*
 	
 Basic HTML Elements
@@ -26,8 +30,8 @@ Custom Elements
 .switch {
 	position: relative;
 	display: inline-block;
-	width: 48px;
-	height: 28px;
+	width: calc(var(--switch_size) * 2 - 4px);
+	height: var(--switch_size);
 }
 
 /* Hide default HTML checkbox */
@@ -53,8 +57,8 @@ Custom Elements
 .slider:before {
 	position: absolute;
 	content: "";
-	height: 20px;
-	width: 20px;
+	height: calc(var(--switch_size) - 8px);
+	width: calc(var(--switch_size) - 8px);
 	left: 4px;
 	bottom: 4px;
 	background-color: white;
