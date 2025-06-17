@@ -24,3 +24,8 @@ export interface Settings {
   completion: CompletionSettings;
   prefixes: PrefixSettings;
 }
+
+
+export interface MonacoSettings {
+  vimMode: boolean;
+}

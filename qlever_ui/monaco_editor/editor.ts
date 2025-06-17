@@ -7,7 +7,6 @@
 import './style.css'
 import * as monaco from 'monaco-editor';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import { initVimMode } from 'monaco-vim';
 import { buildWrapperConfig } from './config/config';
 import { MonacoEditorLanguageClientWrapper } from 'monaco-editor-wrapper';
 import { setup_key_bindings } from './keys';
@@ -23,7 +22,6 @@ export async function init(container_id: string): Promise<MonacoEditorLanguageCl
 		setup_key_bindings(wrapper);
 		setup_commands(wrapper);
 		setup_settings(wrapper);
-		initVimMode(wrapper.getEditor()!, document.getElementById("statusBar"));
 		editorContainer.style.removeProperty("display")
 		document.getElementById("loadingScreen")?.remove();
 		return wrapper;

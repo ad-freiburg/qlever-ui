@@ -1,20 +1,33 @@
 import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
-import { Settings } from "../types/settings";
+import { MonacoSettings, Settings } from "../types/settings";
+import { initVimMode } from 'monaco-vim';
+import { editor } from "monaco-editor";
 
 export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
   const languageClient = wrapper.getLanguageClient("sparql")!;
+  let vimMode;
 
   // NOTE:fetch default settings or apply stored settings
-  const storedSettings = localStorage.getItem("Qlue-ls settings");
-  if (storedSettings) {
-    const settings = JSON.parse(storedSettings);
-    initialize_ui(settings);
+  const storedQlueLsSettings = localStorage.getItem("Qlue-ls settings");
+  if (storedQlueLsSettings) {
+    const qlueLssettings = JSON.parse(storedQlueLsSettings);
+    initialize_ui(qlueLssettings);
   } else {
     languageClient.sendRequest("qlueLs/defaultSettings").then((response) => {
       const settings = response as Settings;
       initialize_ui(settings);
     })
   };
+  const storedMonacoSettings = localStorage.getItem("Monaco settings");
+  if (storedMonacoSettings) {
+    const moacoSettings = JSON.parse(storedMonacoSettings) as MonacoSettings;
+    setBoolValue("vimMode", moacoSettings.vimMode)
+  } else {
+    setBoolValue("vimMode", false)
+  };
+  if (getBoolValue("vimMode")) {
+    vimMode = initVimMode(wrapper.getEditor()!, document.getElementById("statusBar"));
+  }
 
   // NOTE:change settings on ui changes
   const ids = ["alignPrefixes", "alignPredicates", "separatePrologue", "capitalizeKeywords", "insertSpaces", "tabSize", "whereNewLine", "filterSameLine", "timeoutMs", "resultSizeLimit", "addMissing", "removeUnused"];
@@ -46,6 +59,17 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
       });
     });
   });
+  document.getElementById("vimMode")!.addEventListener("change", () => {
+    const settings: MonacoSettings = {
+      vimMode: getBoolValue("vimMode")
+    };
+    if (settings.vimMode) {
+      vimMode = initVimMode(wrapper.getEditor()!, document.getElementById("statusBar"));
+    } else {
+      vimMode.dispose();
+    }
+    localStorage.setItem("Monaco settings", JSON.stringify(settings));
+  });
 
   // NOTE: reset settings
   document.getElementById("resetSettings")!.addEventListener("click", () => {
@@ -56,6 +80,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
         localStorage.setItem("Qlue-ls settings", JSON.stringify(settings));
       });
     });
+    setBoolValue("vimMode", false);
   });
 }
 
