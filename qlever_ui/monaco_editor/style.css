@@ -3,3 +3,9 @@
 	height: 40vh;
 	padding-right: 60px;
 }
+
+
+/* Larger action widget */
+.action-widget {
+	min-width: 250px !important;
+}
