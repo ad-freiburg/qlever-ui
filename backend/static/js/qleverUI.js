@@ -34,54 +34,6 @@ function initialize() {
   // Load the backends statistics.
   handleStatsDisplay();
 
-  function showRealName(element) {
-
-    // collect prefixes (as string and dict)
-    // TODO: move this to a function. Also use this new function in sparql-hint.js
-    var prefixes = "";
-    var lines = getPrefixLines();
-
-    for (var line of lines) {
-      if (line.trim().startsWith("PREFIX")) {
-        var match = /PREFIX (.*): ?<(.*)>/gi.exec(line.trim());
-        if (match) {
-          prefixes += line.trim() + '\n';
-        }
-      }
-    }
-
-    // TODO: move this "get current element with its prefix" to a function. Also use this new function in sparql-hint.js
-    values = $(this).parent().text().trim().split(' ');
-    element = $(this).text().trim();
-    domElement = this;
-
-    if ($(this).prev().hasClass('cm-prefix-name') || $(this).prev().hasClass('cm-string-language')) {
-      element = $(this).prev().text() + element;
-    }
-
-    if ($(this).next().hasClass('cm-entity-name')) {
-      element = element + $(this).next().text();
-    }
-
-    index = values.indexOf(element.replace(/^\^/, ""));
-
-    if (index == 0) {
-      if (SUBJECTNAME != "") {
-        addNameHover(element, domElement, subjectNames, SUBJECTNAME, prefixes);
-      }
-    } else if (index == 1 || index == -1 && values.length > 1 && values[1].indexOf(element) != -1) {  // entity in property path
-      if (PREDICATENAME != "") {
-        addNameHover(element, domElement, predicateNames, PREDICATENAME, prefixes);
-      }
-    } else if (index == 2) {
-      if (OBJECTNAME != "") {
-        addNameHover(element, domElement, objectNames, OBJECTNAME, prefixes);
-      }
-    }
-
-    return true;
-  }
-
   // CSV download (create link element, click on it, and remove the #csv from
   // the URL, which is added by clicking; see index.html).
   $("#csvbtn").click(async function() {
