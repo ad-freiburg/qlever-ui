@@ -12,12 +12,13 @@ import { MonacoEditorLanguageClientWrapper } from 'monaco-editor-wrapper';
 import { setup_key_bindings } from './keys';
 import { setup_commands } from './commands';
 import { setup_settings } from './settings';
+declare const PREFILL: string;
 
 export async function init(container_id: string): Promise<MonacoEditorLanguageClientWrapper> {
 	const editorContainer = document.getElementById(container_id);
 	if (editorContainer) {
 		const wrapper = new MonacoEditorLanguageClientWrapper();
-		const wrapperConfig = await buildWrapperConfig(editorContainer, "");
+		const wrapperConfig = await buildWrapperConfig(editorContainer, PREFILL === "None" ? "" : PREFILL);
 		await wrapper.initAndStart(wrapperConfig);
 		setup_key_bindings(wrapper);
 		setup_commands(wrapper);

@@ -64,6 +64,7 @@
   var WARMUP_AC_PLACEHOLDERS = {% autoescape off %}{{ backend.getWarmupAndAcPlaceholders }}{% endautoescape %};
   var DEFAULT_TIMEOUT = {{ backend.defaultModeTimeout }};
   var MIXED_MODE_TIMEOUT = {{ backend.mixedModeTimeout }};
+  const PREFILL = "{{ prefill | escapejs }}";
   var examples = [];
   {% for example in examples %}
   examples.push(`{{ example.query|addslashes|safe }}`);
