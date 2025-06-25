@@ -94,6 +94,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
         console.error('Error during changeSettings: ', err);
       });
     setBoolValue("vimMode", false);
+    vimMode.dispose();
   });
 }
 
