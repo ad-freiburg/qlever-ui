@@ -19,10 +19,20 @@ export interface PrefixSettings {
   removeUnused: boolean;
 }
 
+export interface Replacement {
+  pattern: string,
+  replacement: string
+}
+
+export interface Replacements {
+  objectVariable: Replacement[];
+}
+
 export interface Settings {
   format: FormatSettings;
   completion: CompletionSettings;
   prefixes: PrefixSettings;
+  replacements?: Replacements
 }
 
 

@@ -2,21 +2,31 @@ import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
 import { MonacoSettings, Settings } from "../types/settings";
 import { initVimMode } from 'monaco-vim';
 import { editor } from "monaco-editor";
+import yaml from 'yaml';
+import qlue_ls_config from "../../qlue-ls.yaml?raw";
 
 export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
   const languageClient = wrapper.getLanguageClient("sparql")!;
   let vimMode;
+  const settings: Settings = yaml.parse(qlue_ls_config);
 
   // NOTE:fetch default settings or apply stored settings
   const storedQlueLsSettings = localStorage.getItem("Qlue-ls settings");
   if (storedQlueLsSettings) {
-    const qlueLssettings = JSON.parse(storedQlueLsSettings);
-    initialize_ui(qlueLssettings);
+    initialize_ui(JSON.parse(storedQlueLsSettings));
+    languageClient.sendNotification("qlueLs/changeSettings", JSON.parse(storedQlueLsSettings))
+      .catch((err) => {
+        console.error('Error during changeSettings: ', err);
+      });
   } else {
-    languageClient.sendRequest("qlueLs/defaultSettings").then((response) => {
-      const settings = response as Settings;
-      initialize_ui(settings);
-    })
+    initialize_ui(settings);
+    languageClient.sendNotification("qlueLs/changeSettings", settings)
+      .then(() => {
+        localStorage.setItem("Qlue-ls settings", JSON.stringify(settings));
+      })
+      .catch((err) => {
+        console.error('Error during changeSettings: ', err);
+      });
   };
   const storedMonacoSettings = localStorage.getItem("Monaco settings");
   if (storedMonacoSettings) {
@@ -34,7 +44,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
   ids.forEach((id) => {
     document.getElementById(id)!.addEventListener("change", () => {
 
-      const settings: Settings = {
+      const ui_settings: Settings = {
         format: {
           alignPrefixes: getBoolValue("alignPrefixes"),
           alignPredicates: getBoolValue("alignPredicates"),
@@ -52,10 +62,11 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
         prefixes: {
           addMissing: getBoolValue("addMissing"),
           removeUnused: getBoolValue("removeUnused"),
-        }
+        },
+        replacements: settings.replacements
       };
-      languageClient.sendNotification("qlueLs/changeSettings", settings).then(() => {
-        localStorage.setItem("Qlue-ls settings", JSON.stringify(settings));
+      languageClient.sendNotification("qlueLs/changeSettings", ui_settings).then(() => {
+        localStorage.setItem("Qlue-ls settings", JSON.stringify(ui_settings));
       });
     });
   });
@@ -73,13 +84,15 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
 
   // NOTE: reset settings
   document.getElementById("resetSettings")!.addEventListener("click", () => {
-    languageClient.sendRequest("qlueLs/defaultSettings").then((response) => {
-      const settings = response as Settings;
-      initialize_ui(response as Settings);
-      languageClient.sendNotification("qlueLs/changeSettings", settings).then(() => {
+
+    initialize_ui(settings);
+    languageClient.sendNotification("qlueLs/changeSettings", settings)
+      .then(() => {
         localStorage.setItem("Qlue-ls settings", JSON.stringify(settings));
+      })
+      .catch((err) => {
+        console.error('Error during changeSettings: ', err);
       });
-    });
     setBoolValue("vimMode", false);
   });
 }
