@@ -63,7 +63,7 @@ function highlightWords(input_str, regexps) {
 }
 
 // This filters the list of examples given a string
-// containing a space sperated list of regexes.
+// containing a space separated list of regexes.
 // The filtering is achieved by hiding non-matching examples
 // and highlighting matching ones.
 function filterExamples(regexes_str) {
@@ -157,7 +157,7 @@ $("#exampleKeywordSearchInput").on("keydown", function(event) {
       // The timeout of 50ms is used to prevent the keydown event
       // to reach the editor. This is a bit of a hack.
       setTimeout(() => {
-        $(exampleSpans[selectedExample]).parent().click();
+        $(exampleSpans[selectedExample]).parent().parent().click();
       }, 50);
     }
   }
