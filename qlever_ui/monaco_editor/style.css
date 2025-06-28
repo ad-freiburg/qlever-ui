@@ -1,9 +1,13 @@
 #editor {
 	width: 100%;
 	height: 40vh;
-	padding-right: 60px;
+	padding: 0px 19px 19px 19px;
 }
 
+.monaco-editor .monaco-editor-background {
+	padding-left: 8px;
+	box-sizing: border-box;
+}
 
 /* Larger action widget */
 .action-widget {

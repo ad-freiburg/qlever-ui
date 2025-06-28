@@ -93,9 +93,12 @@ export async function buildWrapperConfig(container: HTMLElement, initial: string
         overviewRulerLanes: 0,
         scrollBeyondLastLine: false,
         padding: {
-          top: 10,
-          bottom: 10
-        }
+          top: 8,
+          bottom: 8
+        },
+        lineDecorationsWidth: 0,
+        lineNumbersMinChars: 2,
+        glyphMargin: true
       }
     },
     vscodeApiConfig: {

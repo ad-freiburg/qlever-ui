@@ -112,7 +112,7 @@ export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
   monaco.editor.addKeybindingRule({
     command: 'jumpToNextPosition',
     commandArgs: 'next',
-    keybinding: monaco.KeyMod.Alt | monaco.KeyCode.KeyN
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Comma
   });
   monaco.editor.addKeybindingRule({
     command: 'jumpToNextPosition',
