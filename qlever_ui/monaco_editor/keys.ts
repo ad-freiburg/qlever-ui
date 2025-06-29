@@ -102,7 +102,6 @@ export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
                     }
                   ]);
                 }
-                editor.trigger('editor', 'editor.action.triggerSuggest', {});
               }
             });
         });
