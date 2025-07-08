@@ -121,6 +121,6 @@ export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
   monaco.editor.addKeybindingRule({
     command: 'jumpToNextPosition',
     commandArgs: 'prev',
-    keybinding: monaco.KeyMod.Alt | monaco.KeyCode.KeyP
+    keybinding: monaco.KeyMod.Alt | monaco.KeyCode.Minus
   });
 }
