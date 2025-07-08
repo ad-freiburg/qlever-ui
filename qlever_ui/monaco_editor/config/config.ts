@@ -4,7 +4,7 @@
 // │ Licensed under the MIT license. │ \\
 // └─────────────────────────────────┘ \\
 
-import languageServerWorkerUrl from "./languageServer.worker?worker&url";
+import languageServerWorker from './languageServer.worker?worker';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import { configureDefaultWorkerFactory } from 'monaco-editor-wrapper/workers/workerLoaders';
 import sparqlTextmateGrammar from './sparql.tmLanguage.json?raw';
@@ -16,12 +16,7 @@ import { LogLevel, Uri } from 'vscode';
 
 export async function buildWrapperConfig(container: HTMLElement, initial: string): Promise<WrapperConfig> {
   const workerPromise: Promise<Worker> = new Promise((resolve) => {
-    const instance = new Worker(new URL(languageServerWorkerUrl, window.location.origin),
-      {
-        name: "Language Server",
-        type: "module"
-      }
-    );
+    const instance: Worker = new languageServerWorker({ name: 'Language Server' });
     instance.onmessage = (event) => {
       if (event.data.type === "ready") {
         resolve(instance);

@@ -26,6 +26,11 @@ export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
     }
   });
 
+  // NOTE format on Ctrl + f
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF, () => {
+    editor.getAction("editor.action.formatDocument")!.run();
+  });
+
   // NOTE:jump to next or prev position (Alt + n, Alt + p)
   monaco.editor.addCommand({
     id: 'jumpToNextPosition',
