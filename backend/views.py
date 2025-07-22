@@ -23,7 +23,7 @@ def index(request, backend=None, short=None):
     """
 
     Index view - shows the UI with all available backends
-    If no preferred backend is set this view choses the default from the database
+    If no preferred backend is set this view chooses the default from the database
 
     """
     activeBackend = None

@@ -1,3 +1,9 @@
+// ┌──────────────────────────────────────┐ \\
+// │ Copyright © 2024-2025 Ioannis Nezis  │ \\
+// ├──────────────────────────────────────┤ \\
+// │ Licensed under the MIT license.      │ \\
+// └──────────────────────────────────────┘ \\
+
 // This variable contains the actual example spans that match the query.
 let exampleSpans = {};
 // This variable keeps track of the selected example.
@@ -57,7 +63,7 @@ function highlightWords(input_str, regexps) {
 }
 
 // This filters the list of examples given a string
-// containing a space sperated list of regexes.
+// containing a space separated list of regexes.
 // The filtering is achieved by hiding non-matching examples
 // and highlighting matching ones.
 function filterExamples(regexes_str) {
@@ -80,7 +86,7 @@ function filterExamples(regexes_str) {
     })
     .map((word) => new RegExp(word, "gi"));
   let hits = 0;
-  exampleSpans.each(function (idx) {
+  exampleSpans.each(function(idx) {
     const exampleText = $(this).text().trim();
     if (keywords.every((keyword) => exampleText.match(keyword) != null)) {
       $(this).addClass("keyword-search-match");
@@ -118,7 +124,7 @@ function cleanup() {
   // Reset the selected example to nothing.
   selectedExample = -1;
   // Remove artifacts from previous usage.
-  exampleSpans.each(function (idx) {
+  exampleSpans.each(function(idx) {
     $(this).removeClass("keyword-search-match");
     $(this).parent().parent().show();
     $(this).parent().removeClass("keyword-search-hover");
@@ -126,7 +132,7 @@ function cleanup() {
   });
 }
 
-$("#exampleKeywordSearchInput").on("keydown", function (event) {
+$("#exampleKeywordSearchInput").on("keydown", function(event) {
   const hover_class = "keyword-search-hover";
   // The down key was pressed.
   if (exampleSpans.length > 0) {
@@ -151,7 +157,7 @@ $("#exampleKeywordSearchInput").on("keydown", function (event) {
       // The timeout of 50ms is used to prevent the keydown event
       // to reach the editor. This is a bit of a hack.
       setTimeout(() => {
-        $(exampleSpans[selectedExample]).parent().click();
+        $(exampleSpans[selectedExample]).parent().parent().click();
       }, 50);
     }
   }
@@ -163,7 +169,7 @@ $("#exampleKeywordSearchInput").on("keydown", function (event) {
 
 $("#exampleKeywordSearchInput").on(
   "input",
-  debounce(function (event) {
+  debounce(function(event) {
     cleanup();
     filterExamples(event.target.value);
   }, 200),
@@ -172,7 +178,7 @@ $("#exampleKeywordSearchInput").on(
 // This initializes the keyword search when the dropdown has loaded.
 $("#exampleList")
   .parent()
-  .on("shown.bs.dropdown", function () {
+  .on("shown.bs.dropdown", function() {
     // Clear value of the input field.
     $("#exampleKeywordSearchInput").val("");
     // Focus the input field.
