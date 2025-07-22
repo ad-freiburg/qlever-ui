@@ -1,4 +1,5 @@
-{% load static %}<!DOCTYPE html>
+{% load static %}
+<!DOCTYPE html>
 <html>
   {% include 'partials/head.html' %}
   <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#exebtn').trigger('click');},500)"{% endif %}>
@@ -101,31 +102,31 @@
                     <tr><th>Align prefixes</th><td>
                         <label class="switch">
                           <input id="alignPrefixes" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Align predicates</th><td>
                         <label class="switch">
                           <input id="alignPredicates" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Separate Prologue</th><td>
                         <label class="switch">
                           <input id="separatePrologue" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Capitalize keywords</th><td>
                         <label class="switch">
                           <input id="capitalizeKeywords" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Insert spaces</th><td>
                         <label class="switch">
                           <input id="insertSpaces" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Tab size</th><td>
@@ -134,13 +135,13 @@
                     <tr><th>Linebreak after WHERE</th><td>
                         <label class="switch">
                           <input id="whereNewLine" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Trailing Filter</th><td>
                         <label class="switch">
                           <input id="filterSameLine" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                 </table>
@@ -162,13 +163,13 @@
                     <tr><th>Add missing</th><td>
                         <label class="switch">
                           <input id="addMissing" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                     <tr><th>Remove unused</th><td>
                         <label class="switch">
                           <input id="removeUnused" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                     </td></tr>
                 </table>
@@ -178,7 +179,7 @@
                     <tr><th>vim mode</th><td>
                         <label class="switch">
                           <input id="vimMode" type="checkbox">
-                          <span class="slider round"></span>
+                          <span class="my-slider round"></span>
                         </label>
                 </table>
               </div>
