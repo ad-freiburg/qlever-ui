@@ -314,7 +314,7 @@ $(document).ready(function () {
       const queryRewritten = await rewriteQuery(
         editor.getValue(), {"name_service": "if_checked"});
       const queryRewrittenAndNormalizedAndWithEscapedQuotes =
-        normalizeQuery(queryRewritten).replace(/"/g, "\\\"");
+        normalizeQuery(queryRewritten).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
       
       if (editor.state.completionActive) { editor.state.completionActive.close(); }
 
