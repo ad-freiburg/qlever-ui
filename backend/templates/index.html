@@ -86,6 +86,7 @@
                     <tr><th>Backend name</th><td>{{ backend.name }}</td></tr>
                     <tr><th>Backend slug</th><td id="backend-slug">{{ backend.slugify }}</td></tr>
                     <tr><th>Backend URL</th><td>{{ backend.baseUrl }}</td></tr>
+                    {% if backend.mapViewBaseURL != "" %}<tr><th>Petrimaps URL</th><td>{{ backend.mapViewBaseURL }}</td></tr>{% endif %}
                     <tr><th>Is default:</th><td>{% if backend.isDefault %}Yes{% else %}No{% endif %}</td></tr>
                     <tr><th>Fill known prefixes:</th><td>{% if backend.fillPrefixes %}Yes{% else %}No{% endif %}</td></tr>
                     <tr><th>Languages:</th><td>{{ backend.filteredLanguage }}</td></tr>
