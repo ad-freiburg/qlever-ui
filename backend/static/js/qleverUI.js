@@ -84,6 +84,13 @@ $(document).ready(function () {
     entities.data('has-mouseenter-handler', 'true');
   }
 
+  // Set up panzoom cleanup when visualization modal is closed
+  $('#visualisation').on('hidden.bs.modal', function () {
+    if (typeof window.destroyPanzoom === 'function') {
+      window.destroyPanzoom();
+    }
+  });
+
   // Initialization done.
   log('Editor initialized', 'other');
 
@@ -954,6 +961,8 @@ function renderRuntimeInformationToDom(entry = undefined) {
       container: "#result-tree",
       rootOrientation: "NORTH",
       connectors: { type: "step" },
+      // Allow unlimited canvas size for large trees
+      scrollbar: "resize"
     },
     nodeStructure: runtime_info["query_execution_tree"]
   }
@@ -965,9 +974,22 @@ function renderRuntimeInformationToDom(entry = undefined) {
   if (currentTree !== null) {
     currentTree.destroy();
   }
+  // Destroy any existing panzoom instance
+  if (typeof window.destroyPanzoom === 'function') {
+    window.destroyPanzoom();
+  }
+  
   currentTree = new Treant(treant_tree);
   $("#visualisation").scrollTop(scrollTop);
   $("#result-tree").scrollLeft(scrollLeft);
+  
+  // Initialize panzoom for the tree after it's created
+  if (typeof window.initializePanzoom === 'function') {
+    // Use setTimeout to ensure the tree is fully rendered
+    setTimeout(() => {
+      window.initializePanzoom();
+    }, 100);
+  }
 
   $("div.node").each(function () {
     const details_childs = $(this).children(".node-details");

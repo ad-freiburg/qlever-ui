@@ -1,8 +1,11 @@
 <div class="modal" tabindex="-1" role="dialog" id="visualisation">
-  <div class="modal-dialog" role="document" style="width: 80%;">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title pull-left">Query Analysis</h5>
+        <div class="pull-right">
+          <small>💡 Drag to pan, scroll to zoom, double-click to reset</small>
+        </div>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -10,12 +13,14 @@
       <div class="modal-body">
         <div id="result-query"></div>
         <div id="meta-info"></div>
-        <div id="result-tree">
-          <br><strong style="color: red;">Please execute your query first.</strong><br><br>
+        <div id="tree-viewport">
+          <div id="result-tree">
+            <br><strong style="color: red;">Please execute your query first.</strong><br><br>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
-        <div id="lastQueries" class="pull-left" style="margin: -25px 0px;"></div>
+        <div id="lastQueries" class="pull-left"></div>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>

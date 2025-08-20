@@ -79,6 +79,14 @@
     window.determineOperationType = determineOperationType;
   </script>
 
+  <!-- Panzoom for tree visualization -->
+  <script type="module">
+    import { initializePanzoom, destroyPanzoom, resetPanzoom } from "{% static '/js/panzoom.js' %}";
+    window.initializePanzoom = initializePanzoom;
+    window.destroyPanzoom = destroyPanzoom;
+    window.resetPanzoom = resetPanzoom;
+  </script>
+
   <!-- Our own JavaScript code for this demo -->
   <script src="{% static "js/helper.js" %}"></script>
   <script src="{% static "js/raphael.js" %}"></script>
