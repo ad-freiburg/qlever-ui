@@ -1,0 +1,105 @@
+config:
+  backend:
+    name: Sample Backend
+    slug: sample-backend
+    baseUrl: https://example.com/sparql
+    apiToken: sample-token-123
+    isDefault: false
+    isNoSlugMode: false
+    maxDefault: 100
+    filteredLanguage: en,de,fr
+    dynamicSuggestions: 2
+    defaultModeTimeout: 1.5
+    mixedModeTimeout: 0.5
+    suggestSubjects: |
+      SELECT DISTINCT ?qleverui_entity ?qleverui_name WHERE {
+        ?qleverui_entity rdfs:label ?qleverui_name .
+        FILTER(LANG(?qleverui_name) = "en")
+      } ORDER BY ?qleverui_name LIMIT 20
+    suggestPredicates: |
+      SELECT DISTINCT ?qleverui_entity ?qleverui_name WHERE {
+        [] ?qleverui_entity [] .
+        OPTIONAL { ?qleverui_entity rdfs:label ?qleverui_name }
+      } ORDER BY ?qleverui_name LIMIT 20
+    suggestObjects: |
+      SELECT DISTINCT ?qleverui_entity ?qleverui_name WHERE {
+        [] [] ?qleverui_entity .
+        OPTIONAL { ?qleverui_entity rdfs:label ?qleverui_name }
+      } ORDER BY ?qleverui_name LIMIT 20
+    subjectName: |
+      ?qleverui_entity rdfs:label ?qleverui_name .
+      FILTER(LANG(?qleverui_name) = "en")
+    predicateName: |
+      ?qleverui_entity rdfs:label ?qleverui_name .
+      FILTER(LANG(?qleverui_name) = "en")
+    objectName: |
+      ?qleverui_entity rdfs:label ?qleverui_name .
+      FILTER(LANG(?qleverui_name) = "en")
+    supportedKeywords: select, where, filter, optional, union, minus, limit, offset, order, group, having, distinct, reduced, construct, describe, ask
+    supportedFunctions: str, lang, datatype, bound, isiri, isblank, isliteral, isnumeric, regex, strlen, substr, ucase, lcase, concat, contains, strstarts, strends, strbefore, strafter
+    supportedPredicateSuggestions: rdfs:label, rdf:type, rdfs:comment
+    suggestPrefixnamesForPredicates: true
+    fillPrefixes: true
+    filterEntities: false
+    suggestedPrefixes: |
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+      PREFIX dc: <http://purl.org/dc/elements/1.1/>
+      PREFIX dcterms: <http://purl.org/dc/terms/>
+      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    suggestionEntityVariable: entity
+    suggestionNameVariable: name
+    suggestionAltNameVariable: altname
+    suggestionReversedVariable: reversed
+  examples:
+    - name: Basic Query
+      sort_key: "01"
+      query: |
+        SELECT ?subject ?predicate ?object WHERE {
+          ?subject ?predicate ?object .
+        } LIMIT 10
+    - name: Find All Classes
+      sort_key: "02"
+      query: |
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        
+        SELECT DISTINCT ?class ?label WHERE {
+          ?class rdf:type rdfs:Class .
+          OPTIONAL { ?class rdfs:label ?label }
+        } ORDER BY ?label LIMIT 50
+    - name: Count Entities by Type
+      sort_key: "03"
+      query: |
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        
+        SELECT ?type (COUNT(?entity) as ?count) WHERE {
+          ?entity rdf:type ?type .
+        } GROUP BY ?type
+        ORDER BY DESC(?count)
+        LIMIT 20
+    - name: Find Properties with Labels
+      sort_key: "04"
+      query: |
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        
+        SELECT ?property ?label WHERE {
+          ?property rdf:type rdf:Property .
+          OPTIONAL { ?property rdfs:label ?label }
+        } ORDER BY ?label LIMIT 30
+    - name: Complex Query with OPTIONAL and FILTER
+      sort_key: "05"
+      query: |
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        
+        SELECT ?person ?name ?email WHERE {
+          ?person rdf:type foaf:Person .
+          ?person foaf:name ?name .
+          OPTIONAL { ?person foaf:email ?email }
+          FILTER(LANG(?name) = "en" || LANG(?name) = "")
+        } ORDER BY ?name LIMIT 25

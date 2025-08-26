@@ -1,0 +1,11 @@
+config:
+  backend:
+    name: Minimal Test Backend
+    slug: minimal-test
+    baseUrl: https://minimal.example.com/sparql
+    isDefault: false
+    isNoSlugMode: false
+  examples:
+    - name: Simple SELECT
+      sort_key: "1"
+      query: "SELECT * WHERE { ?s ?p ?o } LIMIT 5"
