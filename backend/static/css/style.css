@@ -1,5 +1,5 @@
 /*
-	
+
 Basic HTML Elements
 
 */
@@ -13,7 +13,7 @@ kbd {
 }
 
 /*
-	
+
 Custom Elements
 
 */
@@ -89,7 +89,7 @@ th { color: #82B36F; white-space: nowrap; }
 
 .d,
 #help,
-#helpButton { 
+#helpButton {
 	display: none;
 }
 
@@ -99,7 +99,7 @@ th { color: #82B36F; white-space: nowrap; }
 	#helpButton {
 		display: inline;
 	}
-		
+
 	#dynamicSuggestions {
 		margin-top: 0px;
 	}
@@ -121,9 +121,9 @@ th { color: #82B36F; white-space: nowrap; }
 }
 
 /**
-	
+
 	CodeMirror Styles
-	
+
 **/
 
 .CodeMirror {max-width: 100%;}
@@ -133,7 +133,7 @@ th { color: #82B36F; white-space: nowrap; }
 	background: -moz-linear-gradient(top,  #34759E 0%, #4787AD 100%); /* FF3.6-15 */
 	background: -webkit-linear-gradient(top,  #34759E 0%,#4787AD 100%); /* Chrome10-25,Safari5.1-6 */
 	background: linear-gradient(to bottom,  #34759E 0%,#4787AD 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-	border-radius: 5px; 
+	border-radius: 5px;
 	color: white;
 	padding: 0px 5px 2px 5px;
 }
@@ -199,9 +199,9 @@ th { color: #82B36F; white-space: nowrap; }
 .cm-s-railscasts .CodeMirror-activeline-background { background: #303040; }
 
 /**
-	
+
 	CodeMirror Hints
-	
+
 **/
 
 .CodeMirror-hint {
@@ -212,7 +212,7 @@ th { color: #82B36F; white-space: nowrap; }
   color: black;
   cursor: pointer;
   position: relative;
-  line-height: 1.5;  
+  line-height: 1.5;
 }
 
 .CodeMirror-hints {
@@ -295,12 +295,11 @@ li.CodeMirror-hint-active {
 }
 
 /* Tree viewport and panzoom styles */
-#tree-viewport { 
+#tree-viewport {
   width: 100%;
   height: 600px;
   border: 1px solid #ddd;
   overflow: hidden !important;
-  position: relative;
 }
 
 #result-tree {
@@ -313,10 +312,10 @@ li.CodeMirror-hint-active {
   overflow: visible;
 }
 
-#result-tree .Treant { 
-  overflow: visible; 
-  width: auto !important; 
-  height: auto !important; 
+#result-tree .Treant {
+  overflow: visible;
+  width: auto !important;
+  height: auto !important;
 }
 
 /* Query history styles */
