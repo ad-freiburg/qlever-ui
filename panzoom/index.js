@@ -18,6 +18,9 @@ function initializePanzoom() {
       contain: false
     });
     
+    // Expose the instance globally for centering functions
+    window.panzoomInstance = panzoomInstance;
+    
     // Enable zooming with mouse wheel on the viewport
     treeViewport.addEventListener('wheel', panzoomInstance.zoomWithWheel);
     
@@ -39,6 +42,7 @@ function destroyPanzoom() {
     }
     panzoomInstance.destroy();
     panzoomInstance = null;
+    window.panzoomInstance = null;
     console.log('Panzoom destroyed');
   }
 }
