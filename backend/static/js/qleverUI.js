@@ -988,10 +988,31 @@ function renderRuntimeInformationToDom(entry = undefined) {
     // Use setTimeout to ensure the tree is fully rendered
     setTimeout(() => {
       window.initializePanzoom();
-      // Center the tree after initialization
+      // Center the tree after initialization with a better zoom level
       if (typeof window.centerTree === 'function') {
         setTimeout(() => {
-          window.centerTree();
+          // Call a custom centering function that doesn't zoom to minimum
+          const treeViewport = document.getElementById('tree-viewport');
+          const resultTree = document.getElementById('result-tree');
+          
+          if (treeViewport && resultTree) {
+            const treantContainer = resultTree.querySelector('.Treant');
+            if (treantContainer) {
+              // Get dimensions
+              const viewportRect = treeViewport.getBoundingClientRect();
+              const treeRect = treantContainer.getBoundingClientRect();
+              
+              // Calculate appropriate zoom level to fit the tree in the viewport
+              const scaleX = viewportRect.width / treeRect.width;
+              const scaleY = viewportRect.height / treeRect.height;
+              const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 90% of the fit scale, max 1
+              
+              // Call resetPanzoom to set a reasonable zoom first
+              if (typeof window.resetPanzoom === 'function') {
+                window.resetPanzoom();
+              }
+            }
+          }
         }, 50);
       }
     }, 100);
