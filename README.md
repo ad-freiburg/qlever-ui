@@ -48,4 +48,7 @@ Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 * [Extending QLever UI](#construct-and-theoretical-approach)
     * [Extending the language parser](docs/extending_parser.md)
     * [Extending the suggestions](docs/extending_suggestions.md)
+* [Examining Queries]()
+## Features
+
 
