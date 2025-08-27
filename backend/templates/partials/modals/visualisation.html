@@ -1,24 +1,32 @@
 <div class="modal" tabindex="-1" role="dialog" id="visualisation">
-  <div class="modal-dialog" role="document" style="width: 80%;">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title pull-left">Query Analysis</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+
       </div>
       <div class="modal-body">
         <div id="result-query"></div>
-        <div id="meta-info"></div>
-        <div id="result-tree">
-          <br><strong style="color: red;">Please execute your query first.</strong><br><br>
+        <div class="row">
+          <div  id="meta-info" class="col-md-6">
+
+          </div>
+          <div class="col-md-6 text-right text-muted" id="tree-info">
+            If there is no tree visible. Zoom out to see the tree.
+          </div>
+        </div>
+
+        <div id="tree-viewport">
+          <div id="result-tree">
+            <br><strong style="color: red;">Please execute your query first.</strong><br><br>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
-        <div id="lastQueries" class="pull-left" style="margin: -25px 0px;"></div>
+        <div id="lastQueries" class="pull-left"></div>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
-</div>
+
 
