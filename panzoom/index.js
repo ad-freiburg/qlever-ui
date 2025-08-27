@@ -14,7 +14,7 @@ function initializePanzoom() {
       minScale: 0.1,
       cursor: 'grab',
       step: 0.1,
-      // Don't constrain panning - let users see all content
+      // Allow free panning for unrestricted scrolling
       contain: false
     });
     
@@ -49,4 +49,31 @@ function resetPanzoom() {
   }
 }
 
-export { initializePanzoom, destroyPanzoom, resetPanzoom };
+function centerTree() {
+  if (panzoomInstance) {
+    const treeViewport = document.getElementById('tree-viewport');
+    const resultTree = document.getElementById('result-tree');
+    
+    if (treeViewport && resultTree) {
+      // Zoom out to minimum scale first
+      panzoomInstance.zoom(0.1);
+      
+      // Get the actual tree content (Treant container)
+      const treantContainer = resultTree.querySelector('.Treant');
+      if (treantContainer) {
+        // Get dimensions
+        const viewportRect = treeViewport.getBoundingClientRect();
+        const treeRect = treantContainer.getBoundingClientRect();
+        
+        // Calculate center position
+        const centerX = (viewportRect.width - treeRect.width) / 2;
+        const centerY = Math.max(20, (viewportRect.height - treeRect.height) / 2); // Min 20px from top
+        
+        // Pan to center the tree
+        panzoomInstance.pan(centerX, centerY);
+      }
+    }
+  }
+}
+
+export { initializePanzoom, destroyPanzoom, resetPanzoom, centerTree };

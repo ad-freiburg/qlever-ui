@@ -81,10 +81,11 @@
 
   <!-- Panzoom for tree visualization -->
   <script type="module">
-    import { initializePanzoom, destroyPanzoom, resetPanzoom } from "{% static '/js/panzoom.js' %}";
+    import { initializePanzoom, destroyPanzoom, resetPanzoom, centerTree } from "{% static '/js/panzoom.js' %}";
     window.initializePanzoom = initializePanzoom;
     window.destroyPanzoom = destroyPanzoom;
     window.resetPanzoom = resetPanzoom;
+    window.centerTree = centerTree;
   </script>
 
   <!-- Our own JavaScript code for this demo -->

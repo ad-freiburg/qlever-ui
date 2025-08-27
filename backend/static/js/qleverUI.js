@@ -988,6 +988,12 @@ function renderRuntimeInformationToDom(entry = undefined) {
     // Use setTimeout to ensure the tree is fully rendered
     setTimeout(() => {
       window.initializePanzoom();
+      // Center the tree after initialization
+      if (typeof window.centerTree === 'function') {
+        setTimeout(() => {
+          window.centerTree();
+        }, 50);
+      }
     }, 100);
   }
 
