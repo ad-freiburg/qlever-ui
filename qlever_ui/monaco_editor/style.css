@@ -1,7 +1,8 @@
 #editor {
 	width: 100%;
-	height: 40vh;
-	padding: 0px 19px 19px 19px;
+	height: 460px;
+  resize: vertical;
+  overflow: hidden;
 }
 
 .monaco-editor .monaco-editor-background {
