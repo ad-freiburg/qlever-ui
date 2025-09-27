@@ -1,0 +1,89 @@
+config:
+  backend:
+    name: Wikidata Example
+    slug: wikidata-example
+    baseUrl: https://query.wikidata.org/sparql
+    isDefault: false
+    isNoSlugMode: false
+    maxDefault: 50
+    filteredLanguage: en
+    dynamicSuggestions: 3
+    defaultModeTimeout: 2.0
+    mixedModeTimeout: 1.0
+    supportedKeywords: select, where, filter, optional, union, minus, limit, offset, order, group, having, distinct, reduced, construct, describe, ask, service, bind, values
+    supportedFunctions: str, lang, datatype, bound, isiri, isblank, isliteral, isnumeric, regex, strlen, substr, ucase, lcase, concat, contains, strstarts, strends, strbefore, strafter, now, year, month, day, hours, minutes, seconds
+    supportedPredicateSuggestions: wdt:P31, wdt:P279, rdfs:label, skos:altLabel
+    suggestPrefixnamesForPredicates: true
+    fillPrefixes: true
+    filterEntities: false
+    suggestedPrefixes: |
+      PREFIX wd: <http://www.wikidata.org/entity/>
+      PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+      PREFIX wikibase: <http://wikiba.se/ontology#>
+      PREFIX p: <http://www.wikidata.org/prop/>
+      PREFIX ps: <http://www.wikidata.org/prop/statement/>
+      PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+      PREFIX pr: <http://www.wikidata.org/prop/reference/>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+      PREFIX schema: <http://schema.org/>
+    suggestionEntityVariable: item
+    suggestionNameVariable: itemLabel
+    suggestionAltNameVariable: itemAltLabel
+  examples:
+    - name: Countries with Population
+      sort_key: "A1"
+      query: |
+        PREFIX wd: <http://www.wikidata.org/entity/>
+        PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        
+        SELECT ?country ?countryLabel ?population WHERE {
+          ?country wdt:P31 wd:Q6256 .  # instance of country
+          ?country wdt:P1082 ?population .  # population
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+        }
+        ORDER BY DESC(?population)
+        LIMIT 20
+    - name: Scientists Born After 1950
+      sort_key: "A2"
+      query: |
+        PREFIX wd: <http://www.wikidata.org/entity/>
+        PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        
+        SELECT ?scientist ?scientistLabel ?birthDate WHERE {
+          ?scientist wdt:P31 wd:Q5 .  # instance of human
+          ?scientist wdt:P106 wd:Q901 .  # occupation: scientist
+          ?scientist wdt:P569 ?birthDate .  # date of birth
+          FILTER(YEAR(?birthDate) > 1950)
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+        }
+        ORDER BY DESC(?birthDate)
+        LIMIT 15
+    - name: Cities in Germany
+      sort_key: "A3"
+      query: |
+        PREFIX wd: <http://www.wikidata.org/entity/>
+        PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        
+        SELECT ?city ?cityLabel ?population WHERE {
+          ?city wdt:P31/wdt:P279* wd:Q515 .  # instance/subclass of city
+          ?city wdt:P17 wd:Q183 .  # country: Germany
+          OPTIONAL { ?city wdt:P1082 ?population }
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+        }
+        ORDER BY DESC(?population)
+        LIMIT 25
+    - name: Programming Languages with Creation Date
+      sort_key: "A4"
+      query: |
+        PREFIX wd: <http://www.wikidata.org/entity/>
+        PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        
+        SELECT ?language ?languageLabel ?inception ?creator ?creatorLabel WHERE {
+          ?language wdt:P31 wd:Q9143 .  # instance of programming language
+          OPTIONAL { ?language wdt:P571 ?inception }  # inception date
+          OPTIONAL { ?language wdt:P178 ?creator }   # developer/creator
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+        }
+        ORDER BY ?inception
+        LIMIT 30

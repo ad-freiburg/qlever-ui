@@ -1,0 +1,77 @@
+# This file contains various invalid YAML configurations for testing error handling
+
+# Missing required fields
+missing_name: |
+  config:
+    backend:
+      slug: test-missing-name
+      baseUrl: https://example.com
+    examples: []
+
+# Invalid YAML syntax  
+invalid_yaml_syntax: |
+  config:
+    backend:
+      name: "Unclosed quote
+      slug: invalid-yaml
+      baseUrl: https://example.com
+    examples: []
+
+# Missing config key
+missing_config_key: |
+  backend:
+    name: Missing Config Key
+    slug: missing-config
+    baseUrl: https://example.com
+  examples: []
+
+# Invalid boolean value
+invalid_boolean: |
+  config:
+    backend:
+      name: Invalid Boolean
+      slug: invalid-bool
+      baseUrl: https://example.com
+      isDefault: "maybe"
+    examples: []
+
+# Slug mismatch
+slug_mismatch: |
+  config:
+    backend:
+      name: Slug Mismatch Test
+      slug: different-slug-than-url
+      baseUrl: https://example.com
+    examples: []
+
+# Missing examples key
+missing_examples: |
+  config:
+    backend:
+      name: Missing Examples
+      slug: missing-examples
+      baseUrl: https://example.com
+
+# Invalid example structure
+invalid_example_structure: |
+  config:
+    backend:
+      name: Invalid Example Structure
+      slug: invalid-example
+      baseUrl: https://example.com
+    examples:
+      - name: "Missing sort_key and query"
+      - sort_key: "1"
+        query: "Missing name"
+      - name: "Missing query"
+        sort_key: "2"
+
+# Non-string values where strings expected
+non_string_values: |
+  config:
+    backend:
+      name: 12345  # Should be string but is number
+      slug: non-string-test
+      baseUrl: https://example.com
+      maxDefault: "not a number"  # Should be int but is string
+    examples: []

@@ -2,7 +2,7 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import JsonResponse
-# from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
 
 from .models import *
 from backend.management.commands.warmup import Command as WarmupCommand
@@ -215,20 +215,65 @@ def prefixes(request, backend):
 
 # Handle API request to /api/config/<backend-slug>
 #
-# NOTE: This used to require a login, but none of the information in the config
-# is really secret + it is practical for users who want to set up their own
-# instance of the QLever UI to be able to easily access the config of existing
-# instances of the QLever UI.
-#
-# @login_required
+# GET: Returns the backend config as YAML (no authentication required)
+# POST: Creates/updates backend config from YAML (authentication required)
+@csrf_exempt
 def config(request, backend):
-    print_to_log(f"API call to `config` with backend `{backend}`")
+    print_to_log(f"API call to `config` with backend `{backend}` method `{request.method}`")
     command = ConfigCommand()
-    try:
-        config_yaml = command.handle(backend_slug=backend, returnOutput=True)
-    except Exception as e:
-        return HttpResponse("Error: " + str(e), status=500)
-    return HttpResponse(config_yaml, content_type="text/yaml")
+    
+    if request.method == "GET":
+        # GET request - return config (no auth required)
+        try:
+            config_yaml = command.handle(backend_slug=backend, returnOutput=True)
+        except Exception as e:
+            return HttpResponse("Error: " + str(e), status=500)
+        return HttpResponse(config_yaml, content_type="text/yaml")
+    
+    elif request.method == "POST":
+        # POST request - create/update config (auth required)
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden("Authentication required for creating/updating backend config")
+        
+        try:
+            # Get YAML content from request body
+            config_yaml = request.body.decode('utf-8')
+            
+            if not config_yaml.strip():
+                return HttpResponse("Error: Empty request body", status=400)
+            
+            # Check if backend exists, if not create it first
+            backend_exists = Backend.objects.filter(slug=backend).exists()
+            
+            if not backend_exists:
+                # Create a minimal backend first (required fields only)
+                Backend.objects.create(
+                    name=f"Backend {backend}",  # Default name, will be overwritten
+                    slug=backend,
+                    baseUrl="http://localhost:7001"  # Default URL, will be overwritten
+                )
+                print_to_log(f"Created new backend with slug '{backend}'")
+            
+            # Use the set_backend_config method to update the backend
+            command.set_backend_config(backend, config_yaml)
+            
+            action = "updated" if backend_exists else "created"
+            return JsonResponse({
+                "status": "success", 
+                "message": f"Backend config for '{backend}' {action} successfully"
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                "status": "error", 
+                "message": str(e)
+            }, status=400)
+    
+    else:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Method {request.method} not allowed"
+        }, status=405)
 
 
 # Helpers
