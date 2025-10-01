@@ -94,7 +94,10 @@ export async function buildWrapperConfig(container: HTMLElement, initial: string
         lineDecorationsWidth: 0,
         lineNumbersMinChars: 2,
         glyphMargin: true,
-        contextmenu: false
+        contextmenu: false,
+        folding: true,
+        foldingImportsByDefault: true
+
       }
     },
     vscodeApiConfig: {

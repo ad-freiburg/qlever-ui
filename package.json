@@ -20,6 +20,6 @@
     "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@17.1.2",
     "monaco-editor-wrapper": "~6.8.0",
     "monaco-vim": "^0.4.2",
-    "qlue-ls": "0.13.3"
+    "qlue-ls": "0.16.0"
   }
 }
