@@ -390,7 +390,9 @@ class Backend(models.Model):
             setattr(
                 self,
                 field,
-                str(getattr(self, field)).replace("\r\n", "\n").replace("\r", "\n"),
+                str(getattr(self, field))
+                .replace("\r\n", "\n")
+                .replace("\r", "\n"),
             )
         super(Backend, self).save(*args, **kwargs)
 
@@ -548,7 +550,9 @@ class BackendDefaults(Backend):
 
     def save(self, *args, **kwargs):
         self.name = "Global defaults for all Backends"
-        self.slug = "globaldefaults_" + str(datetime.datetime.now().timestamp())
+        self.slug = "globaldefaults_" + str(
+            datetime.datetime.now().timestamp()
+        )
         self.sortKey = "0"
         self.baseUrl = ""
         self.isDefault = False
@@ -566,7 +570,8 @@ class Link(models.Model):
 class Example(models.Model):
     backend = models.ForeignKey(Backend, on_delete=models.CASCADE)
     name = models.CharField(
-        max_length=100, help_text="Name of this example to show in the user interface"
+        max_length=100,
+        help_text="Name of this example to show in the user interface",
     )
     query = models.TextField()
     sortKey = models.CharField(

@@ -69,7 +69,10 @@ class BackendAdmin(ImportExportModelAdmin):
         (
             "Frequent Predicates",
             {
-                "fields": ("frequentPredicates", "frequentPatternsWithoutOrder"),
+                "fields": (
+                    "frequentPredicates",
+                    "frequentPatternsWithoutOrder",
+                ),
                 "description": 'Frequent predicates that should be pinned to the cache (can be left empty). Separate by space. You can use all the prefixes from "Suggested Prefixes" (e.g. wdt:P31 if "Suggested Prefixes" defines the prefix for wdt), but you can also write full IRIs.',
             },
         ),
@@ -115,7 +118,11 @@ class BackendAdmin(ImportExportModelAdmin):
         (
             "Autocomplete Queries (context-sensitive)",
             {
-                "fields": ("suggestSubjects", "suggestPredicates", "suggestObjects"),
+                "fields": (
+                    "suggestSubjects",
+                    "suggestPredicates",
+                    "suggestObjects",
+                ),
             },
         ),
         (

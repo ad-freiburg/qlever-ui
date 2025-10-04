@@ -5,7 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("backend", "0074_example_sortkey_alter_backend_defaultmodetimeout_and_more"),
+        (
+            "backend",
+            "0074_example_sortkey_alter_backend_defaultmodetimeout_and_more",
+        ),
     ]
 
     operations = [

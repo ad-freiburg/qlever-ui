@@ -52,17 +52,27 @@ class Command(BaseCommand):
         output_format = options.get("output_format", "tsv")
         if output_format == "tsv":
             result = []
-            for example in Example.objects.filter(backend=backend).order_by("sortKey"):
+            for example in Example.objects.filter(backend=backend).order_by(
+                "sortKey"
+            ):
                 query_name = example.name
                 query_string = self.normalize_query(example.query)
                 result.append(f"{query_name}\t{query_string}")
-            self.log(f'Returning {len(result)} example queries for backend "{slug}"')
+            self.log(
+                f'Returning {len(result)} example queries for backend "{slug}"'
+            )
             return "\n".join(result) + "\n"
         else:
             result = [f"kb: {backend.slug}\n", "queries:\n"]
-            for example in Example.objects.filter(backend=backend).order_by("sortKey"):
-                query_name = re.sub(r"^", "    ", example.name, flags=re.MULTILINE)
-                query_string = re.sub(r"^", "    ", example.query, flags=re.MULTILINE)
+            for example in Example.objects.filter(backend=backend).order_by(
+                "sortKey"
+            ):
+                query_name = re.sub(
+                    r"^", "    ", example.name, flags=re.MULTILINE
+                )
+                query_string = re.sub(
+                    r"^", "    ", example.query, flags=re.MULTILINE
+                )
                 result.append(
                     f"- query: |-\n{query_name}\n  sparql: |-\n{query_string}\n"
                 )

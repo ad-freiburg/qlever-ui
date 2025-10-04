@@ -21,9 +21,13 @@ class Command(BaseCommand):
 
     # Command line arguments.
     def add_arguments(self, parser):
-        parser.add_argument("source_slug", nargs=1, help="Slug of the source backend")
         parser.add_argument(
-            "dest_spec", nargs=1, help="Slug of the destination backend (must be new)"
+            "source_slug", nargs=1, help="Slug of the source backend"
+        )
+        parser.add_argument(
+            "dest_spec",
+            nargs=1,
+            help="Slug of the destination backend (must be new)",
         )
 
     # This defined the actual behavior. See here for how to update the database:
@@ -87,5 +91,7 @@ class Command(BaseCommand):
                 example.save()
                 num_examples_copied += 1
                 # self.log(example.name)
-        self.log(f"Done, number of example queries copied: {num_examples_copied}")
+        self.log(
+            f"Done, number of example queries copied: {num_examples_copied}"
+        )
         self.log()

@@ -24,7 +24,9 @@ class Command(BaseCommand):
         parser.add_argument(
             "backend_slug", nargs=1, help="Slug of the selected backend"
         )
-        parser.add_argument("backend_url", nargs=1, help="URL of the selected backend")
+        parser.add_argument(
+            "backend_url", nargs=1, help="URL of the selected backend"
+        )
 
     def handle(self, *args, returnLog=False, **options):
         backend_slug = options["backend_slug"][0]

@@ -43,7 +43,9 @@ class Migration(migrations.Migration):
             model_name="backend",
             name="frequentPatternsWithoutOrder",
             field=models.TextField(
-                blank=True, default="", verbose_name="Frequent patterns without order"
+                blank=True,
+                default="",
+                verbose_name="Frequent patterns without order",
             ),
         ),
         migrations.AlterField(
