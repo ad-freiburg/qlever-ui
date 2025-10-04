@@ -29,7 +29,10 @@ class Command(BaseCommand):
         CLEAR = "clear", "Clear"
         CLEAR_UNPINNED = "clear_unpinned", "Clear unpinned"
         QUERIES = "queries", "Queries"
-        SHOW_ALL_AC_QUERIES = "show_all_ac_queries", "Show all autocompletion queries"
+        SHOW_ALL_AC_QUERIES = (
+            "show_all_ac_queries",
+            "Show all autocompletion queries",
+        )
 
     PRINT_FORMATS = {
         "red": lambda text: f"\033[31m{text}\033[0m",
@@ -46,7 +49,9 @@ class Command(BaseCommand):
     }
 
     def add_arguments(self, parser):
-        parser.add_argument("backend", nargs=1, help="Id, Slug or Name of a Backend")
+        parser.add_argument(
+            "backend", nargs=1, help="Id, Slug or Name of a Backend"
+        )
         parser.add_argument(
             "target",
             nargs="?",
@@ -68,9 +73,9 @@ class Command(BaseCommand):
         backend = options["backend"][0]
 
         # Determine backend.
-        backends = Backend.objects.filter(name=backend) | Backend.objects.filter(
-            slug=backend
-        )
+        backends = Backend.objects.filter(
+            name=backend
+        ) | Backend.objects.filter(slug=backend)
         try:
             backends = backends | Backend.objects.filter(id=backend)
         except (ValueError, TypeError):
@@ -118,7 +123,8 @@ class Command(BaseCommand):
                 self.warmupQueries.append(
                     (
                         halfSensitiveWarmupQuery,
-                        "Half-sensitive object AC query for predicate " + predicate,
+                        "Half-sensitive object AC query for predicate "
+                        + predicate,
                     )
                 )
 
@@ -148,10 +154,14 @@ class Command(BaseCommand):
     def request_to_qlever(self, params):
         headers = {"Accept": "application/qlever-results+json"}
         try:
-            response = requests.post(self.backend.baseUrl, data=params, headers=headers)
+            response = requests.post(
+                self.backend.baseUrl, data=params, headers=headers
+            )
             return response
         except requests.exceptions.RequestException as e:
-            self.log(f"Error requesting {self.backend.baseUrl}: {e}", format="red")
+            self.log(
+                f"Error requesting {self.backend.baseUrl}: {e}", format="red"
+            )
             return None
 
     # Clear the cache.
@@ -204,7 +214,9 @@ class Command(BaseCommand):
                 continue
             self.log(" ")
             self.log(f"Pin: {pattern} ordered by subject only", format="bold")
-            query = f"SELECT ?x ?y WHERE {{ ?x {pattern} ?y }} INTERNAL SORT BY ?x"
+            query = (
+                f"SELECT ?x ?y WHERE {{ ?x {pattern} ?y }} INTERNAL SORT BY ?x"
+            )
             self.log(query)
             self._pinQuery(f"{prefixString}\n{query}")
 
@@ -275,7 +287,9 @@ class Command(BaseCommand):
             # replace prefixes
             if "%PREFIXES%" in completionQuery:
                 prefixString = self._getPrefixString() + "\n%PREFIXES%"
-                completionQuery = completionQuery.replace("%PREFIXES%", prefixString)
+                completionQuery = completionQuery.replace(
+                    "%PREFIXES%", prefixString
+                )
             return completionQuery
         else:
             return self._buildQuery(completionQuery)
@@ -307,10 +321,13 @@ class Command(BaseCommand):
             jsonData = response.json()
             if "exception" in jsonData:
                 self.log(
-                    f"ERROR processing query: {jsonData['exception']}", format="red"
+                    f"ERROR processing query: {jsonData['exception']}",
+                    format="red",
                 )
             else:
-                self.log(f"Result size: {jsonData['resultsize']:,}", format="blue")
+                self.log(
+                    f"Result size: {jsonData['resultsize']:,}", format="blue"
+                )
 
     # Normalize the given query to a one-liner.
     #

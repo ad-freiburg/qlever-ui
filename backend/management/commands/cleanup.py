@@ -52,6 +52,8 @@ class Command(BaseCommand):
         self.log(f"Remove all session info ...")
         Session.objects.all().delete()
         # Vacuum the database.
-        self.log(f"Compress the database file after cleaning up (with VACUUM) ...")
+        self.log(
+            f"Compress the database file after cleaning up (with VACUUM) ..."
+        )
         cursor = connection.cursor()
         cursor.execute("VACUUM;")

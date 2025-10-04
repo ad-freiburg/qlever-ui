@@ -72,7 +72,9 @@ class Command(BaseCommand):
             raise CommandError(f"Backend `{backend_slug}` does not exist")
         except Backend.MultipleObjectsReturned:
             # TODO: once the slug is unique this case shouldn't occur anymore
-            raise CommandError(f"Backend identifier `{backend_slug}` is not unique")
+            raise CommandError(
+                f"Backend identifier `{backend_slug}` is not unique"
+            )
         backend_id = backend.id
 
         # Get the `Backend` config for this backend. Do not include the `id`
@@ -223,7 +225,9 @@ class Command(BaseCommand):
         # backends.
         if options["hide_all_other_backends"]:
             try:
-                for other_backend in Backend.objects.exclude(slug=backend_slug):
+                for other_backend in Backend.objects.exclude(
+                    slug=backend_slug
+                ):
                     other_backend.sortKey = 0
                     other_backend.save()
                 self.log(

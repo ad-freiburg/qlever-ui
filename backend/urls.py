@@ -26,7 +26,11 @@ urlpatterns = [
         views.warmup,
         name="warmup",
     ),
-    re_path(r"^api/examples/(?P<backend>[^/]+)$", views.examples, name="examples"),
-    re_path(r"^api/prefixes/(?P<backend>[^/]+)$", views.prefixes, name="prefixes"),
+    re_path(
+        r"^api/examples/(?P<backend>[^/]+)$", views.examples, name="examples"
+    ),
+    re_path(
+        r"^api/prefixes/(?P<backend>[^/]+)$", views.prefixes, name="prefixes"
+    ),
     re_path(r"^api/config/(?P<backend>[^/]+)$", views.config, name="config"),
 ]
