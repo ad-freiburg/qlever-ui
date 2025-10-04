@@ -8,6 +8,7 @@ var high_query_time_ms = 100;
 var very_high_query_time_ms = 1000;
 var request_log = new Map();
 var currentlyActiveQueryWebSocket = null;
+var currentQueryResult = null;
 
 // Generates a random query id only known to this client.
 // We don't use consecutive ids to prevent clashes between
@@ -389,6 +390,22 @@ $(document).ready(function () {
   accessToken.on("input", function () {
     updateBackendCommandVisibility();
   });
+
+  // JSON view button
+  $("#jsonViewBtn").click(function() {
+    if (currentQueryResult) {
+      showJsonModal(currentQueryResult);
+    } else {
+      log('No query result available', 'other');
+    }
+  });
+
+  // JSON download functionality
+  $("#downloadJsonBtn").click(function() {
+    if (currentQueryResult) {
+      downloadJson(currentQueryResult);
+    }
+  });
   
 });
 
@@ -675,6 +692,9 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
           result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
         }
       case "Query":
+        // Store the result for JSON view
+        currentQueryResult = result;
+        
         // Display warnings.
         displayWarningsIfPresent(result["warnings"]);
 
@@ -1043,4 +1063,29 @@ function renderRuntimeInformationToDom(entry = undefined) {
     }
     $('#lastQueries').html(queryHistoryList);
   }
+}
+
+// Shows the JSON modal with the current query result
+function showJsonModal(result) {
+  const formattedJson = JSON.stringify(result, null, 2);
+  $("#jsonContent").text(formattedJson);
+  $("#jsonView").modal("show");
+  log('Showing JSON view', 'other');
+}
+
+// Downloads the current query result as JSON file
+function downloadJson(result) {
+  const jsonString = JSON.stringify(result, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = window.location.pathname.replace(/^\//, "").replace(/\//, "_") + "_result.json";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(url);
+  
+  log('Downloaded JSON result', 'other');
 }
