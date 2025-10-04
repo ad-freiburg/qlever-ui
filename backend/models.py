@@ -1,3 +1,4 @@
+from enum import unique
 from functools import cached_property
 import json
 import re
@@ -579,5 +580,8 @@ class Example(models.Model):
         verbose_name="Sort key",
     )
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return str(self.name)
+
+    def as_dict(self) -> dict[str, str]:
+        return {"name": self.name, "query": self.query}
