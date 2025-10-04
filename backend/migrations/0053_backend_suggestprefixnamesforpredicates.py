@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0052_backend_supportedpredicatesuggestions'),
+        ("backend", "0052_backend_supportedpredicatesuggestions"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='suggestPrefixnamesForPredicates',
-            field=models.BooleanField(default=True, help_text='Suggest Prefix names without a particular entity when autocompleting predicates.', verbose_name='Suggest prefix names for predicates.'),
+            model_name="backend",
+            name="suggestPrefixnamesForPredicates",
+            field=models.BooleanField(
+                default=True,
+                help_text="Suggest Prefix names without a particular entity when autocompleting predicates.",
+                verbose_name="Suggest prefix names for predicates.",
+            ),
         ),
     ]

@@ -63,8 +63,9 @@ class Command(BaseCommand):
             for example in Example.objects.filter(backend=backend).order_by("sortKey"):
                 query_name = re.sub(r"^", "    ", example.name, flags=re.MULTILINE)
                 query_string = re.sub(r"^", "    ", example.query, flags=re.MULTILINE)
-                result.append(f"- query: |-\n{query_name}\n"
-                              f"  sparql: |-\n{query_string}\n")
+                result.append(
+                    f"- query: |-\n{query_name}\n  sparql: |-\n{query_string}\n"
+                )
             return "".join(result)
 
     # Helper function for normalizing a query (translated from

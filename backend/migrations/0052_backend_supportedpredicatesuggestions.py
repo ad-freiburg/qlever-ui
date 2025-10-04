@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0051_auto_20200119_1452'),
+        ("backend", "0051_auto_20200119_1452"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='supportedPredicateSuggestions',
-            field=models.TextField(blank=True, default='ql:contains-word, ql:contains-entity', help_text='Comma separated list of predicate suggestions that should always be shown.', verbose_name='Predicate suggestions'),
+            model_name="backend",
+            name="supportedPredicateSuggestions",
+            field=models.TextField(
+                blank=True,
+                default="ql:contains-word, ql:contains-entity",
+                help_text="Comma separated list of predicate suggestions that should always be shown.",
+                verbose_name="Predicate suggestions",
+            ),
         ),
     ]

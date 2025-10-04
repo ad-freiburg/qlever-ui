@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0020_example_name'),
+        ("backend", "0020_example_name"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='getPatternsFromQLever',
+            model_name="backend",
+            name="getPatternsFromQLever",
             field=models.BooleanField(default=False),
         ),
     ]

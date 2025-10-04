@@ -6,15 +6,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0042_auto_20190203_1036'),
+        ("backend", "0042_auto_20190203_1036"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='filteredLanguage',
-            field=models.CharField(blank=True, default='en', help_text='Comma separated language codes used for filter suggestions', max_length=2000, verbose_name='Source Path'),
+            model_name="backend",
+            name="filteredLanguage",
+            field=models.CharField(
+                blank=True,
+                default="en",
+                help_text="Comma separated language codes used for filter suggestions",
+                max_length=2000,
+                verbose_name="Source Path",
+            ),
         ),
     ]

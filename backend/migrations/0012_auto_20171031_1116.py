@@ -7,25 +7,39 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0011_prefix_occurrences'),
+        ("backend", "0011_prefix_occurrences"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='object',
-            name='backend',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='backend.Backend'),
+            model_name="object",
+            name="backend",
+            field=models.ForeignKey(
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="backend.Backend",
+            ),
         ),
         migrations.AddField(
-            model_name='predicate',
-            name='backend',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='backend.Backend'),
+            model_name="predicate",
+            name="backend",
+            field=models.ForeignKey(
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="backend.Backend",
+            ),
         ),
         migrations.AddField(
-            model_name='subject',
-            name='backend',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='backend.Backend'),
+            model_name="subject",
+            name="backend",
+            field=models.ForeignKey(
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="backend.Backend",
+            ),
         ),
     ]

@@ -6,73 +6,81 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0025_auto_20180616_1246'),
+        ("backend", "0025_auto_20180616_1246"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='object',
-            name='backend',
+            model_name="object",
+            name="backend",
         ),
         migrations.RemoveField(
-            model_name='pattern',
-            name='backend',
+            model_name="pattern",
+            name="backend",
         ),
         migrations.RemoveField(
-            model_name='predicate',
-            name='backend',
+            model_name="predicate",
+            name="backend",
         ),
         migrations.RemoveField(
-            model_name='subject',
-            name='backend',
+            model_name="subject",
+            name="backend",
         ),
         migrations.DeleteModel(
-            name='Suggestion',
+            name="Suggestion",
         ),
         migrations.DeleteModel(
-            name='Synonym',
+            name="Synonym",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='getPatternsFromQLever',
+            model_name="backend",
+            name="getPatternsFromQLever",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='getPredicateNamesFromRelation',
+            model_name="backend",
+            name="getPredicateNamesFromRelation",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='getSubjectNamesFromRelation',
+            model_name="backend",
+            name="getSubjectNamesFromRelation",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='predicateNameRelation',
+            model_name="backend",
+            name="predicateNameRelation",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='subjectNameRelation',
+            model_name="backend",
+            name="subjectNameRelation",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='subjectOrderRelation',
+            model_name="backend",
+            name="subjectOrderRelation",
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='dynamicSuggestions',
-            field=models.IntegerField(choices=[(2, '3. SPARQL & context sensitive entities'), (1, '2. SPARQL & context insensitive entities'), (0, '1. SPARQL syntax & keywords only')], default=True, help_text='If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.', verbose_name='Default suggestion mode'),
+            model_name="backend",
+            name="dynamicSuggestions",
+            field=models.IntegerField(
+                choices=[
+                    (2, "3. SPARQL & context sensitive entities"),
+                    (1, "2. SPARQL & context insensitive entities"),
+                    (0, "1. SPARQL syntax & keywords only"),
+                ],
+                default=True,
+                help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
+                verbose_name="Default suggestion mode",
+            ),
         ),
         migrations.DeleteModel(
-            name='Object',
+            name="Object",
         ),
         migrations.DeleteModel(
-            name='Pattern',
+            name="Pattern",
         ),
         migrations.DeleteModel(
-            name='predicate',
+            name="predicate",
         ),
         migrations.DeleteModel(
-            name='Subject',
+            name="Subject",
         ),
     ]

@@ -6,25 +6,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0048_auto_20190413_1053'),
+        ("backend", "0048_auto_20190413_1053"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='alternativeObjectName',
-            field=models.TextField(blank=True, default='', help_text="Clause that tells QLever UI the alternativename of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the object's alternative name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_entity<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}", verbose_name='Alternative object name clause'),
+            model_name="backend",
+            name="alternativeObjectName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI the alternativename of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the object's alternative name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_entity<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+                verbose_name="Alternative object name clause",
+            ),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='alternativePredicateName',
-            field=models.TextField(blank=True, default='', help_text="Clause that tells QLever UI the alternative name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the predicate's alternative name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_entity &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}", verbose_name='Alternative predicate name clause'),
+            model_name="backend",
+            name="alternativePredicateName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI the alternative name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the predicate's alternative name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_entity &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+                verbose_name="Alternative predicate name clause",
+            ),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='alternativeSubjectName',
-            field=models.TextField(blank=True, default='', help_text="Clause that tells QLever UI the alternative name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the subject's alternative name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_entity &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}", verbose_name='Alternative subject name clause'),
+            model_name="backend",
+            name="alternativeSubjectName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI the alternative name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_entity: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_altname: The variable that will hold the subject's alternative name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_entity &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>alternative subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+                verbose_name="Alternative subject name clause",
+            ),
         ),
     ]

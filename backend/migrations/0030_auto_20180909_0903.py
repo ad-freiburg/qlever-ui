@@ -6,25 +6,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0029_auto_20180909_0901'),
+        ("backend", "0029_auto_20180909_0901"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='objectName',
-            field=models.CharField(blank=True, default='', help_text='Relation that tells QLever UI the name of a object.', max_length=100, verbose_name='Object name relation'),
+            model_name="backend",
+            name="objectName",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a object.",
+                max_length=100,
+                verbose_name="Object name relation",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='predicateName',
-            field=models.CharField(blank=True, default='', help_text='Relation that tells QLever UI the name of a predicate.', max_length=100, verbose_name='Predicate name relation'),
+            model_name="backend",
+            name="predicateName",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a predicate.",
+                max_length=100,
+                verbose_name="Predicate name relation",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='subjectName',
-            field=models.CharField(blank=True, default='', help_text='Relation that tells QLever UI the name of a subject.', max_length=100, verbose_name='Subject name relation'),
+            model_name="backend",
+            name="subjectName",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a subject.",
+                max_length=100,
+                verbose_name="Subject name relation",
+            ),
         ),
     ]

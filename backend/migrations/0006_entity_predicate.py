@@ -6,26 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0005_suggestion_scope'),
+        ("backend", "0005_suggestion_scope"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='entity',
+            name="entity",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('internalId', models.CharField(max_length=200)),
-                ('name', models.CharField(default='', max_length=200)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("internalId", models.CharField(max_length=200)),
+                ("name", models.CharField(default="", max_length=200)),
             ],
         ),
         migrations.CreateModel(
-            name='predicate',
+            name="predicate",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('internalId', models.CharField(max_length=200)),
-                ('name', models.CharField(default='', max_length=200)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("internalId", models.CharField(max_length=200)),
+                ("name", models.CharField(default="", max_length=200)),
             ],
         ),
     ]

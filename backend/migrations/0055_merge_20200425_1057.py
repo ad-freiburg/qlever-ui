@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0054_merge_20200424_1016'),
-        ('backend', '0053_backend_suggestprefixnamesforpredicates'),
+        ("backend", "0054_merge_20200424_1016"),
+        ("backend", "0053_backend_suggestprefixnamesforpredicates"),
     ]
 
-    operations = [
-    ]
+    operations = []

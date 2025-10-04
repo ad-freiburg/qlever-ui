@@ -7,18 +7,31 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0009_auto_20171026_1327'),
+        ("backend", "0009_auto_20171026_1327"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Prefix',
+            name="Prefix",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('prefix', models.CharField(default='', max_length=200)),
-                ('backend', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='backend.Backend')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("prefix", models.CharField(default="", max_length=200)),
+                (
+                    "backend",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="backend.Backend",
+                    ),
+                ),
             ],
         ),
     ]

@@ -6,19 +6,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0014_auto_20171031_1304'),
+        ("backend", "0014_auto_20171031_1304"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='subject',
-            name='name',
+            model_name="subject",
+            name="name",
         ),
         migrations.AddField(
-            model_name='subject',
-            name='score',
+            model_name="subject",
+            name="score",
             field=models.FloatField(default=0),
         ),
     ]

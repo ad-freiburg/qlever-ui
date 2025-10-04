@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0004_auto_20170715_1104'),
+        ("backend", "0004_auto_20170715_1104"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='suggestion',
-            name='scope',
-            field=models.CharField(default='', max_length=200),
+            model_name="suggestion",
+            name="scope",
+            field=models.CharField(default="", max_length=200),
         ),
     ]

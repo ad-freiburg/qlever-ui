@@ -4,34 +4,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0061_backenddefaults'),
+        ("backend", "0061_backenddefaults"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='backenddefaults',
-            options={'verbose_name_plural': 'Backend defaults'},
+            name="backenddefaults",
+            options={"verbose_name_plural": "Backend defaults"},
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestionAltNameVariable',
-            field=models.CharField(blank=True, default='', help_text='The variable that stores the alternative name of the suggestion in the following queries.', max_length=100, verbose_name='Variable for alternative suggestion name'),
+            model_name="backend",
+            name="suggestionAltNameVariable",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="The variable that stores the alternative name of the suggestion in the following queries.",
+                max_length=100,
+                verbose_name="Variable for alternative suggestion name",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestionEntityVariable',
-            field=models.CharField(blank=True, default='', help_text='The variable that stores the suggested entity in the following queries.', max_length=100, verbose_name='Variable for suggested entity'),
+            model_name="backend",
+            name="suggestionEntityVariable",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="The variable that stores the suggested entity in the following queries.",
+                max_length=100,
+                verbose_name="Variable for suggested entity",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestionNameVariable',
-            field=models.CharField(blank=True, default='', help_text='The variable that stores the name of the suggestion in the following queries.', max_length=100, verbose_name='Variable for suggestion name'),
+            model_name="backend",
+            name="suggestionNameVariable",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="The variable that stores the name of the suggestion in the following queries.",
+                max_length=100,
+                verbose_name="Variable for suggestion name",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestionReversedVariable',
-            field=models.CharField(blank=True, default='', help_text='The variable that stores wether a suggestion is reversed.', max_length=100, verbose_name='Variable for reversed suggestion'),
+            model_name="backend",
+            name="suggestionReversedVariable",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="The variable that stores wether a suggestion is reversed.",
+                max_length=100,
+                verbose_name="Variable for reversed suggestion",
+            ),
         ),
     ]

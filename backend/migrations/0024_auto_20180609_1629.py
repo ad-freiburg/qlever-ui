@@ -6,75 +6,108 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0023_backend_dynamicsuggestions'),
+        ("backend", "0023_backend_dynamicsuggestions"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='baseUrl',
-            field=models.CharField(help_text='The URL where to find / call the QLever backend (including http://)', max_length=1000, verbose_name='Base URL'),
+            model_name="backend",
+            name="baseUrl",
+            field=models.CharField(
+                help_text="The URL where to find / call the QLever backend (including http://)",
+                max_length=1000,
+                verbose_name="Base URL",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='dynamicSuggestions',
-            field=models.BooleanField(default=True, help_text='If you want to disable the dynamic suggestions from QLever by default uncheck this option.', verbose_name='Use dynamic suggestions by default'),
+            model_name="backend",
+            name="dynamicSuggestions",
+            field=models.BooleanField(
+                default=True,
+                help_text="If you want to disable the dynamic suggestions from QLever by default uncheck this option.",
+                verbose_name="Use dynamic suggestions by default",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='getPatternsFromQLever',
-            field=models.BooleanField(default=False, help_text='If you run the QLever Indexer with -u it will do some QLever UI preprocessing directly and you can check this option in order to skip this preprocessing setip in QLever UI', verbose_name='Use QLever Preprocessing'),
+            model_name="backend",
+            name="getPatternsFromQLever",
+            field=models.BooleanField(
+                default=False,
+                help_text="If you run the QLever Indexer with -u it will do some QLever UI preprocessing directly and you can check this option in order to skip this preprocessing setip in QLever UI",
+                verbose_name="Use QLever Preprocessing",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='getPredicateNamesFromRelation',
+            model_name="backend",
+            name="getPredicateNamesFromRelation",
             field=models.BooleanField(default=False, editable=False),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='getSubjectNamesFromRelation',
+            model_name="backend",
+            name="getSubjectNamesFromRelation",
             field=models.BooleanField(default=False, editable=False),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='isDefault',
-            field=models.BooleanField(default=0, help_text='Check if this should be the default backend for QLever UI', verbose_name='Use as default'),
+            model_name="backend",
+            name="isDefault",
+            field=models.BooleanField(
+                default=0,
+                help_text="Check if this should be the default backend for QLever UI",
+                verbose_name="Use as default",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='isImporting',
+            model_name="backend",
+            name="isImporting",
             field=models.BooleanField(default=False, editable=False),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='name',
-            field=models.CharField(help_text='Choose a name for the backend that helps you to distinguish between multiple backends', max_length=500, verbose_name='Name'),
+            model_name="backend",
+            name="name",
+            field=models.CharField(
+                help_text="Choose a name for the backend that helps you to distinguish between multiple backends",
+                max_length=500,
+                verbose_name="Name",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='ntFileLastChange',
-            field=models.CharField(blank=True, default='0', editable=False, max_length=100),
+            model_name="backend",
+            name="ntFileLastChange",
+            field=models.CharField(
+                blank=True, default="0", editable=False, max_length=100
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='ntFilePath',
-            field=models.CharField(blank=True, default='', help_text='Local (absolute or relative) path to the source .nt file QLever uses', max_length=2000, verbose_name='Source Path'),
+            model_name="backend",
+            name="ntFilePath",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Local (absolute or relative) path to the source .nt file QLever uses",
+                max_length=2000,
+                verbose_name="Source Path",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='predicateNameRelation',
-            field=models.CharField(blank=True, default='', editable=False, max_length=200),
+            model_name="backend",
+            name="predicateNameRelation",
+            field=models.CharField(
+                blank=True, default="", editable=False, max_length=200
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='subjectNameRelation',
-            field=models.CharField(blank=True, default='', editable=False, max_length=200),
+            model_name="backend",
+            name="subjectNameRelation",
+            field=models.CharField(
+                blank=True, default="", editable=False, max_length=200
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='subjectOrderRelation',
-            field=models.CharField(blank=True, default='', editable=False, max_length=200),
+            model_name="backend",
+            name="subjectOrderRelation",
+            field=models.CharField(
+                blank=True, default="", editable=False, max_length=200
+            ),
         ),
     ]

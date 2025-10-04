@@ -4,20 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0055_merge_20200425_1057'),
+        ("backend", "0055_merge_20200425_1057"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='slug',
-            field=models.CharField(default='Empty', help_text='Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)', max_length=100, verbose_name='Slug'),
+            model_name="backend",
+            name="slug",
+            field=models.CharField(
+                default="Empty",
+                help_text="Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)",
+                max_length=100,
+                verbose_name="Slug",
+            ),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='sortKey',
-            field=models.CharField(default='0', help_text='Sort key, according to which backends are ordered lexicographically; DO NOT SHOW if this value is zero', max_length=10, verbose_name='Sort Key'),
+            model_name="backend",
+            name="sortKey",
+            field=models.CharField(
+                default="0",
+                help_text="Sort key, according to which backends are ordered lexicographically; DO NOT SHOW if this value is zero",
+                max_length=10,
+                verbose_name="Sort Key",
+            ),
         ),
     ]

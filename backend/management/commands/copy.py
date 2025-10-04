@@ -7,12 +7,13 @@ from pprint import pprint
 import requests
 import sys
 
+
 class Command(BaseCommand):
     help = "Usage: python manage.py configure <argument string>"
 
     # Copied from warmup.py, is this really needed?
     def __init__(self, *args, **kwargs):
-        super().__init__( *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     # Custom log function.
     def log(self, msg=""):
@@ -20,10 +21,10 @@ class Command(BaseCommand):
 
     # Command line arguments.
     def add_arguments(self, parser):
-        parser.add_argument("source_slug", nargs=1,
-                            help="Slug of the source backend")
-        parser.add_argument("dest_spec", nargs=1,
-                            help="Slug of the destination backend (must be new)")
+        parser.add_argument("source_slug", nargs=1, help="Slug of the source backend")
+        parser.add_argument(
+            "dest_spec", nargs=1, help="Slug of the destination backend (must be new)"
+        )
 
     # This defined the actual behavior. See here for how to update the database:
     # https://docs.djangoproject.com/en/5.1/topics/db/queries/
@@ -38,7 +39,7 @@ class Command(BaseCommand):
             self.log()
             self.print_help("manage.py", "copy")
             return
-        self.log(f"Copying config from \"{source_slug}\" to \"{dest_slug}\" ...")
+        self.log(f'Copying config from "{source_slug}" to "{dest_slug}" ...')
         # self.log(f"Copying config from \"{source_slug}\" to new config "
         #          f"with name \"{dest_name}\", slug \"{dest_slug}\", and "
         #          f"URL \"{dest_url}\" ...")
@@ -46,7 +47,7 @@ class Command(BaseCommand):
         try:
             backend = Backend.objects.filter(slug=source_slug).get()
         except Exception as e:
-            self.log(f"Error finding config with slug \"{source_slug}\": {e}")
+            self.log(f'Error finding config with slug "{source_slug}": {e}')
             return
         source_backend_pk = backend.pk
         # self.log()
@@ -64,7 +65,9 @@ class Command(BaseCommand):
         except Exception as e:
             self.log(f"Error creating new config: {e}")
             return
-        self.log(f"Done, the first few fields are as follows (edit in the QLever UI as you please):")
+        self.log(
+            f"Done, the first few fields are as follows (edit in the QLever UI as you please):"
+        )
         self.log()
         self.log(f"Internal ID : {backend.pk}")
         self.log(f"Name        : {backend.name}")
@@ -74,7 +77,7 @@ class Command(BaseCommand):
         self.log(f"Is default  : {backend.isDefault}")
         self.log()
         # Also copy all the example queries associated with that backend.
-        self.log(f"Also copy all the example queries of \"{source_slug}\" ...")
+        self.log(f'Also copy all the example queries of "{source_slug}" ...')
         self.log()
         num_examples_copied = 0
         for example in Example.objects.all():

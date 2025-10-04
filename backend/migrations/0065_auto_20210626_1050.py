@@ -4,40 +4,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0064_auto_20210620_1209'),
+        ("backend", "0064_auto_20210620_1209"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='suggestObjectsContextInsensitive',
-            field=models.TextField(blank=True, default='', help_text='The query for <em>context-insensitive</em> object autocompletion', verbose_name='Context-insensitive object autocompletion query'),
+            model_name="backend",
+            name="suggestObjectsContextInsensitive",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="The query for <em>context-insensitive</em> object autocompletion",
+                verbose_name="Context-insensitive object autocompletion query",
+            ),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='suggestPredicatesContextInsensitive',
-            field=models.TextField(blank=True, default='', help_text='The query for <em>context-insensitive</em> predicate autocompletion', verbose_name='Context-insensitive predicate autocompletion query'),
+            model_name="backend",
+            name="suggestPredicatesContextInsensitive",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="The query for <em>context-insensitive</em> predicate autocompletion",
+                verbose_name="Context-insensitive predicate autocompletion query",
+            ),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='suggestSubjectsContextInsensitive',
-            field=models.TextField(blank=True, default='', help_text="The query for <em>context-insensitive<em> subject autocompletion. Leave blank if you don't want subject suggestions.", verbose_name='Context-insensitive subject autocompletion query'),
+            model_name="backend",
+            name="suggestSubjectsContextInsensitive",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="The query for <em>context-insensitive<em> subject autocompletion. Leave blank if you don't want subject suggestions.",
+                verbose_name="Context-insensitive subject autocompletion query",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestObjects',
-            field=models.TextField(blank=True, default='', help_text='The query for <em>context-sensitive</em> object autocompletion', verbose_name='Object autocompletion query'),
+            model_name="backend",
+            name="suggestObjects",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="The query for <em>context-sensitive</em> object autocompletion",
+                verbose_name="Object autocompletion query",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestPredicates',
-            field=models.TextField(blank=True, default='', help_text='The query for <em>context-sensitive</em> predicate autocompletion', verbose_name='Predicate autocompletion query'),
+            model_name="backend",
+            name="suggestPredicates",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="The query for <em>context-sensitive</em> predicate autocompletion",
+                verbose_name="Predicate autocompletion query",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestSubjects',
-            field=models.TextField(blank=True, default='', help_text="The query for <em>context-sensitive</em> subject autocompletion. Leave blank if you don't want subject suggestions.", verbose_name='Subject autocompletion query'),
+            model_name="backend",
+            name="suggestSubjects",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="The query for <em>context-sensitive</em> subject autocompletion. Leave blank if you don't want subject suggestions.",
+                verbose_name="Subject autocompletion query",
+            ),
         ),
     ]

@@ -6,23 +6,35 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0032_auto_20181006_1432'),
+        ("backend", "0032_auto_20181006_1432"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Links',
+            name="Links",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('identifier', models.CharField(max_length=256)),
-                ('link', models.CharField(max_length=500000)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("identifier", models.CharField(max_length=256)),
+                ("link", models.CharField(max_length=500000)),
             ],
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='name',
-            field=models.CharField(help_text='Choose a name for the backend that helps you to distinguish between multiple backends', max_length=500, unique=True, verbose_name='Name'),
+            model_name="backend",
+            name="name",
+            field=models.CharField(
+                help_text="Choose a name for the backend that helps you to distinguish between multiple backends",
+                max_length=500,
+                unique=True,
+                verbose_name="Name",
+            ),
         ),
     ]
