@@ -1,4 +1,3 @@
-from enum import unique
 from functools import cached_property
 import json
 import re
@@ -391,9 +390,7 @@ class Backend(models.Model):
             setattr(
                 self,
                 field,
-                str(getattr(self, field))
-                .replace("\r\n", "\n")
-                .replace("\r", "\n"),
+                str(getattr(self, field)).replace("\r\n", "\n").replace("\r", "\n"),
             )
         super(Backend, self).save(*args, **kwargs)
 
@@ -551,9 +548,7 @@ class BackendDefaults(Backend):
 
     def save(self, *args, **kwargs):
         self.name = "Global defaults for all Backends"
-        self.slug = "globaldefaults_" + str(
-            datetime.datetime.now().timestamp()
-        )
+        self.slug = "globaldefaults_" + str(datetime.datetime.now().timestamp())
         self.sortKey = "0"
         self.baseUrl = ""
         self.isDefault = False
