@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0022_pattern_internalid'),
+        ("backend", "0022_pattern_internalid"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='dynamicSuggestions',
+            model_name="backend",
+            name="dynamicSuggestions",
             field=models.BooleanField(default=True),
         ),
     ]

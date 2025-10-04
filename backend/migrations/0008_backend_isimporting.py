@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0007_auto_20170930_1010'),
+        ("backend", "0007_auto_20170930_1010"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='isImporting',
+            model_name="backend",
+            name="isImporting",
             field=models.BooleanField(default=False),
         ),
     ]

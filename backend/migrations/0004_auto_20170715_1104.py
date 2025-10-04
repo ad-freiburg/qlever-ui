@@ -6,33 +6,48 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0003_suggestions_synonyms'),
+        ("backend", "0003_suggestions_synonyms"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Suggestion',
+            name="Suggestion",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('firstWord', models.CharField(default='', max_length=200)),
-                ('secondWord', models.CharField(max_length=200, null=True)),
-                ('count', models.IntegerField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("firstWord", models.CharField(default="", max_length=200)),
+                ("secondWord", models.CharField(max_length=200, null=True)),
+                ("count", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='Synonym',
+            name="Synonym",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('word', models.CharField(default='', max_length=200)),
-                ('synonym', models.CharField(default='', max_length=200)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("word", models.CharField(default="", max_length=200)),
+                ("synonym", models.CharField(default="", max_length=200)),
             ],
         ),
         migrations.DeleteModel(
-            name='Suggestions',
+            name="Suggestions",
         ),
         migrations.DeleteModel(
-            name='Synonyms',
+            name="Synonyms",
         ),
     ]

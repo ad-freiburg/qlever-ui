@@ -6,15 +6,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0040_auto_20190202_1257'),
+        ("backend", "0040_auto_20190202_1257"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='suggestSubjects',
-            field=models.TextField(blank=True, default='', help_text='Clause that tells QLever UI which subjects to suggest from (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}', verbose_name='Suggest subjects clause'),
+            model_name="backend",
+            name="suggestSubjects",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI which subjects to suggest from (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>suggest subjects clause</em></b><br>}",
+                verbose_name="Suggest subjects clause",
+            ),
         ),
     ]

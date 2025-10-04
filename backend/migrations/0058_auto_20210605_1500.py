@@ -4,21 +4,20 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0057_auto_20210605_1458'),
+        ("backend", "0057_auto_20210605_1458"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='backend',
-            name='isImporting',
+            model_name="backend",
+            name="isImporting",
         ),
         migrations.RemoveField(
-            model_name='backend',
-            name='ntFilePath',
+            model_name="backend",
+            name="ntFilePath",
         ),
         migrations.DeleteModel(
-            name='Prefix',
+            name="Prefix",
         ),
     ]

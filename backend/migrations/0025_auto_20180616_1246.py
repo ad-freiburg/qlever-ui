@@ -6,15 +6,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0024_auto_20180609_1629'),
+        ("backend", "0024_auto_20180609_1629"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='dynamicSuggestions',
-            field=models.IntegerField(choices=[(2, '3. Dynamic backend suggestions (pre-evaluation)'), (1, '2. Suggestions based on position and backend'), (0, '1. SPARQL syntax only')], default=True, help_text='If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.', verbose_name='Default suggestion mode'),
+            model_name="backend",
+            name="dynamicSuggestions",
+            field=models.IntegerField(
+                choices=[
+                    (2, "3. Dynamic backend suggestions (pre-evaluation)"),
+                    (1, "2. Suggestions based on position and backend"),
+                    (0, "1. SPARQL syntax only"),
+                ],
+                default=True,
+                help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
+                verbose_name="Default suggestion mode",
+            ),
         ),
     ]

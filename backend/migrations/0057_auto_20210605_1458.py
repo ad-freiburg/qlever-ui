@@ -4,25 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0056_auto_20210529_0918'),
+        ("backend", "0056_auto_20210529_0918"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='suggestedPrefixes',
-            field=models.TextField(blank=True, default='', help_text='A list of prefixes that should be suggested. Prefixes can have either of these forms:<ul><li>@prefix schema: &lt;https://www.schema.org/&gt; .</li><li>Prefix schema: &lt;http://schema.org/&gt;</li></ul>', verbose_name='Predicate suggestions'),
+            model_name="backend",
+            name="suggestedPrefixes",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="A list of prefixes that should be suggested. Prefixes can have either of these forms:<ul><li>@prefix schema: &lt;https://www.schema.org/&gt; .</li><li>Prefix schema: &lt;http://schema.org/&gt;</li></ul>",
+                verbose_name="Predicate suggestions",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='slug',
-            field=models.CharField(default='Empty', help_text='Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)', max_length=100, verbose_name='Slug'),
+            model_name="backend",
+            name="slug",
+            field=models.CharField(
+                default="Empty",
+                help_text="Name used in the URL of this backend; MUST only use valid URL characters (in particular, no space)",
+                max_length=100,
+                verbose_name="Slug",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='supportedKeywords',
-            field=models.TextField(blank=True, default='prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate, minus, values', help_text='Comma separated list of SPARQL keywords supported by the backend. Will be used for keyword highlighting.', verbose_name='Supported keywords'),
+            model_name="backend",
+            name="supportedKeywords",
+            field=models.TextField(
+                blank=True,
+                default="prefix, select, distinct, where, order, limit, offset, optional, by, as, having, not, textlimit, contains-entity, contains-word, filter, group, union, optional, has-predicate, minus, values",
+                help_text="Comma separated list of SPARQL keywords supported by the backend. Will be used for keyword highlighting.",
+                verbose_name="Supported keywords",
+            ),
         ),
     ]

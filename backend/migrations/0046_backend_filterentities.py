@@ -6,15 +6,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0045_auto_20190217_1158'),
+        ("backend", "0045_auto_20190217_1158"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='filterEntities',
-            field=models.BooleanField(default=False, verbose_name='Also suggest FILTER for variables that store entity IDs'),
+            model_name="backend",
+            name="filterEntities",
+            field=models.BooleanField(
+                default=False,
+                verbose_name="Also suggest FILTER for variables that store entity IDs",
+            ),
         ),
     ]

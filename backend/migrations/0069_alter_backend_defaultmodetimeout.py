@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0068_auto_20210821_1051'),
+        ("backend", "0068_auto_20210821_1051"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='defaultModeTimeout',
-            field=models.FloatField(default=0, help_text='The timeout in seconds for autocomplete queries.', verbose_name='Autocomplete timeout'),
+            model_name="backend",
+            name="defaultModeTimeout",
+            field=models.FloatField(
+                default=0,
+                help_text="The timeout in seconds for autocomplete queries.",
+                verbose_name="Autocomplete timeout",
+            ),
         ),
     ]

@@ -4,7 +4,7 @@ register = template.Library()
 
 
 @register.filter()
-def split(value, arg='\n'):
+def split(value, arg="\n"):
     return str(value).split(arg)
 
 

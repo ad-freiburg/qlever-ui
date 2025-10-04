@@ -6,20 +6,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0035_auto_20181215_1258'),
+        ("backend", "0035_auto_20181215_1258"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='predicateName',
-            field=models.TextField(blank=True, default='', help_text='Relation that tells QLever UI the name of a predicate (without prefixes).', verbose_name='Predicate name relation'),
+            model_name="backend",
+            name="predicateName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a predicate (without prefixes).",
+                verbose_name="Predicate name relation",
+            ),
         ),
         migrations.AlterField(
-            model_name='link',
-            name='content',
+            model_name="link",
+            name="content",
             field=models.TextField(),
         ),
     ]

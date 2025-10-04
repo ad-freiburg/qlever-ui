@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0070_auto_20210821_1141'),
+        ("backend", "0070_auto_20210821_1141"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='apiToken',
-            field=models.CharField(blank=True, default='', help_text='This token needs to be provided as ?token query parameter when executing Warmup tasks through API', max_length=32, verbose_name='API token'),
+            model_name="backend",
+            name="apiToken",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="This token needs to be provided as ?token query parameter when executing Warmup tasks through API",
+                max_length=32,
+                verbose_name="API token",
+            ),
         ),
     ]

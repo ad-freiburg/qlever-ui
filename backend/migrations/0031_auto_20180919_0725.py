@@ -6,30 +6,47 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0030_auto_20180909_0903'),
+        ("backend", "0030_auto_20180909_0903"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='prefix',
-            name='name',
-            field=models.CharField(default='', max_length=30),
+            model_name="prefix",
+            name="name",
+            field=models.CharField(default="", max_length=30),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='objectName',
-            field=models.CharField(blank=True, default='', help_text='Relation that tells QLever UI the name of a object (without prefixes).', max_length=100, verbose_name='Object name relation'),
+            model_name="backend",
+            name="objectName",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a object (without prefixes).",
+                max_length=100,
+                verbose_name="Object name relation",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='predicateName',
-            field=models.CharField(blank=True, default='', help_text='Relation that tells QLever UI the name of a predicate (without prefixes).', max_length=100, verbose_name='Predicate name relation'),
+            model_name="backend",
+            name="predicateName",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a predicate (without prefixes).",
+                max_length=100,
+                verbose_name="Predicate name relation",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='subjectName',
-            field=models.CharField(blank=True, default='', help_text='Relation that tells QLever UI the name of a subject (without prefixes).', max_length=100, verbose_name='Subject name relation'),
+            model_name="backend",
+            name="subjectName",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a subject (without prefixes).",
+                max_length=100,
+                verbose_name="Subject name relation",
+            ),
         ),
     ]

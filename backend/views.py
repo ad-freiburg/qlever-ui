@@ -34,7 +34,9 @@ def index(request, backend=None, short=None):
     if request.POST.get("whitespaces", False):
         request.session["logParsing"] = request.POST.get("logParsing", False)
         request.session["logRequests"] = request.POST.get("logRequests", False)
-        request.session["logSuggestions"] = request.POST.get("logSuggestions", False)
+        request.session["logSuggestions"] = request.POST.get(
+            "logSuggestions", False
+        )
         request.session["logOther"] = request.POST.get("logOther", False)
         request.session["whitespaces"] = request.POST["whitespaces"]
 
@@ -48,7 +50,10 @@ def index(request, backend=None, short=None):
         # check for default backend with no-slug mode active
         if activeBackend is None and short is None:
             for availableBackend in Backend.objects.all():
-                if availableBackend.isDefault and availableBackend.isNoSlugMode:
+                if (
+                    availableBackend.isDefault
+                    and availableBackend.isNoSlugMode
+                ):
                     activeBackend = availableBackend
                     short = backend
                     noSlugMode = True
@@ -79,7 +84,9 @@ def index(request, backend=None, short=None):
         request.session["backend"] = activeBackend.pk
 
         # Get examples ordered by `sortKey`.
-        examples = Example.objects.filter(backend=activeBackend).order_by("sortKey")
+        examples = Example.objects.filter(backend=activeBackend).order_by(
+            "sortKey"
+        )
 
     # collect shortlink data
     if short is not None:
@@ -130,14 +137,18 @@ def shareLink(request):
             # asuming that one query is about 1000 Bytes these are ~ 56 TB of history data
             identifier = "".join(
                 random.choice(
-                    string.ascii_lowercase + string.ascii_uppercase + string.digits
+                    string.ascii_lowercase
+                    + string.ascii_uppercase
+                    + string.digits
                 )
                 for _ in range(6)
             )
             while Link.objects.filter(identifier=identifier).exists():
                 identifier = "".join(
                     random.choice(
-                        string.ascii_lowercase + string.ascii_uppercase + string.digits
+                        string.ascii_lowercase
+                        + string.ascii_uppercase
+                        + string.digits
                     )
                     for _ in range(6)
                 )
@@ -146,7 +157,9 @@ def shareLink(request):
 
         queryString = urllib.parse.urlencode({"query": content})
 
-        return JsonResponse({"link": link.identifier, "queryString": queryString})
+        return JsonResponse(
+            {"link": link.identifier, "queryString": queryString}
+        )
 
     else:
         if request.user.is_superuser:
@@ -199,7 +212,9 @@ def examples(request, backend):
     if output_format == "yaml":
         return HttpResponse(examples_tsv, content_type="text/yaml")
     else:
-        return HttpResponse(examples_tsv, content_type="text/tab-separated-values")
+        return HttpResponse(
+            examples_tsv, content_type="text/tab-separated-values"
+        )
 
 
 # Handle API request to /api/prefixes/<backend-slug>
@@ -236,5 +251,7 @@ def print_to_log(msg, output=print):
     """
     Helper to log things that happen during the process
     """
-    logMsg = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S") + " " + str(msg)
+    logMsg = (
+        datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S") + " " + str(msg)
+    )
     output(logMsg)

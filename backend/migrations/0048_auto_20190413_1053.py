@@ -6,15 +6,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0047_auto_20190413_0927'),
+        ("backend", "0047_auto_20190413_0927"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='replacePredicates',
-            field=models.TextField(blank=True, default='', help_text='A list of predicates that should be replaced for autocompletion.<br>\n        Each line should consist of a predicate + replacement pair, separated by whitespace.<br>\n        Example:<br>\n        &lt;http://www.w3.org/2000/01/rdf-schema#label&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;<br>\n        &lt;http://schema.org/name&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://schema.org/name&gt<br>\n        &lt;http://wikiba.se/ontology#label&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://wikiba.se/ontology#label&gt;\n        ', verbose_name='Replace predicates in autocompletion context.'),
+            model_name="backend",
+            name="replacePredicates",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="A list of predicates that should be replaced for autocompletion.<br>\n        Each line should consist of a predicate + replacement pair, separated by whitespace.<br>\n        Example:<br>\n        &lt;http://www.w3.org/2000/01/rdf-schema#label&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;<br>\n        &lt;http://schema.org/name&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://schema.org/name&gt<br>\n        &lt;http://wikiba.se/ontology#label&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@en@&lt;http://wikiba.se/ontology#label&gt;\n        ",
+                verbose_name="Replace predicates in autocompletion context.",
+            ),
         ),
     ]

@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0021_backend_getpatternsfromqlever'),
+        ("backend", "0021_backend_getpatternsfromqlever"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pattern',
-            name='internalId',
+            model_name="pattern",
+            name="internalId",
             field=models.IntegerField(default=0),
             preserve_default=False,
         ),

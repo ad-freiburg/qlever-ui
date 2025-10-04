@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0059_auto_20210605_1544'),
+        ("backend", "0059_auto_20210605_1544"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='suggestionEntityVariable',
-            field=models.CharField(default='?qleverui_entity', help_text='The variable that stores the suggested entity in the following queries.', max_length=100, verbose_name='Variable for suggested entity'),
+            model_name="backend",
+            name="suggestionEntityVariable",
+            field=models.CharField(
+                default="?qleverui_entity",
+                help_text="The variable that stores the suggested entity in the following queries.",
+                max_length=100,
+                verbose_name="Variable for suggested entity",
+            ),
         ),
     ]

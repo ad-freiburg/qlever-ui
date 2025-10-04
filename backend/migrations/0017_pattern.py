@@ -7,18 +7,33 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0016_backend_subjectorderrelation'),
+        ("backend", "0016_backend_subjectorderrelation"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Pattern',
+            name="Pattern",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('relations', models.CharField(default='', max_length=500)),
-                ('backend', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='backend.Backend')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("relations", models.CharField(default="", max_length=500)),
+                (
+                    "backend",
+                    models.ForeignKey(
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="backend.Backend",
+                    ),
+                ),
             ],
         ),
     ]

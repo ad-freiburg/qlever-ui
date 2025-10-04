@@ -6,14 +6,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0031_auto_20180919_0725'),
+        ("backend", "0031_auto_20180919_0725"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='prefix',
-            options={'verbose_name_plural': 'Prefixes'},
+            name="prefix",
+            options={"verbose_name_plural": "Prefixes"},
         ),
     ]

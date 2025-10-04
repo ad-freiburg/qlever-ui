@@ -6,15 +6,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0034_auto_20181215_1127'),
+        ("backend", "0034_auto_20181215_1127"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='link',
-            old_name='link',
-            new_name='content',
+            model_name="link",
+            old_name="link",
+            new_name="content",
         ),
     ]

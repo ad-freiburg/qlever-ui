@@ -6,15 +6,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0038_auto_20190127_1003'),
+        ("backend", "0038_auto_20190127_1003"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='maxDefault',
-            field=models.IntegerField(default=100, help_text='The default for how many lines are shown in the first request', verbose_name='Default Maximum'),
+            model_name="backend",
+            name="maxDefault",
+            field=models.IntegerField(
+                default=100,
+                help_text="The default for how many lines are shown in the first request",
+                verbose_name="Default Maximum",
+            ),
         ),
     ]

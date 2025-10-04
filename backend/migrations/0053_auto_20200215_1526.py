@@ -4,25 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0052_backend_suggestpredicates'),
+        ("backend", "0052_backend_suggestpredicates"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='suggestObjects',
-            field=models.TextField(blank=True, default='', help_text='<a href="javascript:void(0)" onclick="django.jQuery(\'.helpSuggestObjects\').slideToggle();">Need help?</a><div class="helpSuggestObjects" style="display: none;">Clause that tells QLever UI which objects to suggest from.</div>', verbose_name='Suggest objects clause'),
+            model_name="backend",
+            name="suggestObjects",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text='<a href="javascript:void(0)" onclick="django.jQuery(\'.helpSuggestObjects\').slideToggle();">Need help?</a><div class="helpSuggestObjects" style="display: none;">Clause that tells QLever UI which objects to suggest from.</div>',
+                verbose_name="Suggest objects clause",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestPredicates',
-            field=models.TextField(blank=True, default='', help_text='<a href="javascript:void(0)" onclick="django.jQuery(\'.helpSuggestPredicates\').slideToggle();">Need help?</a><div class="helpSuggestPredicates" style="display: none;">Clause that tells QLever UI which predicates to suggest from.</div>', verbose_name='Suggest predicates clause'),
+            model_name="backend",
+            name="suggestPredicates",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text='<a href="javascript:void(0)" onclick="django.jQuery(\'.helpSuggestPredicates\').slideToggle();">Need help?</a><div class="helpSuggestPredicates" style="display: none;">Clause that tells QLever UI which predicates to suggest from.</div>',
+                verbose_name="Suggest predicates clause",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='suggestSubjects',
-            field=models.TextField(blank=True, default='', help_text='<a href="javascript:void(0)" onclick="django.jQuery(\'.helpSuggestSubjects\').slideToggle();">Need help?</a><div class="helpSuggestSubjects" style="display: none;">Clause that tells QLever UI which subjects to suggest from. Leave blank if you don\'t want subject suggestions.</div>', verbose_name='Suggest subjects clause'),
+            model_name="backend",
+            name="suggestSubjects",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text='<a href="javascript:void(0)" onclick="django.jQuery(\'.helpSuggestSubjects\').slideToggle();">Need help?</a><div class="helpSuggestSubjects" style="display: none;">Clause that tells QLever UI which subjects to suggest from. Leave blank if you don\'t want subject suggestions.</div>',
+                verbose_name="Suggest subjects clause",
+            ),
         ),
     ]

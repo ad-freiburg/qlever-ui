@@ -6,15 +6,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0026_auto_20180805_1216'),
+        ("backend", "0026_auto_20180805_1216"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='scorePredicate',
-            field=models.CharField(default='ql:num-triples', help_text='The predicate used to rank suggestions. Leave blank if no ordering should take place', max_length=1000, verbose_name='Predicate for ranking'),
+            model_name="backend",
+            name="scorePredicate",
+            field=models.CharField(
+                default="ql:num-triples",
+                help_text="The predicate used to rank suggestions. Leave blank if no ordering should take place",
+                max_length=1000,
+                verbose_name="Predicate for ranking",
+            ),
         ),
     ]
