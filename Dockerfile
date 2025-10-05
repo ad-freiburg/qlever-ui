@@ -8,7 +8,7 @@ WORKDIR /app
 RUN set -ex \
     && python -m venv /env \
     && /env/bin/pip install --upgrade pip \
-    && /env/bin/pip install --no-cache-dir -r /app/requirements.txt
+    && /env/bin/pip install --no-cache-dir /app
 
 RUN set -ex \
     && runDeps="$(scanelf --needed --nobanner --recursive /env \
