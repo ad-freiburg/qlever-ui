@@ -1,4 +1,6 @@
 import { Range } from "monaco-editor";
+import { MonacoLanguageClient } from "monaco-languageclient";
+import { EditorApp } from "monaco-languageclient/editorApp";
 
 export interface Edit {
   /**
@@ -14,4 +16,9 @@ export interface Edit {
    * i.e. forceMoveMarkers = true => if `range` is collapsed, all markers at the position will be moved.
    */
   forceMoveMarkers?: boolean;
+}
+
+export interface EditorAndLanguageClient {
+  editorApp: EditorApp,
+  languageClient: MonacoLanguageClient
 }

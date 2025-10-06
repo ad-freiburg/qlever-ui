@@ -1,5 +1,9 @@
 import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
 import { IdentifyOperationTypeResult, OperationType } from "../types/lsp_messages";
+import { EditorApp } from "monaco-languageclient/editorApp";
+import { editor } from "monaco-editor";
+import { LanguageClientWrapper } from "monaco-languageclient/lcwrapper";
+import { MonacoLanguageClient } from "monaco-languageclient";
 
 declare const NO_SLUG_MODE: boolean;
 declare function processQuery(query: string, operationType: string, sendLimit: number, element: HTMLElement): Promise<void>;
@@ -7,11 +11,11 @@ declare function cancelActiveQuery(): boolean;
 
 // 1. Call processQuery (sends query to backend + displays results).
 // 2. Add query hash to URL.
-export async function executeQuery(wrapper: MonacoEditorLanguageClientWrapper) {
+export async function executeQuery(editorApp: EditorApp, languageClient: MonacoLanguageClient) {
         const executeButton = document.getElementById("exebtn")!;
         const buttonText = document.querySelector("#exebtn span")!;
-        const query = wrapper.getEditor()!.getValue();
-        const operationType = await getOperationType(wrapper);
+        const query = editorApp.getEditor()!.getValue();
+        const operationType = await getOperationType(editorApp, languageClient);
         if (cancelActiveQuery()) {
                 executeButton.toggleAttribute("disabled")
                 buttonText.textContent = "Cancelling";
@@ -54,11 +58,11 @@ export async function executeQuery(wrapper: MonacoEditorLanguageClientWrapper) {
         executeButton.focus();
 }
 
-async function getOperationType(wrapper: MonacoEditorLanguageClientWrapper): Promise<OperationType> {
+async function getOperationType(editorApp: EditorApp, languageClient: MonacoLanguageClient): Promise<OperationType> {
         const params = {
-                textDocument: { uri: wrapper.getEditor()?.getModel()?.uri.toString() }
+                textDocument: { uri: editorApp.getEditor()?.getModel()?.uri.toString() }
         };
-        return wrapper.getLanguageClient("sparql")!.sendRequest("qlueLs/identifyOperationType", params).then((result) => {
+        return languageClient.sendRequest("qlueLs/identifyOperationType", params).then((result) => {
                 const typedResult = result as IdentifyOperationTypeResult;
                 return typedResult.operationType;
         });

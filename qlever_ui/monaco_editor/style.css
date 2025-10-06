@@ -1,8 +1,8 @@
-#editor {
+#monaco-editor-root {
 	width: 100%;
 	height: 460px;
-  resize: vertical;
-  overflow: hidden;
+	resize: vertical;
+	overflow: hidden;
 }
 
 .monaco-editor .monaco-editor-background {

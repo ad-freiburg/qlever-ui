@@ -5,14 +5,16 @@
 // └─────────────────────────────────┘ \\
 
 import * as monaco from 'monaco-editor';
-import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
 import { executeQuery } from '../network/execute';
 import { FormattingResult, JumpResult } from '../types/lsp_messages';
 import { Edit } from '../types/monaco';
+import { EditorApp } from 'monaco-languageclient/editorApp';
+import { LanguageClientWrapper } from 'monaco-languageclient/lcwrapper';
+import { MonacoLanguageClient } from 'monaco-languageclient';
 
-export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
-  const editor = wrapper.getEditor()!;
-  const languageClient = wrapper?.getLanguageClient("sparql")!;
+export function setup_key_bindings(editorApp: EditorApp, languageClient: MonacoLanguageClient) {
+  const editor = editorApp.getEditor()!;
+  // const languageClient = wrapper?.getLanguageClient("sparql")!;
 
   // NOTE: execute query on Ctrl + Enter
   editor.addAction({
@@ -22,7 +24,7 @@ export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
     contextMenuGroupId: 'navigation',
     contextMenuOrder: 1.5,
     run() {
-      executeQuery(wrapper)
+      executeQuery(editorApp, languageClient)
     }
   });
 
@@ -62,7 +64,7 @@ export function setup_key_bindings(wrapper: MonacoEditorLanguageClientWrapper) {
 
           // NOTE: request jump position
           const cursorPosition = editor.getPosition()!;
-          languageClient
+          languageClient.getLanguageClient()!
             .sendRequest('qlueLs/jump', {
               textDocument: { uri: editor.getModel()?.uri.toString() },
               position: {

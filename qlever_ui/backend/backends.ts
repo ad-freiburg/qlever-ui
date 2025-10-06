@@ -4,11 +4,12 @@
 // │ Licensed under the MIT license. │ \\
 // └─────────────────────────────────┘ \\
 
-import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
 import { BackendConfig } from "../types/backend";
 import yaml from 'yaml';
+import { EditorAndLanguageClient } from "../types/monaco";
+import { MonacoLanguageClient } from "monaco-languageclient";
 
-export async function configure_backends(wrapper: MonacoEditorLanguageClientWrapper) {
+export async function configure_backends(editorAndLanguageClient: EditorAndLanguageClient) {
   const slug = window.location.pathname.substr(1).split("/")[0];
 
   const backends = await fetch("/api/backends/")
@@ -21,7 +22,7 @@ export async function configure_backends(wrapper: MonacoEditorLanguageClientWrap
       console.error("An error occured while fetching backends\n", err);
     });
 
-  configureBackendsSelector(wrapper, backends, slug);
+  configureBackendsSelector(backends, slug);
 
 
   backends.forEach(async (backend) => {
@@ -32,7 +33,7 @@ export async function configure_backends(wrapper: MonacoEditorLanguageClientWrap
           name: json.name,
           slug: json.slug,
           url: json.baseUrl,
-        }
+        };
         const prefixMap = json["prefix_map"];
         const queries = {
           subjectCompletion: json["suggestSubjectsContextInsensitive"],
@@ -48,14 +49,13 @@ export async function configure_backends(wrapper: MonacoEditorLanguageClientWrap
           default: backend.slug === slug
         }
       });
-    addBackend(wrapper, config);
+    addBackend(editorAndLanguageClient.languageClient, config);
   });
 
 }
 
-function addBackend(wrapper: MonacoEditorLanguageClientWrapper, conf: BackendConfig) {
-  wrapper
-    .getLanguageClient('sparql')!
+function addBackend(languageClient: MonacoLanguageClient, conf: BackendConfig) {
+  languageClient
     .sendRequest('qlueLs/addBackend', conf)
     .catch((err) => {
       console.error(err);
@@ -63,7 +63,7 @@ function addBackend(wrapper: MonacoEditorLanguageClientWrapper, conf: BackendCon
 }
 
 
-export function configureBackendsSelector(wrapper: MonacoEditorLanguageClientWrapper, backendConfigurations, slug) {
+export function configureBackendsSelector(backendConfigurations, slug) {
   const backendsSelectionList = document.getElementById("backendSelectionList")!;
   const backendsSelectionListButton = document.getElementById("backendDisplay")!;
   backendConfigurations.forEach((backend) => {

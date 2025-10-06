@@ -4,7 +4,7 @@
   "author": "Ioannis Nezis<ioannis@nezis.de",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' vite build",
     "dev": "vite build --watch"
   },
   "keywords": [],
@@ -17,9 +17,10 @@
     "yaml": "^2.8.0"
   },
   "dependencies": {
-    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@17.1.2",
-    "monaco-editor-wrapper": "~6.8.0",
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@21.3.4",
+    "monaco-languageclient": "^10.1.0",
     "monaco-vim": "^0.4.2",
-    "qlue-ls": "0.16.0"
+    "qlue-ls": "0.16.0",
+    "vscode": "npm:@codingame/monaco-vscode-extension-api@21.3.4"
   }
 }

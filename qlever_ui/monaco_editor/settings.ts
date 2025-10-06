@@ -1,12 +1,13 @@
-import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper/.";
 import { MonacoSettings, Settings } from "../types/settings";
 import { initVimMode } from 'monaco-vim';
 import { editor } from "monaco-editor";
 import yaml from 'yaml';
 import qlue_ls_config from "../../qlue-ls.yaml?raw";
+import { LanguageClientWrapper } from "monaco-languageclient/lcwrapper";
+import { EditorApp } from "monaco-languageclient/editorApp";
+import { MonacoLanguageClient } from "monaco-languageclient";
 
-export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
-  const languageClient = wrapper.getLanguageClient("sparql")!;
+export function setup_settings(editorApp: EditorApp, languageClient: MonacoLanguageClient) {
   let vimMode;
   const settings: Settings = yaml.parse(qlue_ls_config);
 
@@ -36,7 +37,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
     setBoolValue("vimMode", false)
   };
   if (getBoolValue("vimMode")) {
-    vimMode = initVimMode(wrapper.getEditor()!, document.getElementById("statusBar"));
+    vimMode = initVimMode(editorApp.getEditor()!, document.getElementById("statusBar"));
   }
 
   // NOTE:change settings on ui changes
@@ -75,7 +76,7 @@ export function setup_settings(wrapper: MonacoEditorLanguageClientWrapper) {
       vimMode: getBoolValue("vimMode")
     };
     if (settings.vimMode) {
-      vimMode = initVimMode(wrapper.getEditor()!, document.getElementById("statusBar"));
+      vimMode = initVimMode(editorApp.getEditor()!, document.getElementById("statusBar"));
     } else {
       vimMode.dispose();
     }

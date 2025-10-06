@@ -8,9 +8,9 @@ import { init } from "./monaco_editor/editor.ts"
 import { setup_buttons } from "./buttons.ts";
 import { configure_backends } from "./backend/backends.ts";
 
-init("editor").then((wrapper) => {
-  setup_buttons(wrapper);
-  configure_backends(wrapper);
+init("monaco-editor-root").then((editorAndLanguageClient) => {
+  setup_buttons(editorAndLanguageClient);
+  configure_backends(editorAndLanguageClient);
 }).catch((err) => {
   console.error("Monaco-editor initialization failed:\n", err);
 })
