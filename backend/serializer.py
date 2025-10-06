@@ -1,9 +1,14 @@
-import backend
-from backend.models import Backend, Example
 from rest_framework import serializers
+
+from backend.models import Backend, Example
 
 
 class BackendListSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer for listing all backends, each with their name, slug, and
+    URL of the server processing requests.
+    """
+
     class Meta:
         model = Backend
         fields = ["name", "slug", "url"]
@@ -13,6 +18,14 @@ class BackendListSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class BackendDetailSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer for detailed view of a backend; see `models.Backend'.
+
+    Also adds the example queries associated with the backend. The
+    `suggestedPrefixes` (which is a a string in `models.Backend`) are converted
+    to a dictionary mapping prefix to IRI.
+    """
+
     examples = serializers.SerializerMethodField()
     prefix_map = serializers.SerializerMethodField()
 

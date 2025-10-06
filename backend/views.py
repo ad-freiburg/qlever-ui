@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import mixins, viewsets, generics
+from rest_framework import generics, mixins, viewsets
 
 from backend.management.commands.config import Command as ConfigCommand
 from backend.management.commands.examples import Command as ExamplesCommand
@@ -198,7 +198,7 @@ def warmup(request, backend, target):
 
 class BackendList(generics.ListAPIView):
     """
-    API endpoint that lists all backends by name and slug.
+    API that lists all available backends; see `serializer.py`.
     """
 
     queryset = Backend.objects.exclude(sortKey="0").order_by("sortKey")
@@ -207,7 +207,7 @@ class BackendList(generics.ListAPIView):
 
 class BackendViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """
-    API endpoint that allows backends to be viewed.
+    API that shows details of a single backend; see `serializer.py`.
     """
 
     lookup_field = "slug"
