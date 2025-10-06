@@ -729,7 +729,12 @@ function renderRuntimeInformationToDom(entry = undefined) {
       let detail_html = '';
       const details = JSON.parse(details_childs[0].textContent);
       for (const key in details) {
-        detail_html += `<span>${key}: <strong>${details[key]}</strong></span><br>`
+        // Value with thousand separators if it is a number.
+        value = details[key];
+        if (typeof value === "number") {
+          value = tsep(value.toString());
+        }
+        detail_html += `<span>${key}: <strong>${value}</strong></span><br>`
       }
       $(this).attr("title",
         `<div style="width: 250px">

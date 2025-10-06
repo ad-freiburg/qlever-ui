@@ -4,15 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0074_example_sortkey_alter_backend_defaultmodetimeout_and_more'),
+        (
+            "backend",
+            "0074_example_sortkey_alter_backend_defaultmodetimeout_and_more",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='example',
-            name='sortKey',
-            field=models.CharField(default='~', help_text="Sort key, according to which example queries are ordered lexicographically; default is '~', which is larger than most characters", max_length=100, verbose_name='Sort key'),
+            model_name="example",
+            name="sortKey",
+            field=models.CharField(
+                default="~",
+                help_text="Sort key, according to which example queries are ordered lexicographically; default is '~', which is larger than most characters",
+                max_length=100,
+                verbose_name="Sort key",
+            ),
         ),
     ]

@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0071_alter_backend_apitoken'),
+        ("backend", "0071_alter_backend_apitoken"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='isNoSlugMode',
-            field=models.BooleanField(default=0, help_text='Check if this default backend should also be available without a slug in QLever UI', verbose_name='Enable no-slug mode'),
+            model_name="backend",
+            name="isNoSlugMode",
+            field=models.BooleanField(
+                default=0,
+                help_text="Check if this default backend should also be available without a slug in QLever UI",
+                verbose_name="Enable no-slug mode",
+            ),
         ),
     ]

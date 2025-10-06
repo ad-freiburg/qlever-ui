@@ -6,34 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0006_entity_predicate'),
+        ("backend", "0006_entity_predicate"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Subject',
+            name="Subject",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('internalId', models.CharField(max_length=200)),
-                ('name', models.CharField(default='', max_length=200)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("internalId", models.CharField(max_length=200)),
+                ("name", models.CharField(default="", max_length=200)),
             ],
         ),
         migrations.RenameModel(
-            old_name='entity',
-            new_name='Object',
+            old_name="entity",
+            new_name="Object",
         ),
         migrations.AddField(
-            model_name='backend',
-            name='ntFileLastChange',
-            field=models.CharField(default='', max_length=100),
+            model_name="backend",
+            name="ntFileLastChange",
+            field=models.CharField(default="", max_length=100),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='backend',
-            name='ntFilePath',
-            field=models.CharField(default='', max_length=600),
+            model_name="backend",
+            name="ntFilePath",
+            field=models.CharField(default="", max_length=600),
             preserve_default=False,
         ),
     ]

@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0067_backend_mixedmodetimeout'),
+        ("backend", "0067_backend_mixedmodetimeout"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='defaultModeTimeout',
-            field=models.FloatField(default=0, help_text='The timeout in seconds for autosuggestion queries.', verbose_name='Mixed mode timeout'),
+            model_name="backend",
+            name="defaultModeTimeout",
+            field=models.FloatField(
+                default=0,
+                help_text="The timeout in seconds for autosuggestion queries.",
+                verbose_name="Mixed mode timeout",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='mixedModeTimeout',
-            field=models.FloatField(default=1, help_text='The timeout in seconds for the main query in mixed mode.', verbose_name='Mixed mode timeout'),
+            model_name="backend",
+            name="mixedModeTimeout",
+            field=models.FloatField(
+                default=1,
+                help_text="The timeout in seconds for the main query in mixed mode.",
+                verbose_name="Mixed mode timeout",
+            ),
         ),
     ]

@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0010_prefix'),
+        ("backend", "0010_prefix"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='prefix',
-            name='occurrences',
+            model_name="prefix",
+            name="occurrences",
             field=models.IntegerField(default=1),
         ),
     ]

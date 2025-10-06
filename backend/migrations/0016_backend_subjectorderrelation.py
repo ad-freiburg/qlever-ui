@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0015_auto_20171202_1410'),
+        ("backend", "0015_auto_20171202_1410"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='subjectOrderRelation',
-            field=models.CharField(blank=True, default='', max_length=200),
+            model_name="backend",
+            name="subjectOrderRelation",
+            field=models.CharField(blank=True, default="", max_length=200),
         ),
     ]

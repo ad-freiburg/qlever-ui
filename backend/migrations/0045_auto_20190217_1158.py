@@ -6,20 +6,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0044_auto_20190217_0946'),
+        ("backend", "0044_auto_20190217_0946"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='fillPrefixes',
-            field=models.BooleanField(default=True, help_text='Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.', verbose_name='Fill in known Prefixes'),
+            model_name="backend",
+            name="fillPrefixes",
+            field=models.BooleanField(
+                default=True,
+                help_text="Replace prefixes in suggestions even if they are not yet declared in the query. Add prefix declarations if a suggestion with not yet declared prefix is picked.",
+                verbose_name="Fill in known Prefixes",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='filteredLanguage',
-            field=models.CharField(default='en', help_text='Comma separated language codes used for filter suggestions', max_length=2000, verbose_name='Filter languages'),
+            model_name="backend",
+            name="filteredLanguage",
+            field=models.CharField(
+                default="en",
+                help_text="Comma separated language codes used for filter suggestions",
+                max_length=2000,
+                verbose_name="Filter languages",
+            ),
         ),
     ]

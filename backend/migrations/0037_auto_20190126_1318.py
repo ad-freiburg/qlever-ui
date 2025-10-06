@@ -6,15 +6,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0036_auto_20190106_1353'),
+        ("backend", "0036_auto_20190106_1353"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='backend',
-            name='objectName',
-            field=models.TextField(blank=True, default='', help_text='Relation that tells QLever UI the name of a object (without prefixes).', verbose_name='Object name relation'),
+            model_name="backend",
+            name="objectName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Relation that tells QLever UI the name of a object (without prefixes).",
+                verbose_name="Object name relation",
+            ),
         ),
     ]

@@ -6,27 +6,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0002_backend_isdefault'),
+        ("backend", "0002_backend_isdefault"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Suggestions',
+            name="Suggestions",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('firstWord', models.CharField(max_length=200)),
-                ('secondWord', models.CharField(max_length=200)),
-                ('count', models.IntegerField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("firstWord", models.CharField(max_length=200)),
+                ("secondWord", models.CharField(max_length=200)),
+                ("count", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='Synonyms',
+            name="Synonyms",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('word', models.CharField(max_length=200)),
-                ('synonym', models.CharField(max_length=200)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("word", models.CharField(max_length=200)),
+                ("synonym", models.CharField(max_length=200)),
             ],
         ),
     ]

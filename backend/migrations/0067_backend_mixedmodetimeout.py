@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0066_alter_backend_dynamicsuggestions'),
+        ("backend", "0066_alter_backend_dynamicsuggestions"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='mixedModeTimeout',
-            field=models.FloatField(default=1, help_text='The timeout in seconds for the main query in mixed mode.'),
+            model_name="backend",
+            name="mixedModeTimeout",
+            field=models.FloatField(
+                default=1,
+                help_text="The timeout in seconds for the main query in mixed mode.",
+            ),
         ),
     ]

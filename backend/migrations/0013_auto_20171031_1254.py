@@ -6,30 +6,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0012_auto_20171031_1116'),
+        ("backend", "0012_auto_20171031_1116"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='backend',
-            name='getPredicateNamesFromRelation',
+            model_name="backend",
+            name="getPredicateNamesFromRelation",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='getSubjectNamesFromRelation',
+            model_name="backend",
+            name="getSubjectNamesFromRelation",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='predicateNameRelation',
-            field=models.CharField(default='', max_length=200),
+            model_name="backend",
+            name="predicateNameRelation",
+            field=models.CharField(default="", max_length=200),
         ),
         migrations.AddField(
-            model_name='backend',
-            name='subjectNameRelation',
-            field=models.CharField(default='', max_length=200),
+            model_name="backend",
+            name="subjectNameRelation",
+            field=models.CharField(default="", max_length=200),
         ),
     ]

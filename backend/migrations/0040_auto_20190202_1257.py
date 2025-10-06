@@ -6,39 +6,67 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0039_backend_maxdefault'),
+        ("backend", "0039_backend_maxdefault"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='backend',
-            name='scorePredicate',
+            model_name="backend",
+            name="scorePredicate",
         ),
         migrations.AddField(
-            model_name='backend',
-            name='suggestSubjects',
-            field=models.TextField(blank=True, default='', help_text='Clause that tells QLever UI which subjects to suggest from (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>}', verbose_name='Subjects to suggest'),
+            model_name="backend",
+            name="suggestSubjects",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI which subjects to suggest from (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subjects that we want to suggest from<br>Your clause will be used as following:<br>SELECT ?qleverui_subject WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>}",
+                verbose_name="Subjects to suggest",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='dynamicSuggestions',
-            field=models.IntegerField(choices=[(2, '3. SPARQL & context sensitive entities'), (1, '2. SPARQL & context insensitive entities'), (0, '1. SPARQL syntax & keywords only')], default=2, help_text='If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.', verbose_name='Default suggestion mode'),
+            model_name="backend",
+            name="dynamicSuggestions",
+            field=models.IntegerField(
+                choices=[
+                    (2, "3. SPARQL & context sensitive entities"),
+                    (1, "2. SPARQL & context insensitive entities"),
+                    (0, "1. SPARQL syntax & keywords only"),
+                ],
+                default=2,
+                help_text="If you want to disable the dynamic suggestions from QLever or QLever UI by default change this option.",
+                verbose_name="Default suggestion mode",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='objectName',
-            field=models.TextField(blank=True, default='', help_text="Clause that tells QLever UI the name of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_object: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the object's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_object<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}", verbose_name='Object name clause'),
+            model_name="backend",
+            name="objectName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI the name of an object (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_object: The object that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the object's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; &lt;predicate&gt; ?qleverui_object<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>object name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+                verbose_name="Object name clause",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='predicateName',
-            field=models.TextField(blank=True, default='', help_text="Clause that tells QLever UI the name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_predicate: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the predicate's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_predicate &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}", verbose_name='Predicate name clause'),
+            model_name="backend",
+            name="predicateName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI the name of a predicate (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_predicate: The predicate that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the predicate's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;subject&gt; ?qleverui_predicate &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>predicate name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+                verbose_name="Predicate name clause",
+            ),
         ),
         migrations.AlterField(
-            model_name='backend',
-            name='subjectName',
-            field=models.TextField(blank=True, default='', help_text="Clause that tells QLever UI the name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the subject's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_subject; &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}", verbose_name='Subject name clause'),
+            model_name="backend",
+            name="subjectName",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Clause that tells QLever UI the name of a subject (without prefixes). Qlever UI expects the following variables to be used:<br>&nbsp;&nbsp;- &nbsp;?qleverui_subject: The subject that we want to get the name of<br>&nbsp;&nbsp;- &nbsp;?qleverui_name: The variable that will hold the subject's name<br>Your clause will be used as following:<br>SELECT ?qleverui_name WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?qleverui_subject; &lt;predicate&gt; &lt;object&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;OPTIONAL {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><em>subject name clause</em></b><br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>}",
+                verbose_name="Subject name clause",
+            ),
         ),
     ]

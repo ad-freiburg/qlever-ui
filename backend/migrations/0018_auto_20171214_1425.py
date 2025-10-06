@@ -6,15 +6,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('backend', '0017_pattern'),
+        ("backend", "0017_pattern"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='pattern',
-            old_name='relations',
-            new_name='predicates',
+            model_name="pattern",
+            old_name="relations",
+            new_name="predicates",
         ),
     ]
