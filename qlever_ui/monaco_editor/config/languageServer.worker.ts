@@ -19,7 +19,7 @@ init().then(() => {
 
 	// Language Client -> Language Server
 	self.onmessage = function(message) {
-		// console.log(data);
+		// console.log(message);
 		wasmWriter.write(JSON.stringify(message.data));
 	};
 	// Language Server -> Language Client

@@ -34,7 +34,7 @@ export async function configure_backends(editorAndLanguageClient: EditorAndLangu
           slug: json.slug,
           url: json.baseUrl,
         };
-        const prefixMap = json["prefix_map"];
+        const prefixMap = json.prefixMap;
         const queries = {
           subjectCompletion: json["suggestSubjectsContextInsensitive"],
           predicateCompletion: json["suggestObjectsContextInsensitive"],

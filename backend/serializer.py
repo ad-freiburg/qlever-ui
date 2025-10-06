@@ -27,7 +27,7 @@ class BackendDetailSerializer(serializers.HyperlinkedModelSerializer):
     """
 
     examples = serializers.SerializerMethodField()
-    prefix_map = serializers.SerializerMethodField()
+    prefixMap = serializers.SerializerMethodField()
 
     class Meta:
         model = Backend
@@ -37,7 +37,7 @@ class BackendDetailSerializer(serializers.HyperlinkedModelSerializer):
         examples = Example.objects.filter(backend=obj).order_by("sortKey")
         return [example.as_dict() for example in examples]
 
-    def get_prefix_map(self, obj):
+    def get_prefixMap(self, obj):
         prefixes = obj.suggestedPrefixes.replace("@", "").split(" .")
         result = {}
         for prefix in prefixes:
@@ -47,5 +47,9 @@ class BackendDetailSerializer(serializers.HyperlinkedModelSerializer):
             words = line.split()
             if words[1][-1] != ":":
                 continue
-            result[words[1][:-1]] = words[2]
+            elif words[2][0] != "<":
+                continue
+            elif words[2][-1] != ">":
+                continue
+            result[words[1][:-1]] = words[2][1:-1]
         return result
