@@ -1,22 +1,23 @@
-from django.http.response import HttpResponse, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.http import JsonResponse
-# from django.contrib.auth.decorators import login_required
-
-from .models import *
-from backend.management.commands.warmup import Command as WarmupCommand
-from backend.management.commands.examples import Command as ExamplesCommand
-from backend.management.commands.prefixes import Command as PrefixesCommand
-from backend.management.commands.config import Command as ConfigCommand
-
+import datetime
 import json
-import urllib
 import random
 import string
-from django.shortcuts import redirect
+import urllib
 
-import datetime
+from django.http import JsonResponse
+from django.http.response import HttpResponse, HttpResponseForbidden
+from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics, mixins, viewsets
+
+from backend.management.commands.config import Command as ConfigCommand
+from backend.management.commands.examples import Command as ExamplesCommand
+from backend.management.commands.prefixes import Command as PrefixesCommand
+from backend.management.commands.warmup import Command as WarmupCommand
+from backend.serializer import BackendDetailSerializer, BackendListSerializer
+
+# from django.contrib.auth.decorators import login_required
+from .models import *
 
 
 def index(request, backend=None, short=None):
@@ -193,6 +194,25 @@ def warmup(request, backend, target):
         return JsonResponse({"status": "error", "message": str(e)})
     return HttpResponse(tsv, content_type="text/tab-separated-values")
     # return JsonResponse({"status":"ok", "log": log})
+
+
+class BackendList(generics.ListAPIView):
+    """
+    API that lists all available backends; see `serializer.py`.
+    """
+
+    queryset = Backend.objects.exclude(sortKey="0").order_by("sortKey")
+    serializer_class = BackendListSerializer
+
+
+class BackendViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """
+    API that shows details of a single backend; see `serializer.py`.
+    """
+
+    lookup_field = "slug"
+    queryset = Backend.objects.exclude(sortKey="0").order_by("sortKey")
+    serializer_class = BackendDetailSerializer
 
 
 # Handle API request like https://qlever.cs.uni-freiburg.de/api/examples/wikidata

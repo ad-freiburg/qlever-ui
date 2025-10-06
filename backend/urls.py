@@ -1,8 +1,20 @@
-from django.urls import re_path
+from django.urls import include, path, re_path
+from rest_framework import routers
+from rest_framework.generics import ListAPIView
 
 from . import views
 
 urlpatterns = [
+    path(
+        "api/backends/",
+        views.BackendList.as_view(),
+        name="backend-list",
+    ),
+    path(
+        "api/backends/<slug:slug>/",
+        views.BackendViewSet.as_view({"get": "retrieve"}),
+        name="backend-detail",
+    ),
     re_path(
         r"^(?P<backend>[A-Za-z0-9\+@:()%\-_]*)(/(?P<short>[A-Za-z0-9]{6})?)?$",
         views.index,
