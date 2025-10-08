@@ -48,6 +48,8 @@ export async function init(container_id: string): Promise<EditorAndLanguageClien
 		editorContainer.style.removeProperty("display")
 		document.getElementById("loadingScreen")?.remove();
 
+		editorApp.updateLayout();
+
 		return {
 			editorApp: editorApp,
 			languageClient: languageClient,
