@@ -1,4 +1,5 @@
-{% load static %}<!DOCTYPE html>
+{% load static %}
+<!DOCTYPE html>
 <html>
   {% include 'partials/head.html' %}
   <body {% if request.GET.exec %}onload="window.setTimeout(function(){ $('#exebtn').trigger('click');},500)"{% endif %}>
@@ -8,41 +9,24 @@
           <div class="btn-group" role="group">
             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
               <i class="glyphicon glyphicon-flash"></i>
-              <span class="d">
-                {% if backend %}{{ backend.name }}{% else %}Choose backend{% endif %}
-              </span>
+              <span class="d" id="backendDisplay">Loading ...</span>
               <span class="caret"></span>
             </button>
-              <ul class="dropdown-menu">
-                  {% for b in backends|dictsort:"sortKey" %}
-                  {% if b.sortKey != "0" %}
-                  <li>
-                      <a href="/{{ b.slugify }}">{% if backend.pk == b.pk %}<i class="glyphicon glyphicon-ok"></i> {% endif %}{{ b.name }}</a>
-                  </li>
-                  {% endif %}
-                  {% endfor %}
-                  {% if request.user.is_authenticated %}
-                  <li class="divider"></li>
-                  <li>
-                      <a href="/admin/backend/backend/add/" target="_blank">
-                          <i class="glyphicon glyphicon-edit"></i> Add new backend
-                      </a>
-                  </li>
-                  {% endif %}
+              <ul id="backendSelectionList" class="dropdown-menu">
               </ul>
           </div>
             
           <!-- The theme / help block -->
           <div class="pull-right">
               <div class="btn-group" role="group" >
-                  <button onclick="$('#stats').slideToggle();$('#bStats').hide();" class="btn btn-default" id="statsButton">
+                  <button onclick="$('#stats').slideToggle();$('#bStats').hide();$('#settings').hide();" class="btn btn-default" id="statsButton">
                       <i class="glyphicon glyphicon-stats"></i> <span class="d">Loading information...</span>
                   </button>
-                  <button onclick="$('#bStats').slideToggle();$('#stats').hide();" class="btn btn-default">
-                      <i class="glyphicon glyphicon-cog"></i> <span class="d">Backend Information</span>
+                  <button onclick="$('#bStats').slideToggle();$('#stats').hide();$('#settings').hide();" class="btn btn-default">
+                      <i class="glyphicon glyphicon-info-sign"></i> <span class="d">Backend Information</span>
                   </button>
-                  <button class="btn btn-default" onclick="expandEditor();" id="helpButton">
-                      <i class="glyphicon glyphicon-question-sign"></i> <span class="d">Shortcuts / Help</span>
+                  <button onclick="$('#settings').slideToggle();$('#stats').hide();$('#bStats').hide();"  class="btn btn-default" >
+                      <i class="glyphicon glyphicon-cog"></i> <span class="d">Editor Settings</span>
                   </button>
               </div>
           </div>
@@ -108,203 +92,288 @@
               </div>
             </div>
           </div>
-          
+          <div id="settings" class="well" style="display: none;">
+            <br>
+            <div class="row">
+              <div class="col-md-6">
+                <h3>Format settings</h3>
+                <br>
+                <table class="table">
+                    <tr><th>Align prefixes</th><td>
+                        <label class="switch">
+                          <input id="alignPrefixes" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Align predicates</th><td>
+                        <label class="switch">
+                          <input id="alignPredicates" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Separate Prologue</th><td>
+                        <label class="switch">
+                          <input id="separatePrologue" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Capitalize keywords</th><td>
+                        <label class="switch">
+                          <input id="capitalizeKeywords" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Insert spaces</th><td>
+                        <label class="switch">
+                          <input id="insertSpaces" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Tab size</th><td>
+                        <input id="tabSize" type="number" name="tabSize" min="1" max="10" > 
+                    </td></tr>
+                    <tr><th>Linebreak after WHERE</th><td>
+                        <label class="switch">
+                          <input id="whereNewLine" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Trailing Filter</th><td>
+                        <label class="switch">
+                          <input id="filterSameLine" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                </table>
+              </div>
+              <div class="col-md-6" style="word-break: break-all;">
+                <h3>Completion settings</h3>
+                <br>
+                <table class="table">
+                    <tr><th>Query timeout (ms)</th><td>
+                        <input id="timeoutMs" type="number" name="timeout" min="0" max="60000" value="5000"> 
+                    </td></tr>
+                    <tr><th>Result size</th><td>
+                        <input id="resultSizeLimit" type="number" name="resultSize" min="0" max="1000" value="100"> 
+                    </td></tr>
+                </table>
+                <h3>Prefixes management</h3>
+                <br>
+                <table class="table">
+                    <tr><th>Add missing</th><td>
+                        <label class="switch">
+                          <input id="addMissing" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                    <tr><th>Remove unused</th><td>
+                        <label class="switch">
+                          <input id="removeUnused" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                    </td></tr>
+                </table>
+                <h3>Monaco Settings</h3>
+                <br>
+                <table class="table">
+                    <tr><th>vim mode</th></tr>
+                        <label class="switch">
+                          <input id="vimMode" type="checkbox">
+                          <span class="my-slider round"></span>
+                        </label>
+                </table>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-10"></div>
+              <div class="col-sm-2">
+                <div class="row">
+                  <div class="btn-group btn-group-flex" role="group">
+                    <button id="resetSettings" class="btn">
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- The query block -->
           <div class="well" id="queryBlock">
             <div class="row">
-              <div id="editorArea" class="col-md-12">
-                <!-- The main editor (code mirror textarea) -->
-                <textarea id="query" class="form-control" placeholder="Start by typing SELECT or PREFIX ...">{% if prefill and not request.GET.test %}{{ prefill }}{% endif %}</textarea><br>
-              </div>
-              <div class="col-md-4" id="help" style="display:none;">
-                <div id="uiHelp">  
-                  <!-- The UI help box -->
-                  <h4 style="margin-top: 0px;">QLever UI Shortcuts:</h4>
-                  <table class="table" style="margin-bottom: 9px;">
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>enter</kbd></td>
-                      <td><em>Send query to backend</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>tab</kbd></td>
-                      <td><em>Jump to the next placeholder</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>space</kbd></td>
-                      <td><em>Invoke auto suggestions</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>&#9650;</kbd> or <kbd>&#9660;</kbd></td>
-                      <td><em>Move through suggestions</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd onclick="$()">enter</kbd></td>
-                      <td><em>Choose the selected suggestion</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>esc</kbd></td>
-                      <td><em>Close suggestion window</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>f</kbd></td>
-                      <td><em>Search in editor (supports RegEx)</em></td>
-                    </tr>
-                    <tr>
-                      <td><kbd>ctrl</kbd> + <kbd>r</kbd></td>
-                      <td><em>Search and replace in editor</em></td>
-                    </tr>
-                  </table>
-                </div>
-              </div>
-                <div class="col-lg-9 col-xs-12">
-                    <div class="row">
-
-                        <div class="col-lg-5 col-md-5 col-xs-12 pb-1">
-                            <div class="btn-group btn-group-flex" role="group">
-                                <!--
-                                 The run button. Note: min-width keeps the same width regardless
-                                 of the label (Execute, Cancel or Cancelling)
-                               -->
-                                <button id="exebtn" class="btn btn-success btn-block">
-                                    <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
-                                </button>
-                                <!-- The download buttons -->
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-default btn-block dropdown-toggle" type="button"
-                                            data-toggle="dropdown">
-                                        <i class="glyphicon glyphicon-download"></i> Download
-                                        <span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item" id="csvbtn" href="#csv">
-                                                <i class="glyphicon glyphicon-file"></i> Download results as CSV
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" id="tsvbtn" href="#tsv">
-                                                <i class="glyphicon glyphicon-file"></i> Download results as TSV
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <!-- The share button -->
-                                <button id="sharebtn" class="btn btn-default">
-                                    <i class="glyphicon glyphicon-share-alt"></i> Share
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-7 col-md-7 col-xs-12 pb-1">
-                            <!-- The context setting buttons -->
-                            <div class="btn-group btn-group-flex" role="group">
-                                <button id="formatButton" class="btn btn-default">
-                                    <i class="glyphicon glyphicon-align-left"></i> Format
-                                </button>
-                                <button class="btn btn-default" onclick="executeBackendCommand('clear-cache', this)">
-                                    <i class="glyphicon glyphicon-refresh"></i> Clear cache
-                                </button>
-                                <button class="btn btn-default" onclick="showQueryPlanningTree();">
-                                    <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
-                                </button>
-                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                                    <i class="glyphicon glyphicon-align-left"></i> Examples
-                                    <span class="caret"></span>
-                                </button>
-                                <ul id="exampleList" class="dropdown-menu">
-                                    <div style="padding: 10px 20px;">
-                                        <input id="exampleKeywordSearchInput" type="text"
-                                               placeholder="search for keywords"
-                                               style="width: 100%">
-                                    </div>
-                                    <li class="divider"></li>
-                                    {% for example in examples %}
-                                        <li>
-                                            <a onclick="example=1;editor.setValue(examples[{{ forloop.counter0 }}]);editor.focus()">
-                                                {% if request.user.is_authenticated %}
-                                                    <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"
-                                                          style="float: right;">
-                                <i class="glyphicon glyphicon-pencil"></i>
-                              </span>
-                                                {% endif %}
-                                                <span class="example-name"
-                                                      style="margin-right: 30px">{{ example.name }}</span>
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                    <li id="empty-examples-excuse" style="display: none">
-                                        <span style="padding: 3px 20px;">Sorry, no examples found :(</span>
-                                    </li>
-                                    {% if request.user.is_authenticated %}
-                                        <li class="divider"></li>
-                                        <li>
-                                            <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
-                                                <i class="glyphicon glyphicon-check"></i> Add current query as example
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/admin/backend/example/add/?backend={{ backend.pk }}"
-                                               target="_blank">
-                                                <i class="glyphicon glyphicon-edit"></i> Add new example
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-6 col-md-5 col-xs-12" id="backend_commands" style="display: none">
-                            <button type="button" id="btnClearDeltaTriples" class="btn btn-default"
-                                    onclick="executeBackendCommand('clear-delta-triples', this)">
-                                <i class="glyphicon glyphicon-refresh"></i> Reset Updates
-                            </button>
-                            <button type="button" id="btnClearCacheComplete" class="btn btn-default"
-                                    onclick="executeBackendCommand('clear-cache-complete', this)"><i
-                                    class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
-                            </button>
-                        </div>
-
+                  <div id="loadingScreen" style="height:40vh; display: flex; justify-content: center; align-items: center;">
+                    <div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.2"
+                            stroke="currentColor"
+                            class="animate-spin text-white"
+                            style="animation: spin 5s linear infinite; width: 100px"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+                            />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                            />
+                        </svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.2"
+                            stroke="currentColor"
+                            class="text-white"
+                            style="animation: spin 2s linear infinite; animation-direction: reverse; width: 60px"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+                            />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                            />
+                        </svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.2"
+                            stroke="currentColor"
+                            class="text-white"
+                            style="animation: spin 10s linear infinite; width: 100px"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+                            />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                            />
+                        </svg>
+                      <h2> Loading Editor... </h2>
                     </div>
-                </div>
-                <div class="col-lg-3 col-xs-12">
-                    <div class="row">
-
-                        <div class="col-lg-12 col-lg-push-0 col-lg-offset-0 col-md-push-4 col-md-offset-4 col-md-4 col-xs-12 pb-1">
-                            <select class="form-control" id="dynamicSuggestions">
-                                <option value="0"
-                                        {% if backend.dynamicSuggestions == 0 %}selected="selected"{% endif %}>
-                                    1. Syntax & keywords only
-                                </option>
-                                <option value="1"
-                                        {% if backend.dynamicSuggestions == 1 %}selected="selected"{% endif %}>
-                                    2. Context insensitive suggestions
-                                </option>
-                                <option value="2"
-                                        {% if backend.dynamicSuggestions == 2 %}selected="selected"{% endif %}>
-                                    3. Context sensitive suggestions
-                                </option>
-                                <option value="3"
-                                        {% if backend.dynamicSuggestions == 3 %}selected="selected"{% endif %}>
-                                    4. Mixed mode
-                                </option>
-                            </select>
+                  </div>
+                  <div style="padding: 0px 19px 19px 19px;">
+                    <div id="monaco-editor-root" style="display: none;"></div>
+                  </div>
+                  <div id="statusBar" style="padding-left: 20px"></div>
+                  <div class="col-lg-9 col-xs-12">
+                  <div class="row">
+                    <div class="col-lg-5 col-md-5 col-xs-12 pb-1">
+                      <div class="btn-group btn-group-flex" role="group">
+                        <!--
+                         The run button. Note: min-width keeps the same width regardless
+                         of the label (Execute, Cancel or Cancelling)
+                        -->
+                        <button id="exebtn" class="btn btn-success btn-block">
+                            <i class="glyphicon glyphicon-refresh"></i> <span>Execute</span>
+                        </button>
+                        <!-- The download buttons -->
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-default btn-block dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="glyphicon glyphicon-download"></i> Download
+                            <span class="caret"></span>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a class="dropdown-item" id="csvbtn" href="#csv">
+                                <i class="glyphicon glyphicon-file"></i> Download results as CSV
+                              </a>
+                            </li>
+                            <li>
+                              <a class="dropdown-item" id="tsvbtn" href="#tsv">
+                                <i class="glyphicon glyphicon-file"></i> Download results as TSV
+                              </a>
+                            </li>
+                          </ul>
                         </div>
-
-                        <div class="col-lg-12 col-lg-pull-0 col-md-pull-4 col-md-4 col-xs-12">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="name_service"> Automatically add names to result
-                                </label>
-                            </div>
-                            <div class="checkbox" style="display: none">
-                                <label>
-                                    <input type="checkbox" id="clear"> Clear the cache before every request
-                                </label>
-                            </div>
+                        <!-- The share button -->
+                        <button id="sharebtn" class="btn btn-default">
+                            <i class="glyphicon glyphicon-share-alt"></i> Share
+                        </button>
+                      </div>
+                    </div>
+                    <div class="col-lg-7 col-md-7 col-xs-12 pb-1">
+                        <!-- The context setting buttons -->
+                        <div class="btn-group btn-group-flex" role="group">
+                          <button id="formatButton" class="btn btn-default">
+                              <i class="glyphicon glyphicon-align-left"></i> Format
+                          </button>
+                          <button class="btn btn-default" onclick="executeBackendCommand('clear-cache', this)">
+                              <i class="glyphicon glyphicon-refresh"></i> Clear cache
+                          </button>
+                          <button class="btn btn-default" onclick="showQueryPlanningTree();">
+                              <i class="glyphicon glyphicon-object-align-vertical"></i> Analysis
+                          </button>
+                          <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                              <i class="glyphicon glyphicon-align-left"></i> Examples
+                              <span class="caret"></span>
+                          </button>
+                          <ul id="exampleList" class="dropdown-menu">
+                              <div style="padding: 10px 20px;">
+                                  <input id="exampleKeywordSearchInput" type="text"
+                                         placeholder="search for keywords"
+                                         style="width: 100%">
+                              </div>
+                              <li class="divider"></li>
+                              {% for example in examples %}
+                                <li class="queryExample" value="{{example.query}}">
+                                      <a>
+                                          {% if request.user.is_authenticated %}
+                                              <span onclick="window.open('/admin/backend/example/{{ example.pk }}/change/','_blank');"
+                                                    style="float: right;">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                              </span>
+                                          {% endif %}
+                                          <span class="example-name" style="margin-right: 30px">{{ example.name }}</span>
+                                      </a>
+                                  </li>
+                              {% endfor %}
+                              <li id="empty-examples-excuse" style="display: none">
+                                  <span style="padding: 3px 20px;">Sorry, no examples found :(</span>
+                              </li>
+                              {% if request.user.is_authenticated %}
+                                  <li class="divider"></li>
+                                  <li>
+                                      <a onclick="window.open('/admin/backend/example/add/?backend={{ backend.pk }}&query='+encodeURIComponent(editor.getValue()),'_blank');">
+                                          <i class="glyphicon glyphicon-check"></i> Add current query as example
+                                      </a>
+                                  </li>
+                                  <li>
+                                      <a href="/admin/backend/example/add/?backend={{ backend.pk }}"
+                                         target="_blank">
+                                          <i class="glyphicon glyphicon-edit"></i> Add new example
+                                      </a>
+                                  </li>
+                              {% endif %}
+                          </ul>
                         </div>
                     </div>
-                </div>
+                    <div class="col-lg-6 col-md-5 col-xs-12" id="backend_commands" style="display: none">
+                        <button type="button" id="btnClearDeltaTriples" class="btn btn-default"
+                                onclick="executeBackendCommand('clear-delta-triples', this)">
+                            <i class="glyphicon glyphicon-refresh"></i> Reset Updates
+                        </button>
+                        <button type="button" id="btnClearCacheComplete" class="btn btn-default"
+                                onclick="executeBackendCommand('clear-cache-complete', this)"><i
+                                class="glyphicon glyphicon-refresh"></i> Clear Cache (Complete)
+                        </button>
+                    </div>
 
+                  </div>
+                </div>
             </div>
           </div>
 

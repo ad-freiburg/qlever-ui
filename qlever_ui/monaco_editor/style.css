@@ -1,0 +1,16 @@
+#monaco-editor-root {
+	width: 100%;
+	height: 460px;
+	resize: vertical;
+	overflow: hidden;
+}
+
+.monaco-editor .monaco-editor-background {
+	padding-left: 8px;
+	box-sizing: border-box;
+}
+
+/* Larger action widget */
+.action-widget {
+	min-width: 250px !important;
+}

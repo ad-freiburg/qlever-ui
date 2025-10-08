@@ -17,8 +17,8 @@ function generateQueryId() {
     return crypto.randomUUID();
   }
   log("WARNING: Site is not served in secure context. " +
-      "Falling back to Math.random() for random value generation. " +
-      "Make sure this is not happening in production.", "other")
+    "Falling back to Math.random() for random value generation. " +
+    "Make sure this is not happening in production.", "other")
   return Math.floor(Math.random() * 1000000000);
 }
 
@@ -27,296 +27,49 @@ function getWebSocketUrl(queryId) {
   return `${BASEURL.replace(/^http/g, "ws")}/watch/${queryId}`;
 }
 
-$(window).resize(function (e) {
-  if (e.target == window) {
-    editor.setSize($('#queryBlock').width());
-  }
-});
 
-$(document).ready(function () {
-
-  // Initialize the editor.
-  editor = CodeMirror.fromTextArea(document.getElementById("query"), {
-    mode: "application/sparql-query", indentWithTabs: true, smartIndent: false,
-    lineNumbers: true, matchBrackets: true, autoCloseBrackets: true,
-    autofocus: true, styleSelectedText: true, styleActiveLine: true,
-    extraKeys: {
-      "Ctrl-Enter": function (cm) { $("#exebtn").trigger('click'); },
-      "Space": function (cm) {
-        var cursor = editor.getDoc().getCursor();
-        var pos = { line: cursor.line, ch: cursor.ch }
-        editor.replaceRange(" ", pos);
-        CodeMirror.commands.autocomplete(editor);
-      },
-      "Tab": function (cm) { switchStates(cm); },
-      "Ctrl-Space": "autocomplete",
-      "Ctrl-F": "findPersistent",
-      // "Ctrl-R": "replace"
-    },
-  });
-
-  // Set the width of the editor window.
-  editor.setSize($('#queryBlock').width(), 350);
-
-  // Make the editor resizable.
-  $('.CodeMirror').resizable({
-    resize: function () {
-      // fix the "help"-box position on resize
-      editor.setSize($(this).width(), $(this).height());
-    }
-  });
-
-  // Initialize the tooltips.
-  $('[data-toggle="tooltip"]').tooltip();
-
-  // If there is a theme cookie: use it!
-  if (getCookie("theme") != "") {
-    changeTheme(getCookie("theme"));
-  }
+$(document).ready(initialize);
+function initialize() {
 
   // Load the backends statistics.
   handleStatsDisplay();
 
-  // Initialize the name hover.
-  if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
-    const entities = $('.cm-entity:not([data-has-mouseenter-handler])');
-    entities.on('mouseenter', showRealName);
-    entities.data('has-mouseenter-handler', 'true');
-  }
-
-  // Initialization done.
-  log('Editor initialized', 'other');
-
-  // When cursor moves, make sure that tooltips are closed.
-  editor.on("cursorActivity", function (instance) {
-    $('[data-tooltip=tooltip]').tooltip('hide');
-    // cleanLines(instance);
-  });
-
-  editor.on("update", function (instance, event) {
-    $('[data-tooltip=tooltip]').tooltip('hide');
-
-    // (re)initialize the name hover
-    if (SUBJECTNAME || PREDICATENAME || OBJECTNAME) {
-      const newEntities = $('.cm-entity:not([data-has-mouseenter-handler])');
-      newEntities.on('mouseenter', showRealName);
-      newEntities.data('has-mouseenter-handler', 'true');
-    }
-  });
-
-  // Do some custom activities (overwrite codemirror behaviour)
-  editor.on("keyup", function (instance, event) {
-
-    // For each prefix in `COLLECTEDPREFIXES`, check whether it occurs
-    // somewhere in the query and if so, add it before the first `SELECT` or
-    // `CONSTRUCT` (and move the cursor accordingly). If there is no `SELECT`
-    // or `CONSTRUCT`, do nothing.
-    let select_or_construct_regex = /(^| )(SELECT|CONSTRUCT|DELETE|INSERT)/mi;
-    if (FILLPREFIXES && select_or_construct_regex.test(editor.getValue())) {
-      let queryString = editor.getValue();
-      let newCursor = editor.getCursor();
-      let linesAdded = 0;
-      for (var prefix in COLLECTEDPREFIXES) {
-        const fullPrefix = "PREFIX " + prefix + ": <" + COLLECTEDPREFIXES[prefix] + ">";
-        if (doesQueryFragmentContainPrefix(queryString, prefix) &&
-             queryString.indexOf(fullPrefix) == -1) {
-          queryString = queryString.replace(select_or_construct_regex, fullPrefix + "\n$1$2");
-          linesAdded += 1;
-        }
-      }
-      if (linesAdded > 0){
-        editor.setValue(queryString);
-        newCursor.line += linesAdded;
-        editor.setCursor(newCursor);
-      }
-    }
-
-    var cur = instance.getCursor();
-    var line = instance.getLine(cur.line);
-    var token = instance.getTokenAt(cur);
-    var string = '';
-
-    // do not overwrite ENTER inside an completion window
-    // esc - 27
-    // arrow left - 37
-    // arrow up - 38
-    // arrow right - 39
-    // arrow down - 40
-    if (instance.state.completionActive || event.keyCode == 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
-
-      // for for autocompletions opened unintented
-      if (line[cur.ch] == "}" || line[cur.ch + 1] == "}" || line[cur.ch - 1] == "}") {
-        if(instance && instance.state && instance.state.completionActive){
-          instance.state.completionActive.close();
-        }
-      }
-      return;
-    }
-
-    if (token.string.match(new RegExp('^[.`\w?<@]\w*$'))) {
-      string = token.string;
-    }
-    // do not suggest anything inside a word
-
-    if ((line[cur.ch] == " " || line[cur.ch + 1] == " " || line[cur.ch + 1] == undefined) && line[cur.ch] != "}" && line[cur.ch + 1] != "}" && line[cur.ch - 1] != "}") {
-      // invoke autocompletion after a very short delay
-      window.setTimeout(function () {
-        if (example == 1) { example = 0; } else {
-          CodeMirror.commands.autocomplete(instance);
-        }
-      }, 150);
-    } else {
-      console.warn('Skipped completion due to cursor position');
-    }
-  });
-
-  // when completion is chosen - remove the counter badge
-  editor.on("endCompletion", function () { $('#aBadge').remove(); });
-
-  function showRealName(element) {
-
-    // collect prefixes (as string and dict)
-    // TODO: move this to a function. Also use this new function in sparql-hint.js
-    var prefixes = "";
-    var lines = getPrefixLines();
-
-    for (var line of lines) {
-      if (line.trim().startsWith("PREFIX")) {
-        var match = /PREFIX (.*): ?<(.*)>/gi.exec(line.trim());
-        if (match) {
-          prefixes += line.trim() + '\n';
-        }
-      }
-    }
-
-    // TODO: move this "get current element with its prefix" to a function. Also use this new function in sparql-hint.js
-    values = $(this).parent().text().trim().split(' ');
-    element = $(this).text().trim();
-    domElement = this;
-
-    if ($(this).prev().hasClass('cm-prefix-name') || $(this).prev().hasClass('cm-string-language')) {
-      element = $(this).prev().text() + element;
-    }
-
-    if ($(this).next().hasClass('cm-entity-name')) {
-      element = element + $(this).next().text();
-    }
-
-    index = values.indexOf(element.replace(/^\^/, ""));
-
-    if (index == 0) {
-      if (SUBJECTNAME != "") {
-        addNameHover(element, domElement, subjectNames, SUBJECTNAME, prefixes);
-      }
-    } else if (index == 1 || index == -1 && values.length > 1 && values[1].indexOf(element) != -1) {  // entity in property path
-      if (PREDICATENAME != "") {
-        addNameHover(element, domElement, predicateNames, PREDICATENAME, prefixes);
-      }
-    } else if (index == 2) {
-      if (OBJECTNAME != "") {
-        addNameHover(element, domElement, objectNames, OBJECTNAME, prefixes);
-      }
-    }
-
-    return true;
-  }
-
-  // Attach format funtion to formatButton.
-  const formatButton = $("#formatButton");
-  formatButton.click(function() {
-    const formattedQuery = format(editor.getValue()).trim();
-    editor.setValue(formattedQuery);
-  })
-
-  // When clicking "Execute", do the following:
-  //
-  // 1. Call processQuery (sends query to backend + displays results).
-  // 2. Add query hash to URL.
-  //
-  const exeButton = $("#exebtn");
-  exeButton.click(function() {
-    const buttonText = $("#exebtn > span");
-    if (cancelActiveQuery()) {
-      exeButton.prop("disabled", true);
-      buttonText.text("Cancelling");
-      return;
-    } else {
-      buttonText.text("Cancel");
-    }
-    log("Start processing", "other");
-    $("#suggestionErrorBlock").parent().hide();
-
-    // Add query hash to URL (we need Django for this, hence the POST request),
-    // unless this is a URL with ?query=...
-    const acquireShareLink = async () => {
-      const response = await fetch("/api/share", {
-        method: "POST",
-        body: new URLSearchParams({
-          "content": editor.getValue()
-        })
-      });
-      if (response.ok) {
-        const result = await response.json();
-        log("Got pretty link from backend", "other");
-        if (!window.location.search.includes(result.queryString)) {
-          const path = NO_SLUG_MODE
-            ? ""
-            : window.location.pathname.split("/").slice(0, 2).join("/");
-          window.history.pushState(window.history.state, "", `${path}/${result.link}`);
-        }
-      }
-    };
-
-    // Run the query and fetch the share link concurrently
-    Promise.all([
-      processQuery(parseInt($("#maxSendOnFirstRequest").html()))
-        .finally(() => {
-          exeButton.prop("disabled", false);
-          buttonText.text("Execute");
-        }),
-      acquireShareLink()
-    ]).catch(error => log(error.message, 'requests'));
-
-    if (editor.state.completionActive) { editor.state.completionActive.close(); }
-    exeButton.focus();
-  });
-
   // CSV download (create link element, click on it, and remove the #csv from
   // the URL, which is added by clicking; see index.html).
-  $("#csvbtn").click(async function () {
+  $("#csvbtn").click(async function() {
     log('Download CSV', 'other');
-    const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+    const query = await rewriteQuery(editor.getValue(), { "name_service": "if_checked" });
     var download_link = document.createElement("a");
     download_link.href = getQueryString(query) + "&action=csv_export";
     download_link.setAttribute("download",
-        window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".csv");
+      window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".csv");
     download_link.click();
   });
 
   // TSV report: like for CSV report above.
-  $("#tsvbtn").click(async function () {
+  $("#tsvbtn").click(async function() {
     log('Download TSV', 'other');
-    const query = await rewriteQuery(editor.getValue(), {"name_service": "if_checked"});
+    const query = await rewriteQuery(editor.getValue(), { "name_service": "if_checked" });
     var download_link = document.createElement("a");
     download_link.href = getQueryString(query) + "&action=tsv_export";
     download_link.setAttribute("download",
-        window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".tsv");
+      window.location.pathname.replace(/^\//, "").replace(/\//, "_") + ".tsv");
     download_link.click();
     // window.location.href = await getQueryString(query) + "&action=tsv_export";
   });
 
   // Generating the various links for sharing.
-  $("#sharebtn").click(async function () {
+  $("#sharebtn").click(async function() {
     try {
       // Rewrite the query, normalize it, and escape quotes.
       //
       // TODO: The escaping of the quotes is simplistic and currently fails when
       // the query already contains some escaping itself.
       const queryRewritten = await rewriteQuery(
-        editor.getValue(), {"name_service": "if_checked"});
+        editor.getValue(), { "name_service": "if_checked" });
       const queryRewrittenAndNormalizedAndWithEscapedQuotes =
-        normalizeQuery(queryRewritten).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
-      
+        normalizeQuery(queryRewritten).replace(/"/g, "\\\"");
+
       if (editor.state.completionActive) { editor.state.completionActive.close(); }
 
       // POST request to Django, for the query hash.
@@ -328,9 +81,9 @@ $(document).ready(function () {
         const result = await response.json();
         log('Generating links for sharing ...', 'other');
         const pathWithSlug = window.location.pathname
-                                            .split('/').slice(0, 2).join('/');
+          .split('/').slice(0, 2).join('/');
         const baseLocation = window.location.origin
-                              + (NO_SLUG_MODE ? '' : pathWithSlug) + '/';
+          + (NO_SLUG_MODE ? '' : pathWithSlug) + '/';
 
         // The default media type for the curl command line link is TSV, but for
         // CONSTRUCT queries use Turtle.
@@ -367,7 +120,7 @@ $(document).ready(function () {
     }
   });
 
-  $(".copy-clipboard-button").click(function () {
+  $(".copy-clipboard-button").click(function() {
     var link = $(this).parent().parent().find("input")[0];
     link.select();
     link.setSelectionRange(0, 99999); /*For mobile devices*/
@@ -386,11 +139,11 @@ $(document).ready(function () {
   }
 
   updateBackendCommandVisibility();
-  accessToken.on("input", function () {
+  accessToken.on("input", function() {
     updateBackendCommandVisibility();
   });
-  
-});
+
+}
 
 function addNameHover(element, domElement, list, namepredicate, prefixes) {
   element = element.replace(/^(@[a-zA-Z-]+@|\^)/, "");
@@ -553,7 +306,7 @@ async function executeBackendCommand(command, element) {
   const access_token = $.trim($("#access_token").val());
   if (access_token.length > 0)
     headers["Authorization"] = `Bearer ${access_token}`;
-  const params = {"cmd": command};
+  const params = { "cmd": command };
   setRunningIndicator(element);
   try {
     await fetchQleverBackend(params, headers);
@@ -565,7 +318,7 @@ async function executeBackendCommand(command, element) {
 }
 
 // Process the given query.
-async function processQuery(sendLimit=0, element=$("#exebtn")) {
+async function processQuery(original_query, operationType, sendLimit = 0, element = $("#exebtn")) {
   log('Preparing query...', 'other');
   log('Element: ' + element, 'other');
   if (sendLimit >= 0) { displayStatus("Waiting for response..."); }
@@ -575,14 +328,11 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
 
   let params = {};
   let headers = {};
-  let operationType;
   console.assert(sendLimit >= 0);
-  var original_query = editor.getValue();
-  var query = await rewriteQuery(original_query, {"name_service": "if_checked"});
-  operationType = determineOperationType(query);
+  var query = await rewriteQuery(original_query, { "name_service": "if_checked" });
   console.log(`Determined operation type: ${operationType}`);
   switch (operationType) {
-      // If we don't know the operation type, we assume it's a query.
+    // If we don't know the operation type, we assume it's a query.
     case "Unknown":
     case "Query":
       params["query"] = query;
@@ -619,7 +369,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
 
   try {
     let result = await fetchQleverBackend(params, headers);
-    
+
     log('Evaluating and displaying results...', 'other');
 
     if (result.status === "ERROR") {
@@ -669,7 +419,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         resetIndicator($("#btnClearDeltaTriples"));
         resetIndicator($("#btnClearCacheComplete"));
         break
-        // The operation type wasn't detected. It was most likely syntactically invalid and resulted in an error while parsing. Display the result anyway in case some valid queries were not identified.
+      // The operation type wasn't detected. It was most likely syntactically invalid and resulted in an error while parsing. Display the result anyway in case some valid queries were not identified.
       case "Unknown":
         if (Array.isArray(result["warnings"])) {
           result["warnings"].push("Could not determine operation type, defaulting to \"query\"");
@@ -703,8 +453,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         let showAllButton = "";
         if (nofRows < parseInt(resultSize)) {
           showAllButton = "<a id=\"show-all\" class=\"btn btn-default\">"
-              + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
-              + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
+            + "<i class=\"glyphicon glyphicon-sort-by-attributes\"></i> "
+            + "Limited to " + nofRows + " results; show all " + resultSizeString + " results</a>";
         }
 
         // If the last column of the first result row contains a WKT literal,
@@ -713,7 +463,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
         let mapViewButtonPetri = '';
         if (result.res.length > 0 && /wktLiteral/.test(result.res[0][columns.length - 1])) {
           let mapViewUrlVanilla = 'http://qlever.cs.uni-freiburg.de/mapui/index.html?';
-          let params = new URLSearchParams({query: normalizeQuery(query), backend: BASEURL});
+          let params = new URLSearchParams({ query: normalizeQuery(query), backend: BASEURL });
           mapViewButtonVanilla = `<a class="btn btn-default" href="${mapViewUrlVanilla}${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
           mapViewButtonPetri = `<a class="btn btn-default" href="${MAP_VIEW_BASE_URL}/?${params}" target="_blank"><i class="glyphicon glyphicon-map-marker"></i> Map view</a>`;
         }
@@ -802,8 +552,8 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
               const [formattedResultEntry, rightAlign] = getFormattedResultEntry(resultEntry, 50, j);
               const tooltipText = htmlEscape(resultEntry).replace(/\"/g, "&quot;");
               row += "<td" + (rightAlign ? " align=\"right\"" : "") + ">"
-                  + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
-                  + formattedResultEntry + "</span></td>";
+                + "<span data-toggle=\"tooltip\" title=\"" + tooltipText + "\">"
+                + formattedResultEntry + "</span></td>";
             } else {
               row += "<td><span>-</span></td>";
             }
@@ -827,7 +577,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
   } catch (error) {
     setErrorIndicator(element);
     const errorContent = {
-      "exception" : error.message || "Unknown error",
+      "exception": error.message || "Unknown error",
       "query": query
     };
     displayError(errorContent, queryId);
@@ -840,13 +590,13 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
   }
 }
-  
+
 async function handleStatsDisplay() {
   try {
     log('Loading backend statistics...', 'other');
     $('#statsButton span').html('Loading information...');
     $('#statsButton').attr('disabled', 'disabled');
-    
+
     try {
       const response = await fetch(`${BASEURL}?cmd=stats`);
       if (!response.ok) {
@@ -868,9 +618,9 @@ async function handleStatsDisplay() {
       if ((result["num-permutations"] ?? result["permutations"]) == "6") {
         $("#kbstats").html("Number of subjects: <b>" +
           tsep(result["num-subjects-normal"] ?? result["nofsubjects"]) + "</b><br>" +
-        "Number of predicates: <b>" +
+          "Number of predicates: <b>" +
           tsep(result["num-predicates-normal"] ?? result["nofpredicates"]) + "</b><br>" +
-        "Number of objects: <b>" +
+          "Number of objects: <b>" +
           tsep(result["num-objects-normal"] ?? result["nofobjects"]) + "</b>");
       }
       $('#statsButton').removeAttr('disabled');
@@ -932,12 +682,12 @@ function renderRuntimeInformationToDom(entry = undefined) {
   // Show meta information (if it exists).
   const meta_info = runtime_info["meta"]
   const time_query_planning = "time_query_planning" in meta_info
-                                ? formatInteger(meta_info["time_query_planning"]) + " ms"
-                                : "[not available]";
+    ? formatInteger(meta_info["time_query_planning"]) + " ms"
+    : "[not available]";
   const time_index_scans_query_planning = "time_index_scans_query_planning" in meta_info
-                                ? formatInteger(meta_info["time_index_scans_query_planning"]) + " ms"
-                                : "[not available]";
-  const total_time_computing = meta_info["total_time_computing"] ? formatInteger(meta_info["total_time_computing"]): "N/A";
+    ? formatInteger(meta_info["time_index_scans_query_planning"]) + " ms"
+    : "[not available]";
+  const total_time_computing = meta_info["total_time_computing"] ? formatInteger(meta_info["total_time_computing"]) : "N/A";
   $("#meta-info").html(
     "<p>Time for query planning: " + time_query_planning +
     "<br/>Time for index scans during query planning: " + time_index_scans_query_planning +
@@ -969,13 +719,13 @@ function renderRuntimeInformationToDom(entry = undefined) {
   $("#visualisation").scrollTop(scrollTop);
   $("#result-tree").scrollLeft(scrollLeft);
 
-  $("div.node").each(function () {
+  $("div.node").each(function() {
     const details_childs = $(this).children(".node-details");
     if (details_childs.length == 1) {
       const top_pos = parseFloat($(this).css('top'));
-      $(this).attr("data-toggle", "tooltip" );
-      $(this).attr("data-html", "true" );
-      $(this).attr("data-placement",(top_pos>100?"top":"bottom"));
+      $(this).attr("data-toggle", "tooltip");
+      $(this).attr("data-html", "true");
+      $(this).attr("data-placement", (top_pos > 100 ? "top" : "bottom"));
       let detail_html = '';
       const details = JSON.parse(details_childs[0].textContent);
       for (const key in details) {
@@ -987,7 +737,7 @@ function renderRuntimeInformationToDom(entry = undefined) {
         detail_html += `<span>${key}: <strong>${value}</strong></span><br>`
       }
       $(this).attr("title",
-      `<div style="width: 250px">
+        `<div style="width: 250px">
           <h5> Details </h5>
           <hr style="margin-top: 0px; margin-bottom: 0px;">
           <div style="margin-top: 10px; margin-bottom: 10px;">
@@ -999,28 +749,28 @@ function renderRuntimeInformationToDom(entry = undefined) {
   });
 
   $("p.node-time").
-  filter(function () { return $(this).html().replace(/,/g, "") >= high_query_time_ms }).
-  parent().addClass("high");
+    filter(function() { return $(this).html().replace(/,/g, "") >= high_query_time_ms }).
+    parent().addClass("high");
   $("p.node-time").
-  filter(function () { return $(this).html().replace(/,/g, "") >= very_high_query_time_ms }).
-  parent().addClass("veryhigh");
-  $("p.node-cache-status").filter(function () { return $(this).html() === "cached_not_pinned" })
-                          .parent().addClass("cached-not-pinned").addClass("cached");
-  $("p.node-cache-status").filter(function () { return $(this).html() === "cached_pinned" })
-                          .parent().addClass("cached-pinned").addClass("cached");
-  $("p.node-cache-status").filter(function () { return $(this).html() === "ancestor_cached" })
-                          .parent().addClass("ancestor-cached").addClass("cached");
-  $("p.node-status").filter(function() { return $(this).text() === "fully materialized"}).addClass("fully-materialized");
-  $("p.node-status").filter(function() { return $(this).text() === "lazily materialized"}).addClass("lazily-materialized");
-  $("p.node-status").filter(function() { return $(this).text() === "failed"}).addClass("failed");
-  $("p.node-status").filter(function() { return $(this).text() === "failed because child failed"}).addClass("child-failed");
-  $("p.node-status").filter(function() { return $(this).text() === "not yet started"}).parent().addClass("not-started");
-  $("p.node-status").filter(function() { return $(this).text() === "optimized out"}).addClass("optimized-out");
+    filter(function() { return $(this).html().replace(/,/g, "") >= very_high_query_time_ms }).
+    parent().addClass("veryhigh");
+  $("p.node-cache-status").filter(function() { return $(this).html() === "cached_not_pinned" })
+    .parent().addClass("cached-not-pinned").addClass("cached");
+  $("p.node-cache-status").filter(function() { return $(this).html() === "cached_pinned" })
+    .parent().addClass("cached-pinned").addClass("cached");
+  $("p.node-cache-status").filter(function() { return $(this).html() === "ancestor_cached" })
+    .parent().addClass("ancestor-cached").addClass("cached");
+  $("p.node-status").filter(function() { return $(this).text() === "fully materialized" }).addClass("fully-materialized");
+  $("p.node-status").filter(function() { return $(this).text() === "lazily materialized" }).addClass("lazily-materialized");
+  $("p.node-status").filter(function() { return $(this).text() === "failed" }).addClass("failed");
+  $("p.node-status").filter(function() { return $(this).text() === "failed because child failed" }).addClass("child-failed");
+  $("p.node-status").filter(function() { return $(this).text() === "not yet started" }).parent().addClass("not-started");
+  $("p.node-status").filter(function() { return $(this).text() === "optimized out" }).addClass("optimized-out");
 
   // For each <p>...</p> in #result-tree with class node-name or node-cols, add
   // a title tag with the content of the <p>...</p> (to show the full text on
   // hover).
-  $("#result-tree p.node-name, #result-tree p.node-cols").each(function () {
+  $("#result-tree p.node-name, #result-tree p.node-cols").each(function() {
     $(this).attr("title", $(this).text());
   });
 
