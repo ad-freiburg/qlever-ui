@@ -84,6 +84,26 @@ $(document).ready(function () {
     entities.data('has-mouseenter-handler', 'true');
   }
 
+  // Set up panzoom initialization and cleanup for visualization modal
+  $('#visualisation').on('shown.bs.modal', function () {
+    // Initialize panzoom when modal is displayed
+    if (typeof window.initializePanzoom === 'function') {
+      setTimeout(() => {
+        window.initializePanzoom();
+        // Center the tree after initialization
+        setTimeout(() => {
+          centerTreeInViewport();
+        }, 100);
+      }, 50);
+    }
+  });
+
+  $('#visualisation').on('hidden.bs.modal', function () {
+    if (typeof window.destroyPanzoom === 'function') {
+      window.destroyPanzoom();
+    }
+  });
+
   // Initialization done.
   log('Editor initialized', 'other');
 
@@ -316,7 +336,7 @@ $(document).ready(function () {
         editor.getValue(), {"name_service": "if_checked"});
       const queryRewrittenAndNormalizedAndWithEscapedQuotes =
         normalizeQuery(queryRewritten).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
-      
+
       if (editor.state.completionActive) { editor.state.completionActive.close(); }
 
       // POST request to Django, for the query hash.
@@ -389,7 +409,7 @@ $(document).ready(function () {
   accessToken.on("input", function () {
     updateBackendCommandVisibility();
   });
-  
+
 });
 
 function addNameHover(element, domElement, list, namepredicate, prefixes) {
@@ -619,7 +639,7 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
 
   try {
     let result = await fetchQleverBackend(params, headers);
-    
+
     log('Evaluating and displaying results...', 'other');
 
     if (result.status === "ERROR") {
@@ -840,13 +860,13 @@ async function processQuery(sendLimit=0, element=$("#exebtn")) {
     }
   }
 }
-  
+
 async function handleStatsDisplay() {
   try {
     log('Loading backend statistics...', 'other');
     $('#statsButton span').html('Loading information...');
     $('#statsButton').attr('disabled', 'disabled');
-    
+
     try {
       const response = await fetch(`${BASEURL}?cmd=stats`);
       if (!response.ok) {
@@ -895,6 +915,47 @@ function showQueryPlanningTree(entry = undefined) {
 }
 
 let currentTree = null;
+
+// Centers and fits the tree in the viewport using panzoom
+function centerTreeInViewport(attempt = 1, maxAttempts = 10) {
+  console.log('centerTreeInViewport called, attempt:', attempt);
+  const treeViewport = document.getElementById('tree-viewport');
+  const resultTree = document.getElementById('result-tree');
+
+  if (!treeViewport || !resultTree) {
+    console.log('Missing elements: treeViewport=', treeViewport, 'resultTree=', resultTree);
+    return;
+  }
+
+  // Look for any tree content - try multiple selectors
+  let treantContainer = resultTree.querySelector('.Treant') || 
+                       resultTree.querySelector('[class*="Treant"]') ||
+                       (resultTree.children.length > 0 ? resultTree : null);
+
+  if (!treantContainer) {
+    console.log('No tree container found, attempt', attempt);
+    if (attempt < maxAttempts) {
+      setTimeout(() => centerTreeInViewport(attempt + 1, maxAttempts), 100);
+    } else {
+      console.log('Max attempts reached, giving up on centering');
+    }
+    return;
+  }
+
+  console.log('Found tree container, applying simple reset...');
+  
+  // Simple approach - just reset panzoom to make tree visible
+  if (window.panzoomInstance) {
+    try {
+      window.panzoomInstance.reset();
+      console.log('Tree reset to default view');
+    } catch (error) {
+      console.log('Error during reset:', error.message);
+    }
+  } else {
+    console.log('No panzoom instance available');
+  }
+}
 
 // Uses the information inside of request_log
 // to populate the DOM with the current runtime information.
@@ -954,6 +1015,8 @@ function renderRuntimeInformationToDom(entry = undefined) {
       container: "#result-tree",
       rootOrientation: "NORTH",
       connectors: { type: "step" },
+      // Allow unlimited canvas size for large trees
+      scrollbar: "resize"
     },
     nodeStructure: runtime_info["query_execution_tree"]
   }
@@ -965,6 +1028,11 @@ function renderRuntimeInformationToDom(entry = undefined) {
   if (currentTree !== null) {
     currentTree.destroy();
   }
+  // Destroy any existing panzoom instance
+  if (typeof window.destroyPanzoom === 'function') {
+    window.destroyPanzoom();
+  }
+
   currentTree = new Treant(treant_tree);
   $("#visualisation").scrollTop(scrollTop);
   $("#result-tree").scrollLeft(scrollLeft);
