@@ -974,7 +974,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   // it's terribly inefficient.
   if (pos > 0) {
     cpy = cpy.replace(/ /g, '_');
-    const linkMatch = cpy.substring(pos).match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g);
+    const linkMatch = cpy.substring(pos).match(/(https?:\/\/[^\s<>"']+)/g);
     if (linkMatch) {
       const link = linkMatch[0];
       const columnHTML = $($('#resTable').find('th')[column + 1]);
@@ -1002,7 +1002,7 @@ function getFormattedResultEntry(str, maxLength, column = undefined) {
   // TODO: What if http occur somewhere inside a literal or a link?
   } else if (pos_http > 0) {
     cpy = cpy.replace(/ /g, '_');
-    link_match = cpy.match(/(https?:\/\/[a-zA-Z0-9.:%/#\?_-]+)/g);
+    link_match = cpy.match(/(https?:\/\/[^\s<>"']+)/g);
     if(link_match != null) {
       isLink = true;
       link = link_match[0];
