@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<component type="web-application">
+  <id>dev.qlever.qlever_ui</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+
+  <name>QLever UI</name>
+  <summary>User-friendly interface for the QLever SPARQL engine</summary>
+  <developer id="de.uni-freiburg.cs.ad">
+    <name>University of Freiburg, Chair for Algorithms and Data Structures</name>
+  </developer>
+
+  <description>
+    <p>
+      QLever UI is an easy-to-use interactive user interface for the SPARQL search engine QLever. It helps to discover the scopes and information in very large knowledge bases.
+    </p>
+    <ul>
+      <li>Write SPARQL queries with context-sensitive suggestions and auto-completion</li>
+      <li>Show different types of results, such as geographical data, named instances and images</li>
+      <li>Customize the interface for the needs of its users and the structure of the dataset</li>
+    </ul>
+    <p>
+      QLever (pronounced "Clever") is a graph database that implements the RDF and SPARQL standards. It can efficiently load and query very large datasets on a single commodity PC or server.
+    </p>
+  </description>
+
+  <launchable type="url">https://qlever.dev/</launchable>
+  <icon type="remote" width="512" height="512">https://raw.githubusercontent.com/qlever-dev/qlever-docs/master/docs/assets/logo.png</icon>
+
+  <categories>
+    <category>Development</category>
+    <category>Database</category>
+  </categories>
+  <keywords>
+    <keyword>SPARQL</keyword>
+    <keyword>RDF</keyword>
+    <keyword>knowledge graph</keyword>
+    <keyword>query</keyword>
+    <keyword>autocompletion</keyword>
+  </keywords>
+
+  <url type="homepage">https://qlever.dev/</url>
+  <url type="bugtracker">https://github.com/qlever-dev/qlever-ui/issues</url>
+  <url type="vcs-browser">https://github.com/qlever-dev/qlever-ui</url>
+  <url type="help">https://docs.qlever.dev/</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>SPARQL query editor with context-sensitive suggestions</caption>
+      <image>https://raw.githubusercontent.com/qlever-dev/qlever-ui/master/docs/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.1"/>
+</component>
